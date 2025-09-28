@@ -1,19 +1,13 @@
-﻿// server.js
-const express = require("express");
-const path = require("path");
-
+﻿const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;  // Azure injects PORT
 
-// Serve all static files from "Public" (JS, CSS, images, etc.)
-app.use(express.static(path.join(__dirname, "Public")));
+app.use(express.static("Public"));
 
-// Route: serve index.html for root
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "Public", "index.html"));
+    res.sendFile(__dirname + "/Public/index.html");
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });
