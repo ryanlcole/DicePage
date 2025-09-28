@@ -1,0 +1,17 @@
+{
+  "name": "dicepage",
+  "version": "1.0.0",
+  "description": "Shaelvien Dice Navigation Page",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "three": "^0.155.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
