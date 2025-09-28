@@ -47,18 +47,22 @@
     scene.add(pointLight);
 
     // D20 geometry
-    const geometry = new THREE.IcosahedronGeometry(2, 0); // 20 faces
+    const geometry = new THREE.IcosahedronGeometry(2, 0);
 
-    // Give each face its own random material (debug mode)
-    const materials = [];
-    for (let i = 0; i < geometry.faces.length; i++) {
-      materials.push(new THREE.MeshPhongMaterial({ 
-        color: new THREE.Color(Math.random(), Math.random(), Math.random()) 
-      }));
+    // Assign random colors to faces
+    const material = new THREE.MeshPhongMaterial({
+      vertexColors: true, // enables per-vertex coloring
+      flatShading: true
+    });
+
+    // Add random colors to geometry faces
+    const colors = [];
+    for (let i = 0; i < geometry.attributes.position.count; i++) {
+      colors.push(Math.random(), Math.random(), Math.random());
     }
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-    // Create a mesh with MultiMaterial support
-    const d20 = new THREE.Mesh(geometry, materials);
+    const d20 = new THREE.Mesh(geometry, material);
     scene.add(d20);
 
     // Animate
@@ -79,3 +83,4 @@
   </script>
 </body>
 </html>
+
