@@ -23,21 +23,15 @@ jobs:
       - name: Install dependencies, build, and test
         working-directory: DicePage
         run: |
-          npm ci
+          npm install
           npm run build --if-present
-          npm test --if-present
+          npm run test --if-present
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            DicePage/**
-            !**/.vs/**
-            !**/*.sln
-            !**/*.user
-            !**/[Bb]in/**
-            !**/[Oo]bj/**
+          path: DicePage
 
   deploy:
     runs-on: ubuntu-latest
@@ -66,5 +60,6 @@ jobs:
           app-name: 'ShaelvienDiceGroup'
           slot-name: 'Production'
           package: .
+
 
 
