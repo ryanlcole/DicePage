@@ -20,14 +20,23 @@ jobs:
         with:
           node-version: '22.x'
 
-      # ✅ Cache node_modules based on package-lock.json
-      - name: Cache Node.js modules
+      # ✅ Cache npm's global cache (downloaded packages)
+      - name: Cache NPM cache
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-npm-
+
+      # ✅ Cache node_modules (local project dependencies)
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
 
       - name: Install dependencies, build, and test
         run: |
@@ -68,6 +77,7 @@ jobs:
           app-name: 'ShaelvienDiceGroup'
           slot-name: 'Production'
           package: .
+
 
 
 
