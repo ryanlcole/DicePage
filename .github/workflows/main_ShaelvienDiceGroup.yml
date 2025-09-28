@@ -59,7 +59,8 @@ jobs:
         with:
           app-name: 'ShaelvienDiceGroup'
           slot-name: 'Production'
-          package: .
+          package: ./DicePage
+
 
 
 
