@@ -3,7 +3,23 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// 🔒 Force HTTPS + Redirect www → non-www
+app.use((req, res, next) => {
+    // Redirect HTTP to HTTPS
+    if (req.headers["x-forwarded-proto"] !== "https") {
+        return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+
+    // Redirect www to non-www
+    if (req.headers.host && req.headers.host.startsWith("www.")) {
+        const newHost = req.headers.host.slice(4); // remove "www."
+        return res.redirect(301, `https://${newHost}${req.url}`);
+    }
+
+    next();
+});
 
 // Serve static files from /Public
 app.use(express.static(path.join(__dirname, "Public")));
@@ -26,12 +42,12 @@ categories.forEach((cat) => {
         const grid = items
             .map(
                 (p) => `
-        <div style="border:1px solid #ccc; padding:10px; margin:10px; width:150px; text-align:center;">
-          <img src="${p.image}" alt="${p.name}" style="max-width:100px; display:block; margin:auto;" />
-          <h3>${p.name}</h3>
-          <p>$${p.price}</p>
-        </div>
-      `
+      <div style="border:1px solid #ccc; padding:10px; margin:10px; width:150px; text-align:center;">
+        <img src="${p.image}" alt="${p.name}" style="max-width:100px; display:block; margin:auto;" />
+        <h3>${p.name}</h3>
+        <p>$${p.price}</p>
+      </div>
+    `
             )
             .join("");
 
@@ -55,7 +71,7 @@ categories.forEach((cat) => {
     });
 });
 
-// API endpoint for categories (used by dice.js)
+// API endpoint for categories
 app.get("/api/categories", (req, res) => {
     res.json(categories);
 });
