@@ -12,28 +12,32 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22'   # Match your Azure config
 
       - name: Install dependencies
         run: npm install
 
       - name: Run build (optional)
-        run: npm run build --if-present
+        run: |
+          if [ -f package.json ]; then
+            npm run build --if-present
+          fi
 
-      - name: Archive production artifacts
-        run: zip -r release.zip .
-        shell: bash
-
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v3
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: |
+            .
+            !node_modules/
+            !**/.git
+            !**/.github
+            !**/tests
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,18 +48,16 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Unzip artifact
-        run: unzip release.zip
-
-      - name: Deploy to Azure WebApp
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ShaelvienDiceGroup
-          slot-name: Production
+          app-name: 'ShaelvienDiceGroup'   # Must match Azure App Service name
+          slot-name: 'production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
+
