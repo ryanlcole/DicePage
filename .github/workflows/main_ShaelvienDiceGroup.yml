@@ -45,7 +45,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: .
+          path: DicePage
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -59,8 +59,4 @@ jobs:
         with:
           app-name: 'ShaelvienDiceGroup'
           slot-name: 'Production'
-          package: ./DicePage
-
-
-
-
+          package: DicePage
