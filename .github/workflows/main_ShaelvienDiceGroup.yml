@@ -14,50 +14,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'   # Match your Azure config
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Run build (optional)
+      - name: Build app (if needed)
         run: |
-          if [ -f package.json ]; then
-            npm run build --if-present
-          fi
+          echo "No custom build step for now"
+          # npm run build   # Uncomment if you add a build step later
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            .
-            !node_modules/
-            !**/.git
-            !**/.github
-            !**/tests
+          path: .  # Upload everything, including node_modules if needed
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: .
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'ShaelvienDiceGroup'   # Must match Azure App Service name
-          slot-name: 'production'
+          app-name: 'ShaelvienDiceGroup'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
-
