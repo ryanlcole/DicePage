@@ -1,9 +1,79 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Shaelvien Dice</title>
-  </head>
-  <body>
-    <h1>Hello from Shaelvien Dice!</h1>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shaelvien Dice</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #000000, #1a1a1a);
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // Scene, camera, renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5).normalize();
+    scene.add(directionalLight);
+
+    // Geometry (cube as d6 die)
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+
+    // Load dice textures
+    const loader = new THREE.TextureLoader();
+    const materials = [
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png") }),
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/b/b8/Alea_2.png") }),
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/2/2f/Alea_3.png") }),
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/8/8d/Alea_4.png") }),
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/5/55/Alea_5.png") }),
+      new THREE.MeshPhongMaterial({ map: loader.load("https://upload.wikimedia.org/wikipedia/commons/f/f4/Alea_6.png") })
+    ];
+
+    const dice = new THREE.Mesh(geometry, materials);
+    scene.add(dice);
+
+    // Camera position
+    camera.position.z = 5;
+
+    // Controls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      dice.rotation.x += 0.01;
+      dice.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize handler
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
 </html>
+
