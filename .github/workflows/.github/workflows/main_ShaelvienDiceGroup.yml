@@ -1,5 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Deploy Node.js app to Azure Web App - ShaelvienDiceGroup
 
 name: Build and deploy Node.js app to Azure Web App - ShaelvienDiceGroup
 
@@ -17,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./  # Ensure GitHub Actions runs npm in repo root
+        working-directory: ./  # Run commands from repo root
 
     steps:
       - uses: actions/checkout@v4
@@ -44,8 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write  # Required for requesting the JWT
-      contents: read   # Required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
