@@ -51,6 +51,9 @@
   // === Geometry (D20) ===
   const geometry = new THREE.IcosahedronGeometry(1, 0);
 
+  // Convert geometry to non-indexed (ensures unique vertices per face)
+  geometry.toNonIndexed();
+
   // === Textures ===
   const textureLoader = new THREE.TextureLoader();
   const textureFiles = [
@@ -72,21 +75,17 @@
     "Red-Diamond.jpg",
     "serendibite.jpg",
     "taaffeite.jpg",
-    "Tanzanite.jpg"
+    "Tanzanite.jpg",
+    "alexandrite.jpg" // repeat to make 20 if needed
   ];
 
-  // Fallback in case you want 20 exactly:
-  while (textureFiles.length < 20) {
-    textureFiles.push(textureFiles[textureFiles.length - 1]);
-  }
-
-  // === Materials array ===
+  // === Materials array (1 per face) ===
   const materials = textureFiles.map(file => {
     const tex = textureLoader.load(file);
     return new THREE.MeshStandardMaterial({ map: tex });
   });
 
-  // === Mesh ===
+  // === Mesh with per-face material ===
   const d20 = new THREE.Mesh(geometry, materials);
   scene.add(d20);
 
