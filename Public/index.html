@@ -43,7 +43,8 @@ let selectedNumber = null;
 let rollingOut = false;
 let rollStartTime = null;
 let projectionScreen = null;
-let stars;
+let starField;
+const starLayers = [];
 let projectorCrystal;
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -80,7 +81,8 @@ new RGBELoader()
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = hdr;
     makeD20();
-    makeStars();
+    makeStarField();
+    makeGemLayers();
   });
 
 // --- D20 ---
@@ -175,25 +177,63 @@ function addNumbers(font, geo) {
   animate();
 }
 
-// --- Stars ---
-function makeStars() {
+// --- White Starfield ---
+function makeStarField() {
   const starGeo = new THREE.BufferGeometry();
   const starCount = 3000;
   const posArray = new Float32Array(starCount * 3);
 
   for (let i = 0; i < starCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 500;
+    posArray[i] = (Math.random() - 0.5) * 800;
   }
   starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
 
   const starMat = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 0.6,
+    size: 0.5,
     transparent: true
   });
 
-  stars = new THREE.Points(starGeo, starMat);
-  scene.add(stars);
+  starField = new THREE.Points(starGeo, starMat);
+  scene.add(starField);
+}
+
+// --- Gem Layers ---
+function makeGemLayers() {
+  function makeLayer(radius, count, speed) {
+    const group = new THREE.Group();
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * 2 * Math.PI;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      const geo = new THREE.IcosahedronGeometry(0.3, 0);
+      const color = gemColors[Math.floor(Math.random() * gemColors.length)];
+      const mat = new THREE.MeshPhysicalMaterial({
+        color,
+        metalness: 0,
+        roughness: 0.1,
+        transmission: 0.9,
+        thickness: 0.5,
+        emissive: new THREE.Color(color),
+        emissiveIntensity: 0.4,
+        envMapIntensity: 1.2
+      });
+
+      const gem = new THREE.Mesh(geo, mat);
+      gem.position.set(x, y, z);
+      group.add(gem);
+    }
+    group.userData.speed = speed;
+    scene.add(group);
+    starLayers.push(group);
+  }
+
+  makeLayer(60, 150, 0.0005);
+  makeLayer(100, 200, 0.0003);
+  makeLayer(140, 250, 0.0002);
 }
 
 // --- Projector & Screen ---
@@ -205,7 +245,7 @@ function spawnProjectionScreen(num) {
 
   const screenGroup = new THREE.Group();
 
-  // --- Projector crystal ---
+  // Crystal
   const crystalMat = new THREE.MeshPhysicalMaterial({
     color: 0x66ccff,
     metalness: 0,
@@ -220,7 +260,7 @@ function spawnProjectionScreen(num) {
   projectorCrystal.position.set(0, 1.2, -3);
   screenGroup.add(projectorCrystal);
 
-  // --- Projection beam ---
+  // Beam
   const beamGeo = new THREE.ConeGeometry(1.5, 2.5, 32, 1, true);
   const beamMat = new THREE.MeshStandardMaterial({
     color: 0x66ccff,
@@ -235,7 +275,7 @@ function spawnProjectionScreen(num) {
   beam.position.set(0, 0.1, -4.5);
   screenGroup.add(beam);
 
-  // --- Projection screen ---
+  // Screen
   const planeMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     emissive: 0xffffff,
@@ -247,7 +287,7 @@ function spawnProjectionScreen(num) {
   plane.position.set(0, 2.5, -6);
   screenGroup.add(plane);
 
-  // --- Number text ---
+  // Number text
   const textGeo = new TextGeometry(num, {
     font: fontGlobal,
     size: 0.8,
@@ -258,7 +298,7 @@ function spawnProjectionScreen(num) {
   textMesh.position.set(-0.3, -0.4, 0.01);
   plane.add(textMesh);
 
-  // Fade-in animation
+  // Fade-in
   let fadeStart = clock.getElapsedTime();
   function fadeIn() {
     let elapsed = clock.getElapsedTime() - fadeStart;
@@ -279,44 +319,40 @@ function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  // Stars drift
-  if (stars) {
-    stars.rotation.y += 0.0002;
-    stars.rotation.x += 0.0001;
+  // Starfield drift
+  if (starField) {
+    starField.rotation.y += 0.0001;
   }
+  starLayers.forEach((layer) => {
+    layer.rotation.y += layer.userData.speed;
+    layer.rotation.x += layer.userData.speed * 0.5;
+  });
 
-  // Die idle rotation
+  // D20 idle spin
   if (d20 && !rollingOut) {
     d20.rotation.y += 0.008;
     d20.rotation.x += 0.004;
   }
 
-  // Die rolling out
+  // D20 roll animation
   if (d20 && rollingOut) {
     const elapsed = t - rollStartTime;
-
-    // Z movement
     d20.position.z = THREE.MathUtils.lerp(0, -10, Math.min(elapsed / 4, 1));
-
-    // Multiple bounces (damped sine)
     const bounce = Math.exp(-elapsed * 1.2) * Math.sin(elapsed * 6);
     d20.position.y = bounce - Math.min(elapsed / 4, 1) * 1.5;
-
-    // Spin then straighten
     if (elapsed < 2.5) {
       d20.rotation.x += 0.25;
       d20.rotation.z += 0.18;
     } else {
       d20.rotation.y += 0.08;
     }
-
     if (elapsed > 5) {
       rollingOut = false;
       spawnProjectionScreen(selectedNumber);
     }
   }
 
-  // Projector crystal pulsing
+  // Projector crystal pulse
   if (projectorCrystal) {
     projectorCrystal.scale.setScalar(1 + Math.sin(t * 3) * 0.1);
     projectorCrystal.material.emissiveIntensity = 1.2 + Math.sin(t * 2) * 0.5;
