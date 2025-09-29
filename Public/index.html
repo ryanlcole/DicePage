@@ -16,7 +16,6 @@
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
-import { SubdivisionModifier } from "https://esm.sh/three@0.160.0/examples/jsm/modifiers/SubdivisionModifier.js";
 
 // --- Scene ---
 const scene = new THREE.Scene();
@@ -39,13 +38,10 @@ let d20, fontGlobal;
 const textMeshes = [];
 const gemColors = [0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff, 0xffcc33, 0xffffff, 0xcc99ff, 0xff3333];
 
-// --- D20 with chamfer ---
+// --- D20 ---
 function makeD20() {
-  let geo = new THREE.IcosahedronGeometry(1, 0);
-
-  // Subdivide to add smoothness
-  const modifier = new SubdivisionModifier(2);
-  geo = modifier.modify(geo);
+  // Use detail=2 to add smoothness
+  const geo = new THREE.IcosahedronGeometry(1, 2);
 
   const mat = new THREE.MeshPhysicalMaterial({
     color: 0x9d9d9d,
@@ -60,7 +56,7 @@ function makeD20() {
   d20 = new THREE.Mesh(geo, mat);
   scene.add(d20);
 
-  const edges = new THREE.EdgesGeometry(geo);
+  const edges = new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1, 0));
   d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
   new FontLoader().load(
