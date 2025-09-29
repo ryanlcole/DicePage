@@ -43,6 +43,7 @@ let selectedNumber = null;
 let rollingOut = false;
 let rollStartTime = null;
 let projectionScreen = null;
+let stars;
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -176,21 +177,21 @@ function addNumbers(font, geo) {
 // --- Stars ---
 function makeStars() {
   const starGeo = new THREE.BufferGeometry();
-  const starCount = 2000;
+  const starCount = 3000;
   const posArray = new Float32Array(starCount * 3);
 
   for (let i = 0; i < starCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 300;
+    posArray[i] = (Math.random() - 0.5) * 500;
   }
   starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
 
   const starMat = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 0.7,
+    size: 0.6,
     transparent: true
   });
 
-  const stars = new THREE.Points(starGeo, starMat);
+  stars = new THREE.Points(starGeo, starMat);
   scene.add(stars);
 }
 
@@ -231,6 +232,12 @@ function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
+  // Stars drift
+  if (stars) {
+    stars.rotation.y += 0.0002;
+    stars.rotation.x += 0.0001;
+  }
+
   if (d20 && !rollingOut) {
     d20.rotation.y += 0.008;
     d20.rotation.x += 0.004;
@@ -239,14 +246,23 @@ function animate() {
   if (d20 && rollingOut) {
     const elapsed = t - rollStartTime;
 
-    // Roll backward with spin + drop
-    d20.position.z = THREE.MathUtils.lerp(0, -10, Math.min(elapsed / 3, 1));
-    d20.position.y = Math.sin(elapsed * 5) * 0.2 - Math.min(elapsed / 3, 1) * 1.5;
-    d20.rotation.x += 0.2;
-    d20.rotation.z += 0.15;
+    // Z movement: roll back
+    d20.position.z = THREE.MathUtils.lerp(0, -10, Math.min(elapsed / 4, 1));
 
-    // Bounce settle after ~3s
-    if (elapsed > 3) {
+    // Multiple bounces (damped sine)
+    const bounce = Math.exp(-elapsed * 1.2) * Math.sin(elapsed * 6);
+    d20.position.y = bounce - Math.min(elapsed / 4, 1) * 1.5;
+
+    // Spin fast initially, then slow into straight roll
+    if (elapsed < 2.5) {
+      d20.rotation.x += 0.25;
+      d20.rotation.z += 0.18;
+    } else {
+      d20.rotation.y += 0.08; // clean straight roll
+    }
+
+    // Stop after ~5s
+    if (elapsed > 5) {
       rollingOut = false;
       spawnProjectionScreen(selectedNumber);
     }
@@ -264,3 +280,4 @@ addEventListener("resize", () => {
 </script>
 </body>
 </html>
+
