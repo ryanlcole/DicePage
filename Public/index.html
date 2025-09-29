@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Three.js Test</title>
+  <meta charset="UTF-8" />
+  <title>Shaelvien D20 – Step 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { margin: 0; overflow: hidden; background: #2e1a0f; }
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body { background: #2e1a0f; } /* deep brown */
     canvas { display: block; }
   </style>
 </head>
@@ -12,44 +15,72 @@
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-    // Scene
+    // --- Scene ---
     const scene = new THREE.Scene();
 
-    // Camera
+    // --- Camera ---
     const camera = new THREE.PerspectiveCamera(
-      75,
+      60,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      100
     );
-    camera.position.z = 3;
+    camera.position.set(0, 0, 4);
 
-    // Renderer
+    // --- Renderer ---
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
-    // Cube
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    // --- Lights ---
+    // soft ambient + a key light + a rim light
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
-    // Light
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 5, 5);
-    scene.add(light);
+    const key = new THREE.DirectionalLight(0xffffff, 1.0);
+    key.position.set(3, 2, 4);
+    scene.add(key);
 
-    // Animate
+    const rim = new THREE.DirectionalLight(0xffffff, 0.6);
+    rim.position.set(-3, -1, -2);
+    scene.add(rim);
+
+    // --- D20 (Icosahedron) ---
+    const radius = 1;
+    const detail = 0; // keep it a true icosahedron (20 faces)
+    const geo = new THREE.IcosahedronGeometry(radius, detail);
+
+    // Polished titanium-ish base (we'll refine later)
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x9aa0a6,       // neutral titanium tint
+      metalness: 0.9,
+      roughness: 0.2,
+      envMapIntensity: 1.0,
+      flatShading: true       // emphasizes facets nicely
+    });
+
+    const d20 = new THREE.Mesh(geo, mat);
+    scene.add(d20);
+
+    // Optional: thin edge lines to make faces pop
+    const edges = new THREE.EdgesGeometry(geo);
+    const edgeLines = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 1 })
+    );
+    d20.add(edgeLines);
+
+    // --- Animate ---
     function animate() {
       requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      d20.rotation.y += 0.008;
+      d20.rotation.x += 0.004;
       renderer.render(scene, camera);
     }
     animate();
 
-    // Handle resize
+    // --- Resize ---
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -58,3 +89,4 @@
   </script>
 </body>
 </html>
+
