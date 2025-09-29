@@ -15,10 +15,10 @@
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
   import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
   import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
+  import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
 
   // === Scene ===
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0d0d12); // dark background
 
   // === Camera ===
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -34,98 +34,101 @@
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
-  // === Lights ===
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-  hemiLight.position.set(0, 1, 0);
-  scene.add(hemiLight);
+  // === Environment (HDRI for reflections) ===
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  pmremGenerator.compileEquirectangularShader();
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
-  dirLight.position.set(5, 10, 7.5);
-  scene.add(dirLight);
+  new RGBELoader()
+    .setPath('https://threejs.org/examples/textures/equirectangular/')
+    .load('royal_esplanade_1k.hdr', (hdrEquirect) => {
+      const envMap = pmremGenerator.fromEquirectangular(hdrEquirect).texture;
+      scene.background = envMap;      // makes background reflective
+      scene.environment = envMap;     // applies reflections to metals
+      hdrEquirect.dispose();
+      pmremGenerator.dispose();
 
-  // === Geometry (D20) ===
-  const radius = 2;
-  const geometry = new THREE.IcosahedronGeometry(radius, 0);
+      createDice(); // only build dice after env is ready
+    });
 
-  const titaniumMat = new THREE.MeshStandardMaterial({
-    color: 0xb0b0b0,
-    metalness: 1.0,
-    roughness: 0.25
-  });
+  // === Create Dice ===
+  function createDice() {
+    const radius = 2;
+    const geometry = new THREE.IcosahedronGeometry(radius, 0);
 
-  const d20 = new THREE.Mesh(geometry, titaniumMat);
-  scene.add(d20);
+    // Titanium material
+    const titaniumMat = new THREE.MeshStandardMaterial({
+      color: 0xb0b0b0,
+      metalness: 1.0,
+      roughness: 0.2,
+      envMapIntensity: 1.5
+    });
 
-  // Debug helper: wireframe overlay
-  const wire = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-  const d20wire = new THREE.Mesh(geometry, wire);
-  d20.add(d20wire);
+    const d20 = new THREE.Mesh(geometry, titaniumMat);
+    scene.add(d20);
 
-  // === Mercury numbering (optional) ===
-  const mercuryMat = new THREE.MeshStandardMaterial({
-    color: 0xd8d8ff,
-    metalness: 1.0,
-    roughness: 0.05,
-    emissive: 0x222222,
-  });
+    // Mercury numbers
+    const mercuryMat = new THREE.MeshStandardMaterial({
+      color: 0xd8d8ff,
+      metalness: 1.0,
+      roughness: 0.05,
+      emissive: 0x222222,
+      envMapIntensity: 2.0
+    });
 
-  const loader = new FontLoader();
-  loader.load(
-    'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
-    (font) => {
-      const faceCenters = [];
-      const pos = geometry.attributes.position;
-      const index = geometry.index;
+    const loader = new FontLoader();
+    loader.load(
+      'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
+      (font) => {
+        const pos = geometry.attributes.position;
+        const index = geometry.index;
+        const faceCenters = [];
 
-      for (let i = 0; i < index.count; i += 3) {
-        const a = index.getX(i), b = index.getX(i+1), c = index.getX(i+2);
-        const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
-        const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
-        const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
-        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-        faceCenters.push(center);
-      }
+        for (let i = 0; i < index.count; i += 3) {
+          const a = index.getX(i), b = index.getX(i+1), c = index.getX(i+2);
+          const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+          const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+          const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+          faceCenters.push(center);
+        }
 
-      faceCenters.forEach((center, i) => {
-        const textGeo = new TextGeometry((i+1).toString(), {
-          font,
-          size: 0.4,
-          height: 0.05,
-          bevelEnabled: true,
-          bevelThickness: 0.01,
-          bevelSize: 0.01,
-          bevelSegments: 2
+        faceCenters.forEach((center, i) => {
+          const textGeo = new TextGeometry((i+1).toString(), {
+            font,
+            size: 0.4,
+            height: 0.05,
+            bevelEnabled: true,
+            bevelThickness: 0.01,
+            bevelSize: 0.01,
+            bevelSegments: 2
+          });
+          const textMesh = new THREE.Mesh(textGeo, mercuryMat);
+
+          const normal = center.clone().normalize();
+          textMesh.position.copy(center).addScaledVector(normal, 0.1);
+
+          const quat = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 0, 1), normal
+          );
+          textMesh.quaternion.copy(quat);
+
+          d20.add(textMesh);
         });
+      }
+    );
 
-        textGeo.computeBoundingBox();
-        const textMesh = new THREE.Mesh(textGeo, mercuryMat);
-
-        // Move to face
-        const normal = center.clone().normalize();
-        textMesh.position.copy(center).addScaledVector(normal, 0.1);
-
-        // Rotate to face outward
-        const quat = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 0, 1), normal
-        );
-        textMesh.quaternion.copy(quat);
-
-        d20.add(textMesh);
-      });
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+      d20.rotation.x += 0.003;
+      d20.rotation.y += 0.004;
+      controls.update();
+      renderer.render(scene, camera);
     }
-  );
-
-  // === Animate ===
-  function animate() {
-    requestAnimationFrame(animate);
-    d20.rotation.x += 0.003;
-    d20.rotation.y += 0.004;
-    controls.update();
-    renderer.render(scene, camera);
+    animate();
   }
-  animate();
 
-  // === Resize ===
+  // Resize
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -134,6 +137,7 @@
 </script>
 </body>
 </html>
+
 
 
 
