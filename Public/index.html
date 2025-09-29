@@ -37,9 +37,7 @@ const sunLight = new THREE.PointLight(0xffddaa, 2, 200);
 sunLight.position.set(50, 30, -40);
 scene.add(sunLight);
 
-// Visible glowing sphere for the sun
-const sunMat = new THREE.MeshBasicMaterial({ color: 0xffddaa, emissive: 0xffddaa });
-const sun = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 32), sunMat);
+const sun = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffddaa }));
 sun.position.copy(sunLight.position);
 scene.add(sun);
 
@@ -63,7 +61,7 @@ new RGBELoader()
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = hdr;
     makeD20();
-    makeVortexStars();
+    makePlanetField();   // planets instead of dots
     makeGemLayers();
     loadOrbitingTitles();
   });
@@ -80,19 +78,13 @@ function makeD20() {
   d20 = new THREE.Mesh(geo, dieMat);
   scene.add(d20);
 
-  // Add edges
   const edges = new THREE.EdgesGeometry(geo);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111 }));
-  d20.add(edgeLines);
+  d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111 })));
 
-  // Load font for numbers
-  new FontLoader().load(
-    "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
-    (font) => {
-      fontGlobal = font;
-      addNumbers(font, geo);
-    }
-  );
+  new FontLoader().load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
+    fontGlobal = font;
+    addNumbers(font, geo);
+  });
 }
 
 // --- Numbers ---
@@ -103,18 +95,10 @@ function addNumbers(font, geo) {
   const faceCount = idx ? idx.count / 3 : pos.count / 3;
 
   for (let i = 0; i < faceCount; i++) {
-    let a, b, c;
-    if (idx) {
-      a = idx.getX(i * 3);
-      b = idx.getX(i * 3 + 1);
-      c = idx.getX(i * 3 + 2);
-    } else {
-      a = i * 3; b = i * 3 + 1; c = i * 3 + 2;
-    }
+    let a = idx.getX(i * 3), b = idx.getX(i * 3 + 1), c = idx.getX(i * 3 + 2);
     const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
     const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
     const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
-
     const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
     const tri = new THREE.Triangle(vA, vB, vC);
     const normal = tri.getNormal(new THREE.Vector3()).normalize();
@@ -155,52 +139,60 @@ function addNumbers(font, geo) {
 
 // --- Orbiting Titles ---
 function loadOrbitingTitles() {
-  new FontLoader().load(
-    "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
-    (font) => {
-      const textMat = new THREE.MeshStandardMaterial({
-        color: 0xaaaaaa,
-        metalness: 1.0,
-        roughness: 0.3,
-        envMapIntensity: 2.0
-      });
+  new FontLoader().load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
+    const textMat = new THREE.MeshStandardMaterial({
+      color: 0xaaaaaa,
+      metalness: 1.0,
+      roughness: 0.3,
+      envMapIntensity: 2.0
+    });
 
-      const relicGeo = new TextGeometry("ReLiC", { font, size: 0.6, height: 0.08 });
-      relicGeo.center();
-      relicOrbit = new THREE.Mesh(relicGeo, textMat);
-      scene.add(relicOrbit);
+    const relicGeo = new TextGeometry("ReLiC", { font, size: 0.6, height: 0.08 });
+    relicGeo.center();
+    relicOrbit = new THREE.Mesh(relicGeo, textMat);
+    scene.add(relicOrbit);
 
-      const gmGeo = new TextGeometry("GameMaster", { font, size: 0.6, height: 0.08 });
-      gmGeo.center();
-      gmOrbit = new THREE.Mesh(gmGeo, textMat);
-      scene.add(gmOrbit);
-    }
-  );
+    const gmGeo = new TextGeometry("GameMaster", { font, size: 0.6, height: 0.08 });
+    gmGeo.center();
+    gmOrbit = new THREE.Mesh(gmGeo, textMat);
+    scene.add(gmOrbit);
+  });
 }
 
-// --- Vortex Starfield ---
-function makeVortexStars() {
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 2000;
-  const posArray = new Float32Array(starCount * 3);
+// --- Planet Field (instead of dots) ---
+function makePlanetField() {
+  const planetGroup = new THREE.Group();
+  const planetCount = 200;
+  for (let i = 0; i < planetCount; i++) {
+    const size = Math.random() * 0.3 + 0.1;
+    const geo = new THREE.SphereGeometry(size, 16, 16);
 
-  for (let i = 0; i < starCount; i++) {
-    const r = Math.random() * 400;
-    const theta = i * 0.3 + Math.random() * 0.5;
-    const x = r * Math.cos(theta);
-    const y = (Math.random() - 0.5) * 80;
-    const z = r * Math.sin(theta);
-    posArray[i * 3] = x;
-    posArray[i * 3 + 1] = y;
-    posArray[i * 3 + 2] = z;
+    const color = gemColors[Math.floor(Math.random() * gemColors.length)];
+    const mat = new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.3,
+      roughness: 0.7,
+      emissive: new THREE.Color(color).multiplyScalar(0.2),
+      envMapIntensity: 1.0
+    });
+
+    const planet = new THREE.Mesh(geo, mat);
+
+    // random position in a sphere shell
+    const r = Math.random() * 200 + 40;
+    const theta = Math.random() * 2 * Math.PI;
+    const phi = Math.acos(2 * Math.random() - 1);
+    planet.position.set(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+
+    planetGroup.add(planet);
   }
-  starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
-
-  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
-  const vortex = new THREE.Points(starGeo, starMat);
-  vortex.userData.rotate = true;
-  scene.add(vortex);
-  starLayers.push(vortex);
+  planetGroup.userData.rotate = true;
+  scene.add(planetGroup);
+  starLayers.push(planetGroup);
 }
 
 // --- Gem Layers ---
@@ -246,22 +238,20 @@ function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  // Background
+  // Rotate background layers
   starLayers.forEach((layer) => {
-    if (layer.userData.rotate) layer.rotation.z += 0.0003;
+    if (layer.userData.rotate) layer.rotation.y += 0.0005;
     else {
       layer.rotation.y += layer.userData.speed;
       layer.rotation.x += layer.userData.speed * 0.5;
     }
   });
 
-  // Rotate D20
   if (d20) {
     d20.rotation.y += 0.006;
     d20.rotation.x += 0.003;
   }
 
-  // Orbiting titles like moons
   if (relicOrbit) {
     relicOrbit.position.x = Math.cos(t * 0.4) * 3.5;
     relicOrbit.position.y = Math.sin(t * 0.4) * 2.5;
