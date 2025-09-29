@@ -12,8 +12,8 @@
 </head>
 <body>
   <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-    import { RGBELoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
+    import * as THREE from "https://esm.sh/three@0.160.0";
+    import { RGBELoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
 
     // --- Scene ---
     const scene = new THREE.Scene();
@@ -56,7 +56,7 @@
       const radius = 1;
       const geo = new THREE.IcosahedronGeometry(radius, 0);
 
-      // Titanium-like material with strong reflections
+      // Titanium-like material
       const mat = new THREE.MeshStandardMaterial({
         color: 0x9d9d9d,       // titanium grey
         metalness: 1.0,
@@ -68,7 +68,7 @@
       const d20 = new THREE.Mesh(geo, mat);
       scene.add(d20);
 
-      // Optional edges
+      // Edges for visibility
       const edges = new THREE.EdgesGeometry(geo);
       const edgeLines = new THREE.LineSegments(
         edges,
@@ -95,5 +95,3 @@
   </script>
 </body>
 </html>
-
-
