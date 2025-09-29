@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Shaelvien Engraved D20</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
       overflow: hidden;
       background: radial-gradient(#0d0d12, #000);
     }
-    canvas {
-      display: block;
-    }
+    canvas { display: block; }
   </style>
 </head>
 <body>
@@ -21,7 +19,6 @@
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
   import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
   import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
-  import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
 
   // === Scene ===
   const scene = new THREE.Scene();
@@ -44,119 +41,102 @@
   // === Controls ===
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 2.0;
 
-  // === HDR Environment ===
-  const rgbeLoader = new RGBELoader();
-  rgbeLoader.load(
-    'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/studio_small_08_2k.hdr',
-    (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = texture;
-      scene.background = new THREE.Color(0x000000);
-      buildDice(); // only build dice after HDR is loaded
+  // === Lights ===
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+  hemiLight.position.set(0, 1, 0);
+  scene.add(hemiLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(5, 10, 7.5);
+  scene.add(dirLight);
+
+  // === D20 geometry ===
+  const radius = 2;
+  const geometry = new THREE.IcosahedronGeometry(radius, 0);
+
+  // Titanium-like material
+  const titaniumMat = new THREE.MeshStandardMaterial({
+    color: 0xb0b0b0,
+    metalness: 1.0,
+    roughness: 0.25,
+  });
+
+  const d20 = new THREE.Mesh(geometry, titaniumMat);
+  scene.add(d20);
+
+  // === Mercury numbering ===
+  const mercuryMat = new THREE.MeshStandardMaterial({
+    color: 0xd8d8ff,
+    metalness: 1.0,
+    roughness: 0.05,
+    emissive: 0x222222,
+  });
+
+  const loader = new FontLoader();
+  loader.load(
+    'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
+    function (font) {
+      const faceCenters = [];
+      const pos = geometry.attributes.position;
+      const index = geometry.index;
+
+      for (let i = 0; i < index.count; i += 3) {
+        const a = index.getX(i), b = index.getX(i+1), c = index.getX(i+2);
+        const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+        const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+        const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+        faceCenters.push(center);
+      }
+
+      faceCenters.forEach((center, i) => {
+        const textGeo = new TextGeometry((i+1).toString(), {
+          font: font,
+          size: 0.4,
+          height: 0.05,
+          bevelEnabled: true,
+          bevelThickness: 0.01,
+          bevelSize: 0.01,
+          bevelSegments: 2
+        });
+
+        textGeo.computeBoundingBox();
+        const textMesh = new THREE.Mesh(textGeo, mercuryMat);
+
+        // Center the number
+        const bb = textGeo.boundingBox;
+        const offsetX = (bb.max.x - bb.min.x) / 2;
+        const offsetY = (bb.max.y - bb.min.y) / 2;
+        textMesh.position.set(-offsetX, -offsetY, 0);
+
+        // Move it to the face center
+        const normal = center.clone().normalize();
+        textMesh.position.copy(center).addScaledVector(normal, 0.05);
+
+        // Face it outward
+        const quat = new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0, 0, 1), normal
+        );
+        textMesh.quaternion.copy(quat);
+
+        scene.add(textMesh);
+      });
     }
   );
-
-  function buildDice() {
-    // === Titanium Material (polished) ===
-    const titaniumMat = new THREE.MeshPhysicalMaterial({
-      color: 0xcccccc,
-      metalness: 1.0,
-      roughness: 0.05,
-      reflectivity: 1.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity: 1.5
-    });
-
-    // === Mercury Number Material ===
-    const mercuryMat = new THREE.MeshPhysicalMaterial({
-      color: 0xd9d9ff,
-      metalness: 1.0,
-      roughness: 0.15,
-      emissive: 0x333355,
-      reflectivity: 1.0,
-      envMapIntensity: 2.0
-    });
-
-    // === D20 Geometry ===
-    const radius = 2;
-    const geometry = new THREE.IcosahedronGeometry(radius, 0);
-    const d20 = new THREE.Mesh(geometry, titaniumMat);
-    scene.add(d20);
-
-    // === Engraved Numbers ===
-    const loader = new FontLoader();
-    loader.load(
-      'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
-      (font) => {
-        const positions = geometry.attributes.position;
-        const faceNormals = geometry.attributes.normal;
-
-        let number = 1;
-        for (let i = 0; i < positions.count; i += 3) {
-          const vA = new THREE.Vector3().fromBufferAttribute(positions, i);
-          const vB = new THREE.Vector3().fromBufferAttribute(positions, i + 1);
-          const vC = new THREE.Vector3().fromBufferAttribute(positions, i + 2);
-
-          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-          const normal = new THREE.Vector3().fromBufferAttribute(faceNormals, i);
-
-          // Create text
-          const textGeo = new TextGeometry(number.toString(), {
-            font: font,
-            size: 0.5,
-            height: 0.05,
-          });
-
-          textGeo.computeBoundingBox();
-          const bb = textGeo.boundingBox;
-          const textOffset = new THREE.Vector3(
-            (bb.max.x - bb.min.x) * 0.5,
-            (bb.max.y - bb.min.y) * 0.5,
-            (bb.max.z - bb.min.z) * 0.5
-          );
-          textGeo.translate(-textOffset.x, -textOffset.y, -textOffset.z);
-
-          const textMesh = new THREE.Mesh(textGeo, mercuryMat);
-
-          // Orient text
-          const quat = new THREE.Quaternion().setFromUnitVectors(
-            new THREE.Vector3(0, 0, 1),
-            normal.clone().normalize()
-          );
-          textMesh.quaternion.copy(quat);
-
-          // Inset into face
-          textMesh.position.copy(center).addScaledVector(normal, -0.05);
-
-          // Scale
-          const width = bb.max.x - bb.min.x;
-          const scale = (radius * 0.5) / width;
-          textMesh.scale.setScalar(scale);
-
-          scene.add(textMesh);
-
-          number++;
-          if (number > 20) break;
-        }
-      }
-    );
-  }
 
   // === Animate ===
   function animate() {
     requestAnimationFrame(animate);
+    d20.rotation.x += 0.002;
+    d20.rotation.y += 0.003;
     controls.update();
     renderer.render(scene, camera);
   }
   animate();
 
   // === Resize ===
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -164,4 +144,5 @@
 </script>
 </body>
 </html>
+
 
