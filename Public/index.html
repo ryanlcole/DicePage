@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Shaelvien D20 Shop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
     body { background: #2e1a0f; }
@@ -13,7 +14,6 @@
 <body>
   <script type="module">
     import * as THREE from "https://esm.sh/three@0.160.0";
-    import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
     import { RGBELoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
     import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
     import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
@@ -35,17 +35,6 @@
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 2, 4);
     scene.add(key);
-
-    // --- Controls ---
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enablePan = false;
-    controls.minDistance = 2;
-    controls.maxDistance = 6;
-
-    let isUserInteracting = false;
-    controls.addEventListener("start", () => { isUserInteracting = true; });
-    controls.addEventListener("end", () => { isUserInteracting = false; });
 
     // --- Categories ---
     const categories = ["TTRPG", "Anime", "Retro Gaming", "Cosplay"];
@@ -86,13 +75,7 @@
       loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
         const pos = geo.attributes.position;
         const index = geo.index;
-
-        let faceCount;
-        if (index) {
-          faceCount = index.count / 3;
-        } else {
-          faceCount = pos.count / 3;
-        }
+        const faceCount = index ? index.count / 3 : pos.count / 3;
 
         for (let i = 0; i < faceCount; i++) {
           let vA, vB, vC;
@@ -110,4 +93,85 @@
             vC = new THREE.Vector3().fromBufferAttribute(pos, i * 3 + 2);
           }
 
-          const cente
+          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+          const category = categories[i % categories.length];
+
+          const textGeo = new TextGeometry(category, { font: font, size: 0.2, height: 0.02 });
+
+          const shaderMat = new THREE.ShaderMaterial({
+            uniforms: {
+              uTime: { value: 0 },
+              uRippleStrength: { value: 0 }
+            },
+            vertexShader: `
+              uniform float uTime;
+              uniform float uRippleStrength;
+              void main() {
+                vec3 newPosition = position;
+                float wave = sin((position.x + position.y) * 10.0 + uTime * 5.0) * 0.02 * uRippleStrength;
+                newPosition += normal * wave;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+              }
+            `,
+            fragmentShader: `
+              void main() {
+                gl_FragColor = vec4(vec3(0.1), 1.0); // dark engraved
+              }
+            `,
+          });
+
+          const textMesh = new THREE.Mesh(textGeo, shaderMat);
+          textGeo.computeBoundingBox();
+          const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
+          textMesh.position.copy(center).add(offset.multiplyScalar(0.01));
+          textMesh.lookAt(center.clone().multiplyScalar(2));
+
+          d20.add(textMesh);
+          texts.push(textMesh);
+        }
+      });
+
+      animate();
+    }
+
+    function onPointerMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+    window.addEventListener("mousemove", onPointerMove);
+    window.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 0) onPointerMove(e.touches[0]);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      if (d20) {
+        d20.rotation.y += 0.008;
+        d20.rotation.x += 0.004;
+      }
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(texts);
+
+      texts.forEach(t => t.material.uniforms.uRippleStrength.value *= 0.9);
+
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        obj.material.uniforms.uRippleStrength.value = 1.0;
+      }
+
+      texts.forEach(t => t.material.uniforms.uTime.value = elapsed);
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
