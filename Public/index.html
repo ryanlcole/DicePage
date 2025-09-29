@@ -7,7 +7,7 @@
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: #2e1a0f; } /* deep brown backdrop */
+    body { background: black; } /* dark space backdrop */
     canvas { display: block; }
   </style>
 </head>
@@ -54,36 +54,69 @@
       mouse.y = -(e.clientY / innerHeight) * 2 + 1;
     });
 
+    // --- Starfield Background ---
+    function makeStars() {
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 1500;
+      const positions = [];
+      for (let i = 0; i < starCount; i++) {
+        const r = 50;
+        const theta = Math.random() * 2 * Math.PI;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
+        positions.push(x, y, z);
+      }
+      starGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3, sizeAttenuation: true });
+      const stars = new THREE.Points(starGeo, starMat);
+      scene.add(stars);
+
+      // Add constellation lines
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.25 });
+      for (let i = 0; i < 50; i++) {
+        const a = new THREE.Vector3(
+          positions[i * 3],
+          positions[i * 3 + 1],
+          positions[i * 3 + 2]
+        );
+        const b = new THREE.Vector3(
+          positions[(i + 1) * 3],
+          positions[(i + 1) * 3 + 1],
+          positions[(i + 1) * 3 + 2]
+        );
+        const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
+        const line = new THREE.Line(geo, lineMat);
+        scene.add(line);
+      }
+    }
+    makeStars();
+
     // --- Environment (HDR reflections) ---
     new RGBELoader()
       .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
       .load("royal_esplanade_1k.hdr", (hdr) => {
         hdr.mapping = THREE.EquirectangularReflectionMapping;
         scene.environment = hdr;
-        scene.background = null;
         makeD20();
       });
 
     function makeD20() {
-      const radius = 1;
-      const geo = new THREE.IcosahedronGeometry(radius, 0);
-
+      const geo = new THREE.IcosahedronGeometry(1, 0);
       const dieMat = new THREE.MeshStandardMaterial({
-        color: 0x9d9d9d,   // titanium grey
+        color: 0x9d9d9d,
         metalness: 1.0,
         roughness: 0.15,
         envMapIntensity: 1.5,
         flatShading: true
       });
-
       d20 = new THREE.Mesh(geo, dieMat);
       scene.add(d20);
 
-      // Edge lines
       const edges = new THREE.EdgesGeometry(geo);
       d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
-      // Numbers
       new FontLoader().load(
         "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
         (font) => addNumbers(font, geo)
@@ -92,7 +125,6 @@
 
     function addNumbers(font, geo) {
       const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
-
       const pos = geo.attributes.position;
       const idx = geo.index;
       const faceCount = idx ? idx.count / 3 : pos.count / 3;
@@ -142,7 +174,6 @@
         });
 
         const textMesh = new THREE.Mesh(textGeo, textMat);
-
         const centerOffset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
         textMesh.position.copy(centerOffset);
 
@@ -152,7 +183,7 @@
         holder.add(textMesh);
 
         d20.add(holder);
-        textMeshes.push(textMesh); // store actual mesh for glow
+        textMeshes.push(textMesh);
       }
 
       animate();
@@ -167,27 +198,22 @@
         d20.rotation.x += 0.004;
       }
 
-      // shimmer
       textMeshes.forEach((m) => { m.rotation.z = Math.sin(t * 0.6) * 0.015; });
 
-      // Hover detection
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(textMeshes);
 
-      textMeshes.forEach((m) => {
-        m.material.emissiveIntensity = 0.0;
-      });
+      textMeshes.forEach((m) => { m.material.emissiveIntensity = 0.0; });
 
       if (intersects.length > 0) {
         const hovered = intersects[0].object;
         hovered.material.emissive = new THREE.Color(hovered.material.color);
-        hovered.material.emissiveIntensity = 0.8; // glow strength
+        hovered.material.emissiveIntensity = 0.8;
       }
 
       renderer.render(scene, camera);
     }
 
-    // Resize
     addEventListener("resize", () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
