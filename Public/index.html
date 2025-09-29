@@ -36,19 +36,17 @@ key.position.set(3, 2, 4);
 scene.add(key);
 
 // --- Globals ---
-let d20;
+let d20, fontGlobal;
 const textMeshes = [];
-let fontGlobal;
 let selectedNumber = null;
 let rollingOut = false;
 let rollStartTime = null;
 let projectionScreen = null;
-let starField;
-const starLayers = [];
 let projectorCrystal;
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const starLayers = [];
 
 // --- Gem palette ---
 const gemColors = [
@@ -81,7 +79,7 @@ new RGBELoader()
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = hdr;
     makeD20();
-    makeStarField();
+    makeVortexStars();
     makeGemLayers();
   });
 
@@ -150,15 +148,13 @@ function addNumbers(font, geo) {
     const color = gemColors[i % gemColors.length];
     const textMat = new THREE.MeshPhysicalMaterial({
       color,
-      metalness: 0.0,
+      metalness: 0,
       roughness: 0.05,
       transmission: 0.9,
       thickness: 0.4,
       envMapIntensity: 1.5,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      emissive: new THREE.Color(0x000000),
-      emissiveIntensity: 0.0
+      clearcoatRoughness: 0.05
     });
 
     const textMesh = new THREE.Mesh(textGeo, textMat);
@@ -177,25 +173,29 @@ function addNumbers(font, geo) {
   animate();
 }
 
-// --- White Starfield ---
-function makeStarField() {
+// --- Vortex Starfield ---
+function makeVortexStars() {
   const starGeo = new THREE.BufferGeometry();
-  const starCount = 3000;
+  const starCount = 2000;
   const posArray = new Float32Array(starCount * 3);
 
-  for (let i = 0; i < starCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 800;
+  for (let i = 0; i < starCount; i++) {
+    const r = Math.random() * 400;
+    const theta = i * 0.3 + Math.random() * 0.5;
+    const x = r * Math.cos(theta);
+    const y = (Math.random() - 0.5) * 80;
+    const z = r * Math.sin(theta);
+    posArray[i * 3] = x;
+    posArray[i * 3 + 1] = y;
+    posArray[i * 3 + 2] = z;
   }
   starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
 
-  const starMat = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 0.5,
-    transparent: true
-  });
-
-  starField = new THREE.Points(starGeo, starMat);
-  scene.add(starField);
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
+  const vortex = new THREE.Points(starGeo, starMat);
+  vortex.userData.rotate = true;
+  scene.add(vortex);
+  starLayers.push(vortex);
 }
 
 // --- Gem Layers ---
@@ -238,80 +238,65 @@ function makeGemLayers() {
 
 // --- Projector & Screen ---
 function spawnProjectionScreen(num) {
-  if (projectionScreen) {
-    scene.remove(projectionScreen);
-    projectionScreen = null;
-  }
+  if (!fontGlobal) return; // ensure font loaded
+  if (projectionScreen) scene.remove(projectionScreen);
 
-  const screenGroup = new THREE.Group();
+  const group = new THREE.Group();
 
   // Crystal
   const crystalMat = new THREE.MeshPhysicalMaterial({
     color: 0x66ccff,
-    metalness: 0,
-    roughness: 0.1,
     transmission: 0.9,
     thickness: 0.5,
     emissive: new THREE.Color(0x66ccff),
-    emissiveIntensity: 1.5,
-    envMapIntensity: 1.2
+    emissiveIntensity: 1.2
   });
   projectorCrystal = new THREE.Mesh(new THREE.IcosahedronGeometry(0.25, 1), crystalMat);
   projectorCrystal.position.set(0, 1.2, -3);
-  screenGroup.add(projectorCrystal);
+  group.add(projectorCrystal);
 
   // Beam
-  const beamGeo = new THREE.ConeGeometry(1.5, 2.5, 32, 1, true);
-  const beamMat = new THREE.MeshStandardMaterial({
-    color: 0x66ccff,
-    transparent: true,
-    opacity: 0.25,
-    emissive: 0x66ccff,
-    emissiveIntensity: 0.6,
-    side: THREE.DoubleSide
-  });
-  const beam = new THREE.Mesh(beamGeo, beamMat);
+  const beam = new THREE.Mesh(
+    new THREE.ConeGeometry(1.5, 2.5, 32, 1, true),
+    new THREE.MeshStandardMaterial({
+      color: 0x66ccff,
+      transparent: true,
+      opacity: 0.25,
+      emissive: 0x66ccff,
+      emissiveIntensity: 0.6,
+      side: THREE.DoubleSide
+    })
+  );
   beam.rotation.x = -Math.PI / 2;
   beam.position.set(0, 0.1, -4.5);
-  screenGroup.add(beam);
+  group.add(beam);
 
   // Screen
-  const planeMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    emissive: 0xffffff,
-    emissiveIntensity: 0.0,
-    transparent: true,
-    opacity: 0.0
-  });
+  const planeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), planeMat);
   plane.position.set(0, 2.5, -6);
-  screenGroup.add(plane);
+  group.add(plane);
 
   // Number text
-  const textGeo = new TextGeometry(num, {
-    font: fontGlobal,
-    size: 0.8,
-    height: 0.05
-  });
-  const textMat = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true, opacity: 0.0 });
+  const textGeo = new TextGeometry(num, { font: fontGlobal, size: 0.8, height: 0.05 });
+  const textMat = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true, opacity: 0 });
   const textMesh = new THREE.Mesh(textGeo, textMat);
   textMesh.position.set(-0.3, -0.4, 0.01);
   plane.add(textMesh);
 
-  // Fade-in
+  // Fade in
   let fadeStart = clock.getElapsedTime();
   function fadeIn() {
     let elapsed = clock.getElapsedTime() - fadeStart;
     let alpha = Math.min(elapsed / 1.5, 1);
     plane.material.opacity = alpha;
-    plane.material.emissiveIntensity = alpha;
     textMesh.material.opacity = alpha;
     if (alpha < 1) requestAnimationFrame(fadeIn);
   }
   fadeIn();
 
-  projectionScreen = screenGroup;
-  scene.add(screenGroup);
+  projectionScreen = group;
+  scene.add(group);
 }
 
 // --- Animate ---
@@ -319,22 +304,22 @@ function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  // Starfield drift
-  if (starField) {
-    starField.rotation.y += 0.0001;
-  }
+  // Star + gem layers
   starLayers.forEach((layer) => {
-    layer.rotation.y += layer.userData.speed;
-    layer.rotation.x += layer.userData.speed * 0.5;
+    if (layer.userData.rotate) layer.rotation.z += 0.0003; // vortex spin
+    else {
+      layer.rotation.y += layer.userData.speed;
+      layer.rotation.x += layer.userData.speed * 0.5;
+    }
   });
 
-  // D20 idle spin
+  // Idle spin
   if (d20 && !rollingOut) {
     d20.rotation.y += 0.008;
     d20.rotation.x += 0.004;
   }
 
-  // D20 roll animation
+  // Roll animation
   if (d20 && rollingOut) {
     const elapsed = t - rollStartTime;
     d20.position.z = THREE.MathUtils.lerp(0, -10, Math.min(elapsed / 4, 1));
@@ -352,7 +337,7 @@ function animate() {
     }
   }
 
-  // Projector crystal pulse
+  // Projector pulse
   if (projectorCrystal) {
     projectorCrystal.scale.setScalar(1 + Math.sin(t * 3) * 0.1);
     projectorCrystal.material.emissiveIntensity = 1.2 + Math.sin(t * 2) * 0.5;
