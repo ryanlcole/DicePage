@@ -40,6 +40,7 @@ let d20, fontGlobal;
 const textMeshes = [];
 const clock = new THREE.Clock();
 const starLayers = [];
+let relicTitle, gmTitle; // dynamic text
 
 // --- Gem palette ---
 const gemColors = [
@@ -56,7 +57,7 @@ new RGBELoader()
     makeD20();
     makeVortexStars();
     makeGemLayers();
-    makeTitles();
+    loadTitles();
   });
 
 // --- D20 ---
@@ -151,27 +152,27 @@ function addNumbers(font, geo) {
   }
 }
 
-// --- Titanium Titles ---
-function makeTitles() {
-  if (!fontGlobal) {
-    new FontLoader().load(
-      "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
-      (font) => {
-        fontGlobal = font;
-        createTitle("ReLiC", 2.0, 1.8);
-        createTitle("GameMaster", 2.0, -2.0);
-      }
-    );
-  } else {
-    createTitle("ReLiC", 2.0, 1.8);
-    createTitle("GameMaster", 2.0, -2.0);
-  }
+// --- Responsive Titles ---
+function loadTitles() {
+  new FontLoader().load(
+    "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
+    (font) => {
+      fontGlobal = font;
+      if (relicTitle) scene.remove(relicTitle);
+      if (gmTitle) scene.remove(gmTitle);
+      relicTitle = createTitle("ReLiC", font, 2.0, 2.0);
+      gmTitle = createTitle("GameMaster", font, 2.0, -2.5);
+      scene.add(relicTitle);
+      scene.add(gmTitle);
+      updateTitleScale();
+    }
+  );
 }
 
-function createTitle(text, size, yPos) {
+function createTitle(text, font, size, yPos) {
   const textGeo = new TextGeometry(text, {
-    font: fontGlobal,
-    size: size,
+    font,
+    size,
     height: 0.1,
     bevelEnabled: true,
     bevelThickness: 0.02,
@@ -185,8 +186,15 @@ function createTitle(text, size, yPos) {
     envMapIntensity: 2.0
   });
   const mesh = new THREE.Mesh(textGeo, textMat);
-  mesh.position.set(-text.length * 0.6, yPos, 0);
-  scene.add(mesh);
+  mesh.position.set(0, yPos, 0);
+  mesh.geometry.center(); // center align text
+  return mesh;
+}
+
+function updateTitleScale() {
+  const scaleFactor = Math.min(innerWidth, innerHeight) / 600; // relative to screen
+  if (relicTitle) relicTitle.scale.set(scaleFactor, scaleFactor, scaleFactor);
+  if (gmTitle) gmTitle.scale.set(scaleFactor, scaleFactor, scaleFactor);
 }
 
 // --- Vortex Starfield ---
@@ -279,6 +287,7 @@ addEventListener("resize", () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  updateTitleScale();
 });
 </script>
 </body>
