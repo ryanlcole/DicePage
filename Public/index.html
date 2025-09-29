@@ -5,11 +5,7 @@
   <title>Shaelvien Engraved D20</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: radial-gradient(#0d0d12, #000);
-    }
+    body { margin: 0; overflow: hidden; }
     canvas { display: block; }
   </style>
 </head>
@@ -22,15 +18,11 @@
 
   // === Scene ===
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0d12); // dark background
 
   // === Camera ===
-  const camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-  camera.position.set(0, 0, 6);
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 8);
 
   // === Renderer ===
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -43,29 +35,33 @@
   controls.enableDamping = true;
 
   // === Lights ===
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
   hemiLight.position.set(0, 1, 0);
   scene.add(hemiLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
   dirLight.position.set(5, 10, 7.5);
   scene.add(dirLight);
 
-  // === D20 geometry ===
+  // === Geometry (D20) ===
   const radius = 2;
   const geometry = new THREE.IcosahedronGeometry(radius, 0);
 
-  // Titanium-like material
   const titaniumMat = new THREE.MeshStandardMaterial({
     color: 0xb0b0b0,
     metalness: 1.0,
-    roughness: 0.25,
+    roughness: 0.25
   });
 
   const d20 = new THREE.Mesh(geometry, titaniumMat);
   scene.add(d20);
 
-  // === Mercury numbering ===
+  // Debug helper: wireframe overlay
+  const wire = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+  const d20wire = new THREE.Mesh(geometry, wire);
+  d20.add(d20wire);
+
+  // === Mercury numbering (optional) ===
   const mercuryMat = new THREE.MeshStandardMaterial({
     color: 0xd8d8ff,
     metalness: 1.0,
@@ -76,7 +72,7 @@
   const loader = new FontLoader();
   loader.load(
     'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
-    function (font) {
+    (font) => {
       const faceCenters = [];
       const pos = geometry.attributes.position;
       const index = geometry.index;
@@ -92,7 +88,7 @@
 
       faceCenters.forEach((center, i) => {
         const textGeo = new TextGeometry((i+1).toString(), {
-          font: font,
+          font,
           size: 0.4,
           height: 0.05,
           bevelEnabled: true,
@@ -104,23 +100,17 @@
         textGeo.computeBoundingBox();
         const textMesh = new THREE.Mesh(textGeo, mercuryMat);
 
-        // Center the number
-        const bb = textGeo.boundingBox;
-        const offsetX = (bb.max.x - bb.min.x) / 2;
-        const offsetY = (bb.max.y - bb.min.y) / 2;
-        textMesh.position.set(-offsetX, -offsetY, 0);
-
-        // Move it to the face center
+        // Move to face
         const normal = center.clone().normalize();
-        textMesh.position.copy(center).addScaledVector(normal, 0.05);
+        textMesh.position.copy(center).addScaledVector(normal, 0.1);
 
-        // Face it outward
+        // Rotate to face outward
         const quat = new THREE.Quaternion().setFromUnitVectors(
           new THREE.Vector3(0, 0, 1), normal
         );
         textMesh.quaternion.copy(quat);
 
-        scene.add(textMesh);
+        d20.add(textMesh);
       });
     }
   );
@@ -128,8 +118,8 @@
   // === Animate ===
   function animate() {
     requestAnimationFrame(animate);
-    d20.rotation.x += 0.002;
-    d20.rotation.y += 0.003;
+    d20.rotation.x += 0.003;
+    d20.rotation.y += 0.004;
     controls.update();
     renderer.render(scene, camera);
   }
@@ -144,5 +134,6 @@
 </script>
 </body>
 </html>
+
 
 
