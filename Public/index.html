@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien Chamfered D20</title>
+  <title>Shaelvien D20 with Stars & Gems</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
@@ -16,33 +16,11 @@
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
-
-// --- Chamfered Icosahedron Helper ---
-function ChamferedIcosahedronGeometry(radius = 1, chamfer = 0.05) {
-  // Start with a base icosahedron
-  const base = new THREE.IcosahedronGeometry(radius, 0);
-
-  // Clone positions
-  const pos = base.attributes.position;
-  const verts = [];
-  for (let i = 0; i < pos.count; i++) {
-    verts.push(new THREE.Vector3().fromBufferAttribute(pos, i));
-  }
-
-  // Average normals around each vertex to "round" it
-  for (let i = 0; i < verts.length; i++) {
-    verts[i].normalize().multiplyScalar(radius + chamfer);
-  }
-
-  const geo = new THREE.BufferGeometry().setFromPoints(verts);
-  geo.setIndex(base.index);
-  geo.computeVertexNormals();
-  return geo;
-}
+import { SubdivisionModifier } from "https://esm.sh/three@0.160.0/examples/jsm/modifiers/SubdivisionModifier.js";
 
 // --- Scene ---
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
 camera.position.set(0, 0, 5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -59,28 +37,27 @@ scene.add(key);
 // --- Globals ---
 let d20, fontGlobal;
 const textMeshes = [];
+const gemColors = [0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff, 0xffcc33, 0xffffff, 0xcc99ff, 0xff3333];
 const clock = new THREE.Clock();
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let rolling = false, rollStart = 0;
 
-// --- Materials ---
-const gemColors = [
-  0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff,
-  0xffcc33, 0xffffff, 0xcc99ff, 0xff3333
-];
-
-// --- D20 ---
+// --- D20 with chamfer ---
 function makeD20() {
-  const geo = ChamferedIcosahedronGeometry(1, 0.08); // chamfered!
+  let geo = new THREE.IcosahedronGeometry(1, 0);
+
+  // Subdivide to add smoothness
+  const modifier = new SubdivisionModifier(2);
+  geo = modifier.modify(geo);
+
   const mat = new THREE.MeshPhysicalMaterial({
     color: 0x9d9d9d,
-    metalness: 1.0,
+    metalness: 1,
     roughness: 0.2,
     envMapIntensity: 1.5,
     clearcoat: 1,
-    clearcoatRoughness: 0.05
+    clearcoatRoughness: 0.05,
+    flatShading: false
   });
+
   d20 = new THREE.Mesh(geo, mat);
   scene.add(d20);
 
@@ -109,85 +86,4 @@ function addNumbers(font, geo) {
     const c = idx.getX(i * 3 + 2);
 
     const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
-    const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
-    const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
-    const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-
-    const tri = new THREE.Triangle(vA, vB, vC);
-    const normal = tri.getNormal(new THREE.Vector3()).normalize();
-
-    const label = numbers[i % numbers.length];
-    const textGeo = new TextGeometry(label, {
-      font,
-      size: 0.25,
-      height: 0.05,
-      bevelEnabled: true,
-      bevelThickness: 0.008,
-      bevelSize: 0.006,
-      bevelSegments: 2
-    });
-    textGeo.computeBoundingBox();
-
-    const color = gemColors[i % gemColors.length];
-    const textMat = new THREE.MeshPhysicalMaterial({
-      color,
-      transmission: 0.9,
-      thickness: 0.3,
-      envMapIntensity: 1.5,
-      clearcoat: 1.0
-    });
-
-    const textMesh = new THREE.Mesh(textGeo, textMat);
-    const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
-    textMesh.position.copy(center).add(normal.multiplyScalar(0.01)).add(offset.multiplyScalar(0.002));
-    textMesh.lookAt(center.clone().multiplyScalar(2));
-
-    d20.add(textMesh);
-    textMeshes.push(textMesh);
-  }
-}
-
-// --- Interaction ---
-addEventListener("click", () => {
-  if (!rolling) {
-    rolling = true;
-    rollStart = clock.getElapsedTime();
-  }
-});
-
-// --- Animate ---
-function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-
-  if (d20 && !rolling) {
-    d20.rotation.y += 0.01;
-    d20.rotation.x += 0.006;
-  }
-
-  if (d20 && rolling) {
-    const elapsed = t - rollStart;
-    d20.rotation.x += 0.25;
-    d20.rotation.y += 0.18;
-    d20.position.z = THREE.MathUtils.lerp(0, -6, Math.min(elapsed / 3, 1));
-    if (elapsed > 3) {
-      rolling = false;
-      d20.position.set(0, -1.5, -4);
-    }
-  }
-
-  renderer.render(scene, camera);
-}
-
-makeD20();
-animate();
-
-// --- Resize ---
-addEventListener("resize", () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-</script>
-</body>
-</html>
+    const vB = new THREE.V
