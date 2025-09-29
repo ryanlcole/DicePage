@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien Gemstone D20</title>
+  <title>Shaelvien Gemstone D20 Vortex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: black; } /* deep space backdrop */
+    body { background: black; }
     canvas { display: block; }
   </style>
 </head>
@@ -20,7 +20,7 @@
 
     // --- Scene / Camera / Renderer ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
     camera.position.set(0, 0, 4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -42,6 +42,7 @@
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const starLayers = [];
+    let vortexGroup;
 
     // --- Gem palette ---
     const gemColors = [
@@ -91,11 +92,46 @@
       starLayers.push(group);
     }
 
-    // Create several layers at different depths
+    // Create several gem layers
     makeStarLayer(40, 150, 0.0008, 0.0003, false);
     makeStarLayer(60, 200, 0.0005, 0.0006, true);
     makeStarLayer(80, 250, 0.0003, 0.0002, false);
     makeStarLayer(100, 300, 0.0002, 0.0004, true);
+
+    // --- Vortex Background ---
+    function makeVortex() {
+      vortexGroup = new THREE.Group();
+      const points = [];
+      const count = 3000;
+      const arms = 5; // spiral arms
+
+      for (let i = 0; i < count; i++) {
+        const arm = i % arms;
+        const angle = (i / count) * Math.PI * 20 + (arm * (2 * Math.PI / arms));
+        const radius = 150 * Math.sqrt(i / count);
+        const x = Math.cos(angle) * radius;
+        const y = (Math.random() - 0.5) * 20; // some thickness
+        const z = Math.sin(angle) * radius;
+        points.push(x, y, z);
+      }
+
+      const vortexGeo = new THREE.BufferGeometry();
+      vortexGeo.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+
+      const vortexMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      const vortex = new THREE.Points(vortexGeo, vortexMat);
+      vortexGroup.add(vortex);
+      scene.add(vortexGroup);
+    }
+    makeVortex();
 
     // --- Environment (HDR reflections) ---
     new RGBELoader()
@@ -200,19 +236,16 @@
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
-      // Spin D20
       if (d20) {
         d20.rotation.y += 0.008;
         d20.rotation.x += 0.004;
       }
 
-      // Gem numbers shimmer
       textMeshes.forEach((m) => { m.rotation.z = Math.sin(t * 0.6) * 0.015; });
 
-      // Glow on hover
+      // Hover glow
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(textMeshes);
-
       textMeshes.forEach((m) => { m.material.emissiveIntensity = 0.0; });
       if (intersects.length > 0) {
         const hovered = intersects[0].object;
@@ -220,7 +253,7 @@
         hovered.material.emissiveIntensity = 0.8;
       }
 
-      // Rotate star layers (different speeds/directions)
+      // Rotate gem star layers
       starLayers.forEach(layer => {
         const { speedX, speedY, invert } = layer.userData;
         if (invert) {
@@ -231,6 +264,11 @@
           layer.rotation.x += speedX;
         }
       });
+
+      // Spin vortex
+      if (vortexGroup) {
+        vortexGroup.rotation.z += 0.0005; // slow spiral drift
+      }
 
       renderer.render(scene, camera);
     }
