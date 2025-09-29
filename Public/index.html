@@ -7,7 +7,7 @@
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: black; } /* dark space backdrop */
+    body { background: black; } /* deep space backdrop */
     canvas { display: block; }
   </style>
 </head>
@@ -54,11 +54,11 @@
       mouse.y = -(e.clientY / innerHeight) * 2 + 1;
     });
 
-    // --- Starfield Background ---
+    // --- Gem Stars Background ---
     function makeStars() {
-      const starGeo = new THREE.BufferGeometry();
-      const starCount = 1500;
-      const positions = [];
+      const starGroup = new THREE.Group();
+      const starCount = 300;
+
       for (let i = 0; i < starCount; i++) {
         const r = 50;
         const theta = Math.random() * 2 * Math.PI;
@@ -66,30 +66,36 @@
         const x = r * Math.sin(phi) * Math.cos(theta);
         const y = r * Math.sin(phi) * Math.sin(theta);
         const z = r * Math.cos(phi);
-        positions.push(x, y, z);
-      }
-      starGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-      const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3, sizeAttenuation: true });
-      const stars = new THREE.Points(starGeo, starMat);
-      scene.add(stars);
 
-      // Add constellation lines
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.25 });
-      for (let i = 0; i < 50; i++) {
-        const a = new THREE.Vector3(
-          positions[i * 3],
-          positions[i * 3 + 1],
-          positions[i * 3 + 2]
-        );
-        const b = new THREE.Vector3(
-          positions[(i + 1) * 3],
-          positions[(i + 1) * 3 + 1],
-          positions[(i + 1) * 3 + 2]
-        );
-        const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
-        const line = new THREE.Line(geo, lineMat);
-        scene.add(line);
+        const starGeo = new THREE.IcosahedronGeometry(0.15, 0);
+        const color = gemColors[i % gemColors.length];
+        const starMat = new THREE.MeshPhysicalMaterial({
+          color,
+          metalness: 0.0,
+          roughness: 0.05,
+          transmission: 0.9,
+          thickness: 0.3,
+          envMapIntensity: 1.2,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+          emissive: new THREE.Color(color),
+          emissiveIntensity: 0.3
+        });
+
+        const star = new THREE.Mesh(starGeo, starMat);
+        star.position.set(x, y, z);
+        starGroup.add(star);
       }
+
+      scene.add(starGroup);
+
+      // Slow celestial drift
+      function animateStars() {
+        starGroup.rotation.y += 0.0005;
+        starGroup.rotation.x += 0.0002;
+        requestAnimationFrame(animateStars);
+      }
+      animateStars();
     }
     makeStars();
 
@@ -102,6 +108,7 @@
         makeD20();
       });
 
+    // --- Create the D20 ---
     function makeD20() {
       const geo = new THREE.IcosahedronGeometry(1, 0);
       const dieMat = new THREE.MeshStandardMaterial({
@@ -123,6 +130,7 @@
       );
     }
 
+    // --- Add Engraved Gem Numbers ---
     function addNumbers(font, geo) {
       const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
       const pos = geo.attributes.position;
@@ -189,6 +197,7 @@
       animate();
     }
 
+    // --- Animate ---
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
@@ -214,6 +223,7 @@
       renderer.render(scene, camera);
     }
 
+    // --- Resize ---
     addEventListener("resize", () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
