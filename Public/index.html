@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="="en">
 <head>
   <meta charset="UTF-8" />
   <title>Shaelvien D20 Shop</title>
@@ -18,21 +18,25 @@
     import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
     import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
+    // --- Scene ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 4);
 
+    // --- Renderer ---
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
+    // --- Lights ---
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 2, 4);
     scene.add(key);
 
+    // --- Controls ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
@@ -43,13 +47,14 @@
     controls.addEventListener("start", () => { isUserInteracting = true; });
     controls.addEventListener("end", () => { isUserInteracting = false; });
 
+    // --- Categories ---
     const categories = ["TTRPG", "Anime", "Retro Gaming", "Cosplay"];
     let d20, texts = [];
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let hoveredText = null;
     let clock = new THREE.Clock();
 
+    // --- Environment ---
     new RGBELoader()
       .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
       .load("royal_esplanade_1k.hdr", (hdrTex) => {
@@ -62,6 +67,7 @@
     function makeD20() {
       const radius = 1;
       const geo = new THREE.IcosahedronGeometry(radius, 0);
+
       const mat = new THREE.MeshStandardMaterial({
         color: 0x9d9d9d,
         metalness: 1.0,
@@ -78,16 +84,24 @@
 
       const loader = new FontLoader();
       loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
-        geo.faces.forEach((face, i) => {
-          const vA = geo.vertices[face.a];
-          const vB = geo.vertices[face.b];
-          const vC = geo.vertices[face.c];
-          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+        const pos = geo.attributes.position;
+        const index = geo.index;
+        const faceCount = index.count / 3;
 
+        for (let i = 0; i < faceCount; i++) {
+          const a = index.getX(i * 3);
+          const b = index.getX(i * 3 + 1);
+          const c = index.getX(i * 3 + 2);
+
+          const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+          const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+          const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+
+          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
           const category = categories[i % categories.length];
+
           const textGeo = new TextGeometry(category, { font: font, size: 0.2, height: 0.02 });
 
-          // Shader material with ripple effect
           const shaderMat = new THREE.ShaderMaterial({
             uniforms: {
               uTime: { value: 0 },
@@ -118,7 +132,7 @@
 
           d20.add(textMesh);
           texts.push(textMesh);
-        });
+        }
       });
 
       animate();
@@ -145,11 +159,11 @@
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(texts);
 
-      texts.forEach(t => t.material.uniforms.uRippleStrength.value *= 0.9); // decay ripple
+      texts.forEach(t => t.material.uniforms.uRippleStrength.value *= 0.9);
 
       if (intersects.length > 0) {
         const obj = intersects[0].object;
-        obj.material.uniforms.uRippleStrength.value = 1.0; // trigger ripple
+        obj.material.uniforms.uRippleStrength.value = 1.0;
       }
 
       texts.forEach(t => t.material.uniforms.uTime.value = elapsed);
@@ -166,6 +180,7 @@
   </script>
 </body>
 </html>
+
 
 
 
