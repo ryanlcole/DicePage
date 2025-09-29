@@ -2,32 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien D20 Diamond Sky</title>
+  <title>Shaelvien D20 Shop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: black; }
-    canvas { display: block; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+    }
     #phoneFrame {
       position: absolute;
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
-      width: 300px;
-      height: 600px;
+      width: 360px;
+      height: 640px;
       border: 12px solid #333;
-      border-radius: 32px;
-      background: #000;
-      box-shadow: 0 0 40px rgba(100,200,255,0.8);
-      display: none; /* hidden until roll finishes */
+      border-radius: 30px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+      overflow: hidden;
+      display: none;
       z-index: 10;
+      background: #111;
     }
     #phoneFrame iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 20px;
     }
   </style>
 </head>
@@ -35,242 +41,164 @@
   <div id="phoneFrame">
     <iframe src="https://linktr.ee/ReLiC_GameMaster"></iframe>
   </div>
+
   <script type="module">
     import * as THREE from "https://esm.sh/three@0.160.0";
-    import { RGBELoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
     import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
     import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
-    // --- Scene / Camera / Renderer ---
+    // --- Scene Setup ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
-    camera.position.set(0, 0, 5);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 6);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
     // --- Lights ---
-    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(3, 2, 4);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const key = new THREE.DirectionalLight(0xffffff, 0.8);
+    key.position.set(3, 2, 5);
     scene.add(key);
 
-    // --- Globals ---
-    let d20, fontGlobal;
-    const textMeshes = [];
-    let selectedNumber = null;
-    let rollingOut = false;
-    let rollStartTime = null;
-    let phoneShown = false;
-    const clock = new THREE.Clock();
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    const starLayers = [];
+    // --- Background Groups ---
+    const bgGroup = new THREE.Group();
+    scene.add(bgGroup);
 
-    // --- Gem palette ---
-    const gemColors = [
-      0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff,
-      0xffcc33, 0xffffff, 0xcc99ff, 0xff3333
-    ];
-
-    // --- Mouse Tracking ---
-    addEventListener("mousemove", (e) => {
-      mouse.x = (e.clientX / innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-    });
-
-    // --- Click to Roll ---
-    addEventListener("click", () => {
-      if (phoneShown) {
-        // Reset: hide phone and respawn die
-        document.getElementById("phoneFrame").style.display = "none";
-        phoneShown = false;
-        d20.position.set(0, 0, 0);
-        d20.rotation.set(0, 0, 0);
-        return;
-      }
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(textMeshes, true);
-      if (intersects.length > 0 && !rollingOut) {
-        const mesh = intersects[0].object;
-        selectedNumber = mesh.geometry.parameters.text;
-        rollingOut = true;
-        rollStartTime = clock.getElapsedTime();
-      }
-    });
-
-    // --- Environment ---
-    new RGBELoader()
-      .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
-      .load("royal_esplanade_1k.hdr", (hdr) => {
-        hdr.mapping = THREE.EquirectangularReflectionMapping;
-        scene.environment = hdr;
-        makeD20();
-        makeDiamondSky();
-      });
-
-    // --- D20 ---
-    function makeD20() {
-      const geo = new THREE.IcosahedronGeometry(1, 0);
-      const dieMat = new THREE.MeshStandardMaterial({
-        color: 0x9d9d9d,
-        metalness: 1.0,
-        roughness: 0.15,
-        envMapIntensity: 1.5,
-        flatShading: true
-      });
-      d20 = new THREE.Mesh(geo, dieMat);
-      scene.add(d20);
-
-      const edges = new THREE.EdgesGeometry(geo);
-      d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
-
-      new FontLoader().load(
-        "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
-        (font) => {
-          fontGlobal = font;
-          addNumbers(font, geo);
-        }
-      );
+    function makeDiamondShape(size) {
+      const shape = new THREE.Shape();
+      shape.moveTo(0, size);
+      shape.lineTo(size * 0.6, 0);
+      shape.lineTo(0, -size);
+      shape.lineTo(-size * 0.6, 0);
+      shape.lineTo(0, size);
+      return shape;
     }
 
-    // --- Numbers ---
-    function addNumbers(font, geo) {
-      const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
+    function makeStarField(count, size, spread, color) {
+      const group = new THREE.Group();
+      const shape = makeDiamondShape(size);
+      const geo = new THREE.ShapeGeometry(shape);
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true });
+
+      for (let i = 0; i < count; i++) {
+        const star = new THREE.Mesh(geo, mat.clone());
+        star.position.set(
+          (Math.random() - 0.5) * spread,
+          (Math.random() - 0.5) * spread,
+          -Math.random() * 50 - 5
+        );
+        group.add(star);
+      }
+      return group;
+    }
+
+    const gems = makeStarField(150, 0.05, 40, 0x44ccff);
+    const gems2 = makeStarField(120, 0.07, 50, 0xff44cc);
+    const vortex = makeStarField(500, 0.015, 60, 0xffffff);
+
+    bgGroup.add(gems);
+    bgGroup.add(gems2);
+    bgGroup.add(vortex);
+
+    // --- D20 Dice ---
+    let d20, texts = [];
+    const loader = new FontLoader();
+
+    loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
+      const radius = 1;
+      const geo = new THREE.IcosahedronGeometry(radius, 0);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 1, roughness: 0.2 });
+      d20 = new THREE.Mesh(geo, mat);
+      scene.add(d20);
+
       const pos = geo.attributes.position;
-      const idx = geo.index;
-      const faceCount = idx ? idx.count / 3 : pos.count / 3;
+      const index = geo.index;
+      const faceCount = index.count / 3;
 
       for (let i = 0; i < faceCount; i++) {
-        let a = idx.getX(i * 3);
-        let b = idx.getX(i * 3 + 1);
-        let c = idx.getX(i * 3 + 2);
+        const a = index.getX(i * 3);
+        const b = index.getX(i * 3 + 1);
+        const c = index.getX(i * 3 + 2);
+
         const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
         const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
         const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
 
-        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
-        const tri = new THREE.Triangle(vA, vB, vC);
-        const normal = tri.getNormal(new THREE.Vector3()).normalize();
-
-        const label = numbers[i % numbers.length];
-        const textGeo = new TextGeometry(label, {
-          font,
-          size: 0.28,
-          height: 0.06
-        });
-
-        const color = gemColors[i % gemColors.length];
-        const textMat = new THREE.MeshPhysicalMaterial({
-          color,
-          transmission: 0.9,
-          thickness: 0.4,
-          envMapIntensity: 1.5,
-          clearcoat: 1.0
-        });
-
+        const textGeo = new TextGeometry((i + 1).toString(), { font, size: 0.25, height: 0.02 });
+        const textMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(`hsl(${i * 18},100%,60%)`) });
         const textMesh = new THREE.Mesh(textGeo, textMat);
-        textMesh.position.set(-0.1, -0.1, 0);
 
-        const holder = new THREE.Object3D();
-        holder.position.copy(center).addScaledVector(normal, -0.01);
-        holder.lookAt(center.clone().add(normal));
-        holder.add(textMesh);
+        textGeo.computeBoundingBox();
+        const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
+        textMesh.position.copy(center).add(offset.multiplyScalar(0.01));
+        textMesh.lookAt(center.clone().multiplyScalar(2));
 
-        d20.add(holder);
-        textMeshes.push(textMesh);
+        d20.add(textMesh);
+        texts.push(textMesh);
       }
+    });
 
-      animate();
+    // --- Interactivity ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    window.addEventListener("click", (event) => {
+      if (!d20) return;
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(texts);
+      if (intersects.length > 0) rollDice(intersects[0].object);
+    });
+
+    let rolling = false, rollStart = 0, rollTarget = null;
+
+    function rollDice(selectedFace) {
+      rolling = true;
+      rollStart = performance.now();
+      rollTarget = selectedFace;
     }
 
-    // --- Diamond Starfield ---
-    function makeDiamondSky() {
-      function makeLayer(radius, count, speed) {
-        const group = new THREE.Group();
-        for (let i = 0; i < count; i++) {
-          const theta = Math.random() * 2 * Math.PI;
-          const phi = Math.acos(2 * Math.random() - 1);
-          const x = radius * Math.sin(phi) * Math.cos(theta);
-          const y = radius * Math.sin(phi) * Math.sin(theta);
-          const z = radius * Math.cos(phi);
-
-          const geo = new THREE.OctahedronGeometry(0.25, 0); // diamond-like
-          const color = gemColors[Math.floor(Math.random() * gemColors.length)];
-          const mat = new THREE.MeshPhysicalMaterial({
-            color,
-            transmission: 0.9,
-            thickness: 0.5,
-            emissive: new THREE.Color(color),
-            emissiveIntensity: 0.6,
-            envMapIntensity: 1.2
-          });
-
-          const gem = new THREE.Mesh(geo, mat);
-          gem.position.set(x, y, z);
-          group.add(gem);
-        }
-        group.userData.speed = speed;
-        scene.add(group);
-        starLayers.push(group);
-      }
-
-      makeLayer(60, 100, 0.0005);
-      makeLayer(100, 150, 0.0003);
-      makeLayer(140, 200, 0.0002);
-    }
-
-    // --- Animate ---
     function animate() {
       requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+      const elapsed = performance.now();
 
-      // Rotate stars
-      starLayers.forEach((layer) => {
-        layer.rotation.y += layer.userData.speed;
-        layer.rotation.x += layer.userData.speed * 0.5;
-      });
+      // background motion
+      bgGroup.rotation.z += 0.0005;
+      gems.rotation.x += 0.001;
+      gems2.rotation.y -= 0.001;
+      vortex.rotation.z += 0.002;
 
-      // Idle spin
-      if (d20 && !rollingOut && !phoneShown) {
-        d20.rotation.y += 0.008;
-        d20.rotation.x += 0.004;
+      if (d20 && !rolling) {
+        d20.rotation.y += 0.005;
+        d20.rotation.x += 0.003;
       }
 
-      // Roll animation
-      if (d20 && rollingOut) {
-        const elapsed = t - rollStartTime;
-        d20.position.z = THREE.MathUtils.lerp(0, -5, Math.min(elapsed / 3, 1));
-        const bounce = Math.exp(-elapsed * 1.2) * Math.sin(elapsed * 6);
-        d20.position.y = bounce - Math.min(elapsed / 3, 1) * 1.2;
-        d20.rotation.x += 0.25;
-        d20.rotation.z += 0.18;
-
-        if (elapsed > 4) {
-          rollingOut = false;
-          showPhone();
+      if (rolling && d20 && rollTarget) {
+        const t = (elapsed - rollStart) / 2500;
+        if (t < 1) {
+          d20.rotation.x += 0.3;
+          d20.rotation.y += 0.4;
+          d20.position.z -= 0.05;
+          d20.position.y = Math.sin(t * 10) * 0.2;
+        } else {
+          rolling = false;
+          d20.position.set(0, -1.5, -6);
+          document.getElementById("phoneFrame").style.display = "block";
         }
       }
 
       renderer.render(scene, camera);
     }
+    animate();
 
-    // --- Phone ---
-    function showPhone() {
-      document.getElementById("phoneFrame").style.display = "block";
-      phoneShown = true;
-      d20.position.set(0, -2.5, -2); // reset die below phone
-    }
-
-    // --- Resize ---
-    addEventListener("resize", () => {
-      camera.aspect = innerWidth / innerHeight;
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
