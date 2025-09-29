@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien D20 with Stars & Gems</title>
+  <title>Smoother Shaelvien D20</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <style>
@@ -40,7 +40,7 @@ const gemColors = [0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff, 0xffcc33, 0xffffff, 0
 
 // --- D20 ---
 function makeD20() {
-  // Use detail=2 to add smoothness
+  // Use detail=2 for smoothness
   const geo = new THREE.IcosahedronGeometry(1, 2);
 
   const mat = new THREE.MeshPhysicalMaterial({
@@ -56,6 +56,7 @@ function makeD20() {
   d20 = new THREE.Mesh(geo, mat);
   scene.add(d20);
 
+  // Outline edges (use low-detail base to keep sharp edges visible)
   const edges = new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1, 0));
   d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
@@ -73,18 +74,25 @@ function addNumbers(font, geo) {
   const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
   const pos = geo.attributes.position;
   const idx = geo.index;
-  const faceCount = idx.count / 3;
+  const faceCount = idx ? idx.count / 3 : pos.count / 3;
 
   for (let i = 0; i < faceCount; i++) {
-    const a = idx.getX(i * 3);
-    const b = idx.getX(i * 3 + 1);
-    const c = idx.getX(i * 3 + 2);
+    let vA, vB, vC;
 
-    const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
-    const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
-    const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+    if (idx) {
+      const a = idx.getX(i * 3);
+      const b = idx.getX(i * 3 + 1);
+      const c = idx.getX(i * 3 + 2);
+      vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+      vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+      vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+    } else {
+      vA = new THREE.Vector3().fromBufferAttribute(pos, i * 3);
+      vB = new THREE.Vector3().fromBufferAttribute(pos, i * 3 + 1);
+      vC = new THREE.Vector3().fromBufferAttribute(pos, i * 3 + 2);
+    }
+
     const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-
     const tri = new THREE.Triangle(vA, vB, vC);
     const normal = tri.getNormal(new THREE.Vector3()).normalize();
 
@@ -119,7 +127,7 @@ function addNumbers(font, geo) {
   }
 }
 
-// --- Background stars + gems ---
+// --- Background ---
 function makeBackground() {
   const starGeo = new THREE.BufferGeometry();
   const starCount = 2000;
