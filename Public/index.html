@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Shaelvien Engraved D20</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: radial-gradient(circle, #4d2f1d, #1e1209); /* brown spotlight */
+      background: #2e1a0f; /* deep brown */
     }
     canvas {
       display: block;
@@ -17,10 +17,10 @@
 </head>
 <body>
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import { FontLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js";
+    import { TextGeometry } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
     // === Scene ===
     const scene = new THREE.Scene();
@@ -37,71 +37,26 @@
     // === Renderer ===
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // === Lights ===
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
-    hemiLight.position.set(0, 20, 0);
+    // === Lighting ===
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
     scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(5, 10, 7.5);
     scene.add(dirLight);
 
-    // === D20 Geometry ===
+    // === Geometry (D20) ===
     const geometry = new THREE.IcosahedronGeometry(1, 0);
-
-    const titaniumMaterial = new THREE.MeshStandardMaterial({
-      color: 0xb0b0b0,        // polished titanium look
-      metalness: 1.0,
-      roughness: 0.2,
-      envMapIntensity: 1.2
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xaaaaaa,
+      metalness: 0.8,
+      roughness: 0.2
     });
-
-    const d20 = new THREE.Mesh(geometry, titaniumMaterial);
+    const d20 = new THREE.Mesh(geometry, material);
     scene.add(d20);
-
-    // === Numbering (Mercury fill) ===
-    const loader = new FontLoader();
-    loader.load(
-      'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
-      (font) => {
-        const mercuryMat = new THREE.MeshStandardMaterial({
-          color: 0xd8d8ff,   // silvery mercury
-          metalness: 1.0,
-          roughness: 0.05
-        });
-
-        const radius = 1.05; // slight offset so numbers sit above surface
-        const positions = geometry.attributes.position;
-
-        for (let i = 0; i < positions.count; i += 3) {
-          const v1 = new THREE.Vector3().fromBufferAttribute(positions, i);
-          const v2 = new THREE.Vector3().fromBufferAttribute(positions, i + 1);
-          const v3 = new THREE.Vector3().fromBufferAttribute(positions, i + 2);
-
-          const center = new THREE.Vector3()
-            .add(v1)
-            .add(v2)
-            .add(v3)
-            .divideScalar(3)
-            .normalize()
-            .multiplyScalar(radius);
-
-          const textGeo = new TextGeometry(`${i / 3 + 1}`, {
-            font: font,
-            size: 0.3,
-            height: 0.05
-          });
-
-          textGeo.computeBoundingBox();
-          const textMesh = new THREE.Mesh(textGeo, mercuryMat);
-          textMesh.position.copy(center);
-          textMesh.lookAt(0, 0, 0);
-          scene.add(textMesh);
-        }
-      }
-    );
 
     // === Controls ===
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -110,14 +65,15 @@
     // === Animate ===
     function animate() {
       requestAnimationFrame(animate);
-      d20.rotation.y += 0.01;
+      d20.rotation.x += 0.003;
+      d20.rotation.y += 0.002;
       controls.update();
       renderer.render(scene, camera);
     }
     animate();
 
     // === Resize ===
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -125,5 +81,3 @@
   </script>
 </body>
 </html>
-
-
