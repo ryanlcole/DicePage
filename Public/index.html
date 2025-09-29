@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien D20 Projection</title>
+  <title>Shaelvien D20 Projection Roll</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
@@ -41,6 +41,7 @@ const textMeshes = [];
 let fontGlobal;
 let selectedNumber = null;
 let rollingOut = false;
+let rollStartTime = null;
 let projectionScreen = null;
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -62,11 +63,11 @@ addEventListener("mousemove", (e) => {
 addEventListener("click", () => {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(textMeshes);
-  if (intersects.length > 0) {
+  if (intersects.length > 0 && !rollingOut) {
     const mesh = intersects[0].object;
     selectedNumber = mesh.geometry.parameters.text;
     rollingOut = true;
-    spawnProjectionScreen(selectedNumber);
+    rollStartTime = clock.getElapsedTime();
   }
 });
 
@@ -77,6 +78,7 @@ new RGBELoader()
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = hdr;
     makeD20();
+    makeStars();
   });
 
 // --- D20 ---
@@ -171,9 +173,33 @@ function addNumbers(font, geo) {
   animate();
 }
 
+// --- Stars ---
+function makeStars() {
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 2000;
+  const posArray = new Float32Array(starCount * 3);
+
+  for (let i = 0; i < starCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 300;
+  }
+  starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
+
+  const starMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.7,
+    transparent: true
+  });
+
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+}
+
 // --- Projection Screen ---
 function spawnProjectionScreen(num) {
-  if (projectionScreen) scene.remove(projectionScreen);
+  if (projectionScreen) {
+    scene.remove(projectionScreen);
+    projectionScreen = null;
+  }
 
   const screenGroup = new THREE.Group();
 
@@ -181,7 +207,7 @@ function spawnProjectionScreen(num) {
     new THREE.PlaneGeometry(2.5, 1.5),
     new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.8 })
   );
-  plane.position.set(0, 2.5, -2);
+  plane.position.set(0, 2.5, -6);
   screenGroup.add(plane);
 
   const textGeo = new TextGeometry(num, {
@@ -194,7 +220,7 @@ function spawnProjectionScreen(num) {
   const textMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
   const textMesh = new THREE.Mesh(textGeo, textMat);
   textMesh.position.set(-0.3, -0.4, 0.01);
-  screenGroup.add(textMesh);
+  plane.add(textMesh);
 
   projectionScreen = screenGroup;
   scene.add(screenGroup);
@@ -211,9 +237,18 @@ function animate() {
   }
 
   if (d20 && rollingOut) {
-    d20.position.z -= 0.05;
-    if (d20.position.z < -8) {
+    const elapsed = t - rollStartTime;
+
+    // Roll backward with spin + drop
+    d20.position.z = THREE.MathUtils.lerp(0, -10, Math.min(elapsed / 3, 1));
+    d20.position.y = Math.sin(elapsed * 5) * 0.2 - Math.min(elapsed / 3, 1) * 1.5;
+    d20.rotation.x += 0.2;
+    d20.rotation.z += 0.15;
+
+    // Bounce settle after ~3s
+    if (elapsed > 3) {
       rollingOut = false;
+      spawnProjectionScreen(selectedNumber);
     }
   }
 
