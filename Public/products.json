@@ -1,0 +1,10 @@
+[
+  {
+    "id": "example-1",
+    "name": "Arcane D20 Dice Bag",
+    "description": "A mystical dice bag designed for TTRPG adventurers.",
+    "category": "TTRPG",
+    "price": 19.99,
+    "image": "images/dicebag.png"
+  }
+]
