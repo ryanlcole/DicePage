@@ -20,7 +20,7 @@
 
     // --- Scene / Camera / Renderer ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
     camera.position.set(0, 0, 4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -41,6 +41,7 @@
     const clock = new THREE.Clock();
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+    const starLayers = [];
 
     // --- Gem palette ---
     const gemColors = [
@@ -54,20 +55,18 @@
       mouse.y = -(e.clientY / innerHeight) * 2 + 1;
     });
 
-    // --- Gem Stars Background ---
-    function makeStars() {
-      const starGroup = new THREE.Group();
-      const starCount = 300;
+    // --- Gem Star Layers ---
+    function makeStarLayer(radius, count, speedX, speedY, invert=false) {
+      const group = new THREE.Group();
 
-      for (let i = 0; i < starCount; i++) {
-        const r = 50;
+      for (let i = 0; i < count; i++) {
         const theta = Math.random() * 2 * Math.PI;
         const phi = Math.acos(2 * Math.random() - 1);
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.sin(phi) * Math.sin(theta);
-        const z = r * Math.cos(phi);
+        const x = radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.sin(phi) * Math.sin(theta);
+        const z = radius * Math.cos(phi);
 
-        const starGeo = new THREE.IcosahedronGeometry(0.15, 0);
+        const starGeo = new THREE.IcosahedronGeometry(0.12, 0);
         const color = gemColors[i % gemColors.length];
         const starMat = new THREE.MeshPhysicalMaterial({
           color,
@@ -84,20 +83,19 @@
 
         const star = new THREE.Mesh(starGeo, starMat);
         star.position.set(x, y, z);
-        starGroup.add(star);
+        group.add(star);
       }
 
-      scene.add(starGroup);
-
-      // Slow celestial drift
-      function animateStars() {
-        starGroup.rotation.y += 0.0005;
-        starGroup.rotation.x += 0.0002;
-        requestAnimationFrame(animateStars);
-      }
-      animateStars();
+      group.userData = { speedX, speedY, invert };
+      scene.add(group);
+      starLayers.push(group);
     }
-    makeStars();
+
+    // Create several layers at different depths
+    makeStarLayer(40, 150, 0.0008, 0.0003, false);
+    makeStarLayer(60, 200, 0.0005, 0.0006, true);
+    makeStarLayer(80, 250, 0.0003, 0.0002, false);
+    makeStarLayer(100, 300, 0.0002, 0.0004, true);
 
     // --- Environment (HDR reflections) ---
     new RGBELoader()
@@ -130,7 +128,7 @@
       );
     }
 
-    // --- Add Engraved Gem Numbers ---
+    // --- Add Gem Numbers ---
     function addNumbers(font, geo) {
       const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
       const pos = geo.attributes.position;
@@ -202,23 +200,37 @@
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
+      // Spin D20
       if (d20) {
         d20.rotation.y += 0.008;
         d20.rotation.x += 0.004;
       }
 
+      // Gem numbers shimmer
       textMeshes.forEach((m) => { m.rotation.z = Math.sin(t * 0.6) * 0.015; });
 
+      // Glow on hover
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(textMeshes);
 
       textMeshes.forEach((m) => { m.material.emissiveIntensity = 0.0; });
-
       if (intersects.length > 0) {
         const hovered = intersects[0].object;
         hovered.material.emissive = new THREE.Color(hovered.material.color);
         hovered.material.emissiveIntensity = 0.8;
       }
+
+      // Rotate star layers (different speeds/directions)
+      starLayers.forEach(layer => {
+        const { speedX, speedY, invert } = layer.userData;
+        if (invert) {
+          layer.rotation.y -= speedY;
+          layer.rotation.x -= speedX;
+        } else {
+          layer.rotation.y += speedY;
+          layer.rotation.x += speedX;
+        }
+      });
 
       renderer.render(scene, camera);
     }
