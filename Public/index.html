@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shaelvien D20 Shop</title>
+  <title>Shaelvien Titanium D20</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="logo.ico" />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: #2e1a0f; }
+    body { background: #2e1a0f; }  /* deep brown */
     canvas { display: block; }
   </style>
 </head>
@@ -18,159 +18,155 @@
     import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
     import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
-    // --- Scene ---
+    // --- Scene / Camera / Renderer ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
     camera.position.set(0, 0, 4);
 
-    // --- Renderer ---
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
     // --- Lights ---
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 2, 4);
     scene.add(key);
 
-    // --- Categories ---
-    const categories = ["TTRPG", "Anime", "Retro Gaming", "Cosplay"];
-    let d20, texts = [];
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    let clock = new THREE.Clock();
+    // --- Globals ---
+    let d20;
+    const textMeshes = [];
+    const clock = new THREE.Clock();
 
-    // --- Environment ---
+    // --- Environment (HDR reflections) ---
     new RGBELoader()
       .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
-      .load("royal_esplanade_1k.hdr", (hdrTex) => {
-        hdrTex.mapping = THREE.EquirectangularReflectionMapping;
-        scene.environment = hdrTex;
+      .load("royal_esplanade_1k.hdr", (hdr) => {
+        hdr.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = hdr;
         scene.background = null;
         makeD20();
       });
 
     function makeD20() {
+      // Base icosahedron (D20)
       const radius = 1;
       const geo = new THREE.IcosahedronGeometry(radius, 0);
 
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x9d9d9d,
+      const dieMat = new THREE.MeshStandardMaterial({
+        color: 0x9d9d9d,   // titanium grey
         metalness: 1.0,
         roughness: 0.15,
         envMapIntensity: 1.5,
         flatShading: true
       });
 
-      d20 = new THREE.Mesh(geo, mat);
+      d20 = new THREE.Mesh(geo, dieMat);
       scene.add(d20);
 
+      // Edge lines for definition
       const edges = new THREE.EdgesGeometry(geo);
       d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
-      const loader = new FontLoader();
-      loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
-        const pos = geo.attributes.position;
-        const index = geo.index;
-        const faceCount = index ? index.count / 3 : pos.count / 3;
+      // Load font and stamp numbers 1..20
+      new FontLoader().load(
+        "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
+        (font) => addNumbers(font, geo)
+      );
+    }
 
-        for (let i = 0; i < faceCount; i++) {
-          let vA, vB, vC;
+    function addNumbers(font, geo) {
+      const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
 
-          if (index) {
-            const a = index.getX(i * 3);
-            const b = index.getX(i * 3 + 1);
-            const c = index.getX(i * 3 + 2);
-            vA = new THREE.Vector3().fromBufferAttribute(pos, a);
-            vB = new THREE.Vector3().fromBufferAttribute(pos, b);
-            vC = new THREE.Vector3().fromBufferAttribute(pos, c);
-          } else {
-            vA = new THREE.Vector3().fromBufferAttribute(pos, i * 3);
-            vB = new THREE.Vector3().fromBufferAttribute(pos, i * 3 + 1);
-            vC = new THREE.Vector3().fromBufferAttribute(pos, i * 3 + 2);
-          }
+      const pos = geo.attributes.position;
+      const idx = geo.index;
+      const faceCount = idx ? idx.count / 3 : pos.count / 3;
 
-          const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-          const category = categories[i % categories.length];
-
-          const textGeo = new TextGeometry(category, { font: font, size: 0.2, height: 0.02 });
-
-          const shaderMat = new THREE.ShaderMaterial({
-            uniforms: {
-              uTime: { value: 0 },
-              uRippleStrength: { value: 0 }
-            },
-            vertexShader: `
-              uniform float uTime;
-              uniform float uRippleStrength;
-              void main() {
-                vec3 newPosition = position;
-                float wave = sin((position.x + position.y) * 10.0 + uTime * 5.0) * 0.02 * uRippleStrength;
-                newPosition += normal * wave;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-              }
-            `,
-            fragmentShader: `
-              void main() {
-                gl_FragColor = vec4(vec3(0.1), 1.0); // dark engraved
-              }
-            `,
-          });
-
-          const textMesh = new THREE.Mesh(textGeo, shaderMat);
-          textGeo.computeBoundingBox();
-          const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
-          textMesh.position.copy(center).add(offset.multiplyScalar(0.01));
-          textMesh.lookAt(center.clone().multiplyScalar(2));
-
-          d20.add(textMesh);
-          texts.push(textMesh);
+      for (let i = 0; i < faceCount; i++) {
+        // Vertices of this triangle
+        let a, b, c;
+        if (idx) {
+          a = idx.getX(i * 3);
+          b = idx.getX(i * 3 + 1);
+          c = idx.getX(i * 3 + 2);
+        } else {
+          a = i * 3; b = i * 3 + 1; c = i * 3 + 2;
         }
-      });
+        const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+        const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+        const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+
+        // Face center & normal
+        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
+        const tri = new THREE.Triangle(vA, vB, vC);
+        const normal = tri.getNormal(new THREE.Vector3()).normalize();
+
+        // Number geometry (slight bevel for engraved look)
+        const label = numbers[i % numbers.length];
+        const textGeo = new TextGeometry(label, {
+          font,
+          size: 0.28,
+          height: 0.04,
+          bevelEnabled: true,
+          bevelThickness: 0.01,
+          bevelSize: 0.008,
+          bevelSegments: 2,
+          curveSegments: 8
+        });
+        textGeo.computeBoundingBox();
+
+        // Material: darker metal to simulate engraving ink, still reflective
+        const textMat = new THREE.MeshStandardMaterial({
+          color: 0x303036,
+          metalness: 0.7,
+          roughness: 0.35,
+          envMapIntensity: 0.6
+        });
+
+        const textMesh = new THREE.Mesh(textGeo, textMat);
+
+        // Center the text geometry
+        const centerOffset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
+        textMesh.position.copy(centerOffset);
+
+        // Helper object: place at face, orient to face normal
+        const holder = new THREE.Object3D();
+        // Slightly *inside* the face to fake engraving; tweak depth if it z-fights
+        holder.position.copy(center).addScaledVector(normal, -0.012);
+        holder.lookAt(center.clone().add(normal));
+
+        holder.add(textMesh);
+        d20.add(holder);
+        textMeshes.push(holder);
+      }
 
       animate();
     }
 
-    function onPointerMove(event) {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    }
-    window.addEventListener("mousemove", onPointerMove);
-    window.addEventListener("touchmove", (e) => {
-      if (e.touches.length > 0) onPointerMove(e.touches[0]);
-    });
-
     function animate() {
       requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      const t = clock.getElapsedTime();
 
       if (d20) {
         d20.rotation.y += 0.008;
         d20.rotation.x += 0.004;
       }
 
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(texts);
-
-      texts.forEach(t => t.material.uniforms.uRippleStrength.value *= 0.9);
-
-      if (intersects.length > 0) {
-        const obj = intersects[0].object;
-        obj.material.uniforms.uRippleStrength.value = 1.0;
+      // (Optional tiny shimmer to numbers)
+      for (const holder of textMeshes) {
+        holder.rotation.z = Math.sin(t * 0.4) * 0.02;
       }
-
-      texts.forEach(t => t.material.uniforms.uTime.value = elapsed);
 
       renderer.render(scene, camera);
     }
 
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    // Resize
+    addEventListener("resize", () => {
+      camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(innerWidth, innerHeight);
     });
   </script>
 </body>
