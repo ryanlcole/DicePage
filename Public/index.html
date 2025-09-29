@@ -18,27 +18,21 @@
     import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
     import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
-    // --- Scene ---
     const scene = new THREE.Scene();
-
-    // --- Camera ---
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 4);
 
-    // --- Renderer ---
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
-    // --- Lights ---
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 2, 4);
     scene.add(key);
 
-    // --- Controls ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
@@ -49,15 +43,13 @@
     controls.addEventListener("start", () => { isUserInteracting = true; });
     controls.addEventListener("end", () => { isUserInteracting = false; });
 
-    // --- Categories ---
     const categories = ["TTRPG", "Anime", "Retro Gaming", "Cosplay"];
-
     let d20, texts = [];
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let hoveredText = null;
+    let clock = new THREE.Clock();
 
-    // --- Environment Map ---
     new RGBELoader()
       .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
       .load("royal_esplanade_1k.hdr", (hdrTex) => {
@@ -81,11 +73,9 @@
       d20 = new THREE.Mesh(geo, mat);
       scene.add(d20);
 
-      // Add edges
       const edges = new THREE.EdgesGeometry(geo);
       d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
-      // Load font & add category text
       const loader = new FontLoader();
       loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
         geo.faces.forEach((face, i) => {
@@ -95,18 +85,32 @@
           const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
 
           const category = categories[i % categories.length];
-          const textGeo = new TextGeometry(category, {
-            font: font,
-            size: 0.2,
-            height: 0.02,
-          });
-          const textMat = new THREE.MeshStandardMaterial({
-            color: 0x111111, // dark engraved style
-            metalness: 0.2,
-            roughness: 0.8,
-          });
-          const textMesh = new THREE.Mesh(textGeo, textMat);
+          const textGeo = new TextGeometry(category, { font: font, size: 0.2, height: 0.02 });
 
+          // Shader material with ripple effect
+          const shaderMat = new THREE.ShaderMaterial({
+            uniforms: {
+              uTime: { value: 0 },
+              uRippleStrength: { value: 0 }
+            },
+            vertexShader: `
+              uniform float uTime;
+              uniform float uRippleStrength;
+              void main() {
+                vec3 newPosition = position;
+                float wave = sin((position.x + position.y) * 10.0 + uTime * 5.0) * 0.02 * uRippleStrength;
+                newPosition += normal * wave;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+              }
+            `,
+            fragmentShader: `
+              void main() {
+                gl_FragColor = vec4(vec3(0.1), 1.0); // dark engraved
+              }
+            `,
+          });
+
+          const textMesh = new THREE.Mesh(textGeo, shaderMat);
           textGeo.computeBoundingBox();
           const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
           textMesh.position.copy(center).add(offset.multiplyScalar(0.01));
@@ -120,21 +124,18 @@
       animate();
     }
 
-    // --- Hover detection ---
     function onPointerMove(event) {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     }
     window.addEventListener("mousemove", onPointerMove);
     window.addEventListener("touchmove", (e) => {
-      if (e.touches.length > 0) {
-        onPointerMove(e.touches[0]);
-      }
+      if (e.touches.length > 0) onPointerMove(e.touches[0]);
     });
 
-    // --- Animate ---
     function animate() {
       requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
 
       if (d20 && !isUserInteracting) {
         d20.rotation.y += 0.008;
@@ -144,22 +145,19 @@
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(texts);
 
+      texts.forEach(t => t.material.uniforms.uRippleStrength.value *= 0.9); // decay ripple
+
       if (intersects.length > 0) {
-        if (hoveredText !== intersects[0].object) {
-          if (hoveredText) hoveredText.scale.set(1,1,1);
-          hoveredText = intersects[0].object;
-          hoveredText.scale.set(1.2, 1.2, 1.2); // ripple pulse
-        }
-      } else {
-        if (hoveredText) hoveredText.scale.set(1,1,1);
-        hoveredText = null;
+        const obj = intersects[0].object;
+        obj.material.uniforms.uRippleStrength.value = 1.0; // trigger ripple
       }
+
+      texts.forEach(t => t.material.uniforms.uTime.value = elapsed);
 
       controls.update();
       renderer.render(scene, camera);
     }
 
-    // --- Resize ---
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -168,5 +166,6 @@
   </script>
 </body>
 </html>
+
 
 
