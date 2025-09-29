@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shaelvien Titanium D20</title>
+  <title>Shaelvien Engraved D20</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: black;
+      background: radial-gradient(#0d0d12, #000);
     }
     canvas {
       display: block;
@@ -15,114 +16,144 @@
   </style>
 </head>
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<script type="module">
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+  import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
+  import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
 
-  <script>
-    // === Scene ===
-    const scene = new THREE.Scene();
+  // === Scene ===
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
 
-    // === Camera ===
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    camera.position.set(0, 0, 6);
+  // === Camera ===
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.set(0, 0, 6);
 
-    // === Renderer ===
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+  // === Renderer ===
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
 
-    // === Controls ===
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  // === Controls ===
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 2.0;
 
-    // === Lighting ===
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-    hemiLight.position.set(0, 1, 0);
-    scene.add(hemiLight);
+  // === Titanium Material (polished metal) ===
+  const titaniumMat = new THREE.MeshPhysicalMaterial({
+    color: 0xcccccc,
+    metalness: 1.0,
+    roughness: 0.1,
+    reflectivity: 1.0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05
+  });
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(3, 5, 2);
-    scene.add(dirLight);
+  // === Mercury Number Material (liquid gloss) ===
+  const mercuryMat = new THREE.MeshPhysicalMaterial({
+    color: 0xd9d9ff,
+    metalness: 1.0,
+    roughness: 0.2,
+    emissive: 0x222244,
+    reflectivity: 1.0
+  });
 
-    // === Titanium-like Material ===
-    const titaniumMat = new THREE.MeshPhysicalMaterial({
-      color: 0xaaaaaa,         // base titanium gray
-      metalness: 1.0,
-      roughness: 0.2,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      reflectivity: 1.0
-    });
+  // === D20 Geometry ===
+  const radius = 2;
+  const geometry = new THREE.IcosahedronGeometry(radius, 0);
+  const d20 = new THREE.Mesh(geometry, titaniumMat);
+  scene.add(d20);
 
-    // === Mercury Text Material ===
-    const mercuryMat = new THREE.MeshPhysicalMaterial({
-      color: 0xd0d0ff,         // cool metallic mercury tone
-      metalness: 1.0,
-      roughness: 0.05,
-      emissive: 0x222244,      // faint glow
-      emissiveIntensity: 0.3
-    });
+  // === Lights ===
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+  hemiLight.position.set(0, 1, 0);
+  scene.add(hemiLight);
 
-    // === D20 Geometry ===
-    const geometry = new THREE.IcosahedronGeometry(2, 0);
-    const d20 = new THREE.Mesh(geometry, titaniumMat);
-    scene.add(d20);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  dirLight.position.set(5, 10, 7.5);
+  scene.add(dirLight);
 
-    // === Numbers ===
-    const fontLoader = new THREE.FontLoader();
-    fontLoader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
-      const radius = 2;
-      const faceCenters = geometry.faces.map((face) => {
-        const v1 = geometry.vertices[face.a];
-        const v2 = geometry.vertices[face.b];
-        const v3 = geometry.vertices[face.c];
-        return new THREE.Vector3()
-          .addVectors(v1, v2)
-          .add(v3)
-          .divideScalar(3)
-          .normalize()
-          .multiplyScalar(radius + 0.01); // just above the face
-      });
+  // === Engraved Numbers ===
+  const loader = new FontLoader();
+  loader.load(
+    'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
+    (font) => {
+      const positions = geometry.attributes.position;
+      const faceNormals = geometry.attributes.normal;
 
-      for (let i = 0; i < faceCenters.length; i++) {
-        const textGeo = new THREE.TextGeometry((i + 1).toString(), {
+      let number = 1;
+      for (let i = 0; i < positions.count; i += 3) {
+        const vA = new THREE.Vector3().fromBufferAttribute(positions, i);
+        const vB = new THREE.Vector3().fromBufferAttribute(positions, i + 1);
+        const vC = new THREE.Vector3().fromBufferAttribute(positions, i + 2);
+
+        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+        const normal = new THREE.Vector3().fromBufferAttribute(faceNormals, i);
+
+        // Create text
+        const textGeo = new TextGeometry(number.toString(), {
           font: font,
-          size: 0.4,
+          size: 0.5,
           height: 0.05,
         });
+
         textGeo.computeBoundingBox();
+        const bb = textGeo.boundingBox;
+        const textOffset = new THREE.Vector3(
+          (bb.max.x - bb.min.x) * 0.5,
+          (bb.max.y - bb.min.y) * 0.5,
+          (bb.max.z - bb.min.z) * 0.5
+        );
+        textGeo.translate(-textOffset.x, -textOffset.y, -textOffset.z);
+
         const textMesh = new THREE.Mesh(textGeo, mercuryMat);
 
-        const center = faceCenters[i];
-        textMesh.position.copy(center);
+        // Orient text
+        const quat = new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0, 0, 1),
+          normal.clone().normalize()
+        );
+        textMesh.quaternion.copy(quat);
 
-        // Orient text so it faces outward
-        textMesh.lookAt(new THREE.Vector3().copy(center).multiplyScalar(2));
+        // Position text slightly inset into surface
+        textMesh.position.copy(center).addScaledVector(normal, -0.05);
+
+        // Scale text to fit face
+        const width = bb.max.x - bb.min.x;
+        const scale = (radius * 0.5) / width;
+        textMesh.scale.setScalar(scale);
 
         scene.add(textMesh);
+
+        number++;
+        if (number > 20) break;
       }
-    });
-
-    // === Animate ===
-    function animate() {
-      requestAnimationFrame(animate);
-      d20.rotation.y += 0.002;
-      controls.update();
-      renderer.render(scene, camera);
     }
-    animate();
+  );
 
-    // === Resize ===
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
+  // === Animate ===
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // === Resize ===
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
 </body>
 </html>
-
