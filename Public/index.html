@@ -67,7 +67,7 @@
         const y = radius * Math.sin(phi) * Math.sin(theta);
         const z = radius * Math.cos(phi);
 
-        const starGeo = new THREE.IcosahedronGeometry(0.12, 0);
+        const starGeo = new THREE.IcosahedronGeometry(0.25, 0); // bigger gems
         const color = gemColors[i % gemColors.length];
         const starMat = new THREE.MeshPhysicalMaterial({
           color,
@@ -103,14 +103,14 @@
       vortexGroup = new THREE.Group();
       const points = [];
       const count = 3000;
-      const arms = 5; // spiral arms
+      const arms = 5;
 
       for (let i = 0; i < count; i++) {
         const arm = i % arms;
         const angle = (i / count) * Math.PI * 20 + (arm * (2 * Math.PI / arms));
         const radius = 150 * Math.sqrt(i / count);
         const x = Math.cos(angle) * radius;
-        const y = (Math.random() - 0.5) * 20; // some thickness
+        const y = (Math.random() - 0.5) * 20;
         const z = Math.sin(angle) * radius;
         points.push(x, y, z);
       }
@@ -120,7 +120,7 @@
 
       const vortexMat = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 0.5,
+        size: 0.15,   // much smaller dust
         transparent: true,
         opacity: 0.8,
         blending: THREE.AdditiveBlending,
@@ -267,7 +267,7 @@
 
       // Spin vortex
       if (vortexGroup) {
-        vortexGroup.rotation.z += 0.0005; // slow spiral drift
+        vortexGroup.rotation.z += 0.0005;
       }
 
       renderer.render(scene, camera);
