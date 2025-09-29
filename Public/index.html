@@ -6,127 +6,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background: black; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body { background: black; }
     canvas { display: block; }
   </style>
 </head>
 <body>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
+import { RGBELoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
 import { FontLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometries/TextGeometry.js";
 
-// Scene / Camera / Renderer
+// --- Scene / Camera / Renderer ---
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
-camera.position.set(0, 0, 6);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
+camera.position.set(0, 0, 5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// Lights
-scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+// --- Lights ---
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 const key = new THREE.DirectionalLight(0xffffff, 1.0);
-key.position.set(4, 3, 5);
+key.position.set(3, 3, 5);
 scene.add(key);
 
-// Globals
-let d20;
+// --- Globals ---
+let d20, fontGlobal;
 const textMeshes = [];
 const clock = new THREE.Clock();
 const starLayers = [];
+
+// --- Gem palette ---
 const gemColors = [
   0x00ffff, 0xff66cc, 0x99ff66, 0x6699ff,
   0xffcc33, 0xffffff, 0xcc99ff, 0xff3333
 ];
 
-// D20
+// --- Environment ---
+new RGBELoader()
+  .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
+  .load("royal_esplanade_1k.hdr", (hdr) => {
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = hdr;
+    makeD20();
+    makeVortexStars();
+    makeGemLayers();
+    makeTitles();
+  });
+
+// --- D20 ---
 function makeD20() {
   const geo = new THREE.IcosahedronGeometry(1, 0);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xaaaaaa,
-    metalness: 0.8,
-    roughness: 0.3,
+  const dieMat = new THREE.MeshStandardMaterial({
+    color: 0x9d9d9d,
+    metalness: 1.0,
+    roughness: 0.2,
+    envMapIntensity: 1.2,
     flatShading: false
   });
-  d20 = new THREE.Mesh(geo, mat);
+  d20 = new THREE.Mesh(geo, dieMat);
   scene.add(d20);
 
-  // Numbers
-  new FontLoader().load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
-    const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
-    const pos = geo.attributes.position;
-    const idx = geo.index;
-    const faceCount = idx.count / 3;
+  const edges = new THREE.EdgesGeometry(geo);
+  d20.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 })));
 
-    for (let i = 0; i < 20; i++) {
-      const a = idx.getX(i * 3);
-      const b = idx.getX(i * 3 + 1);
-      const c = idx.getX(i * 3 + 2);
-
-      const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
-      const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
-      const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
-
-      const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
-      const normal = new THREE.Triangle(vA, vB, vC).getNormal(new THREE.Vector3());
-
-      const textGeo = new TextGeometry(numbers[i], {
-        font,
-        size: 0.25,
-        height: 0.05,
-        bevelEnabled: true,
-        bevelThickness: 0.01,
-        bevelSize: 0.005
-      });
-      textGeo.computeBoundingBox();
-
-      const color = gemColors[i % gemColors.length];
-      const textMat = new THREE.MeshPhysicalMaterial({
-        color,
-        roughness: 0.2,
-        transmission: 0.8,
-        thickness: 0.5,
-        emissive: new THREE.Color(color),
-        emissiveIntensity: 0.5
-      });
-
-      const textMesh = new THREE.Mesh(textGeo, textMat);
-      textGeo.boundingBox.getCenter(textMesh.position).multiplyScalar(-1);
-
-      const holder = new THREE.Object3D();
-      holder.position.copy(center).addScaledVector(normal, 0.05);
-      holder.lookAt(center.clone().multiplyScalar(2));
-      holder.add(textMesh);
-
-      d20.add(holder);
-      textMeshes.push(textMesh);
+  new FontLoader().load(
+    "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
+    (font) => {
+      fontGlobal = font;
+      addNumbers(font, geo);
     }
-  });
+  );
 }
 
-// Background
+// --- Numbers ---
+function addNumbers(font, geo) {
+  const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
+  const pos = geo.attributes.position;
+  const idx = geo.index;
+  const faceCount = idx ? idx.count / 3 : pos.count / 3;
+
+  for (let i = 0; i < 20; i++) {
+    const faceIndex = Math.floor((i / 20) * faceCount);
+
+    let a, b, c;
+    if (idx) {
+      a = idx.getX(faceIndex * 3);
+      b = idx.getX(faceIndex * 3 + 1);
+      c = idx.getX(faceIndex * 3 + 2);
+    } else {
+      a = faceIndex * 3;
+      b = faceIndex * 3 + 1;
+      c = faceIndex * 3 + 2;
+    }
+
+    const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+    const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+    const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+
+    const center = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
+    const tri = new THREE.Triangle(vA, vB, vC);
+    const normal = tri.getNormal(new THREE.Vector3()).normalize();
+
+    const textGeo = new TextGeometry(numbers[i], {
+      font,
+      size: 0.28,
+      height: 0.06,
+      bevelEnabled: true,
+      bevelThickness: 0.01,
+      bevelSize: 0.008,
+      bevelSegments: 2,
+      curveSegments: 8
+    });
+    textGeo.computeBoundingBox();
+
+    const color = gemColors[i % gemColors.length];
+    const textMat = new THREE.MeshPhysicalMaterial({
+      color,
+      metalness: 0,
+      roughness: 0.05,
+      transmission: 0.9,
+      thickness: 0.4,
+      envMapIntensity: 1.5,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05
+    });
+
+    const textMesh = new THREE.Mesh(textGeo, textMat);
+    const offset = textGeo.boundingBox.getCenter(new THREE.Vector3()).multiplyScalar(-1);
+    textMesh.position.copy(offset);
+
+    const holder = new THREE.Object3D();
+    holder.position.copy(center).addScaledVector(normal, 0.02);
+    holder.lookAt(center.clone().add(normal));
+    holder.add(textMesh);
+
+    d20.add(holder);
+    textMeshes.push(textMesh);
+  }
+}
+
+// --- Titanium Titles ---
+function makeTitles() {
+  if (!fontGlobal) {
+    new FontLoader().load(
+      "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
+      (font) => {
+        fontGlobal = font;
+        createTitle("ReLiC", 2.0, 1.8);
+        createTitle("GameMaster", 2.0, -2.0);
+      }
+    );
+  } else {
+    createTitle("ReLiC", 2.0, 1.8);
+    createTitle("GameMaster", 2.0, -2.0);
+  }
+}
+
+function createTitle(text, size, yPos) {
+  const textGeo = new TextGeometry(text, {
+    font: fontGlobal,
+    size: size,
+    height: 0.1,
+    bevelEnabled: true,
+    bevelThickness: 0.02,
+    bevelSize: 0.01,
+    bevelSegments: 4
+  });
+  const textMat = new THREE.MeshStandardMaterial({
+    color: 0xaaaaaa,
+    metalness: 1.0,
+    roughness: 0.2,
+    envMapIntensity: 2.0
+  });
+  const mesh = new THREE.Mesh(textGeo, textMat);
+  mesh.position.set(-text.length * 0.6, yPos, 0);
+  scene.add(mesh);
+}
+
+// --- Vortex Starfield ---
 function makeVortexStars() {
   const starGeo = new THREE.BufferGeometry();
-  const starCount = 1200;
+  const starCount = 2000;
   const posArray = new Float32Array(starCount * 3);
+
   for (let i = 0; i < starCount; i++) {
     const r = Math.random() * 400;
     const theta = i * 0.3 + Math.random() * 0.5;
-    posArray[i * 3] = r * Math.cos(theta);
-    posArray[i * 3 + 1] = (Math.random() - 0.5) * 80;
-    posArray[i * 3 + 2] = r * Math.sin(theta);
+    const x = r * Math.cos(theta);
+    const y = (Math.random() - 0.5) * 80;
+    const z = r * Math.sin(theta);
+    posArray[i * 3] = x;
+    posArray[i * 3 + 1] = y;
+    posArray[i * 3 + 2] = z;
   }
   starGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
-  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 });
+
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
   const vortex = new THREE.Points(starGeo, starMat);
   vortex.userData.rotate = true;
   scene.add(vortex);
   starLayers.push(vortex);
 }
 
+// --- Gem Layers ---
 function makeGemLayers() {
   function makeLayer(radius, count, speed) {
     const group = new THREE.Group();
@@ -137,14 +225,19 @@ function makeGemLayers() {
       const y = radius * Math.sin(phi) * Math.sin(theta);
       const z = radius * Math.cos(phi);
 
-      const geo = new THREE.OctahedronGeometry(0.2);
+      const geo = new THREE.IcosahedronGeometry(0.3, 0);
       const color = gemColors[Math.floor(Math.random() * gemColors.length)];
       const mat = new THREE.MeshPhysicalMaterial({
         color,
-        transmission: 0.8,
+        metalness: 0,
+        roughness: 0.1,
+        transmission: 0.9,
+        thickness: 0.5,
         emissive: new THREE.Color(color),
-        emissiveIntensity: 0.4
+        emissiveIntensity: 0.4,
+        envMapIntensity: 1.2
       });
+
       const gem = new THREE.Mesh(geo, mat);
       gem.position.set(x, y, z);
       group.add(gem);
@@ -153,22 +246,18 @@ function makeGemLayers() {
     scene.add(group);
     starLayers.push(group);
   }
+
   makeLayer(60, 150, 0.0005);
   makeLayer(100, 200, 0.0003);
   makeLayer(140, 250, 0.0002);
 }
 
-// Animate
+// --- Animate ---
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  if (d20) {
-    d20.rotation.y += 0.006;
-    d20.rotation.x += 0.003;
-  }
-
-  starLayers.forEach(layer => {
+  starLayers.forEach((layer) => {
     if (layer.userData.rotate) layer.rotation.z += 0.0003;
     else {
       layer.rotation.y += layer.userData.speed;
@@ -176,16 +265,16 @@ function animate() {
     }
   });
 
+  if (d20) {
+    d20.rotation.y += 0.008;
+    d20.rotation.x += 0.004;
+  }
+
   renderer.render(scene, camera);
 }
-
-// Init
-makeD20();
-makeVortexStars();
-makeGemLayers();
 animate();
 
-// Resize
+// --- Resize ---
 addEventListener("resize", () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
