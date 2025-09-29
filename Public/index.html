@@ -16,13 +16,6 @@
     import { RGBELoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
     import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-    // --- Controls ---
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;    // smooth motion
-    controls.enablePan = false;       // no panning
-    controls.minDistance = 2;         // zoom limits
-    controls.maxDistance = 6;
-
     // --- Scene ---
     const scene = new THREE.Scene();
 
@@ -49,6 +42,17 @@
     key.position.set(3, 2, 4);
     scene.add(key);
 
+    // --- Orbit Controls ---
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 6;
+
+    let isUserInteracting = false;
+    controls.addEventListener("start", () => { isUserInteracting = true; });
+    controls.addEventListener("end", () => { isUserInteracting = false; });
+
     // --- Environment Map (HDR) ---
     new RGBELoader()
       .setPath("https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/")
@@ -58,6 +62,8 @@
         scene.background = null; // keep our brown background instead of HDR backdrop
         makeD20();
       });
+
+    let d20;
 
     function makeD20() {
       // --- D20 geometry ---
@@ -73,7 +79,7 @@
         flatShading: true
       });
 
-      const d20 = new THREE.Mesh(geo, mat);
+      d20 = new THREE.Mesh(geo, mat);
       scene.add(d20);
 
       // Edges for visibility
@@ -84,17 +90,20 @@
       );
       d20.add(edgeLines);
 
-      // --- Animate ---
-     function animate() {
-  requestAnimationFrame(animate);
-  d20.rotation.y += 0.008;
-  d20.rotation.x += 0.004;
-
-  controls.update();  // update orbit controls
-  renderer.render(scene, camera);
-}
-
       animate();
+    }
+
+    // --- Animate ---
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (d20 && !isUserInteracting) {
+        d20.rotation.y += 0.008;
+        d20.rotation.x += 0.004;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
     }
 
     // --- Resize ---
@@ -106,3 +115,4 @@
   </script>
 </body>
 </html>
+
