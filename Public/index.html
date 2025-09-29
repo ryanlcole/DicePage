@@ -20,8 +20,8 @@ import { TextGeometry } from "https://esm.sh/three@0.160.0/examples/jsm/geometri
 
 // --- Scene / Camera / Renderer ---
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
-camera.position.set(0, 0, 6);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(0, 0, 7);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
@@ -30,13 +30,22 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // --- Lights ---
-scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-const key = new THREE.DirectionalLight(0xffffff, 1.0);
-key.position.set(3, 3, 5);
-scene.add(key);
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+
+// Add distant sun
+const sunLight = new THREE.PointLight(0xffddaa, 2, 200);
+sunLight.position.set(50, 30, -40);
+scene.add(sunLight);
+
+// Visible glowing sphere for the sun
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffddaa, emissive: 0xffddaa });
+const sun = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 32), sunMat);
+sun.position.copy(sunLight.position);
+scene.add(sun);
 
 // --- Globals ---
 let d20, fontGlobal;
+const textMeshes = [];
 const clock = new THREE.Clock();
 const starLayers = [];
 let relicOrbit, gmOrbit;
@@ -63,14 +72,85 @@ new RGBELoader()
 function makeD20() {
   const geo = new THREE.IcosahedronGeometry(1, 0);
   const dieMat = new THREE.MeshStandardMaterial({
-    color: 0x9d9d9d,
+    color: 0x888888,
     metalness: 1.0,
     roughness: 0.2,
-    envMapIntensity: 1.2,
-    flatShading: false
+    envMapIntensity: 1.5
   });
   d20 = new THREE.Mesh(geo, dieMat);
   scene.add(d20);
+
+  // Add edges
+  const edges = new THREE.EdgesGeometry(geo);
+  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111 }));
+  d20.add(edgeLines);
+
+  // Load font for numbers
+  new FontLoader().load(
+    "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
+    (font) => {
+      fontGlobal = font;
+      addNumbers(font, geo);
+    }
+  );
+}
+
+// --- Numbers ---
+function addNumbers(font, geo) {
+  const numbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
+  const pos = geo.attributes.position;
+  const idx = geo.index;
+  const faceCount = idx ? idx.count / 3 : pos.count / 3;
+
+  for (let i = 0; i < faceCount; i++) {
+    let a, b, c;
+    if (idx) {
+      a = idx.getX(i * 3);
+      b = idx.getX(i * 3 + 1);
+      c = idx.getX(i * 3 + 2);
+    } else {
+      a = i * 3; b = i * 3 + 1; c = i * 3 + 2;
+    }
+    const vA = new THREE.Vector3().fromBufferAttribute(pos, a);
+    const vB = new THREE.Vector3().fromBufferAttribute(pos, b);
+    const vC = new THREE.Vector3().fromBufferAttribute(pos, c);
+
+    const center = new THREE.Vector3().addVectors(vA, vB).add(vC).divideScalar(3);
+    const tri = new THREE.Triangle(vA, vB, vC);
+    const normal = tri.getNormal(new THREE.Vector3()).normalize();
+
+    const label = numbers[i % numbers.length];
+    const textGeo = new TextGeometry(label, {
+      font,
+      size: 0.25,
+      height: 0.05,
+      bevelEnabled: true,
+      bevelThickness: 0.01,
+      bevelSize: 0.008,
+      bevelSegments: 2,
+    });
+    textGeo.computeBoundingBox();
+
+    const color = gemColors[i % gemColors.length];
+    const textMat = new THREE.MeshPhysicalMaterial({
+      color,
+      metalness: 0,
+      roughness: 0.05,
+      transmission: 0.9,
+      thickness: 0.5,
+      emissive: new THREE.Color(color),
+      emissiveIntensity: 0.6,
+      envMapIntensity: 1.5
+    });
+
+    const textMesh = new THREE.Mesh(textGeo, textMat);
+    textGeo.center();
+    textMesh.position.copy(center).addScaledVector(normal, 0.02);
+    textMesh.lookAt(center.clone().multiplyScalar(3));
+
+    d20.add(textMesh);
+    textMeshes.push(textMesh);
+  }
 }
 
 // --- Orbiting Titles ---
@@ -78,34 +158,21 @@ function loadOrbitingTitles() {
   new FontLoader().load(
     "https://threejs.org/examples/fonts/helvetiker_bold.typeface.json",
     (font) => {
-      fontGlobal = font;
-
-      // Titanium text material
       const textMat = new THREE.MeshStandardMaterial({
         color: 0xaaaaaa,
         metalness: 1.0,
-        roughness: 0.2,
+        roughness: 0.3,
         envMapIntensity: 2.0
       });
 
-      // ReLiC text
-      const relicGeo = new TextGeometry("ReLiC", {
-        font, size: 0.7, height: 0.1, bevelEnabled: true,
-        bevelThickness: 0.02, bevelSize: 0.01, bevelSegments: 4
-      });
+      const relicGeo = new TextGeometry("ReLiC", { font, size: 0.6, height: 0.08 });
       relicGeo.center();
       relicOrbit = new THREE.Mesh(relicGeo, textMat);
-      relicOrbit.position.set(2.5, 0, 0); // start on the right
       scene.add(relicOrbit);
 
-      // GameMaster text
-      const gmGeo = new TextGeometry("GameMaster", {
-        font, size: 0.7, height: 0.1, bevelEnabled: true,
-        bevelThickness: 0.02, bevelSize: 0.01, bevelSegments: 4
-      });
+      const gmGeo = new TextGeometry("GameMaster", { font, size: 0.6, height: 0.08 });
       gmGeo.center();
       gmOrbit = new THREE.Mesh(gmGeo, textMat);
-      gmOrbit.position.set(-3, 0, 0); // start on the left
       scene.add(gmOrbit);
     }
   );
@@ -179,7 +246,7 @@ function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  // Spin stars/gems
+  // Background
   starLayers.forEach((layer) => {
     if (layer.userData.rotate) layer.rotation.z += 0.0003;
     else {
@@ -188,21 +255,21 @@ function animate() {
     }
   });
 
-  // Rotate D20 slowly
+  // Rotate D20
   if (d20) {
-    d20.rotation.y += 0.008;
-    d20.rotation.x += 0.004;
+    d20.rotation.y += 0.006;
+    d20.rotation.x += 0.003;
   }
 
-  // Orbiting titles
+  // Orbiting titles like moons
   if (relicOrbit) {
-    relicOrbit.position.x = Math.cos(t * 0.5) * 3;
-    relicOrbit.position.y = Math.sin(t * 0.5) * 2;
-    relicOrbit.lookAt(d20.position); // always face the D20
+    relicOrbit.position.x = Math.cos(t * 0.4) * 3.5;
+    relicOrbit.position.y = Math.sin(t * 0.4) * 2.5;
+    relicOrbit.lookAt(d20.position);
   }
   if (gmOrbit) {
-    gmOrbit.position.x = Math.cos(t * 0.3 + Math.PI) * 4;
-    gmOrbit.position.y = Math.sin(t * 0.3 + Math.PI) * 2.5;
+    gmOrbit.position.x = Math.cos(t * 0.25 + Math.PI) * 5;
+    gmOrbit.position.y = Math.sin(t * 0.25 + Math.PI) * 3;
     gmOrbit.lookAt(d20.position);
   }
 
