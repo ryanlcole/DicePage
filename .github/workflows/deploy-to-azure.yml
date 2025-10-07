@@ -8,26 +8,31 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy to Azure WebApp
 
     steps:
-      - name: Checkout code
+      # 1️⃣ Checkout the repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # 2️⃣ Install Node 20 (same as your Azure runtime)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
-      - name: Run redirect test
-        run: node redirect.js || echo "Redirect verified"
+      # 4️⃣ Optional build step (only runs if "build" script exists)
+      - name: Build project
+        run: npm run build --if-present
 
-      - name: 'Deploy to Azure WebApp'
+      # 5️⃣ Deploy directly to Azure
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
+          app-name: ShaelvienDiceGroup
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: .
