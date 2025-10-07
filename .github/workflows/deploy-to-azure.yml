@@ -1,39 +1,33 @@
-name: Deploy Shaelvien Dice Mall to Azure
+name: Deploy Shaelvien DicePage to Azure
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches:
+      - main  # or your default branch
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout source
+      uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Build public assets (if needed)
-        run: |
-          mkdir -p Public/js Public/assets
-          echo "✅ Public folder verified"
+    - name: Build project
+      run: npm run build --if-present
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: relicgamemaster       # ⚠️ Your Azure App Service name
-          slot-name: production
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: .
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ShaelvienDiceGroup
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: .
+
