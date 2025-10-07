@@ -1,9 +1,13 @@
-name: Deploy Shaelvien Dice Mall
+name: Test and Build (Local / GitHub Pages)
 
 on:
+  workflow_dispatch:  # manual only
   push:
-    branches: [ "main" ]
-  workflow_dispatch:  # allows manual trigger in Actions tab
+    branches-ignore:
+      - main  # don’t trigger when pushing to main
+
+# rest of your file unchanged
+
 
 jobs:
   build-and-deploy:
