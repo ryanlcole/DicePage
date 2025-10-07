@@ -1,10 +1,12 @@
-import express from "express";
-import compression from "compression";
-import helmet from "helmet";
-import morgan from "morgan";
-const app = express(
+// server.js
+const express = require("express");
+const path = require("path");
+const app = express();
 const PORT = process.env.PORT || 3000;
-app.use(helmet());
-app.use(compression());
-app.use(morgan("dev"));
-app.use(express.static("Public"));
+
+app.use(express.static(path.join(__dirname, "Public")));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "Public", "index.html"));
+});
+
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
