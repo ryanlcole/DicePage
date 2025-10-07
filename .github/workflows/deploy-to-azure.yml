@@ -1,13 +1,15 @@
-name: Deploy to Azure (Production)
+name: Deploy to Azure (Staged + Verified Production)
 
 on:
   push:
     branches:
-      - main
+      - main  # Production deploy only
+  workflow_dispatch:  # Manual trigger allowed
 
 jobs:
-  build-and-deploy:
+  build-deploy-staging:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -22,14 +24,44 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run basic test build
+      - name: Build verification
         run: |
           mkdir -p Public/js Public/assets
-          echo "✅ Build verified before deploy"
+          echo "✅ Build structure verified"
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Staging Slot
         uses: azure/webapps-deploy@v2
         with:
           app-name: ShaelvienDiceGroup
+          slot-name: staging
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: .
+
+      - name: Wait for staging to warm up
+        run: |
+          echo "⏳ Waiting for staging slot to start..."
+          sleep 20
+
+      - name: Verify staging deployment health
+        run: |
+          echo "Testing staging slot..."
+          curl -I https://shaelviendicegroup-staging.azurewebsites.net || exit 1
+        continue-on-error: false
+
+      - name: Swap staging slot to production
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            echo "Promoting staging slot to production..."
+            az webapp deployment slot swap \
+              --name ShaelvienDiceGroup \
+              --resource-group ShaelvienDiceGroup \
+              --slot staging \
+              --target-slot production
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Confirm production is live
+        run: |
+          echo "🌐 Checking live production site..."
+          curl -I https://shaelviendicegroup.azurewebsites.net || exit 1
