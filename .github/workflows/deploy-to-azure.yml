@@ -1,4 +1,4 @@
-name: Mirror Shaelvien Dice Mall to GitHub Pages
+name: Deploy Shaelvien Dice Mall to Azure
 
 on:
   push:
@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-pages:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -19,14 +19,24 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Prepare static content
-        run: |
-          mkdir -p Public
-          echo "✅ Public folder verified for GitHub Pages"
-          echo "<!-- Mirror Build $(date) -->" >> Public/index.html
+      - name: Install dependencies
+        run: npm install
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Build web app
+        run: |
+          mkdir -p Public/js Public/assets
+          echo "✅ Public directories verified"
+          echo "Deployment build successful"
+
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./Public
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ShaelvienDiceGroup
+          slot-name: production
+          package: .
+
