@@ -1,9 +1,10 @@
-name: Deploy Shaelvien DicePage to Azure
+name: Deploy to Azure (Production)
 
 on:
   push:
     branches:
-      - main  # or change to your branch if needed
+      - main  # only deploy when pushing to main
+
 
 jobs:
   build-and-deploy:
