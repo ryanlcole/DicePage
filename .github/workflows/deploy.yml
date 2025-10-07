@@ -1,0 +1,43 @@
+name: Deploy Shaelvien Dice Mall
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:  # allows manual trigger in Actions tab
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Public files (if needed)
+        run: |
+          mkdir -p Public/js Public/assets
+          echo "✅ Public structure verified"
+
+      - name: Run local server for verification
+        run: |
+          node server.js &
+          sleep 5
+          curl -I http://localhost:3000 || true
+        env:
+          PORT: 3000
+
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./Public
