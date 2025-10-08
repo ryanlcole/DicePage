@@ -1,12 +1,13 @@
 // ============================================================
-// HEX PIXEL ENGINE  (stand-alone JS module)
+// Shaelvien DiceMall – Spaxel Engine v3.0
+// Dynamic client connected to Azure backend
 // ============================================================
 
+// === Canvas Setup ===
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d", { willReadFrequently: false });
-
-// --- screen buffer -------------------------------------------------
 let W, H, image, pix32;
+
 function allocScreen() {
   W = innerWidth;
   H = innerHeight;
@@ -21,7 +22,7 @@ addEventListener("resize", () => {
 });
 allocScreen();
 
-// --- hex topology --------------------------------------------------
+// === Hex World Geometry ===
 const HEX_SIZE = 12;
 const HEX_W = Math.sqrt(3) * HEX_SIZE;
 const HEX_H = 2 * HEX_SIZE * 0.75;
@@ -60,7 +61,7 @@ function rebuildHexWorld() {
   buildSpaxelOwnerMap();
 }
 
-// --- spaxel grid ---------------------------------------------------
+// === Spaxel Grid ===
 function buildSpaxels() {
   const scale = 2;
   SW = Math.max(Math.floor(W / scale), 16);
@@ -98,7 +99,7 @@ function buildSpaxelOwnerMap() {
 }
 rebuildHexWorld();
 
-// --- element rules -------------------------------------------------
+// === Element Behaviors ===
 function ruleWater(e, v) {
   return v + 0.002 - 0.0005 * e;
 }
@@ -125,6 +126,7 @@ const ruleFn = [
   ruleSand,
 ];
 
+// === Simulation ===
 function idxClamp(x, y) {
   if (x < 0) x = 0;
   if (x >= SW) x = SW - 1;
@@ -153,7 +155,7 @@ function stepSpaxels() {
   spEnergyB = tmp;
 }
 
-// --- interaction ---------------------------------------------------
+// === Interaction ===
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left,
@@ -182,9 +184,12 @@ canvas.addEventListener("click", (e) => {
       }
     }
   }
+
+  // Send the update to the server
+  postZoneUpdate(idx, h.elem, 0.5);
 });
 
-// --- color helpers -------------------------------------------------
+// === Color + Draw Helpers ===
 function HSVtoRGB(h, s, v) {
   let r, g, b;
   const i = Math.floor(h * 6),
@@ -194,34 +199,22 @@ function HSVtoRGB(h, s, v) {
     t = v * (1 - (1 - f) * s);
   switch (i % 6) {
     case 0:
-      r = v;
-      g = t;
-      b = p;
+      (r = v), (g = t), (b = p);
       break;
     case 1:
-      r = q;
-      g = v;
-      b = p;
+      (r = q), (g = v), (b = p);
       break;
     case 2:
-      r = p;
-      g = v;
-      b = t;
+      (r = p), (g = v), (b = t);
       break;
     case 3:
-      r = p;
-      g = q;
-      b = v;
+      (r = p), (g = q), (b = v);
       break;
     case 4:
-      r = t;
-      g = p;
-      b = v;
+      (r = t), (g = p), (b = v);
       break;
     default:
-      r = v;
-      g = p;
-      b = q;
+      (r = v), (g = p), (b = q);
   }
   return { r: (r * 255) | 0, g: (g * 255) | 0, b: (b * 255) | 0 };
 }
@@ -231,8 +224,7 @@ function putPixel(x, y, r, g, b) {
   pix32[y * W + x] = (255 << 24) | (b << 16) | (g << 8) | r;
 }
 
-// --- rendering -----------------------------------------------------
-function render(t) {
+function render() {
   pix32.fill(0xff000000);
   const sx = W / SW,
     sy = H / SH;
@@ -268,7 +260,35 @@ function render(t) {
   ctx.putImageData(image, 0, 0);
 }
 
-// --- main loop -----------------------------------------------------
+// === Backend Sync ===
+async function fetchWorld() {
+  try {
+    const res = await fetch("/api/world");
+    const data = await res.json();
+    console.log("🌐 Synced world:", data);
+  } catch (err) {
+    console.warn("World sync failed:", err);
+  }
+}
+
+async function postZoneUpdate(id, element, energy) {
+  try {
+    const res = await fetch("/api/zone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, element, energy }),
+    });
+    const out = await res.json();
+    console.log("✅ Zone update:", out);
+  } catch (err) {
+    console.error("❌ Zone update failed:", err);
+  }
+}
+
+// Pull world data periodically
+setInterval(fetchWorld, 10000);
+
+// === Main Loop ===
 let last = performance.now(),
   acc = 0,
   target = 1000 / 120;
@@ -280,7 +300,7 @@ function loop(now) {
     stepSpaxels();
     acc -= target;
   }
-  render(now * 0.001);
+  render();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
