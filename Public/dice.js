@@ -1,67 +1,61 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-let scene, camera, renderer, controls, d20, banner;
-const categories = [
-  "TTRPG", "Anime", "Retro", "Cosplay", "Fantasy",
-  "Music", "Sci-Fi", "Art", "Indie", "Guilds",
-  "Lore", "Tools", "Events", "Shops", "Creators",
-  "Magic", "Dice", "Streams", "Games", "Worlds"
-];
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("d20"), antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setClearColor(0x000000);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
 
-init();
-animate();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 0, 6);
 
-function init() {
-  banner = document.getElementById("banner");
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enablePan = false;
+controls.minDistance = 3;
+controls.maxDistance = 10;
 
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.z = 4;
+// lights
+const light1 = new THREE.PointLight(0xffffff, 2, 0);
+light1.position.set(4, 3, 4);
+const light2 = new THREE.PointLight(0x77ccff, 1, 0);
+light2.position.set(-3, -2, -4);
+scene.add(light1, light2);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+// D20
+const geo = new THREE.IcosahedronGeometry(1.5, 0);
+const mat = new THREE.MeshPhysicalMaterial({
+  metalness: 0,
+  roughness: 0.05,
+  transmission: 1,
+  thickness: 0.35,
+  ior: 2.45,
+  envMapIntensity: 1.5,
+  clearcoat: 1,
+  clearcoatRoughness: 0.05,
+  reflectivity: 0.9
+});
+const d20 = new THREE.Mesh(geo, mat);
+scene.add(d20);
 
-  const geometry = new THREE.IcosahedronGeometry(1, 0);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x6699ff,
-    metalness: 0.6,
-    roughness: 0.2,
-  });
-  d20 = new THREE.Mesh(geometry, material);
-  scene.add(d20);
-
-  const light = new THREE.PointLight(0xffffff, 2);
-  light.position.set(5, 5, 5);
-  scene.add(light);
-  scene.add(new THREE.AmbientLight(0x404040));
-
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 2.0;
-
-  window.addEventListener("resize", onWindowResize);
-  window.addEventListener("click", lockDie);
-}
-
-function lockDie() {
-  controls.autoRotate = false;
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  banner.textContent = category + " ✨";
-  banner.style.opacity = 1;
-  setTimeout(() => (banner.style.opacity = 0), 4000);
-}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
+// animation
+let t = 0;
 function animate() {
   requestAnimationFrame(animate);
+  t += 0.01;
+  d20.rotation.x += 0.0015;
+  d20.rotation.y += 0.002;
   controls.update();
   renderer.render(scene, camera);
 }
+animate();
+
+addEventListener("resize", () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
