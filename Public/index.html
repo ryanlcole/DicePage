@@ -1,6 +1,18 @@
-<DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8" />
-<title>Shaelvien DicePage Test</title></head><body style="background:black;color:white;text-align:center;padding-top:20%;">
-<h1>Shaelvien DicePage - Live</h1>
-<p>Server running correctly on localhost.</p>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shaelvien DiceMall</title>
+  <style>
+    body { margin:0; overflow:hidden; background:radial-gradient(ellipse at top,#000428,#004e92); color:#fff; font-family:serif; }
+    #banner { position:absolute; top:10%; width:100%; text-align:center; font-size:2em; letter-spacing:2px; opacity:0; transition:opacity 1s; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+  <div id="banner"></div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="dice.js"></script>
+</body>
+</html>
