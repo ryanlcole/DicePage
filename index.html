@@ -4,6 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dice Moon – Hex Pixel Engine</title>
+
+  <!-- Inline SVG favicon (prevents 404 without extra files) -->
+  <link rel="icon" href='data:image/svg+xml;utf8,
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="12" ry="12" fill="black"/>
+    <g transform="translate(32,32)">
+      <polygon points="0,-20 17,-10 17,10 0,20 -17,10 -17,-10" fill="none" stroke="#70f0ff" stroke-width="3"/>
+    </g>
+  </svg>' />
+
   <style>
     html, body {
       margin: 0;
@@ -15,14 +25,14 @@
     }
     #hud {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      padding: 6px 10px;
-      background: rgba(0, 0, 0, 0.4);
+      top: 10px; left: 10px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.45);
       border: 1px solid #0f0;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 12px;
       z-index: 10;
+      line-height: 1.35;
     }
     canvas {
       display: block;
@@ -33,13 +43,14 @@
 </head>
 <body>
   <div id="hud">
-    <b>HEX PIXEL ENGINE</b><br>
-    Left click a hex → enter terrain name (ocean, mountain, volcano, tundra, desert)<br>
-    Growth time: 5s – AI procedural randomness
+    <b>HEX PIXEL ENGINE</b><br/>
+    Left-click a hex → enter terrain (ocean, mountain, volcano, tundra, desert)<br/>
+    Grows from birth → mature in 5s (procedural & unique)
   </div>
-  <canvas id="screen"></canvas>
 
+  <canvas id="screen"></canvas>
   <script src="spaxelEngine.js"></script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 17:11:58 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 17:22:38 UTC 2025 -->
