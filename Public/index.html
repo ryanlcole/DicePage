@@ -3,17 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Shaelvien Dice Mall</title>
+<title>Dice Mall</title>
 <style>
-  html,body{height:100%;margin:0;background:#000;overflow:hidden;color:#f7e6c7}
-  #banner{position:fixed;left:2rem;top:2rem;z-index:10;pointer-events:none;
-    font-size:clamp(28px,4.6vw,56px);line-height:1.05;text-shadow:0 0 28px #7a6030}
+  html,body{height:100%;margin:0;background:#000;overflow:hidden}
   canvas{position:fixed;inset:0;display:block}
 </style>
 </head>
 <body>
-  <div id="banner">Shaelvien<br>Dice Mall</div>
-  <canvas id="gl"></canvas>
+<canvas id="gl"></canvas>
 
 <script>
 (() => {
@@ -32,83 +29,66 @@
   }
   addEventListener('resize', resize); resize();
 
-  // ---------- shader helpers ----------
-  const compile = (type, src) => {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src); gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
-    return s;
-  };
-  const link = (vs, fs) => {
-    const p = gl.createProgram();
+  // ---------- helpers ----------
+  const compile = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s); return s; };
+  const link = (vs, fs) => { const p = gl.createProgram();
     gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
     gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p);
-    return p;
-  };
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p); return p; };
 
-  // ---------- full-screen background (procedural Naeja galaxy) ----------
+  // ---------- full-screen Naeja galaxy background ----------
   const bgVS = `#version 300 es
   precision highp float; out vec2 vUV;
-  void main(){
-    vec2 q = vec2((gl_VertexID<<1) & 2, gl_VertexID & 2);
-    vUV = q;
-    gl_Position = vec4(q*2.0-1.0, 0.0, 1.0);
+  void main(){ vec2 q = vec2((gl_VertexID<<1)&2, gl_VertexID&2); vUV=q; gl_Position=vec4(q*2.0-1.0,0.0,1.0); }`;
+
+  const BG_COMMON = `
+  float hash(vec3 p){ p=fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+  float nebula(vec3 d,float t){
+    float a=dot(d,vec3(0.6,0.2,0.7))*4.0+t*0.05;
+    float b=dot(d,vec3(-0.3,0.9,0.1))*6.0-t*0.03;
+    float c=dot(d,vec3(0.2,0.3,0.9))*5.0+t*0.04;
+    float n=0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
+    return smoothstep(0.0,1.0,n*0.5+0.5);
+  }
+  float starfield(vec3 d,float t){
+    float band=pow(clamp(1.0-abs(d.y),0.0,1.0),3.0);
+    float dense=0.6*band+0.15;
+    float s = step(0.995,hash(floor(d*800.0)));
+    float s2= step(0.9975,hash(floor(d*1200.0)));
+    float tw=0.7+0.3*sin(t*3.0+hash(d*500.0)*6.283);
+    return (s*tw*2.2+s2*tw*4.0)*dense;
+  }
+  vec3 galaxyColor(vec3 dir,float t){
+    dir=normalize(dir);
+    float core=pow(clamp(1.0-abs(dir.y),0.0,1.0),2.0);
+    float n=nebula(dir,t);
+    vec3 neb=mix(vec3(0.15,0.18,0.35),vec3(0.75,0.55,0.95),n)*(0.25+0.75*core);
+    float stars=starfield(dir,t);
+    vec3 starCol=mix(vec3(1.0,0.95,0.9),vec3(0.85,0.9,1.0),hash(dir*1000.0));
+    return neb + starCol*stars;
   }`;
 
-  // galaxy color from direction; we expose as a function so the D20 can sample it too
   const bgFS = `#version 300 es
   precision highp float; in vec2 vUV; out vec4 o;
-  uniform vec2 uRes; uniform float uTime;
-
-  // hash / noise helpers (cheap)
-  float hash(vec3 p){ p = fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
-  float starfield(vec3 d){
-    // denser toward the galactic plane around +X; sharper twinkles via pow
-    float band = pow(clamp(1.0-abs(d.y),0.0,1.0), 3.0);
-    float dense = 0.6*band + 0.15;
-    float s = step(0.995, hash(floor(d*800.0))); // sparse bright stars
-    float s2= step(0.9975, hash(floor(d*1200.0))); // even sparser
-    float tw = 0.7 + 0.3*sin(uTime*3.0 + hash(d*500.0)*6.283);
-    return (s*tw*2.2 + s2*tw*4.0) * dense;
-  }
-  // very cheap fbm-ish nebula using trig mix (no heavy perms)
-  float nebula(vec3 d){
-    float a = dot(d, vec3(0.6,0.2,0.7))*4.0 + uTime*0.05;
-    float b = dot(d, vec3(-0.3,0.9,0.1))*6.0 - uTime*0.03;
-    float c = dot(d, vec3(0.2,0.3,0.9))*5.0 + uTime*0.04;
-    float n = 0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
-    return smoothstep(0.0,1.0, n*0.5+0.5);
-  }
-  vec3 galaxyColor(vec3 dir){
-    dir = normalize(dir);
-    // core hue varies along X; cooler outside
-    float core = pow(clamp(1.0-abs(dir.y),0.0,1.0), 2.0);
-    float n = nebula(dir);
-    vec3 neb = mix(vec3(0.15,0.18,0.35), vec3(0.75,0.55,0.95), n) * (0.25+0.75*core);
-    float stars = starfield(dir);
-    vec3 starCol = mix(vec3(1.0,0.95,0.9), vec3(0.85,0.9,1.0), hash(dir*1000.0));
-    return neb + starCol * stars;
-  }
+  uniform vec2 uRes; uniform float uTime; uniform mat3 uCamRot;
+  ${BG_COMMON}
   void main(){
-    // map screen uv to a view ray as if from a pinhole camera
     vec2 uv = vUV*2.0-1.0; uv.x *= uRes.x/uRes.y;
-    vec3 ro = vec3(0.0,0.0,0.0);
     vec3 rd = normalize(vec3(uv, -1.5));
-    vec3 col = galaxyColor(rd);
-    // a faint vignette
-    float vig = smoothstep(1.35, 0.2, length(uv));
-    col *= vig;
+    rd = uCamRot * rd;                         // stars respond to camera turn
+    vec3 col = galaxyColor(rd,uTime);
+    float vig = smoothstep(1.35,0.2,length(uv)); col *= vig;
     o = vec4(col,1.0);
   }`;
 
   const bgProgram = link(bgVS, bgFS);
   const uBgRes  = gl.getUniformLocation(bgProgram, 'uRes');
   const uBgTime = gl.getUniformLocation(bgProgram, 'uTime');
+  const uBgRot  = gl.getUniformLocation(bgProgram, 'uCamRot');
 
-  // ---------- D20 mesh & material ----------
-  // Icosahedron vertices/faces (unit radius)
+  // ---------- D20 geometry ----------
   const t = (1+Math.sqrt(5))/2;
   const verts = [
     -1, t, 0,  1, t, 0,  -1,-t, 0,  1,-t, 0,
@@ -125,114 +105,193 @@
     [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],
     [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]
   ];
-  const pos = [];
-  faces.forEach(f => f.forEach(i => pos.push(verts[i*3],verts[i*3+1],verts[i*3+2])));
+  const pos = []; const faceCenters = []; const faceNormals = [];
+  faces.forEach(f=>{
+    const a=f[0]*3,b=f[1]*3,c=f[2]*3;
+    const ax=verts[a], ay=verts[a+1], az=verts[a+2];
+    const bx=verts[b], by=verts[b+1], bz=verts[b+2];
+    const cx=verts[c], cy=verts[c+1], cz=verts[c+2];
+    pos.push(ax,ay,az, bx,by,bz, cx,cy,cz);
+    const cxtr=(ax+bx+cx)/3, cytr=(ay+by+cy)/3, cztr=(az+bz+cz)/3;
+    faceCenters.push([cxtr,cytr,cztr]);
+    // normal from triangle
+    const ux=bx-ax, uy=by-ay, uz=bz-az;
+    const vx=cx-ax, vy=cy-ay, vz=cz-az;
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+    const nl=Math.hypot(nx,ny,nz); nx/=nl; ny/=nl; nz/=nl;
+    faceNormals.push([nx,ny,nz]);
+  });
+
+  // VBO
   const vbo = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.STATIC_DRAW);
 
+  // ---------- Diamond shader ----------
   const d20VS = `#version 300 es
-  precision highp float;
-  layout(location=0) in vec3 p;
+  precision highp float; layout(location=0) in vec3 p;
   uniform mat4 uP,uV,uM;
-  out vec3 vN, vW, vV;      // normal, world pos, view dir
-  flat out int vFace;
+  out vec3 vN, vW, vV; flat out int vFace;
   void main(){
-    vec4 wp = uM * vec4(p,1.0);
-    vW = wp.xyz;
-    vN = mat3(uM) * normalize(p);
-    vec3 cam = vec3(inverse(uV)[3]); // camera world pos
+    vec4 wp = uM*vec4(p,1.0); vW = wp.xyz;
+    vN = mat3(uM)*normalize(p);
+    vec3 cam = vec3(inverse(uV)[3]);
     vV = normalize(cam - vW);
     vFace = gl_VertexID / 3;
-    gl_Position = uP * uV * wp;
+    gl_Position = uP*uV*wp;
   }`;
 
   const d20FS = `#version 300 es
-  precision highp float;
-  in vec3 vN, vW, vV; flat in int vFace; out vec4 o;
-  uniform float uTime;        // for slow spectral drift
-  // ---- galaxy function duplicated (must match bg) ----
-  float hash(vec3 p){ p=fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
-  float nebula(vec3 d){
-    float a = dot(d, vec3(0.6,0.2,0.7))*4.0 + uTime*0.05;
-    float b = dot(d, vec3(-0.3,0.9,0.1))*6.0 - uTime*0.03;
-    float c = dot(d, vec3(0.2,0.3,0.9))*5.0 + uTime*0.04;
-    float n = 0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
-    return smoothstep(0.0,1.0, n*0.5+0.5);
-  }
-  float starfield(vec3 d){
-    float band = pow(clamp(1.0-abs(d.y),0.0,1.0),3.0);
-    float dense= 0.6*band + 0.15;
-    float s = step(0.995,  hash(floor(d*800.0)));
-    float s2= step(0.9975, hash(floor(d*1200.0)));
-    float tw = 0.7 + 0.3*sin(uTime*3.0 + hash(d*500.0)*6.283);
-    return (s*tw*2.2 + s2*tw*4.0) * dense;
-  }
-  vec3 galaxyColor(vec3 dir){
-    dir = normalize(dir);
-    float core = pow(clamp(1.0-abs(dir.y),0.0,1.0), 2.0);
-    float n = nebula(dir);
-    vec3 neb = mix(vec3(0.15,0.18,0.35), vec3(0.75,0.55,0.95), n) * (0.25+0.75*core);
-    float stars = starfield(dir);
-    vec3 starCol = mix(vec3(1.0,0.95,0.9), vec3(0.85,0.9,1.0), hash(dir*1000.0));
-    return neb + starCol * stars;
-  }
-  // per-face diamond palette
-  vec3 faceDiamond(int id){
-    float h = fract(float(id)/20.0 + uTime*0.02);
-    float r = 0.5 + 0.5*sin(6.283*h);
-    float g = 0.5 + 0.5*sin(6.283*h + 2.094);
-    float b = 0.5 + 0.5*sin(6.283*h + 4.188);
-    return mix(vec3(r,g,b), vec3(1.0), 0.25);
+  precision highp float; in vec3 vN,vW,vV; flat in int vFace; out vec4 o;
+  uniform float uTime;
+  ${BG_COMMON}
+  // per-face "element" tint (gold/silver/copper/emerald/ruby/sapphire/amethyst/ice/obsidian/plasma mix)
+  vec3 elementTint(int id){
+    int i = id % 10;
+    if(i==0) return vec3(0.90,0.78,0.35);          // gold
+    if(i==1) return vec3(0.85,0.87,0.90);          // silver
+    if(i==2) return vec3(0.83,0.49,0.34);          // copper
+    if(i==3) return vec3(0.10,0.75,0.55);          // emerald
+    if(i==4) return vec3(0.90,0.12,0.18);          // ruby
+    if(i==5) return vec3(0.20,0.45,0.95);          // sapphire
+    if(i==6) return vec3(0.63,0.45,0.78);          // amethyst
+    if(i==7) return vec3(0.80,0.92,1.00);          // ice
+    if(i==8) return vec3(0.07,0.07,0.10);          // obsidian
+    return vec3(0.95,0.75,0.20);                   // plasma/goldish
   }
   void main(){
     vec3 N = normalize(vN);
     vec3 V = normalize(vV);
-    vec3 R = reflect(-V, N);
+    vec3 R = reflect(-V,N);
 
-    // base gemstone tint (unique per face)
-    vec3 base = faceDiamond(vFace);
-
-    // lighting: soft lambert + a tiny ambient
+    // "diamond" look: base tint + Fresnel + environment reflection + chromatic dispersion
+    vec3 base = elementTint(vFace);
     float diff = max(dot(N, normalize(vec3(0.8,1.0,0.6))), 0.0);
-    vec3 lit = base*(0.15 + 0.9*diff);
+    vec3 lit = base*(0.12 + 0.9*diff);
 
-    // environment reflection from Naeja galaxy
-    vec3 env = galaxyColor(R);
+    // reflections from Naeja galaxy
+    vec3 env = galaxyColor(R,uTime)*0.9;
 
-    // simple "dispersion": sample env in slightly bent directions per channel
-    vec3 Rp = normalize(mix(R, refract(-V,N,0.98), 0.25));
-    vec3 Gp = normalize(mix(R, refract(-V,N,0.965),0.25));
-    vec3 Bp = normalize(mix(R, refract(-V,N,0.945),0.25));
-    vec3 disperse = vec3(galaxyColor(Rp).r, galaxyColor(Gp).g, galaxyColor(Bp).b);
+    // dispersion (multi-refract samples)
+    vec3 Rp = normalize(mix(R, refract(-V,N,0.98),  0.25));
+    vec3 Gp = normalize(mix(R, refract(-V,N,0.962), 0.25));
+    vec3 Bp = normalize(mix(R, refract(-V,N,0.945), 0.25));
+    vec3 disperse = vec3(galaxyColor(Rp,uTime).r, galaxyColor(Gp,uTime).g, galaxyColor(Bp,uTime).b);
 
-    // Fresnel term (strong on glancing angles)
-    float F = pow(1.0 - max(dot(N,V),0.0), 3.0);
-
-    // subtle rim + specular sparkle
-    float rim  = pow(1.0 - max(dot(N,V),0.0), 2.2);
+    float F = pow(1.0 - max(dot(N,V),0.0), 3.0);     // Fresnel
+    float rim = pow(1.0 - max(dot(N,V),0.0), 2.2);
     float spec = pow(max(dot(reflect(-normalize(vec3(0.8,1.0,0.6)),N), V), 0.0), 64.0);
 
     vec3 col = mix(lit, env*0.85 + disperse*0.6, clamp(F*1.2,0.0,1.0));
     col += rim*0.15 + spec*0.35;
 
-    // gentle face edge darkening for definition
-    col *= 0.85 + 0.15*pow(abs(dot(N, vec3(0,0,1))), 0.8);
+    // subtle edge emphasis
+    col *= 0.92 + 0.08*pow(abs(dot(N, vec3(0,0,1))), 0.8);
 
-    o = vec4(col, 1.0);
+    o = vec4(col,1.0);
   }`;
 
   const d20Program = link(d20VS, d20FS);
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
   const uP = gl.getUniformLocation(d20Program, 'uP');
   const uV = gl.getUniformLocation(d20Program, 'uV');
   const uM = gl.getUniformLocation(d20Program, 'uM');
   const uT_d20 = gl.getUniformLocation(d20Program, 'uTime');
 
-  // ---------- tiny mat4 utilities ----------
+  // ---------- Number billboard program ----------
+  const numVS = `#version 300 es
+  precision highp float; layout(location=0) in vec2 corner; // (-1,-1) to (1,1)
+  uniform mat4 uP,uV; uniform vec3 uCenter; uniform float uSize;
+  out vec2 vUV;
+  void main(){
+    // build camera right/up from view matrix
+    mat3 basis = mat3(inverse(uV));
+    vec3 right = normalize(basis[0]);
+    vec3 up    = normalize(basis[1]);
+    vec3 pos = uCenter + (right*corner.x + up*corner.y) * uSize;
+    gl_Position = uP * uV * vec4(pos,1.0);
+    vUV = corner*0.5 + 0.5;
+  }`;
+  const numFS = `#version 300 es
+  precision highp float; in vec2 vUV; out vec4 o;
+  uniform sampler2D uTex; uniform vec4 uRect; // uv rect in atlas
+  uniform vec3 uGlow;
+  void main(){
+    vec2 uv = mix(uRect.xy, uRect.zw, vUV);
+    vec4 c = texture(uTex, uv);
+    // solid + glow
+    float a = c.a;
+    vec3 col = c.rgb + uGlow * smoothstep(0.4,1.0,a)*0.6;
+    o = vec4(col, a);
+  }`;
+  const numProgram = link(numVS, numFS);
+  const numQuad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, numQuad);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1,-1,  1,-1,  -1,1,   -1,1,  1,-1,  1,1
+  ]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  const uNumP   = gl.getUniformLocation(numProgram,'uP');
+  const uNumV   = gl.getUniformLocation(numProgram,'uV');
+  const uNumC   = gl.getUniformLocation(numProgram,'uCenter');
+  const uNumS   = gl.getUniformLocation(numProgram,'uSize');
+  const uNumTex = gl.getUniformLocation(numProgram,'uTex');
+  const uNumRect= gl.getUniformLocation(numProgram,'uRect');
+  const uNumGlow= gl.getUniformLocation(numProgram,'uGlow');
+
+  // ---------- number atlas (20 styled tiles) ----------
+  const atlas = document.createElement('canvas');
+  atlas.width = 1024; atlas.height = 512;
+  const ac = atlas.getContext('2d');
+  ac.fillStyle = '#0000'; ac.fillRect(0,0,atlas.width,atlas.height);
+
+  const styles = [
+    {name:'Gold',    fg:'#f7e07a', glow:'#9a7d2e'},
+    {name:'Silver',  fg:'#e9eef4', glow:'#7f8791'},
+    {name:'Copper',  fg:'#d88353', glow:'#7a3d1e'},
+    {name:'Emerald', fg:'#5df0b7', glow:'#116842'},
+    {name:'Ruby',    fg:'#ff6a6a', glow:'#6e0a0a'},
+    {name:'Sapphire',fg:'#8bb7ff', glow:'#1a2c74'},
+    {name:'Amethyst',fg:'#caa6ff', glow:'#4a2b6b'},
+    {name:'Ice',     fg:'#bff4ff', glow:'#2e5b6d'},
+    {name:'Obsidian',fg:'#a8a8a8', glow:'#1a1a1a'},
+    {name:'Plasma',  fg:'#ffe178', glow:'#9d5b00'}
+  ];
+  const numRects = []; // uv rects per 1..20
+  for(let i=0;i<20;i++){
+    const col = i%10;
+    const w = atlas.width/10, h = atlas.height/2;
+    const x = (i%10)*w, y = (i<10?0:h);
+    // glow
+    const g = ac.createRadialGradient(x+w*.5,y+h*.5,2, x+w*.5,y+h*.5, Math.min(w,h)*.6);
+    g.addColorStop(0, styles[col].glow+'cc'); g.addColorStop(1, '#0000');
+    ac.fillStyle=g; ac.fillRect(x,y,w,h);
+    // number
+    ac.font = `bold ${Math.floor(h*0.7)}px system-ui,Segoe UI,Roboto,Arial`;
+    ac.textAlign='center'; ac.textBaseline='middle';
+    ac.lineWidth = Math.max(2, Math.floor(h*0.025));
+    ac.strokeStyle = '#000a';
+    ac.fillStyle = styles[col].fg;
+    const text = (i+1).toString();
+    const cx = x+w*0.5, cy = y+h*0.52;
+    ac.strokeText(text, cx, cy); ac.fillText(text, cx, cy);
+    // uv rect
+    numRects.push([(x+8)/atlas.width,(y+8)/atlas.height, (x+w-8)/atlas.width,(y+h-8)/atlas.height]);
+  }
+  // upload texture
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);
+
+  // ---------- tiny mat4 ----------
   const I = () => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
   const mul = (a,b)=>{const r=Array(16);
     for(let i=0;i<4;i++) for(let j=0;j<4;j++)
@@ -248,65 +307,135 @@
     let yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
     return[xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
       -(xx*e[0]+xy*e[1]+xz*e[2]), -(yx*e[0]+yy*e[1]+yz*e[2]), -(zx*e[0]+zy*e[1]+zz*e[2]), 1];};
+  const mat3FromMat4 = (m)=>new Float32Array([m[0],m[1],m[2], m[4],m[5],m[6], m[8],m[9],m[10]]);
 
-  // ---------- camera that always frames the whole D20 ----------
-  function computeCamera() {
-    const fov = 45 * Math.PI / 180;
-    const aspect = canvas.width / canvas.height;
-    const radius = 1.12; // a tad > 1 for margin
-    const dist = (radius / Math.sin(fov/2)) * 1.05;
-    return { fov, aspect, eye:[0,0,dist], center:[0,0,0] };
-  }
-
-  // ---------- interaction / motion ----------
-  let rx = 0.4, ry = 0.6, vx = 0, vy = 0, dragging = false, lx=0, ly=0, lastMove = performance.now();
-  canvas.onpointerdown = e=>{ dragging=true; lx=e.clientX; ly=e.clientY; };
-  canvas.onpointerup   = ()=> dragging=false;
-  canvas.onpointerleave= ()=> dragging=false;
-  canvas.onpointermove = e=>{
-    if(!dragging) return;
-    const dx = (e.clientX - lx) / innerWidth;
-    const dy = (e.clientY - ly) / innerHeight;
-    lx = e.clientX; ly = e.clientY;
-    ry += dx*3.5; rx += dy*3.5;
-    vx = dx*6; vy = dy*6;
-    lastMove = performance.now();
-  };
+  // ---------- camera: fits whole D20, supports zoom/drag ----------
+  let baseFov = 45 * Math.PI/180;
+  let rx=0.35, ry=0.55, vx=0, vy=0;
+  let camDistFactor = 1.0; // zoom (0.75..1.8)
+  let dragging=false, lx=0, ly=0, lastMove=performance.now();
+  // wheel zoom
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    camDistFactor *= (1 + Math.sign(e.deltaY)*0.08);
+    camDistFactor = Math.max(0.75, Math.min(1.8, camDistFactor));
+  }, {passive:false});
+  // drag rotate
+  canvas.onpointerdown = e=>{ dragging=true; lx=e.clientX; ly=e.clientY; e.target.setPointerCapture(e.pointerId); };
+  canvas.onpointerup   = e=>{ dragging=false; };
+  canvas.onpointerleave= e=>{ dragging=false; };
+  let activeTouches=new Map();
+  canvas.addEventListener('pointermove', e=>{
+    if(dragging && activeTouches.size<=1){
+      const dx=(e.clientX-lx)/innerWidth, dy=(e.clientY-ly)/innerHeight;
+      lx=e.clientX; ly=e.clientY; ry += dx*3.5; rx += dy*3.5; vx=dx*6; vy=dy*6; lastMove=performance.now();
+    }
+    if(activeTouches.size===2){
+      const pts=[...activeTouches.values()];
+      const d0=Math.hypot(pts[0].sx-pts[1].sx, pts[0].sy-pts[1].sy);
+      const d1=Math.hypot(pts[0].x-pts[1].x,   pts[0].y-pts[1].y);
+      const scale = d0>0 ? d0/d1 : 1;
+      camDistFactor *= Math.pow(scale, 0.03);
+      camDistFactor = Math.max(0.75, Math.min(1.8, camDistFactor));
+      pts.forEach(p=>{p.sx=p.x; p.sy=p.y;});
+    }
+  });
+  canvas.addEventListener('pointerdown', e=>{
+    activeTouches.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
+  });
+  canvas.addEventListener('pointerup', e=>{ activeTouches.delete(e.pointerId);});
+  canvas.addEventListener('pointercancel', e=>{ activeTouches.delete(e.pointerId);});
+  canvas.addEventListener('pointermove', e=>{
+    const t=activeTouches.get(e.pointerId); if(t){t.x=e.clientX;t.y=e.clientY;}
+  });
 
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0,0,0,1);
 
+  function computeCamera() {
+    const fov = baseFov;
+    const aspect = canvas.width / canvas.height;
+    const radius = 1.12;
+    const dist = (radius / Math.sin(fov/2)) * 1.05 * camDistFactor;
+    return { fov, aspect, eye:[0,0,dist], center:[0,0,0] };
+  }
+
   // ---------- frame loop ----------
+  const faceUVRects = numRects.map(r=>new Float32Array(r));
   function frame(tMs){
     resize();
     const t = tMs*0.001;
 
-    // gentle idle spin after 2s inactivity
-    if(!dragging && performance.now() - lastMove > 2000) ry += 0.25*0.016;
+    // idle spin if untouched
+    if(performance.now()-lastMove>2000) ry += 0.25*0.016;
     else { ry += vx*0.016; rx += vy*0.016; vx*=0.94; vy*=0.94; }
     rx = Math.max(-1.5, Math.min(1.5, rx));
 
-    // pass 1: galaxy background
-    gl.disable(gl.DEPTH_TEST);
-    gl.useProgram(bgProgram);
-    gl.uniform2f(uBgRes, canvas.width, canvas.height);
-    gl.uniform1f(uBgTime, t);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.enable(gl.DEPTH_TEST);
-
-    // camera matrices
+    // camera
     const { fov, aspect, eye, center } = computeCamera();
     const proj = P(fov, aspect, 0.1, 50.0);
     const view = look(eye, center, [0,1,0]);
     let model = I(); model = RX(model, rx); model = RY(model, ry);
 
-    // pass 2: D20
+    // camera rotation for galaxy
+    const camRot3 = mat3FromMat4(view); // rows are right/up/forward in world
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(bgProgram);
+    gl.uniform2f(uBgRes, canvas.width, canvas.height);
+    gl.uniform1f(uBgTime, t);
+    gl.uniformMatrix3fv(uBgRot, false, camRot3);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    gl.enable(gl.DEPTH_TEST);
+
+    // D20
     gl.useProgram(d20Program);
     gl.uniformMatrix4fv(uP,false,new Float32Array(proj));
     gl.uniformMatrix4fv(uV,false,new Float32Array(view));
     gl.uniformMatrix4fv(uM,false,new Float32Array(model));
     gl.uniform1f(uT_d20, t);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, pos.length/3);
+
+    // numbers (billboards), positioned slightly inset along the facet normal
+    gl.useProgram(numProgram);
+    gl.uniformMatrix4fv(uNumP,false,new Float32Array(proj));
+    gl.uniformMatrix4fv(uNumV,false,new Float32Array(view));
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(uNumTex, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, numQuad);
+    gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+
+    const m00=model[0],m01=model[1],m02=model[2];
+    const m10=model[4],m11=model[5],m12=model[6];
+    const m20=model[8],m21=model[9],m22=model[10];
+    const transform = (v)=>[
+      v[0]*m00 + v[1]*m10 + v[2]*m20,
+      v[0]*m01 + v[1]*m11 + v[2]*m21,
+      v[0]*m02 + v[1]*m12 + v[2]*m22
+    ];
+
+    for(let i=0;i<faceCenters.length;i++){
+      const c = transform(faceCenters[i]);
+      const n = transform(faceNormals[i]);
+      const hover = 0.055; // how far above facet
+      const centerWorld = [c[0] + n[0]*hover, c[1] + n[1]*hover, c[2] + n[2]*hover];
+      gl.uniform3fv(uNumC, new Float32Array(centerWorld));
+      // size in world units (scales nicely with distance)
+      const size = 0.18 * camDistFactor;
+      gl.uniform1f(uNumS, size);
+      gl.uniform4fv(uNumRect, faceUVRects[i]);
+      // glow color matches the element tint
+      const colIdx = i % 10;
+      const glowCols = [
+        [0.60,0.50,0.20],[0.55,0.60,0.65],[0.45,0.25,0.12],[0.10,0.55,0.35],[0.55,0.10,0.12],
+        [0.12,0.23,0.55],[0.40,0.25,0.55],[0.20,0.45,0.55],[0.08,0.08,0.10],[0.60,0.40,0.05]
+      ];
+      gl.uniform3fv(uNumGlow, new Float32Array(glowCols[colIdx]));
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
 
     requestAnimationFrame(frame);
   }
@@ -315,7 +444,3 @@
 </script>
 </body>
 </html>
-
-
-
-
