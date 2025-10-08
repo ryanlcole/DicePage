@@ -1,153 +1,316 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Shaelvien Dice Mall</title>
 <style>
-  html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#f8e7c7;font-family:system-ui;}
-  #banner{position:fixed;top:2rem;left:2rem;z-index:10;pointer-events:none;
-    font-size:clamp(28px,4.5vw,54px);text-shadow:0 0 24px #7b6130;}
-  #gl{position:fixed;inset:0;display:block;}
+  html,body{height:100%;margin:0;background:#000;overflow:hidden;color:#f7e6c7}
+  #banner{position:fixed;left:2rem;top:2rem;z-index:10;pointer-events:none;
+    font-size:clamp(28px,4.6vw,56px);line-height:1.05;text-shadow:0 0 28px #7a6030}
+  canvas{position:fixed;inset:0;display:block}
 </style>
 </head>
 <body>
-<div id="banner">Shaelvien<br>Dice Mall</div>
-<canvas id="gl"></canvas>
+  <div id="banner">Shaelvien<br>Dice Mall</div>
+  <canvas id="gl"></canvas>
 
 <script>
 (() => {
-  const c = document.getElementById('gl');
-  const gl = c.getContext('webgl2', {antialias:true,alpha:false});
-  if(!gl){document.body.innerHTML="WebGL2 required";return;}
+  const canvas = document.getElementById('gl');
+  const gl = canvas.getContext('webgl2', { antialias:true, alpha:false });
+  if(!gl){ document.body.innerHTML = 'WebGL2 required'; return; }
 
-  const resize=()=>{const dpr=Math.min(2,devicePixelRatio||1);
-    const w=innerWidth*dpr,h=innerHeight*dpr;
-    if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}
+  // ---------- resize / DPR ----------
+  function resize(){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.floor(innerWidth * dpr);
+    const h = Math.floor(innerHeight * dpr);
+    if (canvas.width!==w || canvas.height!==h) {
+      canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h);
+    }
+  }
+  addEventListener('resize', resize); resize();
+
+  // ---------- shader helpers ----------
+  const compile = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+    return s;
   };
-  addEventListener('resize',resize);resize();
+  const link = (vs, fs) => {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p);
+    return p;
+  };
 
-  const vs=`#version 300 es
-  precision highp float;
-  layout(location=0)in vec3 p;
-  uniform mat4 uP,uV,uM;
-  out vec3 vN; out vec3 vW;
-  flat out int vFace;
+  // ---------- full-screen background (procedural Naeja galaxy) ----------
+  const bgVS = `#version 300 es
+  precision highp float; out vec2 vUV;
   void main(){
-    vec4 wp=uM*vec4(p,1.0);
-    vW=wp.xyz;
-    vN=mat3(uM)*normalize(p);
-    vFace = gl_VertexID / 3;
-    gl_Position=uP*uV*wp;
+    vec2 q = vec2((gl_VertexID<<1) & 2, gl_VertexID & 2);
+    vUV = q;
+    gl_Position = vec4(q*2.0-1.0, 0.0, 1.0);
   }`;
 
-  const fs=`#version 300 es
-  precision highp float;
-  in vec3 vN,vW; flat in int vFace; out vec4 o;
-  uniform vec3 uC; uniform float uT;
-  const vec3 L=normalize(vec3(0.8,1.0,0.6));
+  // galaxy color from direction; we expose as a function so the D20 can sample it too
+  const bgFS = `#version 300 es
+  precision highp float; in vec2 vUV; out vec4 o;
+  uniform vec2 uRes; uniform float uTime;
 
-  vec3 diamondColor(int id, float t){
-    // Cycle hues through pastel diamond shades
-    float h = float(id)/20.0 + t*0.05;
+  // hash / noise helpers (cheap)
+  float hash(vec3 p){ p = fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+  float starfield(vec3 d){
+    // denser toward the galactic plane around +X; sharper twinkles via pow
+    float band = pow(clamp(1.0-abs(d.y),0.0,1.0), 3.0);
+    float dense = 0.6*band + 0.15;
+    float s = step(0.995, hash(floor(d*800.0))); // sparse bright stars
+    float s2= step(0.9975, hash(floor(d*1200.0))); // even sparser
+    float tw = 0.7 + 0.3*sin(uTime*3.0 + hash(d*500.0)*6.283);
+    return (s*tw*2.2 + s2*tw*4.0) * dense;
+  }
+  // very cheap fbm-ish nebula using trig mix (no heavy perms)
+  float nebula(vec3 d){
+    float a = dot(d, vec3(0.6,0.2,0.7))*4.0 + uTime*0.05;
+    float b = dot(d, vec3(-0.3,0.9,0.1))*6.0 - uTime*0.03;
+    float c = dot(d, vec3(0.2,0.3,0.9))*5.0 + uTime*0.04;
+    float n = 0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
+    return smoothstep(0.0,1.0, n*0.5+0.5);
+  }
+  vec3 galaxyColor(vec3 dir){
+    dir = normalize(dir);
+    // core hue varies along X; cooler outside
+    float core = pow(clamp(1.0-abs(dir.y),0.0,1.0), 2.0);
+    float n = nebula(dir);
+    vec3 neb = mix(vec3(0.15,0.18,0.35), vec3(0.75,0.55,0.95), n) * (0.25+0.75*core);
+    float stars = starfield(dir);
+    vec3 starCol = mix(vec3(1.0,0.95,0.9), vec3(0.85,0.9,1.0), hash(dir*1000.0));
+    return neb + starCol * stars;
+  }
+  void main(){
+    // map screen uv to a view ray as if from a pinhole camera
+    vec2 uv = vUV*2.0-1.0; uv.x *= uRes.x/uRes.y;
+    vec3 ro = vec3(0.0,0.0,0.0);
+    vec3 rd = normalize(vec3(uv, -1.5));
+    vec3 col = galaxyColor(rd);
+    // a faint vignette
+    float vig = smoothstep(1.35, 0.2, length(uv));
+    col *= vig;
+    o = vec4(col,1.0);
+  }`;
+
+  const bgProgram = link(bgVS, bgFS);
+  const uBgRes  = gl.getUniformLocation(bgProgram, 'uRes');
+  const uBgTime = gl.getUniformLocation(bgProgram, 'uTime');
+
+  // ---------- D20 mesh & material ----------
+  // Icosahedron vertices/faces (unit radius)
+  const t = (1+Math.sqrt(5))/2;
+  const verts = [
+    -1, t, 0,  1, t, 0,  -1,-t, 0,  1,-t, 0,
+     0,-1, t,  0, 1, t,   0,-1,-t, 0, 1,-t,
+     t, 0,-1,  t, 0, 1,  -t, 0,-1,-t, 0, 1
+  ];
+  for(let i=0;i<verts.length;i+=3){
+    const x=verts[i], y=verts[i+1], z=verts[i+2];
+    const l=Math.hypot(x,y,z); verts[i]/=l; verts[i+1]/=l; verts[i+2]/=l;
+  }
+  const faces = [
+    [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],
+    [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
+    [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],
+    [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]
+  ];
+  const pos = [];
+  faces.forEach(f => f.forEach(i => pos.push(verts[i*3],verts[i*3+1],verts[i*3+2])));
+  const vbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.STATIC_DRAW);
+
+  const d20VS = `#version 300 es
+  precision highp float;
+  layout(location=0) in vec3 p;
+  uniform mat4 uP,uV,uM;
+  out vec3 vN, vW, vV;      // normal, world pos, view dir
+  flat out int vFace;
+  void main(){
+    vec4 wp = uM * vec4(p,1.0);
+    vW = wp.xyz;
+    vN = mat3(uM) * normalize(p);
+    vec3 cam = vec3(inverse(uV)[3]); // camera world pos
+    vV = normalize(cam - vW);
+    vFace = gl_VertexID / 3;
+    gl_Position = uP * uV * wp;
+  }`;
+
+  const d20FS = `#version 300 es
+  precision highp float;
+  in vec3 vN, vW, vV; flat in int vFace; out vec4 o;
+  uniform float uTime;        // for slow spectral drift
+  // ---- galaxy function duplicated (must match bg) ----
+  float hash(vec3 p){ p=fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+  float nebula(vec3 d){
+    float a = dot(d, vec3(0.6,0.2,0.7))*4.0 + uTime*0.05;
+    float b = dot(d, vec3(-0.3,0.9,0.1))*6.0 - uTime*0.03;
+    float c = dot(d, vec3(0.2,0.3,0.9))*5.0 + uTime*0.04;
+    float n = 0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
+    return smoothstep(0.0,1.0, n*0.5+0.5);
+  }
+  float starfield(vec3 d){
+    float band = pow(clamp(1.0-abs(d.y),0.0,1.0),3.0);
+    float dense= 0.6*band + 0.15;
+    float s = step(0.995,  hash(floor(d*800.0)));
+    float s2= step(0.9975, hash(floor(d*1200.0)));
+    float tw = 0.7 + 0.3*sin(uTime*3.0 + hash(d*500.0)*6.283);
+    return (s*tw*2.2 + s2*tw*4.0) * dense;
+  }
+  vec3 galaxyColor(vec3 dir){
+    dir = normalize(dir);
+    float core = pow(clamp(1.0-abs(dir.y),0.0,1.0), 2.0);
+    float n = nebula(dir);
+    vec3 neb = mix(vec3(0.15,0.18,0.35), vec3(0.75,0.55,0.95), n) * (0.25+0.75*core);
+    float stars = starfield(dir);
+    vec3 starCol = mix(vec3(1.0,0.95,0.9), vec3(0.85,0.9,1.0), hash(dir*1000.0));
+    return neb + starCol * stars;
+  }
+  // per-face diamond palette
+  vec3 faceDiamond(int id){
+    float h = fract(float(id)/20.0 + uTime*0.02);
     float r = 0.5 + 0.5*sin(6.283*h);
     float g = 0.5 + 0.5*sin(6.283*h + 2.094);
     float b = 0.5 + 0.5*sin(6.283*h + 4.188);
-    return mix(vec3(r,g,b), vec3(1.0), 0.3);
+    return mix(vec3(r,g,b), vec3(1.0), 0.25);
   }
-
   void main(){
-    vec3 n=normalize(vN);
-    float diff=max(dot(n,L),0.0);
-    float edge=pow(1.0-abs(dot(n,L)),3.0);
-    float spec=pow(max(dot(reflect(-L,n),normalize(uC-vW)),0.0),48.0);
-    float rim=pow(1.0-max(dot(n,normalize(uC-vW)),0.0),2.5);
+    vec3 N = normalize(vN);
+    vec3 V = normalize(vV);
+    vec3 R = reflect(-V, N);
 
-    vec3 base=diamondColor(vFace,uT);
-    vec3 col=base*(0.25+0.9*diff)+spec*0.5+edge*0.15+rim*0.2;
-    o=vec4(col,1.0);
+    // base gemstone tint (unique per face)
+    vec3 base = faceDiamond(vFace);
+
+    // lighting: soft lambert + a tiny ambient
+    float diff = max(dot(N, normalize(vec3(0.8,1.0,0.6))), 0.0);
+    vec3 lit = base*(0.15 + 0.9*diff);
+
+    // environment reflection from Naeja galaxy
+    vec3 env = galaxyColor(R);
+
+    // simple "dispersion": sample env in slightly bent directions per channel
+    vec3 Rp = normalize(mix(R, refract(-V,N,0.98), 0.25));
+    vec3 Gp = normalize(mix(R, refract(-V,N,0.965),0.25));
+    vec3 Bp = normalize(mix(R, refract(-V,N,0.945),0.25));
+    vec3 disperse = vec3(galaxyColor(Rp).r, galaxyColor(Gp).g, galaxyColor(Bp).b);
+
+    // Fresnel term (strong on glancing angles)
+    float F = pow(1.0 - max(dot(N,V),0.0), 3.0);
+
+    // subtle rim + specular sparkle
+    float rim  = pow(1.0 - max(dot(N,V),0.0), 2.2);
+    float spec = pow(max(dot(reflect(-normalize(vec3(0.8,1.0,0.6)),N), V), 0.0), 64.0);
+
+    vec3 col = mix(lit, env*0.85 + disperse*0.6, clamp(F*1.2,0.0,1.0));
+    col += rim*0.15 + spec*0.35;
+
+    // gentle face edge darkening for definition
+    col *= 0.85 + 0.15*pow(abs(dot(N, vec3(0,0,1))), 0.8);
+
+    o = vec4(col, 1.0);
   }`;
 
-  function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);
-    gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))
-      throw gl.getShaderInfoLog(o);return o;}
-  function prog(v,f){const p=gl.createProgram();
-    gl.attachShader(p,sh(gl.VERTEX_SHADER,v));
-    gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));
-    gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))
-      throw gl.getProgramInfoLog(p);return p;}
-  const P=prog(vs,fs);
+  const d20Program = link(d20VS, d20FS);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
-  const t=(1+Math.sqrt(5))/2;
-  const v=[-1,t,0,1,t,0,-1,-t,0,1,-t,0,0,-1,t,0,1,t,0,-1,-t,0,1,-t,t,0,-1,t,0,1,-t,0,-1,-t,0,1];
-  for(let i=0;i<v.length;i+=3){let x=v[i],y=v[i+1],z=v[i+2],l=Math.hypot(x,y,z);v[i]/=l;v[i+1]/=l;v[i+2]/=l;}
-  const f=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
-            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
-  const pArr=[];f.forEach(a=>a.forEach(i=>pArr.push(v[i*3],v[i*3+1],v[i*3+2])));
-  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pArr),gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  const uP = gl.getUniformLocation(d20Program, 'uP');
+  const uV = gl.getUniformLocation(d20Program, 'uV');
+  const uM = gl.getUniformLocation(d20Program, 'uM');
+  const uT_d20 = gl.getUniformLocation(d20Program, 'uTime');
 
-  const uP=gl.getUniformLocation(P,"uP"),uV=gl.getUniformLocation(P,"uV"),
-        uM=gl.getUniformLocation(P,"uM"),uC=gl.getUniformLocation(P,"uC"),
-        uT=gl.getUniformLocation(P,"uT");
-
-  // --- Math helpers ---
-  const mI=()=>[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
-  const mMul=(a,b)=>{let r=new Array(16);
-    for(let i=0;i<4;i++)for(let j=0;j<4;j++)
-      r[i*4+j]=a[i*4]*b[j]+a[i*4+1]*b[4+j]+a[i*4+2]*b[8+j]+a[i*4+3]*b[12+j];return r;};
-  const mRX=(m,a)=>{let c=Math.cos(a),s=Math.sin(a),r=[1,0,0,0,0,c,s,0,0,-s,c,0,0,0,0,1];return mMul(m,r);}
-  const mRY=(m,a)=>{let c=Math.cos(a),s=Math.sin(a),r=[c,0,-s,0,0,1,0,0,s,0,c,0,0,0,0,1];return mMul(m,r);}
-  const mP=(fov,asp,n,f)=>{let t=Math.tan(fov/2),r=[
-    1/(asp*t),0,0,0,0,1/t,0,0,0,0,(f+n)/(n-f),-1,0,0,(2*f*n)/(n-f),0];return r;}
-  const mLook=(e,c,u)=>{let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];
+  // ---------- tiny mat4 utilities ----------
+  const I = () => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+  const mul = (a,b)=>{const r=Array(16);
+    for(let i=0;i<4;i++) for(let j=0;j<4;j++)
+      r[i*4+j]=a[i*4]*b[j]+a[i*4+1]*b[4+j]+a[i*4+2]*b[8+j]+a[i*4+3]*b[12+j]; return r;};
+  const RX = (m,a)=>mul(m,[1,0,0,0, 0,Math.cos(a),Math.sin(a),0, 0,-Math.sin(a),Math.cos(a),0, 0,0,0,1]);
+  const RY = (m,a)=>mul(m,[Math.cos(a),0,-Math.sin(a),0, 0,1,0,0, Math.sin(a),0,Math.cos(a),0, 0,0,0,1]);
+  const P = (fov,asp,n,f)=>{const t=Math.tan(fov/2);return[
+    1/(asp*t),0,0,0, 0,1/t,0,0, 0,0,(f+n)/(n-f),-1, 0,0,(2*f*n)/(n-f),0];};
+  const look = (e,c,u)=>{let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];
     let zl=Math.hypot(zx,zy,zz);zx/=zl;zy/=zl;zz/=zl;
     let xx=u[1]*zz-u[2]*zy,xy=u[2]*zx-u[0]*zz,xz=u[0]*zy-u[1]*zx;
     let xl=Math.hypot(xx,xy,xz);xx/=xl;xy/=xl;xz/=xl;
     let yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
-    return[xx,yx,zx,0,xy,yy,zy,0,xz,yz,zz,0,
-           -(xx*e[0]+xy*e[1]+xz*e[2]),
-           -(yx*e[0]+yy*e[1]+yz*e[2]),
-           -(zx*e[0]+zy*e[1]+zz*e[2]),1];};
+    return[xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+      -(xx*e[0]+xy*e[1]+xz*e[2]), -(yx*e[0]+yy*e[1]+yz*e[2]), -(zx*e[0]+zy*e[1]+zz*e[2]), 1];};
 
-  let rx=0.4,ry=0.6,vx=0,vy=0,last=performance.now(),drag=false,lx,ly;
-  c.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;};
-  c.onpointermove=e=>{if(!drag)return;let dx=(e.clientX-lx)/innerWidth,dy=(e.clientY-ly)/innerHeight;
-    lx=e.clientX;ly=e.clientY;ry+=dx*3.5;rx+=dy*3.5;vx=dx*6;vy=dy*6;last=performance.now();};
-  c.onpointerup=()=>drag=false;c.onpointerleave=()=>drag=false;
+  // ---------- camera that always frames the whole D20 ----------
+  function computeCamera() {
+    const fov = 45 * Math.PI / 180;
+    const aspect = canvas.width / canvas.height;
+    const radius = 1.12; // a tad > 1 for margin
+    const dist = (radius / Math.sin(fov/2)) * 1.05;
+    return { fov, aspect, eye:[0,0,dist], center:[0,0,0] };
+  }
 
-  gl.enable(gl.DEPTH_TEST);gl.clearColor(0,0,0,1);
+  // ---------- interaction / motion ----------
+  let rx = 0.4, ry = 0.6, vx = 0, vy = 0, dragging = false, lx=0, ly=0, lastMove = performance.now();
+  canvas.onpointerdown = e=>{ dragging=true; lx=e.clientX; ly=e.clientY; };
+  canvas.onpointerup   = ()=> dragging=false;
+  canvas.onpointerleave= ()=> dragging=false;
+  canvas.onpointermove = e=>{
+    if(!dragging) return;
+    const dx = (e.clientX - lx) / innerWidth;
+    const dy = (e.clientY - ly) / innerHeight;
+    lx = e.clientX; ly = e.clientY;
+    ry += dx*3.5; rx += dy*3.5;
+    vx = dx*6; vy = dy*6;
+    lastMove = performance.now();
+  };
 
-  const draw=t=>{
-    resize();let T=t*0.001;
-    if(!drag&&performance.now()-last>2000){ry+=0.25*0.016;}
-    else{ry+=vx*0.016;rx+=vy*0.016;vx*=0.94;vy*=0.94;}
-    rx=Math.max(-1.5,Math.min(1.5,rx));
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0,0,0,1);
 
-    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(P);
+  // ---------- frame loop ----------
+  function frame(tMs){
+    resize();
+    const t = tMs*0.001;
 
-    // Dynamically adjust camera distance to fit screen
-    const fov=45*Math.PI/180;
-    const aspect=c.width/c.height;
-    const radius=1.1; // D20 bounds
-    const distance=(radius/Math.sin(fov/2))*1.1; // keep margin
-    const eye=[0,0,distance];
+    // gentle idle spin after 2s inactivity
+    if(!dragging && performance.now() - lastMove > 2000) ry += 0.25*0.016;
+    else { ry += vx*0.016; rx += vy*0.016; vx*=0.94; vy*=0.94; }
+    rx = Math.max(-1.5, Math.min(1.5, rx));
 
-    let proj=mP(fov,aspect,0.1,50);
-    let view=mLook(eye,[0,0,0],[0,1,0]);
-    let model=mI();model=mRX(model,rx);model=mRY(model,ry);
+    // pass 1: galaxy background
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(bgProgram);
+    gl.uniform2f(uBgRes, canvas.width, canvas.height);
+    gl.uniform1f(uBgTime, t);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.enable(gl.DEPTH_TEST);
 
+    // camera matrices
+    const { fov, aspect, eye, center } = computeCamera();
+    const proj = P(fov, aspect, 0.1, 50.0);
+    const view = look(eye, center, [0,1,0]);
+    let model = I(); model = RX(model, rx); model = RY(model, ry);
+
+    // pass 2: D20
+    gl.useProgram(d20Program);
     gl.uniformMatrix4fv(uP,false,new Float32Array(proj));
     gl.uniformMatrix4fv(uV,false,new Float32Array(view));
     gl.uniformMatrix4fv(uM,false,new Float32Array(model));
-    gl.uniform3f(uC,eye[0],eye[1],eye[2]);
-    gl.uniform1f(uT,T);
-    gl.drawArrays(gl.TRIANGLES,0,pArr.length/3);
-    requestAnimationFrame(draw);
-  };
-  requestAnimationFrame(draw);
+    gl.uniform1f(uT_d20, t);
+    gl.drawArrays(gl.TRIANGLES, 0, pos.length/3);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
@@ -155,4 +318,5 @@
 
 
 
-<!-- Mirror Build Wed Oct  8 02:07:26 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 02:30:17 UTC 2025 -->
