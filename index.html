@@ -11,7 +11,7 @@
       height: 100%;
       width: 100%;
       overflow: hidden;
-      background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+      background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
       color: #fff;
       font-family: "Cinzel", serif;
       user-select: none;
@@ -45,56 +45,52 @@
 
   <!-- Dice Mall Main Script -->
   <script>
-    // Scene, Camera, Renderer
+    // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // Lighting Setup
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-    const keyLight = new THREE.PointLight(0xffffff, 1);
-    const fillLight = new THREE.PointLight(0x6699ff, 0.3);
-    keyLight.position.set(5, 5, 5);
-    fillLight.position.set(-5, -3, -2);
-    scene.add(ambient, keyLight, fillLight);
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    const key = new THREE.PointLight(0xffffff, 1);
+    key.position.set(10, 10, 10);
+    const fill = new THREE.PointLight(0x88aaff, 0.4);
+    fill.position.set(-10, -5, -3);
+    scene.add(ambient, key, fill);
 
-    // D20 Geometry (Icosahedron)
+    // D20 Geometry
     const geometry = new THREE.IcosahedronGeometry(2, 0);
     const material = new THREE.MeshStandardMaterial({
-      color: 0xaaaaaa,
-      metalness: 0.85,
-      roughness: 0.25,
-      envMapIntensity: 1.2
+      color: 0xcccccc,
+      metalness: 0.9,
+      roughness: 0.2,
+      envMapIntensity: 1.1
     });
     const d20 = new THREE.Mesh(geometry, material);
     scene.add(d20);
 
-    // Camera + Controls
+    // Camera
     camera.position.z = 6;
+
+    // Controls
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 1.2;
+    controls.autoRotateSpeed = 1.3;
 
-    // Animate
+    // Animation Loop
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
-      d20.rotation.x += 0.004;
-      d20.rotation.y += 0.006;
+      d20.rotation.x += 0.005;
+      d20.rotation.y += 0.007;
       renderer.render(scene, camera);
     }
 
-    // Handle Resize
+    // Handle window resize
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -105,5 +101,4 @@
   </script>
 </body>
 </html>
-
-<!-- Mirror Build Wed Oct  8 01:16:45 UTC 2025 -->
+<!-- Mirror Build Wed Oct  8 01:21:51 UTC 2025 -->
