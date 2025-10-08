@@ -1,19 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Shaelvien DiceMall</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shaelvien Dice Mall</title>
   <style>
-    body { margin:0; overflow:hidden; background:radial-gradient(ellipse at top,#000428,#004e92); color:#fff; font-family:serif; }
-    #banner { position:absolute; top:10%; width:100%; text-align:center; font-size:2em; letter-spacing:2px; opacity:0; transition:opacity 1s; }
-    canvas { display:block; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0a0a0a, #000);
+      color: #fff;
+      font-family: "Cinzel", serif;
+      height: 100%;
+      width: 100%;
+    }
+    #banner {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 1.8em;
+      letter-spacing: 1px;
+      color: #c9a86a;
+      text-shadow: 0 0 10px #c9a86a;
+      z-index: 10;
+    }
+    canvas {
+      display: block;
+    }
   </style>
 </head>
+
 <body>
-  <div id="banner"></div>
+  <div id="banner">Shaelvien Dice Mall</div>
+
+  <!-- Three.js and Controls -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="dice.js"></script>
+
+  <!-- Dice Script -->
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(10, 10, 10);
+    scene.add(ambientLight, pointLight);
+
+    // D20 Geometry
+    const geometry = new THREE.IcosahedronGeometry(2, 0);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xaaaaaa,
+      metalness: 0.8,
+      roughness: 0.3
+    });
+    const dice = new THREE.Mesh(geometry, material);
+    scene.add(dice);
+
+    camera.position.z = 5;
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    // Animation Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      dice.rotation.x += 0.005;
+      dice.rotation.y += 0.007;
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Handle Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 01:02:33 UTC 2025 -->
+<!-- Mirror Build Wed Oct  8 01:08:54 UTC 2025 -->
