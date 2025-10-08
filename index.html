@@ -22,189 +22,151 @@
 <canvas id="screen"></canvas>
 
 <script>
-/* ============================================================
-   Core buffer setup (software renderer; no libraries)
-   ============================================================ */
+// ============================================================
+// Core buffer setup
+// ============================================================
 const canvas = document.getElementById('screen');
 const ctx = canvas.getContext('2d', { willReadFrequently:false });
-let W,H, image, pix32;
+let W,H,image,pix32;
 
 function allocScreen(){
-  canvas.width  = W = innerWidth;
-  canvas.height = H = innerHeight;
-  image = ctx.createImageData(W, H);
-  pix32 = new Uint32Array(image.data.buffer);
+  canvas.width=W=innerWidth;
+  canvas.height=H=innerHeight;
+  image=ctx.createImageData(W,H);
+  pix32=new Uint32Array(image.data.buffer);
 }
 addEventListener('resize', ()=>{ allocScreen(); rebuildHexWorld(); });
 allocScreen();
 
-/* ============================================================
-   Hex world topology (axial coords) + lookup
-   ============================================================ */
-const HEX_SIZE = 12;                            // visual radius (px)
-const HEX_W = Math.sqrt(3) * HEX_SIZE;         // horizontal spacing
-const HEX_H = 2 * HEX_SIZE * 0.75;             // vertical spacing
-let hexes = [];                                 // {q,r,x,y,hue,elem,phase}
-let hexIndex = new Map();                       // "q,r" -> idx
+// ============================================================
+// Hex topology + globals
+// ============================================================
+const HEX_SIZE=12;
+const HEX_W=Math.sqrt(3)*HEX_SIZE;
+const HEX_H=2*HEX_SIZE*0.75;
+let hexes=[], hexIndex=new Map();
+let SW=0, SH=0, spEnergyA, spEnergyB, spElem, spOwner; // defined early now
 
-function keyQR(q,r){ return q + ',' + r; }
+function keyQR(q,r){return q+','+r;}
 
 function rebuildHexWorld(){
-  hexes = []; hexIndex.clear();
-  const cols = Math.ceil(W/HEX_W) + 4;
-  const rows = Math.ceil(H/HEX_H) + 4;
-  const cx = W/2, cy = H/2;
+  hexes=[]; hexIndex.clear();
+  const cols=Math.ceil(W/HEX_W)+4;
+  const rows=Math.ceil(H/HEX_H)+4;
+  const cx=W/2, cy=H/2;
 
-  for(let r=-rows/2; r<rows/2; r++){
-    for(let q=-cols/2; q<cols/2; q++){
-      const x = cx + HEX_W*(q + r/2);
-      const y = cy + HEX_H*r;
-      const hue = Math.random()*360;
-      const elem = 1 + (Math.random()*5|0); // 1..5 random starting element
-      const phase = Math.random()*Math.PI*2;
-      const idx = hexes.push({q,r,x,y,hue,elem,phase}) - 1;
-      hexIndex.set(keyQR(q,r), idx);
+  for(let r=-rows/2;r<rows/2;r++){
+    for(let q=-cols/2;q<cols/2;q++){
+      const x=cx+HEX_W*(q+r/2);
+      const y=cy+HEX_H*r;
+      const hue=Math.random()*360;
+      const elem=1+(Math.random()*5|0);
+      const phase=Math.random()*Math.PI*2;
+      const idx=hexes.push({q,r,x,y,hue,elem,phase})-1;
+      hexIndex.set(keyQR(q,r),idx);
     }
   }
   buildSpaxelOwnerMap();
 }
-rebuildHexWorld();
 
-/* ============================================================
-   Spaxel simulation layer (downscaled grid for speed)
-   Each spaxel stores energy (Float32), element id (Uint8)
-   ============================================================ */
-let SW, SH, spEnergyA, spEnergyB, spElem, spOwner; // owner hex index per spaxel
-
+// ============================================================
+// Spaxel layer
+// ============================================================
 function buildSpaxels(){
-  // downscale for speed (render upsampled to full screen)
-  const scale = 2; // 2 = half res; tune as needed
-  SW = Math.max( Math.floor(W/scale), 16 );
-  SH = Math.max( Math.floor(H/scale), 16 );
-  spEnergyA = new Float32Array(SW*SH);
-  spEnergyB = new Float32Array(SW*SH);
-  spElem    = new Uint8Array(SW*SH);
-  spOwner   = new Int32Array(SW*SH);
+  const scale=2;
+  SW=Math.max(Math.floor(W/scale),16);
+  SH=Math.max(Math.floor(H/scale),16);
+  spEnergyA=new Float32Array(SW*SH);
+  spEnergyB=new Float32Array(SW*SH);
+  spElem=new Uint8Array(SW*SH);
+  spOwner=new Int32Array(SW*SH);
 }
-buildSpaxels();
 
 function buildSpaxelOwnerMap(){
   buildSpaxels();
-  // Precompute owner hex for each spaxel using axial math (O(SW*SH))
-  const cx = W/2, cy = H/2;
-  for(let y=0; y<SH; y++){
-    for(let x=0; x<SW; x++){
-      // map spaxel coords back to screen space center
-      const sx = (x + 0.5) * (W/SW);
-      const sy = (y + 0.5) * (H/SH);
-      const q = ( (sx-cx)/HEX_W ) - ( (sy-cy)/(2*HEX_H) );
-      const r = ( (sy-cy)/HEX_H );
-      const aq = Math.round(q), ar = Math.round(r);
-      const idx = hexIndex.get( keyQR(aq, ar) );
-      spOwner[y*SW + x] = (idx===undefined ? -1 : idx);
-      // Initialize element/energy from hex
+  const cx=W/2, cy=H/2;
+  for(let y=0;y<SH;y++){
+    for(let x=0;x<SW;x++){
+      const sx=(x+0.5)*(W/SW);
+      const sy=(y+0.5)*(H/SH);
+      const q=((sx-cx)/HEX_W)-((sy-cy)/(2*HEX_H));
+      const r=((sy-cy)/HEX_H);
+      const aq=Math.round(q), ar=Math.round(r);
+      const idx=hexIndex.get(keyQR(aq,ar));
+      const i=y*SW+x;
+      spOwner[i]=(idx===undefined?-1:idx);
       if(idx!==undefined){
-        spElem[y*SW + x] = hexes[idx].elem;
-        // tiny noise so growth starts interesting
-        spEnergyA[y*SW + x] = Math.random()*0.05;
+        spElem[i]=hexes[idx].elem;
+        spEnergyA[i]=Math.random()*0.05;
       }else{
-        spElem[y*SW + x] = 0;
-        spEnergyA[y*SW + x] = 0;
+        spElem[i]=0; spEnergyA[i]=0;
       }
     }
   }
 }
+rebuildHexWorld();
 
-/* ============================================================
-   Element rules (per spaxel). IDs:
-   1=Water, 2=Fire, 3=Crystal, 4=Flora, 5=Sand
-   ============================================================ */
-function ruleWater(e,v){ // cool diffusion + slight rise
-  return v + 0.002 - 0.0005*e; // wetter where low element id noise
-}
-function ruleFire(e,v){ // consumes itself slowly; flicker
-  return v - 0.003 + (Math.random()-0.5)*0.003;
-}
-function ruleCrystal(e,v){ // thresholded growth -> facets
-  return v + (v>0.35?0.002:0.005) - 0.0008*(v>0.8);
-}
-function ruleFlora(e,v){ // logistic bloom
-  const r=0.015, K=0.9; return v + r*v*(K-v);
-}
-function ruleSand(e,v){ // drift downwards bias (approx by decay + neighbor add)
-  return v + 0.0008 - 0.0015*v;
-}
+// ============================================================
+// Element rules
+// ============================================================
+function ruleWater(e,v){return v+0.002-0.0005*e;}
+function ruleFire(e,v){return v-0.003+(Math.random()-0.5)*0.003;}
+function ruleCrystal(e,v){return v+(v>0.35?0.002:0.005)-0.0008*(v>0.8);}
+function ruleFlora(e,v){const r=0.015,K=0.9;return v+r*v*(K-v);}
+function ruleSand(e,v){return v+0.0008-0.0015*v;}
+const ruleFn=[(e,v)=>v,ruleWater,ruleFire,ruleCrystal,ruleFlora,ruleSand];
 
-const ruleFn = [
-  (e,v)=>v, ruleWater, ruleFire, ruleCrystal, ruleFlora, ruleSand
-];
+function idxClamp(x,y){if(x<0)x=0;if(x>=SW)x=SW-1;if(y<0)y=0;if(y>=SH)y=SH-1;return y*SW+x;}
 
-// small helper for neighbor indexing with edge clamp
-function idxClamp(x,y){ if(x<0)x=0; if(x>=SW)x=SW-1; if(y<0)y=0; if(y>=SH)y=SH-1; return y*SW+x; }
-
-function stepSpaxels(time){
-  // simple 4-neighbor diffusion + per-element local rule
-  for(let y=0; y<SH; y++){
-    for(let x=0; x<SW; x++){
-      const i = y*SW + x;
-      const v = spEnergyA[i];
-
-      // diffusion
-      const n = spEnergyA[idxClamp(x-1,y)];
-      const s = spEnergyA[idxClamp(x+1,y)];
-      const e = spEnergyA[idxClamp(x,y-1)];
-      const w = spEnergyA[idxClamp(x,y+1)];
-      let out = v + (n+s+e+w - 4*v)*0.22;
-
-      // element-specific rule
-      const el = spElem[i] || 0;
-      out = ruleFn[el](el,out);
-
-      // clamp
-      spEnergyB[i] = out<0?0: out>1?1: out;
+function stepSpaxels(){
+  for(let y=0;y<SH;y++){
+    for(let x=0;x<SW;x++){
+      const i=y*SW+x, v=spEnergyA[i];
+      const n=spEnergyA[idxClamp(x-1,y)];
+      const s=spEnergyA[idxClamp(x+1,y)];
+      const e=spEnergyA[idxClamp(x,y-1)];
+      const w=spEnergyA[idxClamp(x,y+1)];
+      let out=v+(n+s+e+w-4*v)*0.22;
+      const el=spElem[i]||0;
+      out=ruleFn[el](el,out);
+      spEnergyB[i]=out<0?0:out>1?1:out;
     }
   }
-  // swap buffers
-  const tmp = spEnergyA; spEnergyA = spEnergyB; spEnergyB = tmp;
+  const tmp=spEnergyA; spEnergyA=spEnergyB; spEnergyB=tmp;
 }
 
-/* ============================================================
-   Interaction: click hex to cycle its element + recolor owners
-   ============================================================ */
-canvas.addEventListener('click', e=>{
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  // axial from screen → nearest hex
-  const q = ( (mx - W/2)/HEX_W ) - ( (my - H/2)/(2*HEX_H) );
-  const r = ( (my - H/2)/HEX_H );
+// ============================================================
+// Click interaction
+// ============================================================
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const q=((mx-W/2)/HEX_W)-((my-H/2)/(2*HEX_H));
+  const r=((my-H/2)/HEX_H);
   const aq=Math.round(q), ar=Math.round(r);
-  const idx = hexIndex.get( keyQR(aq,ar) );
-  if(idx===undefined) return;
-  const h = hexes[idx];
-  h.elem = (h.elem % 5) + 1;                     // cycle 1..5
-  h.hue  = (h.hue + 36) % 360;                   // slight hue shift
+  const idx=hexIndex.get(keyQR(aq,ar));
+  if(idx===undefined)return;
+  const h=hexes[idx];
+  h.elem=(h.elem%5)+1; h.hue=(h.hue+36)%360;
 
-  // update spaxel element ownership for that hex only
-  // iterate spaxels near that hex center (radius window)
-  const radX = Math.ceil((HEX_W*0.8)/(W/SW));
-  const radY = Math.ceil((HEX_H*0.8)/(H/SH));
-  const cx = Math.floor(h.x / (W/SW)), cy = Math.floor(h.y / (H/SH));
-  for(let y=cy-radY; y<=cy+radY; y++){
-    for(let x=cx-radX; x<=cx+radX; x++){
-      if(x<0||y<0||x>=SW||y>=SH) continue;
-      const i = y*SW + x;
+  const radX=Math.ceil((HEX_W*0.8)/(W/SW));
+  const radY=Math.ceil((HEX_H*0.8)/(H/SH));
+  const cx=Math.floor(h.x/(W/SW)), cy=Math.floor(h.y/(H/SH));
+  for(let y=cy-radY;y<=cy+radY;y++){
+    for(let x=cx-radX;x<=cx+radX;x++){
+      if(x<0||y<0||x>=SW||y>=SH)continue;
+      const i=y*SW+x;
       if(spOwner[i]===idx){
-        spElem[i] = h.elem;
-        // nudge energy so change is visible
-        spEnergyA[i] = Math.min(1, spEnergyA[i] + 0.1);
+        spElem[i]=h.elem;
+        spEnergyA[i]=Math.min(1,spEnergyA[i]+0.1);
       }
     }
   }
 });
 
-/* ============================================================
-   Fast color helpers + hex outline (optional)
-   ============================================================ */
+// ============================================================
+// Helpers
+// ============================================================
 function HSVtoRGB(h,s,v){
   let r,g,b,i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
   switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;
@@ -212,64 +174,50 @@ function HSVtoRGB(h,s,v){
   return {r:(r*255)|0,g:(g*255)|0,b:(b*255)|0};
 }
 function putPixel(x,y,r,g,b){
-  if(x<0||y<0||x>=W||y>=H) return;
-  pix32[y*W + x] = (255<<24) | (b<<16) | (g<<8) | r;
+  if(x<0||y<0||x>=W||y>=H)return;
+  pix32[y*W+x]=(255<<24)|(b<<16)|(g<<8)|r;
 }
 
-/* ============================================================
-   Render: upsample spaxels → screen + draw soft hex rims
-   ============================================================ */
+// ============================================================
+// Render
+// ============================================================
 function render(t){
-  // clear
-  const BLACK = 0xFF000000;
-  pix32.fill(BLACK);
-
-  // upsample spaxels to screen
-  const sx = W / SW, sy = H / SH;
-  for(let y=0; y<SH; y++){
-    const y0 = (y*sy)|0, y1 = ((y+1)*sy)|0;
-    for(let x=0; x<SW; x++){
-      const i = y*SW + x;
-      const v = spEnergyA[i];
-      const owner = spOwner[i];
-      if(owner<0){ continue; }
-      const hex = hexes[owner];
-      // color = biome hue mixed with energy
-      const base = HSVtoRGB((hex.hue%360)/360, 0.85, 0.55 + 0.45*v);
-      for(let yy=y0; yy<y1; yy++){
-        let row = yy*W;
-        for(let xx=(x*sx)|0; xx<((x+1)*sx)|0; xx++){
-          pix32[row + xx] = (255<<24) | (base.b<<16) | (base.g<<8) | base.r;
+  pix32.fill(0xFF000000);
+  const sx=W/SW, sy=H/SH;
+  for(let y=0;y<SH;y++){
+    const y0=(y*sy)|0, y1=((y+1)*sy)|0;
+    for(let x=0;x<SW;x++){
+      const i=y*SW+x, v=spEnergyA[i], owner=spOwner[i];
+      if(owner<0)continue;
+      const hex=hexes[owner];
+      const base=HSVtoRGB((hex.hue%360)/360,0.85,0.55+0.45*v);
+      for(let yy=y0;yy<y1;yy++){
+        let row=yy*W;
+        for(let xx=(x*sx)|0;xx<((x+1)*sx)|0;xx++){
+          pix32[row+xx]=(255<<24)|(base.b<<16)|(base.g<<8)|base.r;
         }
       }
     }
   }
-
-  // soft rims (cheap: draw sparse outline dots)
   for(const h of hexes){
-    const col = HSVtoRGB((h.hue%360)/360, 0.5, 1.0);
-    const R=HEX_SIZE-1, step=Math.PI/18;
+    const col=HSVtoRGB((h.hue%360)/360,0.5,1.0);
+    const R=HEX_SIZE-1,step=Math.PI/18;
     for(let a=0;a<Math.PI*2;a+=step){
-      const xx = (h.x + R*Math.cos(a))|0;
-      const yy = (h.y + R*Math.sin(a))|0;
+      const xx=(h.x+R*Math.cos(a))|0;
+      const yy=(h.y+R*Math.sin(a))|0;
       putPixel(xx,yy,col.r,col.g,col.b);
     }
   }
-
-  ctx.putImageData(image, 0, 0);
+  ctx.putImageData(image,0,0);
 }
 
-/* ============================================================
-   Main loop: 120 Hz target with gating (adapts to display)
-   ============================================================ */
-let last=performance.now(), acc=0, target=1000/120;
+// ============================================================
+// Main loop
+// ============================================================
+let last=performance.now(),acc=0,target=1000/120;
 function loop(now){
-  const dt = now - last; last = now; acc += dt;
-  // Step sim ~120Hz (or as fast as possible on slower devices)
-  while(acc >= target){
-    stepSpaxels(now*0.001);
-    acc -= target;
-  }
+  const dt=now-last;last=now;acc+=dt;
+  while(acc>=target){stepSpaxels();acc-=target;}
   render(now*0.001);
   requestAnimationFrame(loop);
 }
@@ -277,4 +225,4 @@ requestAnimationFrame(loop);
 </script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 16:01:25 UTC 2025 -->
+<!-- Mirror Build Wed Oct  8 16:06:26 UTC 2025 -->
