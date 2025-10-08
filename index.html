@@ -1,20 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Shaelvien DiceMall</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Shaelvien Dice Mall</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #000010 0%, #000 100%);
+    color: #fceacb;
+    font-family: "Cinzel", serif;
+  }
+  #banner {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px #d8b870;
+    z-index: 5;
+  }
+  canvas {
+    display: block;
+  }
+</style>
 </head>
 <body>
-  <div id="galaxy"></div> <!-- CSS galaxy background -->
-  <canvas id="d20"></canvas> <!-- WebGL render surface -->
-  <div id="refraction-overlay"></div> <!-- CSS diamond reflection layer -->
-  <script type="module" src="dice.js"></script>
+  <div id="banner">Shaelvien<br>Dice Mall</div>
+
+  <!-- Three.js & Controls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Dice Script -->
+  <script src="dice.js"></script>
 </body>
 </html>
 
 
 
 
-<!-- Mirror Build Wed Oct  8 12:35:46 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 12:37:07 UTC 2025 -->
