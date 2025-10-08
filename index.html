@@ -1,48 +1,154 @@
-// === Hex-sphere geometry ===
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dice Moon – Hex Sphere Prototype</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(circle at 50% 40%, #04070c 0%, #000 100%);
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+      color: #ccc;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      user-select: none;
+    }
+    button {
+      background: #1a1a1a;
+      color: #ddd;
+      border: 1px solid #333;
+      padding: 4px 8px;
+      margin-right: 6px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <button id="resetBtn">Reset</button>
+    <span>Hex Sphere – prototype build</span>
+  </div>
+  <canvas id="gl"></canvas>
 
-function buildHexSphere(radius = 1, divs = 4) {
-  // Start from an icosahedron (20 triangles)
-  const ico = new THREE.IcosahedronGeometry(radius, divs);
-  const verts = ico.attributes.position.array;
-  const cells = [];
+  <!-- === 3D Script === -->
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-  // --- Project to sphere ---
-  for (let i = 0; i < verts.length; i += 3) {
-    const v = new THREE.Vector3(verts[i], verts[i + 1], verts[i + 2]).normalize().multiplyScalar(radius);
-    verts[i] = v.x; verts[i + 1] = v.y; verts[i + 2] = v.z;
-  }
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    document.body.appendChild(renderer.domElement);
 
-  // --- Hex remeshing (dualization) ---
-  // Each vertex of the icosahedron becomes the center of a pentagon,
-  // and the rest approximate hexes.  We’ll make a topological map for now.
-  const pos = ico.attributes.position;
-  const geo = new THREE.PolyhedronGeometry(ico.parameters.vertices, ico.parameters.indices, radius, 0);
-  geo.computeVertexNormals();
+    // ===== HEX-SPHERE BUILDER =====
+    function buildHexSphere(radius = 1.5, divisions = 3) {
+      // Start from an icosahedron, subdivide, project to sphere
+      const geometry = new THREE.IcosahedronGeometry(radius, divisions);
+      const verts = geometry.attributes.position.array;
+      for (let i = 0; i < verts.length; i += 3) {
+        const v = new THREE.Vector3(verts[i], verts[i + 1], verts[i + 2]).normalize().multiplyScalar(radius);
+        verts[i] = v.x;
+        verts[i + 1] = v.y;
+        verts[i + 2] = v.z;
+      }
+      geometry.computeVertexNormals();
+      return geometry;
+    }
 
-  // Store a “faceId” attribute like before for coloring later
-  const faceId = [];
-  for (let i = 0; i < geo.index.count / 3; i++) {
-    faceId.push(i, i, i);
-  }
-  geo.setAttribute("faceId", new THREE.BufferAttribute(new Float32Array(faceId), 1));
+    const hexGeo = buildHexSphere(1.5, 4);
+    const hexMat = new THREE.MeshPhysicalMaterial({
+      color: 0x99ddff,
+      roughness: 0.2,
+      metalness: 0.1,
+      transmission: 0.6,
+      ior: 1.6,
+      thickness: 0.8,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 1.2,
+    });
+    const hexSphere = new THREE.Mesh(hexGeo, hexMat);
+    scene.add(hexSphere);
 
-  return geo;
-}
+    // ===== LIGHTING =====
+    const light1 = new THREE.PointLight(0xffffff, 1.4);
+    light1.position.set(5, 3, 5);
+    scene.add(light1);
 
-// === Replace D20 mesh ===
-const geometry = buildHexSphere(1.5, 2);
-const material = new THREE.MeshPhysicalMaterial({
-  color: 0x99ddff,
-  roughness: 0.2,
-  metalness: 0.1,
-  transmission: 0.6,
-  ior: 1.6,
-  thickness: 0.8,
-  clearcoat: 1.0
-});
-const hexSphere = new THREE.Mesh(geometry, material);
-scene.add(hexSphere);
+    const light2 = new THREE.PointLight(0x88aaff, 0.8);
+    light2.position.set(-4, -2, -4);
+    scene.add(light2);
+
+    scene.add(new THREE.AmbientLight(0x202020));
+
+    // ===== CAMERA & CONTROLS =====
+    camera.position.z = 5;
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = true;
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+
+    // ===== BACKGROUND STARS =====
+    const starCount = 1500;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount * 3; i++) {
+      starPos[i] = (Math.random() - 0.5) * 2000;
+    }
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 });
+    const stars = new THREE.Points(starGeo, starMat);
+    scene.add(stars);
+
+    // ===== ANIMATE =====
+    function animate() {
+      requestAnimationFrame(animate);
+      stars.rotation.y += 0.0004;
+      hexSphere.rotation.y += 0.002;
+      hexSphere.rotation.x += 0.001;
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // ===== EVENTS =====
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      camera.position.set(0, 0, 5);
+      controls.reset();
+    });
+  </script>
+</body>
+</html>
 
 
-<!-- Mirror Build Wed Oct  8 15:24:47 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 15:28:20 UTC 2025 -->
