@@ -8,6 +8,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
+// simple API test
+app.get('/api/world', (req, res) => {
+  res.json({ status: 'ok', message: 'DiceMall server live', time: new Date() });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🔥 Shaelvien DiceMall running on port ${PORT}`));
 
