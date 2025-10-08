@@ -7,7 +7,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Galaxy background
+// 🌌 Galaxy background
 const starGeo = new THREE.BufferGeometry();
 const starCount = 2000;
 const starPositions = new Float32Array(starCount * 3);
@@ -19,29 +19,29 @@ const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 });
 const stars = new THREE.Points(starGeo, starMat);
 scene.add(stars);
 
-// D20 geometry
+// 💎 Diamond D20
 const geometry = new THREE.IcosahedronGeometry(1.5, 0);
 const material = new THREE.MeshPhysicalMaterial({
   color: 0x88aaff,
-  roughness: 0.15,
-  metalness: 0.2,
+  roughness: 0.1,
+  metalness: 0.1,
   reflectivity: 0.9,
-  transmission: 0.6,
-  ior: 1.8,
-  thickness: 0.8,
-  clearcoat: 1,
+  transmission: 0.7,   // Makes it glassy
+  ior: 2.1,
+  thickness: 1.2,
+  clearcoat: 1.0,
   clearcoatRoughness: 0.05,
   envMapIntensity: 1.5
 });
 const d20 = new THREE.Mesh(geometry, material);
 scene.add(d20);
 
-// Lights
-const light1 = new THREE.PointLight(0xffffff, 1.4);
+// 💡 Lighting
+const light1 = new THREE.PointLight(0xffffff, 2);
 light1.position.set(5, 3, 5);
 scene.add(light1);
-const light2 = new THREE.PointLight(0x88aaff, 0.6);
-light2.position.set(-5, -3, -4);
+const light2 = new THREE.PointLight(0x4488ff, 1.2);
+light2.position.set(-4, -2, -4);
 scene.add(light2);
 scene.add(new THREE.AmbientLight(0x202020));
 
@@ -49,14 +49,15 @@ camera.position.z = 5;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.enableZoom = true;
 controls.enablePan = false;
 controls.minDistance = 3;
 controls.maxDistance = 10;
 
 function animate() {
   requestAnimationFrame(animate);
-  stars.rotation.y += 0.0005;
-  d20.rotation.y += 0.005;
+  stars.rotation.y += 0.0004;
+  d20.rotation.y += 0.004;
   d20.rotation.x += 0.002;
   controls.update();
   renderer.render(scene, camera);
