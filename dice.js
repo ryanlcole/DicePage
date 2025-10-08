@@ -1,9 +1,10 @@
-// Scene setup
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Galaxy background
@@ -35,27 +36,23 @@ const material = new THREE.MeshPhysicalMaterial({
 const d20 = new THREE.Mesh(geometry, material);
 scene.add(d20);
 
-// Lighting
+// Lights
 const light1 = new THREE.PointLight(0xffffff, 1.4);
 light1.position.set(5, 3, 5);
 scene.add(light1);
-
 const light2 = new THREE.PointLight(0x88aaff, 0.6);
 light2.position.set(-5, -3, -4);
 scene.add(light2);
-
 scene.add(new THREE.AmbientLight(0x202020));
 
 camera.position.z = 5;
 
-// Controls
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.enablePan = false;
 controls.minDistance = 3;
 controls.maxDistance = 10;
 
-// Animate
 function animate() {
   requestAnimationFrame(animate);
   stars.rotation.y += 0.0005;
@@ -66,11 +63,8 @@ function animate() {
 }
 animate();
 
-// Resize
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-
