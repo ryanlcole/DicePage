@@ -1,0 +1,8 @@
+{
+  "TTRPG": [
+    { "name": "Runic Dice Set", "link": "https://example.com/dice", "image": "assets/dice1.png" }
+  ],
+  "Anime": [
+    { "name": "Hero Cloak", "link": "https://example.com/cloak", "image": "assets/cloak.png" }
+  ]
+}
