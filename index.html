@@ -1,151 +1,96 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dice Moon – Hex Sphere Prototype</title>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: radial-gradient(circle at 50% 40%, #04070c 0%, #000 100%);
-      overflow: hidden;
-      font-family: system-ui, sans-serif;
-      color: #ccc;
-    }
-    canvas {
-      position: fixed;
-      inset: 0;
-      display: block;
-    }
-    #info {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.45);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      user-select: none;
-    }
-    button {
-      background: #1a1a1a;
-      color: #ddd;
-      border: 1px solid #333;
-      padding: 4px 8px;
-      margin-right: 6px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    button:hover {
-      background: #333;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dice Moon – Pixel Engine Prototype</title>
+<style>
+  html,body{
+    margin:0;
+    background:#000;
+    overflow:hidden;
+    height:100%;
+    color:#0f0;
+    font-family:consolas,monospace;
+  }
+  #hud{
+    position:fixed;left:10px;top:10px;
+    background:rgba(0,0,0,0.5);padding:6px 10px;
+    border:1px solid #0f0;border-radius:6px;
+  }
+  canvas{display:block;position:fixed;inset:0;}
+</style>
 </head>
 <body>
-  <div id="info">
-    <button id="resetBtn">Reset</button>
-    <span>Hex Sphere – prototype build</span>
-  </div>
-  <canvas id="gl"></canvas>
+<div id="hud">PIXEL ENGINE – Hex Sphere Demo</div>
+<canvas id="screen"></canvas>
 
-  <!-- === 3D Script === -->
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+<script>
+// === BASIC PIXEL ENGINE ===
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+let w, h, img, buf8, buf32;
 
-    // Scene setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
-    document.body.appendChild(renderer.domElement);
+function resize() {
+  w = innerWidth;
+  h = innerHeight;
+  canvas.width = w;
+  canvas.height = h;
+  img = ctx.getImageData(0, 0, w, h);
+  buf8 = img.data;
+  buf32 = new Uint32Array(buf8.buffer);
+}
+addEventListener('resize', resize);
+resize();
 
-    // ===== HEX-SPHERE BUILDER =====
-    function buildHexSphere(radius = 1.5, divisions = 3) {
-      // Start from an icosahedron, subdivide, project to sphere
-      const geometry = new THREE.IcosahedronGeometry(radius, divisions);
-      const verts = geometry.attributes.position.array;
-      for (let i = 0; i < verts.length; i += 3) {
-        const v = new THREE.Vector3(verts[i], verts[i + 1], verts[i + 2]).normalize().multiplyScalar(radius);
-        verts[i] = v.x;
-        verts[i + 1] = v.y;
-        verts[i + 2] = v.z;
+// === DRAW PIXEL (packed RGBA) ===
+function pset(x, y, r, g, b) {
+  if (x < 0 || y < 0 || x >= w || y >= h) return;
+  buf32[y * w + x] = (255 << 24) | (b << 16) | (g << 8) | r;
+}
+
+// === SIMPLE HEX-SPHERE RENDER ===
+let t0 = performance.now();
+function frame() {
+  const t = (performance.now() - t0) * 0.001;
+  const scale = Math.min(w, h) * 0.45;
+  const cx = w >> 1, cy = h >> 1;
+  const R = 1.0; // sphere radius (unit)
+
+  for (let y = 0; y < h; y++) {
+    const py = (y - cy) / scale;
+    for (let x = 0; x < w; x++) {
+      const px = (x - cx) / scale;
+      const r2 = px*px + py*py;
+      if (r2 <= 1.0) {
+        const z = Math.sqrt(1 - r2);
+        // rotate sphere
+        const rx = px * Math.cos(t*0.3) - z * Math.sin(t*0.3);
+        const rz = px * Math.sin(t*0.3) + z * Math.cos(t*0.3);
+        const ry = py;
+        // spherical coords
+        const lat = Math.asin(ry/R);
+        const lon = Math.atan2(rz, rx);
+        // create hex-like band pattern using modulo tricks
+        const v = Math.abs(Math.sin(lat*10.0)) * 0.8 + 0.2;
+        const u = Math.abs(Math.sin(lon*10.0));
+        const shade = 0.5 + 0.5*Math.cos(lat*4 + t);
+        const r = (Math.sin(lon*3 + t*0.5)*0.5+0.5)*255*v*shade;
+        const g = (Math.sin(lat*3 - t*0.3)*0.5+0.5)*255*v*shade;
+        const b = (0.5+0.5*u)*255*shade;
+        pset(x, y, r|0, g|0, b|0);
+      } else {
+        pset(x, y, 0, 0, 0);
       }
-      geometry.computeVertexNormals();
-      return geometry;
     }
+  }
 
-    const hexGeo = buildHexSphere(1.5, 4);
-    const hexMat = new THREE.MeshPhysicalMaterial({
-      color: 0x99ddff,
-      roughness: 0.2,
-      metalness: 0.1,
-      transmission: 0.6,
-      ior: 1.6,
-      thickness: 0.8,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 1.2,
-    });
-    const hexSphere = new THREE.Mesh(hexGeo, hexMat);
-    scene.add(hexSphere);
-
-    // ===== LIGHTING =====
-    const light1 = new THREE.PointLight(0xffffff, 1.4);
-    light1.position.set(5, 3, 5);
-    scene.add(light1);
-
-    const light2 = new THREE.PointLight(0x88aaff, 0.8);
-    light2.position.set(-4, -2, -4);
-    scene.add(light2);
-
-    scene.add(new THREE.AmbientLight(0x202020));
-
-    // ===== CAMERA & CONTROLS =====
-    camera.position.z = 5;
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enableZoom = true;
-    controls.minDistance = 3;
-    controls.maxDistance = 10;
-
-    // ===== BACKGROUND STARS =====
-    const starCount = 1500;
-    const starGeo = new THREE.BufferGeometry();
-    const starPos = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i++) {
-      starPos[i] = (Math.random() - 0.5) * 2000;
-    }
-    starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 });
-    const stars = new THREE.Points(starGeo, starMat);
-    scene.add(stars);
-
-    // ===== ANIMATE =====
-    function animate() {
-      requestAnimationFrame(animate);
-      stars.rotation.y += 0.0004;
-      hexSphere.rotation.y += 0.002;
-      hexSphere.rotation.x += 0.001;
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // ===== EVENTS =====
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      camera.position.set(0, 0, 5);
-      controls.reset();
-    });
-  </script>
+  ctx.putImageData(img, 0, 0);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 15:32:13 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 15:34:49 UTC 2025 -->
