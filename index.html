@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dice Moon – Hex Pixel Engine</title>
+<title>Dice Moon – Hex Pixel Engine (120 Hz)</title>
 <style>
   html,body{
-    margin:0;height:100%;
-    background:#000;color:#0f0;overflow:hidden;
-    font-family:consolas,monospace;
+    margin:0;height:100%;background:#000;overflow:hidden;
+    font-family:consolas,monospace;color:#0f0;
   }
   #hud{
     position:fixed;left:10px;top:10px;
@@ -20,109 +19,63 @@
 </style>
 </head>
 <body>
-<div id="hud">HEX PIXEL ENGINE – click to paint hexes</div>
+<div id="hud">HEX PIXEL ENGINE – High FPS mode</div>
 <canvas id="screen"></canvas>
 
 <script>
-// === BASIC PIXEL ENGINE ===
+// ===== BUFFER SETUP =====
 const canvas = document.getElementById('screen');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { willReadFrequently:false });
 let w,h,img,buf32;
 function resize(){
   w=innerWidth;h=innerHeight;
   canvas.width=w;canvas.height=h;
-  img=ctx.getImageData(0,0,w,h);
+  img=ctx.createImageData(w,h);
   buf32=new Uint32Array(img.data.buffer);
 }
 addEventListener('resize',resize);resize();
 
-// === PIXEL DRAW ===
-function pset(x,y,r,g,b){
-  if(x<0||y<0||x>=w||y>=h)return;
-  buf32[y*w+x]=(255<<24)|(b<<16)|(g<<8)|r;
-}
-
-// === HEX GRID ===
-const hexSize=12;              // pixel radius of one hex cell
+// ===== HEX GRID =====
+const hexSize=12;
 const hexW=Math.sqrt(3)*hexSize;
-const hexH=2*hexSize*0.75;     // vertical spacing
-const cols=Math.ceil(w/hexW)+2;
-const rows=Math.ceil(h/hexH)+2;
-
+const hexH=2*hexSize*0.75;
 let hexes=[];
 function makeHexes(){
   hexes=[];
+  const cols=Math.ceil(w/hexW)+2;
+  const rows=Math.ceil(h/hexH)+2;
   const cx=w/2, cy=h/2;
   for(let r=-rows/2;r<rows/2;r++){
     for(let q=-cols/2;q<cols/2;q++){
-      const x=cx+hexW*(q+ r/2);
+      const x=cx+hexW*(q+r/2);
       const y=cy+hexH*r;
-      const color=Math.floor(Math.random()*360);
-      hexes.push({q,r,x,y,hue:color,phase:Math.random()*Math.PI*2});
+      const hue=Math.random()*360;
+      hexes.push({q,r,x,y,hue,phase:Math.random()*Math.PI*2});
     }
   }
 }
 makeHexes();
 
-// === HEX MATH HELPERS ===
-function hexAt(x,y){
-  // convert pixel->axial
-  const q=(x-w/2)/hexW - (y-h/2)/(2*hexH);
-  const r=(y-h/2)/hexH;
-  return {q:Math.round(q),r:Math.round(r)};
-}
-
-// === EVENT: PAINT ===
+// ===== EVENT: PAINT =====
 canvas.addEventListener('click',e=>{
   const rect=canvas.getBoundingClientRect();
   const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  const hxy=hexAt(mx,my);
-  const h=hexes.find(hh=>hh.q===hxy.q&&hh.r===hxy.r);
-  if(h){ h.hue=(h.hue+60)%360; } // cycle hue
+  let nearest=null,min=1e9;
+  for(const h of hexes){
+    const d=(h.x-mx)**2+(h.y-my)**2;
+    if(d<min){min=d;nearest=h;}
+  }
+  if(nearest) nearest.hue=(nearest.hue+60)%360;
 });
 
-// === FRAME ===
-let t0=performance.now();
-function frame(){
-  const t=(performance.now()-t0)*0.001;
-  const cx=w>>1, cy=h>>1;
-
-  for(let i=0;i<w*h;i++) buf32[i]=0xFF000000; // clear
-
-  // draw each hex
-  for(const hcell of hexes){
-    const {x,y,hue,phase}=hcell;
-    const pulse=(Math.sin(t*2+phase)*0.3+0.7);
-    const col=HSVtoRGB(hue/360,1.0,pulse);
-    drawHex(x,y,hexSize,col.r,col.g,col.b);
-  }
-
-  ctx.putImageData(img,0,0);
-  requestAnimationFrame(frame);
+// ===== DRAW HELPERS =====
+function pset(x,y,r,g,b){
+  if(x<0||y<0||x>=w||y>=h)return;
+  buf32[y*w+x]=(255<<24)|(b<<16)|(g<<8)|r;
 }
-frame();
-
-// === DRAW SINGLE HEX ===
-function drawHex(cx,cy,r,R,G,B){
-  const step=60*(Math.PI/180);
-  for(let a=0;a<2*Math.PI;a+=0.5){
-    const x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
-    for(let dr=-r*0.7;dr<r*0.7;dr++){
-      const xx=cx+(r+dr)*Math.cos(a);
-      const yy=cy+(r+dr)*Math.sin(a);
-      pset(xx|0,yy|0,R,G,B);
-    }
-  }
-}
-
-// === HSV→RGB (for pretty hues) ===
 function HSVtoRGB(h,s,v){
-  let r,g,b;
-  const i=Math.floor(h*6);
-  const f=h*6-i;
-  const p=v*(1-s);
-  const q=v*(1-f*s);
-  const t=v*(1-(1-f)*s);
+  let r,g,b,i=Math.floor(h*6),f=h*6-i,p=v*(1-s),
+  q=v*(1-f*s),t=v*(1-(1-f)*s);
   switch(i%6){
     case 0:r=v;g=t;b=p;break;
     case 1:r=q;g=v;b=p;break;
@@ -133,7 +86,47 @@ function HSVtoRGB(h,s,v){
   }
   return {r:(r*255)|0,g:(g*255)|0,b:(b*255)|0};
 }
+
+// ===== FAST HEX DRAW (filled polygon) =====
+function drawHex(cx,cy,r,R,G,B){
+  const step=60*(Math.PI/180);
+  for(let a=0;a<2*Math.PI;a+=step/2){
+    const x1=cx+r*Math.cos(a), y1=cy+r*Math.sin(a);
+    const x2=cx+r*Math.cos(a+step/2), y2=cy+r*Math.sin(a+step/2);
+    const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+    for(let i=0;i<len;i++){
+      const xx=(x1+dx*(i/len))|0;
+      const yy=(y1+dy*(i/len))|0;
+      pset(xx,yy,R,G,B);
+    }
+  }
+}
+
+// ===== MAIN LOOP =====
+let last=performance.now(),acc=0,target=1000/120; // 120 Hz target
+function frame(now){
+  const dt=now-last; last=now; acc+=dt;
+  if(acc>=target){ // only draw when target time passed
+    acc%=target;
+    render(now*0.001);
+  }
+  requestAnimationFrame(frame);
+}
+
+function render(t){
+  // clear
+  for(let i=0;i<w*h;i++) buf32[i]=0xFF000000;
+
+  // animate hexes
+  for(const h of hexes){
+    const pulse=(Math.sin(t*6+h.phase)*0.3+0.7);
+    const col=HSVtoRGB(h.hue/360,1.0,pulse);
+    drawHex(h.x,h.y,hexSize-1,col.r,col.g,col.b);
+  }
+  ctx.putImageData(img,0,0);
+}
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 15:40:48 UTC 2025 -->
+<!-- Mirror Build Wed Oct  8 15:53:49 UTC 2025 -->
