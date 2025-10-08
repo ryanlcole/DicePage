@@ -1,32 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shaelvien Dice Mall</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      background: radial-gradient(circle at center, #0a0a0a, #000);
-      color: #fff;
-      font-family: "Cinzel", serif;
       height: 100%;
       width: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+      color: #fff;
+      font-family: "Cinzel", serif;
+      user-select: none;
     }
+
     #banner {
       position: absolute;
-      top: 20px;
+      top: 40px;
       left: 50%;
       transform: translateX(-50%);
-      text-align: center;
-      font-size: 1.8em;
-      letter-spacing: 1px;
-      color: #c9a86a;
-      text-shadow: 0 0 10px #c9a86a;
+      font-size: 2em;
+      letter-spacing: 2px;
+      color: #d8b56b;
+      text-shadow: 0 0 12px #d8b56b, 0 0 24px #a67c33;
       z-index: 10;
+      text-align: center;
     }
+
     canvas {
       display: block;
     }
@@ -40,49 +43,66 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
-  <!-- Dice Script -->
+  <!-- Dice Mall Main Script -->
   <script>
+    // Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(10, 10, 10);
-    scene.add(ambientLight, pointLight);
+    // Lighting Setup
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    const keyLight = new THREE.PointLight(0xffffff, 1);
+    const fillLight = new THREE.PointLight(0x6699ff, 0.3);
+    keyLight.position.set(5, 5, 5);
+    fillLight.position.set(-5, -3, -2);
+    scene.add(ambient, keyLight, fillLight);
 
-    // D20 Geometry
+    // D20 Geometry (Icosahedron)
     const geometry = new THREE.IcosahedronGeometry(2, 0);
     const material = new THREE.MeshStandardMaterial({
       color: 0xaaaaaa,
-      metalness: 0.8,
-      roughness: 0.3
+      metalness: 0.85,
+      roughness: 0.25,
+      envMapIntensity: 1.2
     });
-    const dice = new THREE.Mesh(geometry, material);
-    scene.add(dice);
+    const d20 = new THREE.Mesh(geometry, material);
+    scene.add(d20);
 
-    camera.position.z = 5;
+    // Camera + Controls
+    camera.position.z = 6;
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.2;
 
-    // Animation Loop
+    // Animate
     function animate() {
       requestAnimationFrame(animate);
-      dice.rotation.x += 0.005;
-      dice.rotation.y += 0.007;
+      controls.update();
+      d20.rotation.x += 0.004;
+      d20.rotation.y += 0.006;
       renderer.render(scene, camera);
     }
 
-    animate();
-
     // Handle Resize
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
+    animate();
   </script>
 </body>
 </html>
+
