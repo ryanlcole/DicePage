@@ -31,4 +31,22 @@ jobs:
         with:
           app-name: ShaelvienDiceGroup
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+      - name: Notify Discord on Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"username\":\"ReLiC Bot\",\"content\":\"✅ **Deployment successful** for Shaelvien DiceMall — https://relicgamemaster.com\"}" \
+               ${{ secrets.DISCORD_WEBHOOK }}
+
+      - name: Notify Discord on Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"username\":\"ReLiC Bot\",\"content\":\"❌ **Deployment failed**. Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions\"}" \
+               ${{ secrets.DISCORD_WEBHOOK }}
+
+
+          
 
