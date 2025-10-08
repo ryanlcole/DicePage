@@ -1,0 +1,58 @@
+name: Auto-Renew Fine-Grained PAT and Notify Discord
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"    # runs monthly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate new fine-grained token
+        id: renew
+        env:
+          OLD_TOKEN: ${{ secrets.CLASSIC_PAT }}
+          REPO: ryanlcole/DicePage
+        run: |
+          echo "🔁 Requesting new fine-grained token..."
+          NEW_TOKEN=$(curl -s -X POST \
+            -H "Authorization: token $OLD_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/authorizations \
+            -d '{"scopes":["repo","workflow"],"note":"Auto-renew DicePage PAT"}' | jq -r '.token')
+
+          if [ -z "$NEW_TOKEN" ] || [ "$NEW_TOKEN" = "null" ]; then
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "❌ Token renewal failed"
+            exit 1
+          fi
+
+          echo "✅ Token renewed — updating FINEGRAINED_PAT"
+          curl -s -X PUT \
+            -H "Authorization: token $OLD_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$REPO/actions/secrets/FINEGRAINED_PAT \
+            -d "{\"encrypted_value\":\"$NEW_TOKEN\"}"
+
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          STATUS: ${{ steps.renew.outputs.success }}
+        run: |
+          if [ "$STATUS" = "true" ]; then
+            MSG="✅ Fine-grained PAT renewed successfully for DicePage repo."
+          else
+            MSG="⚠️ PAT renewal failed for DicePage. Manual action required."
+          fi
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\": \"$MSG\"}" \
+            $DISCORD_WEBHOOK
