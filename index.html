@@ -2,34 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dice Moon – Pixel Engine Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dice Moon – Pixel Engine</title>
 <style>
   html,body{
     margin:0;
-    background:#000;
-    overflow:hidden;
     height:100%;
+    background:#000;
     color:#0f0;
+    overflow:hidden;
     font-family:consolas,monospace;
   }
   #hud{
     position:fixed;left:10px;top:10px;
-    background:rgba(0,0,0,0.5);padding:6px 10px;
-    border:1px solid #0f0;border-radius:6px;
+    background:rgba(0,0,0,0.5);
+    padding:6px 10px;
+    border:1px solid #0f0;
+    border-radius:6px;
+    font-size:13px;
   }
   canvas{display:block;position:fixed;inset:0;}
 </style>
 </head>
 <body>
-<div id="hud">PIXEL ENGINE – Hex Sphere Demo</div>
+<div id="hud">PIXEL ENGINE – Hex Sphere Demo (no three.js)</div>
 <canvas id="screen"></canvas>
 
 <script>
-// === BASIC PIXEL ENGINE ===
+// === BASIC PIXEL ENGINE (no libraries) ===
 const canvas = document.getElementById('screen');
 const ctx = canvas.getContext('2d');
-let w, h, img, buf8, buf32;
+let w, h, img, buf32;
 
 function resize() {
   w = innerWidth;
@@ -37,60 +40,11 @@ function resize() {
   canvas.width = w;
   canvas.height = h;
   img = ctx.getImageData(0, 0, w, h);
-  buf8 = img.data;
-  buf32 = new Uint32Array(buf8.buffer);
+  buf32 = new Uint32Array(img.data.buffer);
 }
 addEventListener('resize', resize);
 resize();
 
-// === DRAW PIXEL (packed RGBA) ===
-function pset(x, y, r, g, b) {
-  if (x < 0 || y < 0 || x >= w || y >= h) return;
-  buf32[y * w + x] = (255 << 24) | (b << 16) | (g << 8) | r;
-}
-
-// === SIMPLE HEX-SPHERE RENDER ===
-let t0 = performance.now();
-function frame() {
-  const t = (performance.now() - t0) * 0.001;
-  const scale = Math.min(w, h) * 0.45;
-  const cx = w >> 1, cy = h >> 1;
-  const R = 1.0; // sphere radius (unit)
-
-  for (let y = 0; y < h; y++) {
-    const py = (y - cy) / scale;
-    for (let x = 0; x < w; x++) {
-      const px = (x - cx) / scale;
-      const r2 = px*px + py*py;
-      if (r2 <= 1.0) {
-        const z = Math.sqrt(1 - r2);
-        // rotate sphere
-        const rx = px * Math.cos(t*0.3) - z * Math.sin(t*0.3);
-        const rz = px * Math.sin(t*0.3) + z * Math.cos(t*0.3);
-        const ry = py;
-        // spherical coords
-        const lat = Math.asin(ry/R);
-        const lon = Math.atan2(rz, rx);
-        // create hex-like band pattern using modulo tricks
-        const v = Math.abs(Math.sin(lat*10.0)) * 0.8 + 0.2;
-        const u = Math.abs(Math.sin(lon*10.0));
-        const shade = 0.5 + 0.5*Math.cos(lat*4 + t);
-        const r = (Math.sin(lon*3 + t*0.5)*0.5+0.5)*255*v*shade;
-        const g = (Math.sin(lat*3 - t*0.3)*0.5+0.5)*255*v*shade;
-        const b = (0.5+0.5*u)*255*shade;
-        pset(x, y, r|0, g|0, b|0);
-      } else {
-        pset(x, y, 0, 0, 0);
-      }
-    }
-  }
-
-  ctx.putImageData(img, 0, 0);
-  requestAnimationFrame(frame);
-}
-frame();
-</script>
-</body>
-</html>
-
-<!-- Mirror Build Wed Oct  8 15:34:49 UTC 2025 -->
+// === draw single pixel ===
+function pset(x, y, r, g, b)
+<!-- Mirror Build Wed Oct  8 15:37:21 UTC 2025 -->
