@@ -1,0 +1,45 @@
+name: Azure Site Status Reporter
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Every hour
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping site uptime
+        id: ping
+        run: |
+          STATUS=$(curl -Is https://relicgamemaster.com | head -n 1 | cut -d' ' -f2)
+          if [ "$STATUS" == "200" ]; then
+            echo "SITE_STATUS=✅ Site is online (200 OK)" >> $GITHUB_ENV
+          else
+            echo "SITE_STATUS=⚠️ Site returned code $STATUS" >> $GITHUB_ENV
+          fi
+
+      - name: Get Azure app metrics
+        run: |
+          echo "Fetching Azure metrics..."
+          CPU=$(az monitor metrics list \
+            --resource "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/ShaelvienDiceGroup_group/providers/Microsoft.Web/sites/ShaelvienDiceGroup" \
+            --metric "CpuPercentage" --interval PT1H --aggregation Average \
+            --query "value[0].timeseries[0].data[-1].average" -o tsv)
+
+          MEMORY=$(az monitor metrics list \
+            --resource "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/ShaelvienDiceGroup_group/providers/Microsoft.Web/sites/ShaelvienDiceGroup" \
+            --metric "MemoryWorkingSet" --interval PT1H --aggregation Average \
+            --query "value[0].timeseries[0].data[-1].average" -o tsv)
+
+          echo "CPU: ${CPU:-N/A}%, Memory: ${MEMORY:-N/A} MB"
+          echo "CPU_USAGE=${CPU:-N/A}" >> $GITHUB_ENV
+          echo "MEM_USAGE=${MEMORY:-N/A}" >> $GITHUB_ENV
+
+      - name: Post Discord status update
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"username\":\"ReLiC Bot\",\"content\":\"📊 **Azure Site Report**\n${{ env.SITE_STATUS }}\n💻 CPU: ${{ env.CPU_USAGE }}%\n🧠 Memory: ${{ env.MEM_USAGE }} MB\n🌐 https://relicgamemaster.com\"}" \
+               ${{ secrets.DISCORD_WEBHOOK }}
