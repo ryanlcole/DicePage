@@ -1,36 +1,420 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Shaelvien Dice Mall</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dice Moon</title>
 <style>
-  html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    background: radial-gradient(circle at center, #000010 0%, #000 100%);
-    color: #fceacb;
-    font-family: "Cinzel", serif;
-  }
-  #banner {
-    position: absolute;
-    top: 40px;
-    left: 40px;
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #d8b870;
-    z-index: 5;
-  }
-  canvas { display: block; }
+  html,body{height:100%;margin:0;background:#000;overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
 </style>
 </head>
 <body>
-  <div id="banner">Shaelvien<br>Dice Mall</div>
+<canvas id="gl"></canvas>
 
-  <!-- Dice Mall Script -->
-  <script type="module" src="dice.js"></script>
+<script>
+(() => {
+  const canvas = document.getElementById('gl');
+  const gl = canvas.getContext('webgl2', { antialias:true, alpha:false });
+  if(!gl){ document.body.innerHTML = 'WebGL2 required'; return; }
+
+  // ---------- sizing ----------
+  function resize(){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.floor(innerWidth*dpr), h = Math.floor(innerHeight*dpr);
+    if (canvas.width!==w || canvas.height!==h) { canvas.width=w; canvas.height=h; gl.viewport(0,0,w,h); }
+  }
+  addEventListener('resize', resize); resize();
+
+  // ---------- shader utils ----------
+  const sh = (t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+    if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o;};
+  const prog=(vs,fs)=>{const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));
+    gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw gl.getProgramInfoLog(p);return p;};
+
+  // ---------- Naeja galaxy background ----------
+  const BG_COMMON = `
+  float hash(vec3 p){ p=fract(p*0.3183099+vec3(.1,.2,.3)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+  float nebula(vec3 d,float t){
+    float a=dot(d,vec3(0.6,0.2,0.7))*4.0+t*0.05;
+    float b=dot(d,vec3(-0.3,0.9,0.1))*6.0-t*0.03;
+    float c=dot(d,vec3(0.2,0.3,0.9))*5.0+t*0.04;
+    float n=0.35*sin(a)+0.25*sin(b)+0.2*sin(c);
+    return smoothstep(0.0,1.0,n*0.5+0.5);
+  }
+  float starfield(vec3 d,float t){
+    float band=pow(clamp(1.0-abs(d.y),0.0,1.0),3.0);
+    float dense=0.6*band+0.15;
+    float s=step(0.995,hash(floor(d*800.0)));
+    float s2=step(0.9975,hash(floor(d*1200.0)));
+    float tw=0.7+0.3*sin(t*3.0+hash(d*500.0)*6.283);
+    return (s*tw*2.2+s2*tw*4.0)*dense;
+  }
+  vec3 galaxyColor(vec3 dir,float t){
+    dir=normalize(dir);
+    float core=pow(clamp(1.0-abs(dir.y),0.0,1.0),2.0);
+    float n=nebula(dir,t);
+    vec3 neb=mix(vec3(0.15,0.18,0.35),vec3(0.75,0.55,0.95),n)*(0.25+0.75*core);
+    float stars=starfield(dir,t);
+    vec3 starCol=mix(vec3(1.0,0.95,0.9),vec3(0.85,0.9,1.0),hash(dir*1000.0));
+    return neb + starCol*stars;
+  }`;
+
+  const bgVS = `#version 300 es
+  precision highp float; out vec2 vUV;
+  void main(){ vec2 q=vec2((gl_VertexID<<1)&2, gl_VertexID&2); vUV=q; gl_Position=vec4(q*2.-1.,0,1); }`;
+
+  const bgFS = `#version 300 es
+  precision highp float; in vec2 vUV; out vec4 o;
+  uniform vec2 uRes; uniform float uTime; uniform mat3 uCamRot;
+  ${BG_COMMON}
+  void main(){
+    vec2 uv = vUV*2.0-1.0; uv.x *= uRes.x/uRes.y;
+    vec3 rd = normalize(vec3(uv, -1.5));
+    rd = uCamRot * rd;                  // galaxy tracks camera orientation
+    vec3 col = galaxyColor(rd,uTime);
+    float vig = smoothstep(1.35,0.2,length(uv)); col *= vig;
+    o = vec4(col,1.0);
+  }`;
+  const bgP = prog(bgVS,bgFS);
+  const uBgRes=gl.getUniformLocation(bgP,'uRes');
+  const uBgTime=gl.getUniformLocation(bgP,'uTime');
+  const uBgRot=gl.getUniformLocation(bgP,'uCamRot');
+
+  // ---------- D20 geometry (positions + per-face UV + barycentric) ----------
+  const T=(1+Math.sqrt(5))/2;
+  const V=[-1,T,0, 1,T,0, -1,-T,0, 1,-T,0, 0,-1,T, 0,1,T, 0,-1,-T, 0,1,-T, T,0,-1, T,0,1, -T,0,-1, -T,0,1];
+  for(let i=0;i<V.length;i+=3){const x=V[i],y=V[i+1],z=V[i+2];const l=Math.hypot(x,y,z);V[i]/=l;V[i+1]/=l;V[i+2]/=l;}
+  const F=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
+           [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+  // UV per triangle: equilateral layout (0,0)-(1,0)-(0.5,0.866)
+  const UVtri=[[0,0],[1,0],[.5,.8660254]];
+  // Barycentric for crisp edge masking
+  const Btri=[[1,0,0],[0,1,0],[0,0,1]];
+
+  const pos=[], uv=[], bary=[], faceId=[];
+  const faceCenters=[], faceNormals=[];
+  F.forEach((f,fi)=>{
+    const a=f[0]*3,b=f[1]*3,c=f[2]*3;
+    const ax=V[a],ay=V[a+1],az=V[a+2];
+    const bx=V[b],by=V[b+1],bz=V[b+2];
+    const cx=V[c],cy=V[c+1],cz=V[c+2];
+    pos.push(ax,ay,az, bx,by,bz, cx,cy,cz);
+    uv.push( ...UVtri[0], ...UVtri[1], ...UVtri[2] );
+    bary.push(...Btri[0], ...Btri[1], ...Btri[2]);
+    faceId.push(fi,fi,fi);
+    // center & normal for logic (zoom-to-face later)
+    const cxtr=(ax+bx+cx)/3, cytr=(ay+by+cy)/3, cztr=(az+bz+cz)/3;
+    faceCenters.push([cxtr,cytr,cztr]);
+    const ux=bx-ax, uy=by-ay, uz=bz-az;
+    const vx=cx-ax, vy=cy-ay, vz=cz-az;
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+    const nl=Math.hypot(nx,ny,nz); nx/=nl; ny/=nl; nz/=nl;
+    faceNormals.push([nx,ny,nz]);
+  });
+
+  function makeVBO(data, size, loc){
+    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);
+    return b;
+  }
+
+  // ---------- Diamond shader (numbers embedded, no squares) ----------
+  const dVS = `#version 300 es
+  precision highp float;
+  layout(location=0) in vec3 aPos;
+  layout(location=1) in vec2 aUV;       // per-face UV
+  layout(location=2) in vec3 aBary;     // barycentric for edges
+  layout(location=3) in float aFace;    // face id
+  uniform mat4 uP,uV,uM;
+  out vec3 vN, vW, vV;
+  out vec2 vUV;
+  out vec3 vBary;
+  flat out int vFace;
+  void main(){
+    vec4 wp = uM*vec4(aPos,1.0);
+    vW = wp.xyz;
+    vN = mat3(uM)*normalize(aPos);
+    vec3 cam = vec3(inverse(uV)[3]);
+    vV = normalize(cam - vW);
+    vUV = aUV;
+    vBary = aBary;
+    vFace = int(aFace + 0.5);
+    gl_Position = uP*uV*wp;
+  }`;
+
+  const dFS = `#version 300 es
+  precision highp float;
+  in vec3 vN, vW, vV; in vec2 vUV; in vec3 vBary; flat in int vFace;
+  out vec4 o;
+  uniform float uTime;
+
+  ${BG_COMMON}
+
+  // Cheap 2D noise for micro surface
+  float n2(vec2 p){ return fract(sin(dot(p,vec2(27.168,91.123)))*43758.5453123); }
+  float smin(float a,float b,float k){ float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0); return mix(b,a,h)-k*h*(1.0-h); }
+
+  // Element palette
+  vec3 elementTint(int i){
+    i = i % 10;
+    if(i==0) return vec3(0.90,0.78,0.35);
+    if(i==1) return vec3(0.87,0.90,0.95);
+    if(i==2) return vec3(0.83,0.49,0.34);
+    if(i==3) return vec3(0.10,0.75,0.55);
+    if(i==4) return vec3(0.90,0.12,0.18);
+    if(i==5) return vec3(0.22,0.46,0.95);
+    if(i==6) return vec3(0.63,0.45,0.78);
+    if(i==7) return vec3(0.80,0.92,1.00);
+    if(i==8) return vec3(0.12,0.12,0.14);
+    return vec3(0.95,0.75,0.25);
+  }
+
+  // Signed distance for digits (vector-ish, built from primitives)
+  // UV assumed in triangle space roughly [0..1] with centroid ~ (0.5, ~0.45)
+  // We'll map to a centered box where the number lives, then draw with SDF strokes.
+  float sdSegment(vec2 p, vec2 a, vec2 b, float r){
+    vec2 pa=p-a, ba=b-a; float h=clamp(dot(pa,ba)/dot(ba,ba),0.0,1.0);
+    return length(pa-ba*h)-r;
+  }
+  float glyphSDF(float d, vec2 p){
+    // Build a simple 7-seg-ish set with tweaks, then deform per digit
+    // Normalize coord to [-1,1] box:
+    vec2 uv = (p - vec2(0.5,0.46)) * vec2(2.15, 2.35);
+    float w = 0.12;
+    float segs =  999.0;
+
+    // baseline segments positions
+    vec2 A=vec2(-0.55, 0.90), B=vec2(0.55, 0.90);
+    vec2 C=vec2(-0.60, 0.00), D=vec2(0.60, 0.00);
+    vec2 E=vec2(-0.55,-0.90), F=vec2(0.55,-0.90);
+    // verticals
+    vec2 L1a=vec2(-0.75, 0.70), L1b=vec2(-0.75,-0.70);
+    vec2 L2a=vec2( 0.75, 0.70), L2b=vec2( 0.75,-0.70);
+
+    // choose which segments per digit (0..9 then use mod)
+    int di = int(mod(d,10.0));
+    bool top    = (di!=1 && di!=4);
+    bool mid    = (di==2 || di==3 || di==4 || di==5 || di==6 || di==8 || di==9 || di==0);
+    bool bot    = (di!=1 && di!=4 && di!=7);
+    bool leftU  = (di==0 || di==4 || di==5 || di==6 || di==8 || di==9);
+    bool leftL  = (di==0 || di==2 || di==6 || di==8);
+    bool rightU = (di==0 || di==1 || di==2 || di==3 || di==4 || di==7 || di==8 || di==9);
+    bool rightL = (di==0 || di==1 || di==3 || di==4 || di==5 || di==6 || di==7 || di==8 || di==9);
+
+    if(top)    segs = min(segs, sdSegment(uv,A,B,w));
+    if(mid)    segs = min(segs, sdSegment(uv,C,D,w));
+    if(bot)    segs = min(segs, sdSegment(uv,E,F,w));
+    if(leftU)  segs = min(segs, sdSegment(uv,L1a, vec2(-0.35,0.35), w));
+    if(leftL)  segs = min(segs, sdSegment(uv,vec2(-0.35,-0.35),L1b, w));
+    if(rightU) segs = min(segs, sdSegment(uv,vec2(0.35,0.35), L2a, w));
+    if(rightL) segs = min(segs, sdSegment(uv,L2b, vec2(0.35,-0.35), w));
+
+    // for 7 and 9 tweaks
+    if(di==7) segs = min(segs, sdSegment(uv, vec2(-0.05,0.90), vec2(0.75,-0.90), w));
+    if(di==9) segs = min(segs, sdSegment(uv, vec2(-0.05,0.90), vec2(0.60,0.00), w));
+
+    return segs;
+  }
+
+  // produce 1..20 using two glyphs (or one), with slight random imperfections (pits/scratches)
+  float numberMask(int face, vec2 uv, float t){
+    // map triangle uv to number area
+    // squeeze into a centered lozenge; keep margins so no square boxes
+    vec2 p = uv;
+    // confine to inscribed triangle region (soft)
+    float triEdge = min(min(vBary.x, vBary.y), vBary.z); // 0 at edges, 1 at center approx
+    float edgeMask = smoothstep(0.02, 0.06, triEdge);
+
+    // upscale to number frame
+    vec2 fuv = (p - vec2(0.5,0.40)) * vec2(1.35, 1.30) + vec2(0.5,0.52);
+
+    // figure digits
+    int n = face + 1;
+    int tens = n/10;
+    int ones = n%10;
+
+    float d=1e5;
+
+    if(tens>0){
+      vec2 L = fuv + vec2(-0.18,0.0);
+      d = min(d, glyphSDF(float(tens), L));
+      vec2 R = fuv + vec2( 0.18,0.0);
+      d = min(d, glyphSDF(float(ones), R));
+    } else {
+      d = min(d, glyphSDF(float(ones), fuv));
+    }
+
+    // imperfections: micro pits
+    float pit = n2(fuv*vec2(143.2,81.7) + float(face)*3.17 + t*0.03);
+    float pitMask = smoothstep(0.4, 0.95, pit); // tiny holes appear
+    d -= (pitMask)*0.02;
+
+    // scratches: faint diagonal lines
+    float sc = abs(sin((fuv.x+fuv.y*1.3 + float(face)*0.37)*35.0));
+    d = min(d, sc*0.015+0.02);
+
+    // anti-aliased fill
+    float stroke = smoothstep(0.04, 0.0, d);       // number ink
+    float outline= smoothstep(0.055, 0.035, d);    // crisp edges a bit wider
+
+    return edgeMask * max(stroke, outline);
+  }
+
+  vec3 elementMetal(int id){
+    id = id % 10;
+    if(id==0) return vec3(0.95,0.80,0.3);     // gold
+    if(id==1) return vec3(0.88,0.92,0.97);    // silver
+    if(id==2) return vec3(0.85,0.5,0.3);      // copper
+    if(id==3) return vec3(0.2,0.9,0.6);       // emerald glow
+    if(id==4) return vec3(1.0,0.25,0.25);     // ruby
+    if(id==5) return vec3(0.4,0.6,1.0);       // sapphire
+    if(id==6) return vec3(0.8,0.6,1.0);       // amethyst
+    if(id==7) return vec3(0.9,1.0,1.0);       // ice
+    if(id==8) return vec3(0.15,0.15,0.18);    // obsidian (dark metal ink)
+    return vec3(1.0,0.85,0.35);               // plasma-gold
+  }
+
+  void main(){
+    vec3 N = normalize(vN);
+    vec3 V = normalize(vV);
+    vec3 L = normalize(vec3(0.8,1.0,0.6));
+    float diff = max(dot(N,L),0.0);
+
+    // micro surface normal perturb (subtle diamond sparkle)
+    float m = n2(vUV*vec2(230.0,180.0) + float(vFace)*2.3 + uTime*0.02);
+    float m2= n2(vUV*vec2(310.0,205.0) + float(vFace)*1.7 - uTime*0.015);
+    vec3 Np = normalize(N + (m-0.5)*0.06*normalize(vec3(1,0,0)) + (m2-0.5)*0.06*normalize(vec3(0,1,0)));
+
+    // reflections/refractions from Naeja
+    vec3 R = reflect(-V, Np);
+    vec3 env = galaxyColor(R,uTime);
+    // dispersion-ish
+    vec3 Rp = normalize(mix(R, refract(-V,Np,0.985), 0.25));
+    vec3 Gp = normalize(mix(R, refract(-V,Np,0.965), 0.25));
+    vec3 Bp = normalize(mix(R, refract(-V,Np,0.945), 0.25));
+    vec3 disperse = vec3(galaxyColor(Rp,uTime).r, galaxyColor(Gp,uTime).g, galaxyColor(Bp,uTime).b);
+
+    // base facet diamond tint (very light; most color from env/dispersion)
+    vec3 base = mix(vec3(0.80), vec3(1.0), 0.2);
+    vec3 color = base*(0.10 + 0.7*diff) + env*0.35 + disperse*0.55;
+
+    // Fresnel & spec
+    float F = pow(1.0 - max(dot(Np,V),0.0), 3.0);
+    float spec = pow(max(dot(reflect(-L,Np), V), 0.0), 80.0);
+    color = mix(color, env*0.9 + disperse*0.7, F) + spec*0.35;
+
+    // facet edge definition (using barycentric)
+    float edge = min(min(vBary.x,vBary.y), vBary.z);
+    float edgeLine = smoothstep(0.015, 0.02, edge);
+    color *= mix(0.9, 1.0, edgeLine);
+
+    // Inset numbers (engraved): compute mask and darken/metal-ink them
+    float num = numberMask(vFace, vUV, uTime);
+    vec3 ink = elementMetal(vFace);
+    // carve: darken the diamond under the number and add metallic tint
+    color = mix(color*0.35 + ink*0.65, color, 1.0 - num);
+
+    o = vec4(color, 1.0);
+  }`;
+
+  const dP = prog(dVS,dFS);
+
+  // Buffers
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  const vboPos = makeVBO(pos,3,0);
+  const vboUV  = makeVBO(uv,2,1);
+  const vboBar = makeVBO(bary,3,2);
+  const vboFace= gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vboFace);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(faceId), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+
+  // uniforms
+  const uP = gl.getUniformLocation(dP,'uP');
+  const uV = gl.getUniformLocation(dP,'uV');
+  const uM = gl.getUniformLocation(dP,'uM');
+  const uT = gl.getUniformLocation(dP,'uTime');
+
+  // ---------- tiny mat utils ----------
+  const I = ()=>[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+  const mul=(a,b)=>{const r=Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++)
+    r[i*4+j]=a[i*4]*b[j]+a[i*4+1]*b[4+j]+a[i*4+2]*b[8+j]+a[i*4+3]*b[12+j];return r;};
+  const RX=(m,a)=>mul(m,[1,0,0,0,0,Math.cos(a),Math.sin(a),0,0,-Math.sin(a),Math.cos(a),0,0,0,0,1]);
+  const RY=(m,a)=>mul(m,[Math.cos(a),0,-Math.sin(a),0,0,1,0,0,Math.sin(a),0,Math.cos(a),0,0,0,0,1]);
+  const Pm=(fov,asp,n,f)=>{const t=Math.tan(fov/2);return[
+    1/(asp*t),0,0,0, 0,1/t,0,0, 0,0,(f+n)/(n-f),-1, 0,0,(2*f*n)/(n-f),0];};
+  const look=(e,c,u)=>{let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];
+    let zl=Math.hypot(zx,zy,zz);zx/=zl;zy/=zl;zz/=zl;
+    let xx=u[1]*zz-u[2]*zy,xy=u[2]*zx-u[0]*zz,xz=u[0]*zy-u[1]*zx;
+    let xl=Math.hypot(xx,xy,xz);xx/=xl;xy/=xl;xz/=xl;
+    let yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+    return[xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+      -(xx*e[0]+xy*e[1]+xz*e[2]), -(yx*e[0]+yy*e[1]+yz*e[2]), -(zx*e[0]+zy*e[1]+zz*e[2]), 1];};
+  const mat3FromMat4 = (m)=>new Float32Array([m[0],m[1],m[2], m[4],m[5],m[6], m[8],m[9],m[10]]);
+
+  // ---------- camera + controls ----------
+  let baseFov = 45*Math.PI/180;
+  let rx=0.35, ry=0.55, vx=0, vy=0, dragging=false, lx=0, ly=0, last=performance.now();
+  let zoom=1.0;
+
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault(); zoom*= (1 + Math.sign(e.deltaY)*0.08); zoom=Math.max(0.75, Math.min(1.8, zoom));
+  }, {passive:false});
+  canvas.onpointerdown = e=>{ dragging=true; lx=e.clientX; ly=e.clientY; e.target.setPointerCapture(e.pointerId); };
+  canvas.onpointerup   = ()=> dragging=false;
+  canvas.onpointerleave= ()=> dragging=false;
+  canvas.onpointermove = e=>{
+    if(!dragging) return;
+    const dx=(e.clientX-lx)/innerWidth, dy=(e.clientY-ly)/innerHeight;
+    lx=e.clientX; ly=e.clientY; ry+=dx*3.5; rx+=dy*3.5; vx=dx*6; vy=dy*6; last=performance.now();
+  };
+
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0,0,0,1);
+
+  function camera(){
+    const fov=baseFov, asp=canvas.width/canvas.height;
+    const radius=1.12, dist=(radius/Math.sin(fov/2))*1.05*zoom;
+    return {fov, asp, eye:[0,0,dist], center:[0,0,0]};
+  }
+
+  function frame(tMs){
+    resize();
+    const t=tMs*0.001;
+    if(performance.now()-last>2000) ry+=0.25*0.016; else { ry+=vx*0.016; rx+=vy*0.016; vx*=0.94; vy*=0.94; }
+    rx=Math.max(-1.5,Math.min(1.5,rx));
+
+    const {fov,asp,eye,center} = camera();
+    const P=Pm(fov,asp,0.1,50);
+    const V=look(eye,center,[0,1,0]);
+    let M=I(); M=RX(M,rx); M=RY(M,ry);
+
+    // background
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(bgP);
+    gl.uniform2f(uBgRes, canvas.width, canvas.height);
+    gl.uniform1f(uBgTime, t);
+    gl.uniformMatrix3fv(uBgRot,false, mat3FromMat4(V));
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    gl.enable(gl.DEPTH_TEST);
+
+    // D20
+    gl.useProgram(dP);
+    gl.uniformMatrix4fv(uP,false,new Float32Array(P));
+    gl.uniformMatrix4fv(uV,false,new Float32Array(V));
+    gl.uniformMatrix4fv(uM,false,new Float32Array(M));
+    gl.uniform1f(uT,t);
+    gl.bindVertexArray(vao);
+    gl.drawArrays(gl.TRIANGLES, 0, pos.length/3);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 12:53:28 UTC 2025 -->
+
+<!-- Mirror Build Wed Oct  8 13:03:01 UTC 2025 -->
