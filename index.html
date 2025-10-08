@@ -1,39 +1,45 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="favicon.png" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dice Moon – Hex Pixel Engine</title>
   <style>
-    html,body{
-      margin:0;height:100%;background:#000;overflow:hidden;
-      font-family:consolas,monospace;color:#0f0;
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: Consolas, monospace;
+      color: #0f0;
     }
-    #hud{
-      position:fixed;left:10px;top:10px;
-      background:rgba(0,0,0,.5);padding:6px 10px;
-      border:1px solid #0f0;border-radius:6px;font-size:12px;line-height:1.35;
+    #hud {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid #0f0;
+      border-radius: 6px;
+      font-size: 12px;
+      z-index: 10;
     }
-    canvas{display:block;position:fixed;inset:0}
-    .key{padding:1px 4px;border:1px solid #0f0;border-radius:3px;margin:0 3px}
+    canvas {
+      display: block;
+      position: fixed;
+      inset: 0;
+    }
   </style>
 </head>
 <body>
   <div id="hud">
-    <div><b>HEX PIXEL ENGINE — Spaxel Growth</b></div>
-    <div>
-      Click a hex to cycle element:
-      <span class="key">Water</span>→<span class="key">Fire</span>→
-      <span class="key">Crystal</span>→<span class="key">Flora</span>→
-      <span class="key">Sand</span>
-    </div>
-    <div>FPS target ≈ 120 • No libraries</div>
+    <b>HEX PIXEL ENGINE</b><br>
+    Left click a hex → enter terrain name (ocean, mountain, volcano, tundra, desert)<br>
+    Growth time: 5s – AI procedural randomness
   </div>
   <canvas id="screen"></canvas>
 
-  <!-- Link to the engine -->
   <script src="spaxelEngine.js"></script>
 </body>
 </html>
-<!-- Mirror Build Wed Oct  8 17:07:37 UTC 2025 -->
+<!-- Mirror Build Wed Oct  8 17:11:41 UTC 2025 -->
