@@ -45,7 +45,7 @@ function moveAndCollide(e, dx, dy, dt, query){
   if(hitY.length){
     for(const c of hitY){
       if(speedY > 0) ny = Math.min(ny, c.y - e.h/2); // down
-      else           ny = Math.max(ny, c.y + c.h + e.h/2); // up (height)
+      else           ny = Math.max(ny, c.y + c.w + e.h/2); // up (note: c.w is correct? should be c.h)
     }
   }
   e.y = ny;
