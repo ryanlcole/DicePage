@@ -1,30 +1,30 @@
-name: 🔄 Rollback Endemar Production (with Artifact Picker)
+name: 🔄 Rollback Endemar Production (Auto-List Backups)
 
 on:
   workflow_dispatch:
     inputs:
       artifact-choice:
         type: choice
-        description: "Select a previous deployment artifact to rollback"
+        description: "Select a previous backup to rollback"
         required: true
         options: []
 
 jobs:
   prepare-list:
-    name: 🧩 Collect recent artifacts
+    name: 🧩 Collect recent backups
     runs-on: ubuntu-latest
     outputs:
       artifact-list: ${{ steps.list.outputs.names }}
     steps:
-      - name: List recent artifacts
+      - name: List 5 most recent backup artifacts
         id: list
         run: |
-          echo "names=$(gh api repos/${{ github.repository }}/actions/artifacts --paginate --jq '.artifacts[:5] | map(.name) | join(",")')" >> $GITHUB_OUTPUT
+          echo "names=$(gh api repos/${{ github.repository }}/actions/artifacts --paginate --jq '.artifacts | map(select(.name | startswith("node-app-")))[:5] | map(.name) | join(",")')" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rollback:
-    name: ⏪ Redeploy selected artifact to relicgamemaster (Production)
+    name: ⏪ Redeploy selected backup to relicgamemaster (Production)
     runs-on: ubuntu-latest
     needs: prepare-list
     permissions:
@@ -39,12 +39,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Download selected artifact
+      - name: Download selected backup
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifact-choice }}
 
-      - name: Deploy artifact to relicgamemaster (production)
+      - name: Redeploy to relicgamemaster (production)
         uses: azure/webapps-deploy@v3
         id: rollback-prod
         with:
@@ -52,5 +52,4 @@ jobs:
           slot-name: "Production"
 
       - name: Confirmation
-        run: echo "✅ Rolled back using artifact: ${{ github.event.inputs.artifact-choice }}"
-
+        run: echo "✅ Rolled back to backup: ${{ github.event.inputs.artifact-choice }}"
