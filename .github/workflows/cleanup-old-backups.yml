@@ -1,0 +1,42 @@
+name: 🧹 Cleanup Old Endemar Backups
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"   # runs at 09:00 UTC on the 1st of every month
+  workflow_dispatch:       # allow manual trigger
+
+jobs:
+  cleanup:
+    name: 🧼 Remove expired backup artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: List artifacts older than 90 days
+        id: list
+        run: |
+          echo "Gathering artifacts older than 90 days..."
+          gh api repos/${{ github.repository }}/actions/artifacts --paginate \
+            --jq '.artifacts | map(select(.name | startswith("node-app-"))) | .[] | "\(.id) \(.name) \(.created_at)"' > artifacts.txt
+          awk -v today="$(date -u +%s)" '
+            {
+              cmd="date -d "$3" +%s"; cmd | getline t;
+              age=(today - t)/86400;
+              if (age>90) print $1" "$2" ("int(age)" days old)";
+            }' artifacts.txt > old.txt
+          cat old.txt || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old artifacts (> 90 days)
+        if: success()
+        run: |
+          while read id name rest; do
+            echo "🗑️  Deleting $name (ID $id)…"
+            gh api --method DELETE repos/${{ github.repository }}/actions/artifacts/$id || true
+          done < <(awk '{print $1" "$2}' old.txt)
+          echo "✅ Cleanup complete."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
