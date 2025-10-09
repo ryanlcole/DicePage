@@ -1,9 +1,8 @@
-name: Deploy Endemar Engine (Two-App Free Setup)
+name: Deploy Endemar Engine (Two-App Free Setup + Auto Backup)
 
 on:
   push:
-    branches:
-      - main         # change if your active branch is hex-sphere
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -27,10 +26,17 @@ jobs:
           npm ci || npm install
           echo "✅ Build complete."
 
+      - name: Name artifact
+        id: name-artifact
+        run: |
+          DATE=$(date +'%Y-%m-%d')
+          SHORT=$(git rev-parse --short HEAD)
+          echo "artifact_name=node-app-${DATE}_${SHORT}" >> $GITHUB_OUTPUT
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
+          name: ${{ steps.name-artifact.outputs.artifact_name }}
           path: |
             .
             !node_modules/
@@ -47,7 +53,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: ${{ needs.build.outputs.artifact_name }}
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -79,7 +85,7 @@ jobs:
   promote-production:
     name: 🚀 Promote build to Production (relicgamemaster)
     runs-on: ubuntu-latest
-    needs: approve-promotion
+    needs: [approve-promotion, build]
     permissions:
       id-token: write
       contents: read
@@ -88,7 +94,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: ${{ needs.build.outputs.artifact_name }}
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -105,4 +111,4 @@ jobs:
           slot-name: 'Production'
 
       - name: Confirmation
-        run: echo "✅ Deployment promoted to https://relicgamemaster.com"
+        run: echo "✅ Deployed and backed up as ${{ needs.build.outputs.artifact_name }}"
