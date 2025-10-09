@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Endemar – Engine</title>
 
-  <!-- Silent inline favicon (prevents 404 without files) -->
+  <!-- inline favicon (silences 404) -->
   <link rel="icon" href='data:image/svg+xml;utf8,
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <rect width="64" height="64" rx="12" ry="12" fill="black"/>
@@ -15,22 +15,17 @@
   </svg>'/>
 
   <style>
-    html, body { margin:0; height:100%; background:#000; overflow:hidden; }
-    canvas { position:fixed; inset:0; display:block; }
-    /* Debug overlay (toggled by `) */
-    #dbg {
-      position:fixed; left:10px; top:10px; color:#0f0; font:12px/1.4 Consolas,monospace;
-      background:rgba(0,0,0,.45); border:1px solid #0f0; border-radius:8px; padding:6px 10px;
-      display:none; z-index:20; white-space:pre;
-    }
+    html,body{margin:0;height:100%;background:#000;overflow:hidden}
+    canvas{position:fixed;inset:0;display:block}
+    #dbg{position:fixed;left:10px;top:10px;color:#0f0;font:12px/1.4 Consolas,monospace;
+         background:rgba(0,0,0,.45);border:1px solid #0f0;border-radius:8px;padding:6px 10px;
+         display:none;z-index:20;white-space:pre}
   </style>
 </head>
 <body>
   <canvas id="screen"></canvas>
   <div id="dbg"></div>
-
-  <!-- Engine (ES modules) -->
   <script type="module" src="./endemarEngine.js"></script>
 </body>
 </html>
-<!-- Mirror Build Thu Oct  9 17:02:48 UTC 2025 -->
+<!-- Mirror Build Thu Oct  9 18:20:45 UTC 2025 -->
