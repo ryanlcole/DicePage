@@ -1,17 +1,32 @@
-name: 🔄 Rollback Endemar Production
+name: 🔄 Rollback Endemar Production (with Artifact Picker)
 
 on:
   workflow_dispatch:
     inputs:
-      artifact-id:
-        description: "Artifact name or ID from previous deployment (see Actions history)"
+      artifact-choice:
+        type: choice
+        description: "Select a previous deployment artifact to rollback"
         required: true
-        default: "node-app"
+        options: []
 
 jobs:
-  rollback:
-    name: ⏪ Redeploy previous artifact to relicgamemaster (Production)
+  prepare-list:
+    name: 🧩 Collect recent artifacts
     runs-on: ubuntu-latest
+    outputs:
+      artifact-list: ${{ steps.list.outputs.names }}
+    steps:
+      - name: List recent artifacts
+        id: list
+        run: |
+          echo "names=$(gh api repos/${{ github.repository }}/actions/artifacts --paginate --jq '.artifacts[:5] | map(.name) | join(",")')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rollback:
+    name: ⏪ Redeploy selected artifact to relicgamemaster (Production)
+    runs-on: ubuntu-latest
+    needs: prepare-list
     permissions:
       id-token: write
       contents: read
@@ -24,10 +39,10 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Download artifact from previous workflow
+      - name: Download selected artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.inputs.artifact-id }}
+          name: ${{ github.event.inputs.artifact-choice }}
 
       - name: Deploy artifact to relicgamemaster (production)
         uses: azure/webapps-deploy@v3
@@ -37,4 +52,5 @@ jobs:
           slot-name: "Production"
 
       - name: Confirmation
-        run: echo "✅ Rolled back using artifact: ${{ github.event.inputs.artifact-id }}"
+        run: echo "✅ Rolled back using artifact: ${{ github.event.inputs.artifact-choice }}"
+
