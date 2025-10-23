@@ -1,0 +1,41 @@
+{
+  "ts": 1761168491105,
+  "hostname": "DESKTOP-J0JPNCI",
+  "os": "Windows",
+  "os_release": "11",
+  "python": "3.13.7",
+  "cpu_count": 8,
+  "mem_total_mb": 16157.35,
+  "proc_mem_mb": 36.96,
+  "cwd": "D:\\ShaelvienOS_Portable\\portable",
+  "modules": [
+    "app_launcher.py",
+    "diag_daemon.py",
+    "glyph_ai_core.py",
+    "glyph_core.py",
+    "relic_analyzer.py",
+    "relic_core.py",
+    "shaelvien_ai_adapter.py",
+    "shaelvien_daemon.py",
+    "shaelvien_diagnostic.py",
+    "shaelvien_dignostic.py",
+    "shaelvien_field.py",
+    "shaelvien_knowledge.py",
+    "shaelvien_launcher.py",
+    "shaelvien_logger.py",
+    "shaelvien_sound.py",
+    "shaelvien_tray.py",
+    "shaelvien_visualizer.py",
+    "shaelvien_web3d.py",
+    "waveform_core.py",
+    "world_core.py"
+  ],
+  "subsystems": [
+    "daemon",
+    "tray",
+    "glyph_core",
+    "analyzer",
+    "hud",
+    "waveform"
+  ]
+}

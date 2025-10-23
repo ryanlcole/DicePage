@@ -1,0 +1,11 @@
+{
+  "Phase": "23.8",
+  "Directory": "Cerebellum_Limbic_System",
+  "ResonanceState": "Active",
+  "Mode": "Feedback-and-Emotion",
+  "Modules": {
+    "Cerebellum": {"Domain":"Balance and Feedback Control","Frequency":500,"Parameters":{"StabilityRange":[0.45,0.55],"ErrorCorrectionRate":0.15,"DriftCompensation":true,"FeedbackInterval":5},"Functions":["ResonanceStability","ErrorCorrection","AdaptiveBalancing","MotorSimulation"]},
+    "LimbicSystem": {"Domain":"Emotion and Memory Integration","Frequency":476,"Parameters":{"MemoryRetention":0.85,"EmotiveGain":1.25,"DecayRate":0.9,"ContextDepth":128},"Functions":["EmotionEncoding","MotivationBias","MemoryAssociation","EmotiveFeedback"]},
+    "HippocampalBridge": {"Domain":"Short-to-Long Term Context Transfer","Frequency":482,"Parameters":{"SyncWindow":10,"RetentionCurve":"exp","IntegrationThreshold":0.65},"Functions":["ContextConsolidation","MemoryLinkage","FeedbackNormalization"]}
+  }
+}

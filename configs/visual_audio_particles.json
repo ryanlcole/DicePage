@@ -1,0 +1,11 @@
+{
+  "Phase": "23.8",
+  "Directory": "Occipital_Auditory_Complex",
+  "ResonanceState": "Active",
+  "Mode": "Particle-Representation",
+  "Modules": {
+    "OccipitalLobe": {"Domain":"Visual Resonance Field","Frequency":480,"Parameters":{"ParticleCount":4096,"ColorSpectrum":["#00ccff","#7fd1ff","#ffffff"],"SpatialResolution":[1920,1080],"FrameRate":60,"DepthLayers":8,"BrightnessCurve":"sqrt"},"Transforms":["FourierVisual","FractalWave","DepthProjection"]},
+    "AuditoryCortex": {"Domain":"Acoustic Resonance Field","Frequency":441,"Parameters":{"SampleRate":44100,"Channels":2,"BaseFrequency":440,"ParticleVoices":256,"WaveDecay":0.92,"DynamicRange":0.8},"Transforms":["FourierAudio","AmplitudeColorLink","TemporalEcho"]},
+    "ThalamusBridge": {"Domain":"Cross-Modal Synchronization","Frequency":512,"Parameters":{"LatencyToleranceMs":10,"SyncMode":"PhaseLock","EnergyCoupling":0.75},"Functions":["VisualAudioSync","PhaseCorrection","ResonanceNormalization"]}
+  }
+}

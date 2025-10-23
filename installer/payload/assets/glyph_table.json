@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "runes": [
+    { "id": 0, "symbol": "☉", "name": "Solar Rune", "element": "Fire", "mass": 179.5, "flex": 0.7, "emotion": "Vitality", "color": "#ffbb33", "phase_base": 0.0 },
+    { "id": 1, "symbol": "☾", "name": "Lunar Rune", "element": "Water", "mass": 181.0, "flex": 0.6, "emotion": "Reflection", "color": "#66ccff", "phase_base": 0.5 },
+    { "id": 2, "symbol": "⚡", "name": "Storm Rune", "element": "Air", "mass": 178.2, "flex": 0.8, "emotion": "Impulse", "color": "#ffff66", "phase_base": 1.0 },
+    { "id": 3, "symbol": "⛰", "name": "Stone Rune", "element": "Earth", "mass": 182.5, "flex": 0.5, "emotion": "Stability", "color": "#996633", "phase_base": 1.5 }
+  ]
+}

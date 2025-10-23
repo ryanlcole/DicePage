@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ShaelvienOS — D20 Hub + Transsonic</title>
+<style>
+  :root{--bg:#000;--grid:#00ff99;--ui:#8fffd6}
+  *{box-sizing:border-box} body{margin:0;background:#000;color:var(--ui);font-family:Consolas,Menlo,monospace;overflow:hidden}
+
+  /* top system bar */
+  #topBar{position:fixed;left:0;right:0;top:0;height:56px;border-bottom:1px solid var(--grid);
+    display:flex;align-items:center;gap:12px;padding:0 10px;background:rgba(0,0,0,.92)}
+  .glyph{width:36px;height:36px;border:1px solid var(--grid);border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:var(--grid);cursor:pointer;font-size:18px;transition:.15s}
+  .glyph.active{background:var(--grid);color:#00140b}
+  .glyph:hover{transform:scale(1.06)}
+  #deviceTray{margin-left:8px;display:flex;gap:8px}
+  .dev{width:28px;height:28px;border:1px solid var(--grid);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #profile{margin-left:auto;display:flex;align-items:center;gap:8px}
+  #avatar{width:28px;height:28px;border-radius:50%;border:1px solid var(--grid);display:flex;align-items:center;justify-content:center}
+
+  #powerButton{margin-left:8px;width:20px;height:20px;border-radius:50%;background:#1cff9a;box-shadow:0 0 8px #1cff9a;cursor:pointer;transition:.25s}
+  #powerButton.standby{background:#ff9f40;box-shadow:0 0 8px #ff9f40}
+  #powerButton.off{background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+
+  /* D20 core area */
+  #stage{position:absolute;top:56px;bottom:116px;left:60px;right:60px;display:grid;place-items:center}
+  #d20{display:grid;grid-template-columns:repeat(5,140px);grid-auto-rows:100px;gap:14px

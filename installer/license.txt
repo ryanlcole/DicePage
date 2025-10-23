@@ -1,0 +1,9 @@
+ShaelvienOS Portable License Agreement
+--------------------------------------
+© 2025 ReLiC GameMaster Studios. All rights reserved.
+
+This software is provided “as-is.” By installing ShaelvienOS,
+you agree not to redistribute, modify, or claim authorship
+without permission from the author.
+
+Proceed with installation?

@@ -1,0 +1,11 @@
+{
+  "Phase": "23.8",
+  "Directory": "Thalamus_Core",
+  "ResonanceState": "Active",
+  "Mode": "Central-Relay-and-Timing",
+  "Modules": {
+    "ThalamusCore": {"Domain":"Signal Routing and Temporal Coordination","Frequency":512,"Parameters":{"CycleRateHz":10,"SynchronizationMode":"PhaseLock","LatencyCompensationMs":5,"PriorityBias":{"FrontalLobe":0.9,"TemporalLobe":0.8,"ParietalLobe":0.95,"OccipitalLobe":0.85,"CerebellumLimbic":0.92}},"Functions":["RouteSignals","MaintainTiming","StabilizePhaseDrift","NormalizeEnergyDistribution"]},
+    "HypothalamicControl": {"Domain":"Energy Regulation and State Awareness","Frequency":486,"Parameters":{"EnergyBudget":1.0,"ThermalBalance":0.5,"AlertnessRange":[0.25,0.95],"AdaptiveScaling":true},"Functions":["EnergyDistribution","AwarenessScaling","ResourceMonitoring"]},
+    "CorpusCallosum": {"Domain":"Inter-Lobe Communication","Frequency":504,"Parameters":{"Bandwidth":256,"SignalIntegrity":0.98,"CrossHemisphericDelayMs":2},"Functions":["LeftRightSynchronization","CrossDomainTranslation","SignalIntegrityCheck"]}
+  }
+}

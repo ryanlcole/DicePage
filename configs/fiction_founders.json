@@ -1,0 +1,15 @@
+{
+  "Phase": "23.8",
+  "Directory": "Temporal_Lobe",
+  "ResonanceState": "Active",
+  "Mode": "Narrative-Imagination",
+  "Founders": {
+    "Verne": {"Frequency":440,"Domain":"Exploration","Traits":["Innovation","Discovery","Imagination","Adventure"]},
+    "Tolkien": {"Frequency":396,"Domain":"Mythopoetic Creation","Traits":["Worldbuilding","Linguistics","Legend","MoralArc"]},
+    "Poe": {"Frequency":512,"Domain":"Psychological Symbolism","Traits":["Suspense","Emotion","Duality","Mortality"]},
+    "Dickens": {"Frequency":432,"Domain":"Human Social Fabric","Traits":["Empathy","Justice","Class","Morality"]},
+    "Shakespeare": {"Frequency":528,"Domain":"Human Drama and Archetype","Traits":["Tragedy","Comedy","Conflict","Resolution"]},
+    "Crichton": {"Frequency":480,"Domain":"Techno-Ethical Paradox","Traits":["Science","Ethics","Chaos","Control"]},
+    "King": {"Frequency":444,"Domain":"Fear and Catharsis","Traits":["Horror","Introspection","Redemption","Humanity"]}
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "project": "ShaelvienOS",
+  "version": "15.0",
+  "notes": "Seed KB; expand with domain packs. Keep sources authoritative and non-controversial.",
+  "domains": {
+    "dna": {
+      "summary": "DNA is a double-helical polymer of nucleotides (A,T,G,C) with antiparallel strands; replication is semi-conservative; transcription to RNA precedes translation to protein.",
+      "anchors": [
+        "Watson & Crick (1953) Nature — structure of DNA",
+        "Rosalind Franklin & Gosling (1953) — Photo 51 diffraction",
+        "Alberts et al., Molecular Biology of the Cell (Garland Science)",
+        "Berg, Tymoczko, Stryer — Biochemistry (W. H. Freeman)"
+      ],
+      "concepts": [
+        "double helix; base pairing; major/minor groove",
+        "semi-conservative replication; DNA polymerases; proofreading",
+        "central dogma: DNA -> RNA -> Protein",
+        "chromatin organization; epigenetics (methylation, histone marks)"
+      ]
+    },
+    "elements": {
+      "summary": "Chemical elements per IUPAC; periodic properties stem from electron configuration; standard atomic weights maintained by IUPAC/NIST.",
+      "anchors": [
+        "IUPAC — Periodic Table & standard atomic weights",
+        "NIST — Physical Measurement Laboratory reference data"
+      ],
+      "concepts": [
+        "periodicity; valence; electronegativity; ionization energy",
+        "bonding types: ionic, covalent, metallic, van der Waals",
+        "phase behavior; allotropes; isotopes"
+      ]
+    },
+    "physics": {
+      "summary": "Foundational classical + modern physics references used per topic.",
+      "anchors": [
+        "Feynman, Leighton, Sands — The Feynman Lectures on Physics",
+        "Landau & Lifshitz — Course of Theoretical Physics",
+        "Jackson — Classical Electrodynamics",
+        "Griffiths — Intro to Quantum Mechanics",
+        "Sakurai & Napolitano — Modern Quantum Mechanics",
+        "Goldstein — Classical Mechanics"
+      ],
+      "concepts": [
+        "Newtonian mechanics; Lagrangian/Hamiltonian formalisms",
+        "Electrodynamics; Maxwell equations",
+        "Quantum: wavefunctions, operators, measurement postulates",
+        "Stat mech: ensembles, partition function, thermodynamics links"
+      ]
+    },
+    "glyphs": {
+      "summary": "Shaelvien symbolic system; each rune encodes element/domain/tone; links form resonance lattices; health propagates along allies.",
+      "anchors": [
+        "ShaelvienOS internal docs — glyph_core.py semantics",
+        "Resonance memory logs — logs/ai_resonance.jsonl"
+      ],
+      "concepts": [
+        "element (substance), domain (purpose), tone (affect)",
+        "ally/opposite bindings; strength in [0..1]",
+        "harmonic field (time-dependent wave), resonance score",
+        "fault placeholders → neighbor soft drops (10–20% delta)"
+      ]
+    }
+  }
+}
