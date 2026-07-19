@@ -38,6 +38,26 @@ http://127.0.0.1:8790
 
 By default the app binds to `127.0.0.1` and uses `data/shaelvien_lite_state.json`.
 
+## Koyeb/Neon Staging
+
+Staging runs from branch `deployment/koyeb-neon-staging` with Koyeb Free Web Service and Neon Free PostgreSQL.
+
+Start command:
+
+```text
+gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 45 shaelvien_lite.wsgi:app
+```
+
+Required staging settings are documented in `STAGING_DEPLOYMENT.md`. Hosted staging must use:
+
+```text
+SHAELVIEN_ENV=staging
+SHAELVIEN_STORAGE_BACKEND=postgres
+DATABASE_URL=<Neon pooled connection string>
+```
+
+Do not commit database URLs, invite codes, Owner bootstrap tokens, session secrets, CSRF secrets, or backups.
+
 ## Account And Owner Notes
 
 Development mode:
@@ -58,7 +78,7 @@ Production mode:
 Requirements:
 
 - Python 3.12 or newer. The verified local machine currently uses Python 3.14.2.
-- Direct dependency: `Werkzeug==3.1.3`.
+- Direct dependencies: `Werkzeug==3.1.3`, `gunicorn==26.0.0`, and `psycopg[binary]==3.3.4`.
 
 From a clean checkout:
 
@@ -113,7 +133,12 @@ The UI test uses Chrome DevTools Protocol and writes ignored evidence files unde
 - `SHAELVIEN_LITE_SECURE_COOKIES`: secure cookie override. Defaults on in staging and production.
 - `SHAELVIEN_LITE_MAX_REQUEST_BYTES`: JSON request body limit. Default: `128000`.
 - `SHAELVIEN_LITE_REQUEST_TIMEOUT_SECONDS`: socket request timeout. Default: `30`.
-- `SHAELVIEN_LITE_STORAGE_BACKEND`: currently only `json` is implemented.
+- `SHAELVIEN_LITE_STORAGE_BACKEND`: local alias for storage backend.
+- `SHAELVIEN_STORAGE_BACKEND`: `json` locally or `postgres` on Koyeb staging.
+- `DATABASE_URL`: Neon PostgreSQL connection string; secret, staging only.
+- `SHAELVIEN_INVITE_CODE`: private staging registration code; secret.
+- `SHAELVIEN_SESSION_SECRET`: staging/production session secret placeholder; secret.
+- `SHAELVIEN_CSRF_SECRET`: staging/production CSRF secret placeholder; secret.
 - `SHAELVIEN_LITE_STAGING_ALLOW_JSON`: set to `1` only for private single-user staging with documented backups.
 - `SHAELVIEN_LITE_BACKUP_PATH`: required for JSON-backed staging.
 - `SHAELVIEN_LITE_VERBOSE_HTTP`: set to `1` for HTTP request logs.
@@ -122,10 +147,12 @@ Do not commit secrets, local databases, verification state, screenshots, or logs
 
 ## Main Files
 
-- `shaelvien_lite/server.py`: stdlib HTTP server, cookies, CSRF, API routes, rate limiting, and player-safe errors.
+- `shaelvien_lite/server.py`: local stdlib HTTP server, cookies, CSRF, API routes, rate limiting, and player-safe errors.
+- `shaelvien_lite/wsgi.py`: Koyeb/Gunicorn WSGI entrypoint.
 - `shaelvien_lite/engine.py`: deterministic game state transitions.
 - `shaelvien_lite/ai_gm.py`: AI response schema, sanitization, and deterministic fallback.
-- `shaelvien_lite/store.py`: JSON persistence and malformed-state recovery.
+- `shaelvien_lite/store.py`: storage interface, JSON persistence, and backend factory.
+- `shaelvien_lite/postgres_store.py`: PostgreSQL storage adapter and migration runner.
 - `shaelvien_lite/seed_data.py`: provisional data-driven region, NPCs, roles, quests, items, enemies, camp structures, and entitlement placeholders.
 - `shaelvien_lite/static/`: player interface and placeholder art.
 - `tests/test_shaelvien_lite.py`: automated server/engine tests.

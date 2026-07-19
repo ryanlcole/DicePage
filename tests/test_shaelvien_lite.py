@@ -1,8 +1,12 @@
 import copy
+import importlib
+import io
 import json
+import os
 import tempfile
 import threading
 import unittest
+from contextlib import redirect_stdout
 from http.server import ThreadingHTTPServer
 from http.cookies import SimpleCookie
 from pathlib import Path
@@ -11,6 +15,7 @@ from urllib.request import Request, build_opener
 
 from shaelvien_lite.ai_gm import clean_text, empty_response, parse_ai_response, validate_ai_response
 from shaelvien_lite.config import load_config, validate_startup
+from shaelvien_lite.db_admin import _import_json, _validate_import_state
 from shaelvien_lite.engine import (
     GameError,
     admin_snapshot,
@@ -25,8 +30,9 @@ from shaelvien_lite.engine import (
     start_tutorial_campaign,
     upgrade_camp_structure,
 )
+from shaelvien_lite.postgres_store import MIGRATIONS_DIR, PostgresStorage
 from shaelvien_lite.server import ShaelvienLiteHandler
-from shaelvien_lite.store import GameStore, initial_state
+from shaelvien_lite.store import GameStore, StorageUnavailable, apply_retention_limits, create_store, initial_state
 
 
 PASSWORD = "localpass123"
@@ -164,15 +170,99 @@ class ShaelvienLiteTests(unittest.TestCase):
             validate_startup(production)
         staging = load_config(
             {
-                "SHAELVIEN_LITE_ENV": "staging",
-                "SHAELVIEN_LITE_OWNER_BOOTSTRAP_TOKEN": "owner-token",
-                "SHAELVIEN_LITE_EXTERNAL_SCHEME": "https",
-                "SHAELVIEN_LITE_EXTERNAL_HOST": "staging.relicgamemaster.com",
-                "SHAELVIEN_LITE_STAGING_ALLOW_JSON": "1",
-                "SHAELVIEN_LITE_BACKUP_PATH": "backups/staging",
+                "SHAELVIEN_ENV": "staging",
+                "SHAELVIEN_STORAGE_BACKEND": "postgres",
+                "DATABASE_URL": "postgresql://example.invalid/shaelvien_lite_test?sslmode=require",
+                "SHAELVIEN_OWNER_BOOTSTRAP_TOKEN": "owner-token",
+                "SHAELVIEN_EXTERNAL_SCHEME": "https",
+                "SHAELVIEN_EXTERNAL_HOST": "staging.relicgamemaster.com",
+                "SHAELVIEN_INVITE_CODE": "invite-token",
+                "SHAELVIEN_SESSION_SECRET": "session-secret",
+                "SHAELVIEN_CSRF_SECRET": "csrf-secret",
             }
         )
         validate_startup(staging)
+
+    def test_staging_json_storage_is_rejected(self):
+        staging = load_config(
+            {
+                "SHAELVIEN_ENV": "staging",
+                "SHAELVIEN_STORAGE_BACKEND": "json",
+                "SHAELVIEN_OWNER_BOOTSTRAP_TOKEN": "owner-token",
+                "SHAELVIEN_EXTERNAL_SCHEME": "https",
+                "SHAELVIEN_EXTERNAL_HOST": "staging.relicgamemaster.com",
+                "SHAELVIEN_INVITE_CODE": "invite-token",
+                "SHAELVIEN_SESSION_SECRET": "session-secret",
+                "SHAELVIEN_CSRF_SECRET": "csrf-secret",
+            }
+        )
+        with self.assertRaises(RuntimeError):
+            validate_startup(staging)
+
+    def test_staging_postgres_requires_sslmode(self):
+        staging = load_config(
+            {
+                "SHAELVIEN_ENV": "staging",
+                "SHAELVIEN_STORAGE_BACKEND": "postgres",
+                "DATABASE_URL": "postgresql://example.invalid/shaelvien_lite_test",
+                "SHAELVIEN_OWNER_BOOTSTRAP_TOKEN": "owner-token",
+                "SHAELVIEN_EXTERNAL_SCHEME": "https",
+                "SHAELVIEN_EXTERNAL_HOST": "staging.relicgamemaster.com",
+                "SHAELVIEN_INVITE_CODE": "invite-token",
+                "SHAELVIEN_SESSION_SECRET": "session-secret",
+                "SHAELVIEN_CSRF_SECRET": "csrf-secret",
+            }
+        )
+        with self.assertRaises(RuntimeError):
+            validate_startup(staging)
+
+    def test_invite_code_required_for_new_staging_account(self):
+        state = initial_state()
+        with self.assertRaises(GameError):
+            create_or_enter_account(
+                state,
+                "Tester",
+                password=PASSWORD,
+                invite_required=True,
+                configured_invite_code="invite-token",
+            )
+        account = create_or_enter_account(
+            state,
+            "Tester",
+            password=PASSWORD,
+            invite_required=True,
+            invite_code="invite-token",
+            configured_invite_code="invite-token",
+        )["account"]
+        self.assertEqual(account["role"], "owner")
+        logged_in = create_or_enter_account(
+            state,
+            "Tester",
+            password=PASSWORD,
+            invite_required=True,
+            configured_invite_code="invite-token",
+        )["account"]
+        self.assertEqual(logged_in["account_id"], account["account_id"])
+
+    def test_owner_bootstrap_bypasses_invite_code(self):
+        state = initial_state()
+        owner = create_or_enter_account(
+            state,
+            "OwnerStaging",
+            password=PASSWORD,
+            env_mode="production",
+            owner_bootstrap_token="owner-token",
+            configured_owner_token="owner-token",
+            invite_required=True,
+            configured_invite_code="invite-token",
+        )["account"]
+        self.assertEqual(owner["role"], "owner")
+
+    def test_staging_account_cap_is_server_enforced(self):
+        state = initial_state()
+        create_or_enter_account(state, "One", password=PASSWORD, max_accounts=1)
+        with self.assertRaises(GameError):
+            create_or_enter_account(state, "Two", password=PASSWORD, max_accounts=1)
 
     def test_character_creation_and_account_ownership(self):
         self.assertEqual(self.character["player_id"], self.account["account_id"])
@@ -441,6 +531,141 @@ class ShaelvienLiteTests(unittest.TestCase):
             self.assertLess(result["character"]["currency"], 9999)
         finally:
             harness.close()
+
+    def test_wsgi_entrypoint_health_and_ready(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_env = {
+                key: os.environ.get(key)
+                for key in ("SHAELVIEN_LITE_STATE", "SHAELVIEN_STORAGE_BACKEND", "SHAELVIEN_ENV")
+            }
+            os.environ["SHAELVIEN_LITE_STATE"] = str(Path(tmp) / "state.json")
+            os.environ["SHAELVIEN_STORAGE_BACKEND"] = "json"
+            os.environ["SHAELVIEN_ENV"] = "testing"
+            try:
+                module = importlib.import_module("shaelvien_lite.wsgi")
+                module = importlib.reload(module)
+                app = module.ShaelvienLiteWSGIApp()
+                statuses = []
+
+                def start_response(status, headers):
+                    statuses.append((status, headers))
+
+                environ = {
+                    "REQUEST_METHOD": "GET",
+                    "PATH_INFO": "/ready",
+                    "QUERY_STRING": "",
+                    "REMOTE_ADDR": "127.0.0.1",
+                    "wsgi.input": io.BytesIO(b""),
+                }
+                body = b"".join(app(environ, start_response)).decode("utf-8")
+                self.assertTrue(statuses[-1][0].startswith("200"))
+                self.assertEqual(json.loads(body)["status"], "ready")
+            finally:
+                for key, value in old_env.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+
+    def test_storage_factory_selects_json_and_postgres(self):
+        json_config = load_config({"SHAELVIEN_STORAGE_BACKEND": "json", "SHAELVIEN_LITE_STATE": "data/test.json"})
+        self.assertIsInstance(create_store(json_config), GameStore)
+        postgres_config = load_config(
+            {"SHAELVIEN_STORAGE_BACKEND": "postgres", "DATABASE_URL": "postgresql://example.invalid/shaelvien_lite_test?sslmode=require"}
+        )
+        self.assertIsInstance(create_store(postgres_config), PostgresStorage)
+
+    def test_postgres_migration_schema_covers_core_tables(self):
+        sql = (MIGRATIONS_DIR / "001_initial_postgres.sql").read_text(encoding="utf-8")
+        for table in (
+            "accounts",
+            "sessions",
+            "characters",
+            "character_inventory",
+            "campaigns",
+            "campaign_quests",
+            "campaign_camp_structures",
+            "campaign_completed_encounters",
+            "idempotency_records",
+            "ai_validation_records",
+            "schema_migrations",
+        ):
+            self.assertIn(f"CREATE TABLE IF NOT EXISTS {table}", sql)
+        self.assertIn("REFERENCES accounts(account_id)", sql)
+        self.assertIn("PRIMARY KEY (campaign_id, idempotency_key)", sql)
+
+    def test_postgres_unavailable_uses_safe_error(self):
+        with self.assertRaises(StorageUnavailable) as caught:
+            PostgresStorage("", retry_attempts=0).ready()
+        self.assertNotIn("postgresql://", str(caught.exception))
+
+    def test_json_to_postgres_import_summary_excludes_secrets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "state.json"
+            GameStore(source).save(self.state)
+
+            class FakePostgres:
+                def __init__(self):
+                    self.saved = None
+
+                def apply_migrations(self):
+                    return {"applied": []}
+
+                def load(self):
+                    return initial_state()
+
+                def save(self, state):
+                    self.saved = copy.deepcopy(state)
+
+            fake = FakePostgres()
+            output = io.StringIO()
+            with redirect_stdout(output):
+                _import_json(fake, source, allow_existing=False)
+            report = json.loads(output.getvalue())
+            self.assertEqual(report["accounts"], 1)
+            self.assertTrue(report["password_hashes_preserved"])
+            self.assertFalse(report["secret_values_printed"])
+            stored_hash = next(iter(self.state["accounts"].values()))["password_hash"]
+            self.assertNotIn(stored_hash, output.getvalue())
+            self.assertIsNotNone(fake.saved)
+
+    def test_json_to_postgres_import_rejects_existing_destination_by_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "state.json"
+            GameStore(source).save(self.state)
+
+            class ExistingPostgres:
+                def apply_migrations(self):
+                    return {"applied": []}
+
+                def load(self):
+                    return {"accounts": {"acct_existing": {"account_id": "acct_existing"}}}
+
+                def save(self, state):
+                    raise AssertionError("Save should not be called.")
+
+            with self.assertRaises(SystemExit):
+                _import_json(ExistingPostgres(), source, allow_existing=False)
+
+    def test_json_import_rejects_malformed_state_shape(self):
+        with self.assertRaises(SystemExit):
+            _validate_import_state({"version": 1, "accounts": []})
+
+    def test_retention_limits_prune_logs_and_ai_records(self):
+        state = initial_state()
+        campaign_id = self.campaign["campaign_id"]
+        state["campaigns"][campaign_id] = copy.deepcopy(self.campaign)
+        for index in range(5):
+            log_id = f"log_{index}"
+            state["session_logs"][log_id] = {"log_id": log_id, "created_at": f"2026-01-0{index + 1}T00:00:00Z"}
+            state["campaigns"][campaign_id].setdefault("session_log_ids", []).append(log_id)
+            proposal_id = f"ai_{index}"
+            state["ai_proposals"][proposal_id] = {"proposal_id": proposal_id, "created_at": f"2026-01-0{index + 1}T00:00:00Z"}
+            state["validated_state_changes"][proposal_id] = [{"type": "test"}]
+        apply_retention_limits(state, max_session_logs=2, max_ai_records=2)
+        self.assertEqual(set(state["session_logs"]), {"log_3", "log_4"})
+        self.assertEqual(set(state["ai_proposals"]), {"ai_3", "ai_4"})
+        self.assertEqual(set(state["validated_state_changes"]), {"ai_3", "ai_4"})
 
     def test_tutorial_e2e_save_reload(self):
         char_id = self.character["character_id"]

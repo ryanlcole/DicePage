@@ -1,109 +1,169 @@
 # Staging Deployment
 
-This document intentionally avoids guessed provider-specific commands. Fill exact commands only after the staging host is identified and Owner access is confirmed.
-
-## Preferred Staging Hostname
-
-Preferred:
+Target staging architecture:
 
 ```text
+Koyeb Free Web Service
+Neon Free PostgreSQL
 staging.relicgamemaster.com
 ```
 
-Acceptable alternative:
+This document is written for the `deployment/koyeb-neon-staging` branch. Do not alter `relicgamemaster.com` DNS during generated-domain testing.
+
+## Zero-Cost Verification
+
+Checked from official public docs on 2026-07-18:
+
+- Koyeb Free Instance: free Web Service, 512 MB RAM, 0.1 vCPU, 2 GB SSD, one Free Instance per organization, Washington D.C. or Frankfurt, scales to zero after one hour without traffic, no persistent volumes.
+- Neon Free: $0/month, no credit card required, 100 CU-hours/project/month, 0.5 GB storage/project, 5 GB public transfer, 6-hour restore window, scale-to-zero after five minutes, free limits suspend service rather than silently billing.
+
+Stop before provisioning if either dashboard requires a paid instance, paid database, paid storage, automatic paid overages, or a trial that converts to paid.
+
+## Current Blocker
+
+No Koyeb CLI, Neon CLI, `DATABASE_URL`, Koyeb API token, or Neon credentials are present locally. The code and branch can be prepared and pushed, but resource creation requires Owner dashboard/API access.
+
+## Koyeb Service
+
+Planned names:
 
 ```text
-playtest.relicgamemaster.com
+App: shaelvien-lite-staging
+Service: web
+Branch: deployment/koyeb-neon-staging
+Instance: Free
+Region: Washington, D.C. when available
 ```
 
-Do not create DNS records until:
-
-- the hosting target exists;
-- HTTPS can be issued correctly;
-- the staging app is running;
-- rollback is documented.
-
-## Current Evidence
-
-Observed on 2026-07-18:
-
-- `relicgamemaster.com` resolves to `20.49.104.19`.
-- `20.49.104.19` is reported by public IP metadata as `AS8075 Microsoft Corporation`.
-- HTTP and HTTPS direct checks return `404 Site Not Found`.
-- HTTPS for `relicgamemaster.com` has a certificate-name mismatch.
-- No repository deployment config for Shaelvien Lite was found.
-
-Provider/resource type remains unresolved until the Owner checks the relevant hosting dashboard.
-
-## Required Runtime
-
-- Python 3.12 or newer.
-- `pip install -r requirements.txt`.
-- Startup command: `python run_shaelvien_lite.py`.
-- Internal bind host/port from `SHAELVIEN_LITE_HOST` and `SHAELVIEN_LITE_PORT`.
-- Reverse proxy terminates HTTPS and forwards to the internal port.
-
-## Required Staging Environment
-
-Example values only:
+Repository source:
 
 ```text
-SHAELVIEN_LITE_ENV=staging
-SHAELVIEN_LITE_HOST=127.0.0.1
-SHAELVIEN_LITE_PORT=8790
-SHAELVIEN_LITE_STATE=<non-repository-state-path>
-SHAELVIEN_LITE_EXTERNAL_SCHEME=https
-SHAELVIEN_LITE_EXTERNAL_HOST=staging.relicgamemaster.com
-SHAELVIEN_LITE_SECURE_COOKIES=1
-SHAELVIEN_LITE_OWNER_BOOTSTRAP_TOKEN=<server-side-secret>
-SHAELVIEN_LITE_STORAGE_BACKEND=json
-SHAELVIEN_LITE_STAGING_ALLOW_JSON=1
-SHAELVIEN_LITE_BACKUP_PATH=<staging-backup-path>
+https://github.com/ryanlcole/DicePage.git
 ```
 
-JSON storage is acceptable only for a private single-user staging demonstration. Multi-user staging should use the planned PostgreSQL adapter.
+Build:
 
-## Staging Smoke Test
+```text
+pip install -r requirements.txt
+```
 
-After deployment:
+Start command:
+
+```text
+gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 45 shaelvien_lite.wsgi:app
+```
+
+Health check:
+
+```text
+/ready
+```
+
+Do not attach a persistent volume. Do not enable autoscaling beyond the single Free Instance.
+
+## Neon Database
+
+Planned project:
+
+```text
+Project: Shaelvien Lite Staging
+Database: shaelvien_lite_staging
+Connection: pooled PostgreSQL connection string with sslmode=require
+```
+
+Use a project dedicated to Shaelvien Lite staging. Do not share a database with another project. Do not commit or paste the connection string.
+
+## Environment Variables
+
+Set secrets through Koyeb secret/environment management. Values below are names and placeholders only:
+
+```text
+SHAELVIEN_ENV=staging
+SHAELVIEN_STORAGE_BACKEND=postgres
+SHAELVIEN_EXTERNAL_HOST=staging.relicgamemaster.com
+SHAELVIEN_EXTERNAL_SCHEME=https
+SHAELVIEN_SECURE_COOKIES=1
+SHAELVIEN_TRUST_PROXY_HEADERS=1
+SHAELVIEN_OWNER_BOOTSTRAP_TOKEN=<secret>
+SHAELVIEN_INVITE_REQUIRED=1
+SHAELVIEN_INVITE_CODE=<secret>
+SHAELVIEN_SESSION_SECRET=<secret>
+SHAELVIEN_CSRF_SECRET=<secret>
+SHAELVIEN_DEPLOYMENT_VERSION=b7e8cf6-koyeb-neon
+SHAELVIEN_RUN_MIGRATIONS_ON_STARTUP=1
+SHAELVIEN_MAX_STAGING_ACCOUNTS=25
+SHAELVIEN_MAX_CAMPAIGNS_PER_ACCOUNT=2
+SHAELVIEN_MAX_CHARACTERS_PER_ACCOUNT=4
+SHAELVIEN_MAX_RETAINED_COMBAT_LOGS=500
+SHAELVIEN_MAX_RETAINED_AI_RECORDS=200
+DATABASE_URL=<Neon pooled connection string with sslmode=require>
+PYTHONUNBUFFERED=1
+```
+
+## Database Commands
+
+Use these only with `SHAELVIEN_STORAGE_BACKEND=postgres` and `DATABASE_URL` set locally:
 
 ```powershell
-python -m unittest tests.test_shaelvien_lite -v
+python scripts/shaelvien_db.py migration-status
+python scripts/shaelvien_db.py migrate
+python scripts/import_json_to_postgres.py --source data/shaelvien_lite_state.json
 ```
 
-External checks:
+The JSON import command refuses to overwrite an existing database unless `--allow-existing` is supplied after explicit Owner approval.
+
+## Generated-Domain Verification
+
+Deploy and verify the Koyeb-generated HTTPS hostname before DNS changes:
 
 ```text
-GET https://staging.relicgamemaster.com/health
-GET https://staging.relicgamemaster.com/ready
+GET /health
+GET /ready
+Landing page
+Invite-gated account registration
+Login and logout
+Owner bootstrap
+Character creation
+Tutorial start
+NPC interaction
+Skill check
+Combat victory
+Reward issuance
+Camp upgrade
+Reconnect
+Koyeb redeploy
+State recovery from Neon
+Sleep and wake
+Mobile-width journey
 ```
 
-Manual checks:
+## Custom Domain Preparation
 
-- create account;
-- create character;
-- begin tutorial;
-- speak with Ilyra;
-- accept quest;
-- travel to Forest Road;
-- complete check;
-- complete combat;
-- receive rewards;
-- return to camp;
-- upgrade Quarters;
-- close browser;
-- reopen and continue.
+Only after generated-domain verification passes, add `staging.relicgamemaster.com`.
 
-## Unresolved Provider-Specific Steps
+Before DNS changes, report:
 
-Do not fill these until the actual host is confirmed:
+- exact DNS record type supplied by Koyeb;
+- exact host/name;
+- exact target;
+- existing conflicting records, if any;
+- expected Koyeb certificate behavior;
+- rollback steps.
 
-- DNS record type and target.
-- Certificate issuer and renewal mechanism.
-- Reverse proxy configuration.
-- Process supervisor.
-- Log location.
-- Backup command.
-- Deployment package format.
-- Restart command.
-- Rollback command.
+Do not guess the DNS target and do not modify root-domain records.
+
+## Manual Backup
+
+Backups must be created outside the repository:
+
+```powershell
+python scripts/export_staging_backup.py --output <outside-repo-path>\shaelvien-lite-staging.dump
+```
+
+Schedule:
+
+- before each deployment;
+- after major playtest sessions;
+- before schema migrations.
+
+A restoration test is required before public beta.

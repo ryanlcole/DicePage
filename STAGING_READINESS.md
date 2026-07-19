@@ -10,7 +10,7 @@ Use this checklist before creating or changing any public DNS record.
 - [ ] Environment modes implemented.
 - [ ] Staging secrets are stored outside Git.
 - [ ] Secure Owner bootstrap token is configured server-side.
-- [ ] Staging database or approved private JSON state is configured.
+- [ ] Neon Free PostgreSQL staging database is configured.
 - [ ] HTTPS is issued and valid for the staging hostname.
 - [ ] Domain binding is configured for staging only.
 - [ ] Reverse proxy passes requests to the internal Shaelvien Lite port.
@@ -30,13 +30,14 @@ Use this checklist before creating or changing any public DNS record.
 
 Ready locally:
 
-- Shaelvien Lite source, tests, documentation, local JSON persistence, environment-mode validation, health checks, and staging planning.
+- Shaelvien Lite source, tests, documentation, local JSON persistence, PostgreSQL storage adapter, migration SQL, JSON import command, backup command, WSGI entrypoint, environment-mode validation, invite-gated staging registration, health checks, and staging planning.
 
 Blocked:
 
-- No staging host is identified.
+- Koyeb Free Web Service is not created.
+- Neon Free PostgreSQL project is not created.
 - No staging DNS record exists.
 - No staging certificate exists.
-- No process supervisor is selected.
-- No production-capable database exists.
+- No generated Koyeb HTTPS URL exists yet.
+- No Koyeb/Neon credentials or API tokens are present locally.
 - Current public domain points to a Microsoft/Azure-side missing-site response and must not be reused blindly.

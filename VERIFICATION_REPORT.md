@@ -50,7 +50,9 @@ Command:
 python -m unittest tests.test_shaelvien_lite -v
 ```
 
-Result: 31 tests passing after release-prep environment validation coverage was added. The verified gameplay baseline was originally confirmed with 30 tests before this directive.
+Result: 44 tests passing after Koyeb/Neon staging-prep coverage was added. The verified gameplay baseline was originally confirmed with 30 tests, and the version-freeze baseline reached 31 tests before this deployment branch.
+
+PostgreSQL-specific coverage is local unit and migration-surface testing because this PC has no isolated PostgreSQL service, `psql`, Docker, Koyeb CLI, Neon CLI, or `DATABASE_URL`. Real Neon integration and Koyeb generated-domain verification remain blocked on Owner dashboard/API access.
 
 Compile check:
 

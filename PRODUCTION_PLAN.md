@@ -25,11 +25,15 @@ Schema areas:
 Migration approach:
 
 - keep `GameStore` as the development adapter;
-- define a storage interface used by API routes;
-- implement a PostgreSQL adapter with migrations;
+- use the storage interface now shared by JSON and PostgreSQL;
+- extend the current PostgreSQL staging adapter for production needs;
 - use transactions for state-changing actions;
 - add indexes for ownership, session lookup, campaign lookup, quest status, and audit timestamps;
 - add backup and restore tests before public staging.
+
+Current gap:
+
+- Koyeb/Neon staging stores server-side session records for redeploy persistence. Public production should move to hashed token identifiers and add durable session cleanup/revocation.
 
 ## Authentication Plan
 

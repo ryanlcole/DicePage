@@ -58,6 +58,8 @@ Minimum staging requirements:
 
 Preferred public database: PostgreSQL.
 
+Koyeb Free plus Neon Free is a private staging/playtest target only. The free tiers may sleep, have limited compute/storage/transfer, and do not provide a production service-level commitment. Public production still requires an explicitly approved hosting/database plan with backups, restoration tests, monitoring, and operating budget approval.
+
 Migration plan:
 
 - keep the current storage boundary so JSON remains available for development/testing;

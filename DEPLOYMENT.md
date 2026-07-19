@@ -1,8 +1,10 @@
 # Deployment
 
-## Current Target
+## Current Targets
 
-Current target: local PC hosting.
+Local target: PC hosting with JSON storage.
+
+Staging target: Koyeb Free Web Service plus Neon Free PostgreSQL on `staging.relicgamemaster.com`.
 
 Implemented local URL:
 
@@ -37,6 +39,24 @@ $env:SHAELVIEN_LITE_STATE="data\shaelvien_lite_state.json"
 python run_shaelvien_lite.py
 ```
 
+## Koyeb Staging Run
+
+Koyeb must use the WSGI entrypoint, not the local `http.server` launcher:
+
+```text
+gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 45 shaelvien_lite.wsgi:app
+```
+
+Hosted staging storage must be PostgreSQL:
+
+```text
+SHAELVIEN_ENV=staging
+SHAELVIEN_STORAGE_BACKEND=postgres
+DATABASE_URL=<Neon pooled connection string>
+```
+
+The app fails startup if staging is configured without PostgreSQL, HTTPS settings, Owner bootstrap token, invite code, session secret, CSRF secret, or `DATABASE_URL`.
+
 ## LAN Hosting
 
 For a trusted local network only:
@@ -67,6 +87,18 @@ Do not expose this directly to the internet. Use TLS, a reverse proxy, process s
 - `SHAELVIEN_LITE_STAGING_ALLOW_JSON`
 - `SHAELVIEN_LITE_BACKUP_PATH`
 - `SHAELVIEN_LITE_VERBOSE_HTTP`
+- `SHAELVIEN_ENV`
+- `SHAELVIEN_STORAGE_BACKEND`
+- `DATABASE_URL`
+- `SHAELVIEN_INVITE_REQUIRED`
+- `SHAELVIEN_INVITE_CODE`
+- `SHAELVIEN_SESSION_SECRET`
+- `SHAELVIEN_CSRF_SECRET`
+- `SHAELVIEN_DEPLOYMENT_VERSION`
+- `SHAELVIEN_RUN_MIGRATIONS_ON_STARTUP`
+- `SHAELVIEN_MAX_STAGING_ACCOUNTS`
+- `SHAELVIEN_MAX_CAMPAIGNS_PER_ACCOUNT`
+- `SHAELVIEN_MAX_CHARACTERS_PER_ACCOUNT`
 
 ## Environment Modes
 
@@ -85,13 +117,14 @@ Testing:
 
 Staging:
 
-- startup requires HTTPS external scheme, external host, secure cookies, Owner bootstrap token, and explicit JSON-staging approval if using local JSON;
+- startup requires HTTPS external scheme, external host, secure cookies, Owner bootstrap token, invite code, session secret, CSRF secret, and PostgreSQL storage;
 - development first-account Owner bootstrap is disabled;
-- staging JSON requires a backup path and must remain private single-user.
+- JSON storage is rejected for hosted staging;
+- registration is invite-gated server-side.
 
 Production:
 
-- startup is intentionally blocked in this baseline until a production database backend is implemented and configured;
+- requires PostgreSQL or a production database backend;
 - first-account Owner bootstrap is disabled;
 - HTTPS, secure cookies, explicit Owner setup, backups, and production data store are required.
 
@@ -121,7 +154,7 @@ Recommended now:
 3. Prefer `staging.relicgamemaster.com` if DNS can be safely managed.
 4. Keep the public root domain unchanged until staging is verified.
 5. Add a reverse proxy with HTTPS.
-6. Move persistence to a production database.
+6. Use Neon PostgreSQL for private staging; keep JSON only for local development.
 7. Configure `SHAELVIEN_LITE_ENV=production`.
 8. Configure Owner bootstrap through an environment secret.
 9. Run automated and visible UI tests against staging.

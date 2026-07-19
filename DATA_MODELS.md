@@ -10,7 +10,39 @@ data/shaelvien_lite_state.json
 
 This is an atomic JSON store suitable for the current PC-hosted MVP. It is not a production database. The store uses a process-local lock, parameter-free structured Python data mutation, temporary-file writes, and malformed JSON recovery into `*.corrupt.<timestamp>` files.
 
-SQLite was not added in this pass because the current implementation already persists and reloads correctly from a local file. A future production or multi-user phase should migrate to a real database with migrations and concurrency controls.
+SQLite is not used. Local development remains on JSON; hosted staging uses PostgreSQL with migrations and transaction boundaries.
+
+Hosted staging persistence:
+
+```text
+SHAELVIEN_STORAGE_BACKEND=postgres
+DATABASE_URL=<Neon connection string>
+```
+
+PostgreSQL support is implemented for Koyeb/Neon staging. The storage adapter keeps the deterministic engine interface stable while persisting core records into relational tables:
+
+- `accounts`
+- `account_entitlements`
+- `sessions`
+- `characters`
+- `character_inventory`
+- `character_equipment`
+- `campaigns`
+- `campaign_characters`
+- `campaign_quests`
+- `campaign_camp_structures`
+- `campaign_completed_encounters`
+- `session_logs`
+- `ai_validation_records`
+- `validated_state_changes`
+- `validation_failures`
+- `admin_events`
+- `rewards`
+- `idempotency_records`
+- `parties`
+- `schema_migrations`
+
+JSONB is used only for bounded flexible profile/configuration fields such as full character presentation, RPG item metadata, AI request/response payloads, scene metadata, and party metadata. Account ownership, credentials, inventory quantities, quest states, camp levels, completed encounters, and idempotency keys have relational columns and constraints.
 
 ## State Root
 

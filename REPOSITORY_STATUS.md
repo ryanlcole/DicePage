@@ -88,3 +88,19 @@ Local state rollback:
 - Restore or remove the ignored JSON state file under `data/` or the configured `SHAELVIEN_LITE_STATE` path.
 
 Do not force-push or rewrite history.
+
+## Deployment Branch Status
+
+Current deployment-prep branch:
+
+```text
+deployment/koyeb-neon-staging
+```
+
+Baseline:
+
+- `main`
+- `b7e8cf6c1e87f2b0aaed7f51291a623d747225b1`
+- `shaelvien-lite-v0.1.0-local`
+
+This branch adds only Shaelvien Lite staging/deployment code, tests, and documentation. Existing ShaelvienOS runtime files remain protected and should not be staged.

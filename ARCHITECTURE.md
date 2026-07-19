@@ -23,7 +23,7 @@ No existing ShaelvienOS runtime file has been modified.
 - Backend: Python, standard-library `ThreadingHTTPServer`.
 - Frontend: static HTML, CSS, vanilla JavaScript.
 - Password hashing: `werkzeug.security`.
-- Persistence: local JSON file through `GameStore`.
+- Persistence: storage interface with `JSONStorage` for local development and `PostgresStorage` for Koyeb/Neon staging.
 - Test runner: Python `unittest`.
 - Browser verification: Chrome DevTools Protocol script run by local Node.
 
@@ -33,9 +33,11 @@ No existing production website framework, production web server config, database
 
 - Static SPA files live under `shaelvien_lite/static/`.
 - JSON APIs are exposed under `/api/*`.
+- Koyeb/Gunicorn staging uses `shaelvien_lite.wsgi:app`.
 - The browser sends player intent and selected records.
 - The server validates account/session/CSRF/ownership and commits deterministic game state.
-- The store serializes state-changing actions through a process-local lock and atomically replaces the JSON state file.
+- The JSON store serializes state-changing actions through a process-local lock and atomically replaces the JSON state file.
+- The PostgreSQL store wraps each engine update in one database transaction and persists core records into relational tables with foreign keys and idempotency constraints.
 
 ## Authority Boundaries
 
@@ -80,7 +82,7 @@ Protected unless Owner-approved:
 
 ## Major Risks
 
-- Local JSON persistence is not a multi-user production database.
+- Local JSON persistence is not a multi-user production database; hosted staging must use PostgreSQL.
 - Local password accounts are not production identity.
 - Production DNS/hosting for `relicgamemaster.com` is not configured for this app.
 - External AI is not connected yet.

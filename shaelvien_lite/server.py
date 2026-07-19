@@ -32,7 +32,7 @@ from .engine import (
     start_tutorial_campaign,
     summarize_state,
 )
-from .store import GameStore, utc_now
+from .store import GameStore, StorageUnavailable, create_store, utc_now
 
 STATIC_ROOT = Path(__file__).parent / "static"
 ERROR_LOG = Path.cwd() / "logs" / "shaelvien_lite_errors.jsonl"
@@ -170,6 +170,8 @@ class ShaelvienLiteHandler(BaseHTTPRequestHandler):
         except GameError as exc:
             record_validation_failure(self.store, self.path, exc)
             self._json({"error": str(exc)}, exc.status)
+        except StorageUnavailable as exc:
+            self._json({"error": str(exc)}, 503)
         except Exception as exc:
             write_error_log(self.path, exc)
             self._json({"error": "Internal server error."}, 500)
@@ -184,6 +186,8 @@ class ShaelvienLiteHandler(BaseHTTPRequestHandler):
         except GameError as exc:
             record_validation_failure(self.store, self.path, exc)
             self._json({"error": str(exc)}, exc.status)
+        except StorageUnavailable as exc:
+            self._json({"error": str(exc)}, 503)
         except Exception as exc:
             write_error_log(self.path, exc)
             self._json({"error": "Internal server error."}, 500)
@@ -222,7 +226,16 @@ class ShaelvienLiteHandler(BaseHTTPRequestHandler):
 
             def op(state: dict[str, Any]) -> dict[str, Any]:
                 account = require_session(state, token)
-                return admin_snapshot(state, account)
+                snapshot = admin_snapshot(state, account)
+                config = load_config()
+                snapshot["runtime"] = {
+                    "deployment_version": config.deployment_version,
+                    "mode": config.mode,
+                    "storage_backend": config.storage_backend,
+                    "last_storage_connection_at": getattr(self.store, "last_successful_connection_at", None),
+                    "storage_failure_count": getattr(self.store, "connection_failure_count", 0),
+                }
+                return snapshot
 
             self._json(self.store.update(op))
             return
@@ -242,6 +255,10 @@ class ShaelvienLiteHandler(BaseHTTPRequestHandler):
                     password=str(payload.get("password", "")),
                     owner_bootstrap_token=str(payload.get("owner_bootstrap_token", "")) or None,
                     configured_owner_token=configured_owner_token,
+                    invite_code=str(payload.get("invite_code", "")) or None,
+                    configured_invite_code=config.invite_code,
+                    invite_required=config.invite_required,
+                    max_accounts=config.max_staging_accounts if config.mode == "staging" else None,
                     env_mode=env_mode,
                 )
                 return {
@@ -407,15 +424,19 @@ class ShaelvienLiteHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _ready(self) -> None:
-        def op(state: dict[str, Any]) -> dict[str, Any]:
-            return {
+        config = load_config()
+        self.store.ready()
+        self._json(
+            {
                 "status": "ready",
-                "version": state.get("version"),
-                "mode": load_config().mode,
+                "version": "0.1",
+                "mode": config.mode,
                 "storage": "available",
+                "storage_backend": config.storage_backend,
+                "deployment_version": config.deployment_version,
+                "last_storage_connection_at": getattr(self.store, "last_successful_connection_at", None),
             }
-
-        self._json(self.store.update(op))
+        )
 
     def _json(self, payload: dict[str, Any], status: int = 200, extra_headers: dict[str, str] | None = None) -> None:
         data = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
@@ -469,7 +490,10 @@ def run(host: str | None = None, port: int | None = None, state_path: str | None
     if state_path:
         config.state_path = Path(state_path)
     validate_startup(config)
-    ShaelvienLiteHandler.store = GameStore(config.state_path)
+    ShaelvienLiteHandler.store = create_store(config)
+    if config.run_migrations_on_startup and hasattr(ShaelvienLiteHandler.store, "apply_migrations"):
+        ShaelvienLiteHandler.store.apply_migrations()
+    ShaelvienLiteHandler.store.ready()
     address = (config.host, int(config.port))
     httpd = ThreadingHTTPServer(address, ShaelvienLiteHandler)
     print(f"Shaelvien Lite serving at http://{config.host}:{config.port}")

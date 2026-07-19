@@ -56,6 +56,10 @@ def create_or_enter_account(
     password: str,
     owner_bootstrap_token: str | None = None,
     configured_owner_token: str | None = None,
+    invite_code: str | None = None,
+    configured_invite_code: str | None = None,
+    invite_required: bool = False,
+    max_accounts: int | None = None,
     env_mode: str = "development",
 ) -> dict[str, Any]:
     normalized = normalize_handle(handle)
@@ -66,6 +70,15 @@ def create_or_enter_account(
             if not password_hash or not check_password_hash(password_hash, password):
                 raise GameError("Invalid account credentials.", 401)
             return _issue_session(state, account)
+    _require_registration_invite(
+        owner_bootstrap_token=owner_bootstrap_token,
+        configured_owner_token=configured_owner_token,
+        invite_code=invite_code,
+        configured_invite_code=configured_invite_code,
+        invite_required=invite_required,
+    )
+    if max_accounts is not None and len(state["accounts"]) >= int(max_accounts):
+        raise GameError("Private staging account limit reached.", 403)
     account_id = new_id("acct")
     role = _new_account_role(
         state,
@@ -97,6 +110,27 @@ def create_or_enter_account(
 def _validate_password(password: str) -> None:
     if len(password) < 8:
         raise GameError("Password must be at least 8 characters.")
+
+
+def _require_registration_invite(
+    *,
+    owner_bootstrap_token: str | None,
+    configured_owner_token: str | None,
+    invite_code: str | None,
+    configured_invite_code: str | None,
+    invite_required: bool,
+) -> None:
+    if not invite_required:
+        return
+    owner_bootstrap_matches = bool(
+        configured_owner_token
+        and owner_bootstrap_token
+        and hmac.compare_digest(owner_bootstrap_token, configured_owner_token)
+    )
+    if owner_bootstrap_matches:
+        return
+    if not configured_invite_code or not invite_code or not hmac.compare_digest(invite_code, configured_invite_code):
+        raise GameError("A valid playtest invite code is required to create an account.", 403)
 
 
 def _new_account_role(

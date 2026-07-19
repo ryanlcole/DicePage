@@ -30,7 +30,7 @@ async function api(path, options = {}) {
       body: options.body ? JSON.stringify(options.body) : undefined
     });
   } catch (error) {
-    throw new Error("Server unavailable. Check that Shaelvien Lite is running locally.");
+    throw new Error("Shaelvien Lite is waking from rest or temporarily unavailable. Try again in a moment.");
   }
   let data = {};
   try {
@@ -407,6 +407,8 @@ async function renderAdmin() {
       <p>Accounts: ${snapshot.accounts.length}</p>
       <p>Characters: ${snapshot.characters.length}</p>
       <p>Campaigns: ${snapshot.campaigns.length}</p>
+      <p>Deployment: ${escapeHtml(snapshot.runtime?.deployment_version || "local")} (${escapeHtml(snapshot.runtime?.mode || "development")}, ${escapeHtml(snapshot.runtime?.storage_backend || "json")})</p>
+      <p>Storage: last connection ${escapeHtml(snapshot.runtime?.last_storage_connection_at || "local file")}; failures ${Number(snapshot.runtime?.storage_failure_count || 0)}</p>
       <div class="toolbar">
         <button type="button" id="toggleAiBtn">AI ${snapshot.settings.ai_enabled ? "On" : "Off"}</button>
         <button type="button" id="toggleMaintBtn">Maintenance ${snapshot.settings.maintenance_mode ? "On" : "Off"}</button>
@@ -511,7 +513,11 @@ $("accountForm").addEventListener("submit", async (event) => {
   try {
     const data = await api("/api/account/enter", {
       method: "POST",
-      body: {handle: $("handleInput").value, password: $("passwordInput").value}
+      body: {
+        handle: $("handleInput").value,
+        password: $("passwordInput").value,
+        invite_code: $("inviteInput").value
+      }
     });
     state.csrfToken = data.csrf_token || "";
     await bootstrap();

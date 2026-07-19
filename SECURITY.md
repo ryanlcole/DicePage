@@ -16,6 +16,7 @@ This is a local PC-hosted MVP. It is hardened enough for local vertical-slice te
 - Account ownership checks protect characters and campaigns.
 - Owner-only routes protect admin functions.
 - Production owner bootstrap fails closed unless a server-side token is configured and supplied once.
+- Hosted staging account creation is invite-gated with a server-side invite code.
 - Server generates dice rolls and combat results.
 - Server validates quest transitions, rewards, inventory changes, camp upgrades, and combat targets.
 - Duplicate idempotency keys do not double-apply state-changing actions.
@@ -25,6 +26,7 @@ This is a local PC-hosted MVP. It is hardened enough for local vertical-slice te
 - Authentication and game-action routes are rate-limited in memory.
 - Player-safe errors are returned to the browser.
 - Internal exceptions are written to `logs/shaelvien_lite_errors.jsonl`.
+- PostgreSQL connection strings are read only from environment variables and are not returned by `/health`, `/ready`, or browser API errors.
 
 ## Owner Bootstrap
 
@@ -48,13 +50,14 @@ The server update lock serializes local account creation, reducing simultaneous 
 ## Known Security Limits
 
 - No TLS is provided by the Python dev server.
-- JSON state is not a hardened production database.
+- JSON state is not a hosted staging or production database.
+- PostgreSQL staging stores server-side session records so redeploys can preserve login state; production should add absolute session expiration and rotation.
 - Sessions have no cleanup job or absolute server-side expiration yet.
 - Rate limiting is in memory and resets on process restart.
 - CORS is local-development oriented and must be restricted before public hosting.
 - No external identity provider, email verification, password reset, or MFA exists.
 - The repository includes many checked-in dependencies and binaries that need separate security review before public deployment.
-- Production mode intentionally fails startup until a production database backend is implemented and configured.
+- Koyeb/Neon staging is a private playtest target, not a production security posture.
 
 ## External AI Rules
 
@@ -72,7 +75,7 @@ When an external AI service is added:
 Required before public hosting:
 
 - HTTPS through a real reverse proxy or hosting service;
-- production database and backup/restore process;
+- production database and tested backup/restore process;
 - hardened session lifecycle and secret rotation;
 - production Owner setup procedure;
 - dependency and binary audit;

@@ -11,7 +11,7 @@ import threading
 from datetime import datetime, timezone
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 from uuid import uuid4
 
 from . import STATE_VERSION
@@ -72,6 +72,24 @@ def initial_state() -> dict[str, Any]:
     }
 
 
+class StorageUnavailable(RuntimeError):
+    """Raised when persistent storage is waking or temporarily unreachable."""
+
+
+class StorageBackend(Protocol):
+    def load(self) -> dict[str, Any]:
+        ...
+
+    def save(self, state: dict[str, Any]) -> None:
+        ...
+
+    def update(self, callback: Callable[[dict[str, Any]], Any]) -> Any:
+        ...
+
+    def ready(self) -> bool:
+        ...
+
+
 class GameStore:
     """Small atomic JSON store.
 
@@ -113,6 +131,7 @@ class GameStore:
 
     def save(self, state: dict[str, Any]) -> None:
         with self._lock:
+            apply_retention_limits(state)
             state["updated_at"] = utc_now()
             self.path.parent.mkdir(parents=True, exist_ok=True)
             fd, temp_path = tempfile.mkstemp(
@@ -132,6 +151,10 @@ class GameStore:
             result = callback(state)
             self.save(state)
             return result
+
+    def ready(self) -> bool:
+        self.load()
+        return True
 
     def _ensure_shape(self, state: dict[str, Any]) -> None:
         baseline = initial_state()
@@ -158,3 +181,52 @@ def public_account(account: dict[str, Any]) -> dict[str, Any]:
         "role": account["role"],
         "created_at": account["created_at"],
     }
+
+
+def apply_retention_limits(
+    state: dict[str, Any],
+    *,
+    max_session_logs: int = 500,
+    max_ai_records: int = 200,
+) -> None:
+    logs = state.get("session_logs", {})
+    if len(logs) > max_session_logs:
+        kept_log_ids = {
+            log_id
+            for log_id, _entry in sorted(logs.items(), key=lambda item: item[1].get("created_at", ""))[-max_session_logs:]
+        }
+        state["session_logs"] = {log_id: logs[log_id] for log_id in kept_log_ids}
+        for campaign in state.get("campaigns", {}).values():
+            campaign["session_log_ids"] = [
+                log_id for log_id in campaign.get("session_log_ids", []) if log_id in kept_log_ids
+            ]
+    proposals = state.get("ai_proposals", {})
+    if len(proposals) > max_ai_records:
+        kept_proposal_ids = {
+            proposal_id
+            for proposal_id, _proposal in sorted(proposals.items(), key=lambda item: item[1].get("created_at", ""))[-max_ai_records:]
+        }
+        state["ai_proposals"] = {proposal_id: proposals[proposal_id] for proposal_id in kept_proposal_ids}
+        changes = state.get("validated_state_changes", {})
+        state["validated_state_changes"] = {
+            proposal_id: value for proposal_id, value in changes.items() if proposal_id in kept_proposal_ids
+        }
+
+
+JSONStorage = GameStore
+
+
+def create_store(config: Any) -> StorageBackend:
+    """Create the configured storage backend without exposing secrets."""
+
+    if config.storage_backend == "json":
+        return JSONStorage(config.state_path)
+    if config.storage_backend == "postgres":
+        from .postgres_store import PostgresStorage
+
+        return PostgresStorage(
+            config.database_url or "",
+            connect_timeout_seconds=config.storage_connect_timeout_seconds,
+            retry_attempts=config.storage_retry_attempts,
+        )
+    raise StorageUnavailable("Unsupported storage backend.")

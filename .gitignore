@@ -4,6 +4,9 @@ data/shaelvien_lite_state.json
 data/shaelvien_lite_state.json.corrupt.*
 data/*.tmp
 logs/shaelvien_lite_errors.jsonl
+backups/
+*.dump
+*.dump.manifest.json
 verification/*.png
 verification/*.json
 verification/*.jsonl

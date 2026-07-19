@@ -95,3 +95,31 @@ Release identifier planned after commit:
 
 - Tag: `shaelvien-lite-v0.1.0-local`.
 - Known blockers: production DNS/HTTPS mismatch, unconfirmed Microsoft/Azure-side resource ownership, no production database, no production identity provider, no process supervisor.
+
+## 2026-07-18 - Koyeb/Neon Staging Preparation
+
+Branch:
+
+- `deployment/koyeb-neon-staging`
+
+Baseline:
+
+- Commit: `b7e8cf6c1e87f2b0aaed7f51291a623d747225b1`
+- Tag: `shaelvien-lite-v0.1.0-local`
+
+Work completed locally:
+
+- Added PostgreSQL storage backend for Koyeb/Neon staging.
+- Added ordered PostgreSQL migration `001_initial_postgres.sql`.
+- Added JSON-to-PostgreSQL import command.
+- Added manual PostgreSQL backup command.
+- Added WSGI entrypoint for Gunicorn.
+- Added invite-gated staging account registration.
+- Added Koyeb/Neon environment variable documentation.
+- Preserved JSON storage for local development.
+
+External resource status:
+
+- Koyeb and Neon resources were not created from this machine.
+- No Koyeb CLI, Neon CLI, Koyeb token, Neon credentials, or `DATABASE_URL` were present locally.
+- Owner dashboard/API access is required before generated-domain deployment can proceed.
