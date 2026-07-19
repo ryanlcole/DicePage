@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-label="Placeholder art for Emberhall Outpost">
+  <rect width="900" height="560" fill="#17120f"/>
+  <path d="M0 420h900v140H0z" fill="#2b2118"/>
+  <path d="M0 348c100-38 184-42 270-20 100 26 166 8 248-26 94-39 224-36 382 21v237H0z" fill="#314634"/>
+  <path d="M70 330h760v88H70z" fill="#3a2a1e"/>
+  <path d="M120 270h128v148H120zM326 240h166v178H326zM584 260h150v158H584z" fill="#211812" stroke="#8b6238" stroke-width="8"/>
+  <path d="M105 270l80-72 80 72zm190-30l114-96 114 96zm260 20l105-82 105 82z" fill="#5b3422" stroke="#b98343" stroke-width="8"/>
+  <path d="M418 316h64v102h-64z" fill="#120d0a"/>
+  <path d="M148 320h34v34h-34zm70 0h34v34h-34zm398 0h34v34h-34zm70 0h34v34h-34z" fill="#e0a14e"/>
+  <path d="M50 204h44v236H50zm756 0h44v236h-44z" fill="#35251a"/>
+  <path d="M44 204h56l-28-74zm756 0h56l-28-74z" fill="#8a4d2a"/>
+  <circle cx="450" cy="104" r="44" fill="#d6b46a" opacity=".55"/>
+  <path d="M146 438c120-34 238-38 354-10s218 28 314-9" stroke="#c87932" stroke-width="5" fill="none" opacity=".6"/>
+</svg>

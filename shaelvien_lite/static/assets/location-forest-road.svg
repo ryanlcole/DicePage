@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-label="Placeholder art for Forest Road">
+  <rect width="900" height="560" fill="#16140f"/>
+  <path d="M0 388c150-92 300-98 450-20s300 72 450-16v208H0z" fill="#263a29"/>
+  <path d="M350 560c26-120 54-224 100-318 44 94 76 198 106 318z" fill="#5d4732"/>
+  <path d="M0 250c84-40 140-126 174-250h102c-42 130-106 226-194 288zM900 245c-88-36-150-118-184-245H610c42 144 116 242 222 300z" fill="#223425"/>
+  <path d="M80 168h58v286H80zm130-92h62v356h-62zm556 80h58v296h-58zm-136-68h64v342h-64z" fill="#342617"/>
+  <path d="M32 150c56-84 102-110 178-86 70-78 146-80 228-12 78-54 144-54 204 0 76-58 156-50 226 22v132H32z" fill="#405c3e"/>
+  <path d="M389 306c42 16 82 16 122 0" stroke="#c87932" stroke-width="8" fill="none"/>
+  <path d="M430 264h40v82h-40z" fill="#271c13"/>
+  <circle cx="450" cy="246" r="18" fill="#d6b46a"/>
+  <path d="M330 394c42 18 96 24 152 16 42-6 82 2 118 24" stroke="#1d1813" stroke-width="7" fill="none"/>
+</svg>

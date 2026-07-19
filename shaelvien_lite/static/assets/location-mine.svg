@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-label="Placeholder art for Abandoned Mine">
+  <rect width="900" height="560" fill="#130f0d"/>
+  <path d="M0 422h900v138H0z" fill="#251c16"/>
+  <path d="M92 436c40-168 156-270 358-306 202 36 318 138 358 306z" fill="#2d2a23" stroke="#5f4b37" stroke-width="10"/>
+  <path d="M268 436c20-106 78-176 182-210 104 34 162 104 182 210z" fill="#090807"/>
+  <path d="M238 228h424M198 318h504M164 410h572" stroke="#6e5135" stroke-width="14"/>
+  <path d="M450 226v210M314 248v188M586 248v188" stroke="#6e5135" stroke-width="16"/>
+  <path d="M120 462c120-36 236-38 348-8s214 30 312-4" stroke="#c87932" stroke-width="6" fill="none" opacity=".65"/>
+  <circle cx="450" cy="322" r="34" fill="#d6b46a" opacity=".18"/>
+  <path d="M360 140l32 68h-66zm178 0l36 72h-74z" fill="#4a4f45"/>
+</svg>

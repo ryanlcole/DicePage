@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" role="img" aria-label="Placeholder portrait for Pathfinder">
+  <rect width="480" height="600" fill="#171812"/>
+  <path d="M74 520c20-122 76-190 166-190s146 68 166 190z" fill="#304632"/>
+  <circle cx="240" cy="218" r="86" fill="#9b7350"/>
+  <path d="M122 214c22-92 62-138 118-138s96 46 118 138c-88-44-164-44-236 0z" fill="#2b241c"/>
+  <path d="M120 350c82 48 158 58 240 0l-24 132H144z" fill="#3f5138" stroke="#6d8a70" stroke-width="8"/>
+  <path d="M180 204h38m44 0h38" stroke="#15120f" stroke-width="9" stroke-linecap="round"/>
+  <path d="M180 284c42 20 82 20 120 0" stroke="#15120f" stroke-width="8" fill="none"/>
+  <path d="M340 96L120 508" stroke="#b98343" stroke-width="10"/>
+</svg>

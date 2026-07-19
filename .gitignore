@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+data/shaelvien_lite_state.json
+data/shaelvien_lite_state.json.corrupt.*
+data/*.tmp
+logs/shaelvien_lite_errors.jsonl
+verification/*.png
+verification/*.json
+verification/*.jsonl
+verification/*.log
+.pytest_cache/
+.coverage
+.env
+.env.*
+!.env.example

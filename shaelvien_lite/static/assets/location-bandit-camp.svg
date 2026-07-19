@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-label="Placeholder art for Bandit Camp">
+  <rect width="900" height="560" fill="#17110d"/>
+  <path d="M0 378c130-62 284-78 462-48 166 28 308 18 438-30v260H0z" fill="#352b22"/>
+  <path d="M96 408l120-156 120 156zM550 412l136-174 136 174z" fill="#4c3322" stroke="#b98343" stroke-width="8"/>
+  <path d="M216 252v156M686 238v174" stroke="#20150f" stroke-width="8"/>
+  <path d="M394 258h58v190h-58z" fill="#2a1b12"/>
+  <path d="M382 258h84l-42-72z" fill="#8a4d2a"/>
+  <path d="M452 206c58 0 76 42 126 30" stroke="#c75f48" stroke-width="26" fill="none"/>
+  <path d="M110 440c124-30 240-28 350 6 96 30 210 26 338-12" stroke="#6d8a70" stroke-width="6" fill="none"/>
+  <circle cx="456" cy="368" r="28" fill="#d6b46a" opacity=".28"/>
+  <path d="M440 360l32 18-32 18z" fill="#c87932"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" role="img" aria-label="Placeholder portrait for Vanguard">
+  <rect width="480" height="600" fill="#1b1712"/>
+  <path d="M80 520c16-130 70-196 160-196s144 66 160 196z" fill="#493526"/>
+  <circle cx="240" cy="214" r="92" fill="#8d6846"/>
+  <path d="M142 214c10-92 54-138 98-138s88 46 98 138c-62-28-126-28-196 0z" fill="#3a2b20"/>
+  <path d="M116 352c64 34 110 50 124 50s60-16 124-50v126H116z" fill="#5a4e43" stroke="#c87932" stroke-width="8"/>
+  <path d="M184 204h36m40 0h36" stroke="#1b1712" stroke-width="10" stroke-linecap="round"/>
+  <path d="M206 260c24 18 48 18 72 0" stroke="#1b1712" stroke-width="8" fill="none"/>
+  <path d="M240 324v152" stroke="#d6b46a" stroke-width="8"/>
+</svg>

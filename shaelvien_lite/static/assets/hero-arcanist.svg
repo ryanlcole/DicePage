@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" role="img" aria-label="Placeholder portrait for Arcanist">
+  <rect width="480" height="600" fill="#16120f"/>
+  <path d="M86 526c24-136 76-204 154-204s130 68 154 204z" fill="#3b3028"/>
+  <circle cx="240" cy="218" r="82" fill="#8f6b4d"/>
+  <path d="M126 206c20-86 58-130 114-130s94 44 114 130c-72-32-148-32-228 0z" fill="#5a3d2b"/>
+  <path d="M136 350h208l42 160H94z" fill="#2f4241" stroke="#68a0a0" stroke-width="8"/>
+  <path d="M178 204h34m56 0h34" stroke="#15120f" stroke-width="9" stroke-linecap="round"/>
+  <path d="M214 262c18 12 36 12 54 0" stroke="#15120f" stroke-width="8" fill="none"/>
+  <circle cx="240" cy="392" r="36" fill="none" stroke="#d6b46a" stroke-width="7"/>
+  <path d="M240 356v72m-36-36h72" stroke="#d6b46a" stroke-width="6"/>
+</svg>

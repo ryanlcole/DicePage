@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shaelvien Lite - ReLiC Game Master</title>
+  <link rel="icon" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main id="app">
+    <section id="landing" class="landing">
+      <div class="landing__shade"></div>
+      <div class="landing__content">
+        <p class="eyebrow">ReLiC Game Master Early Access</p>
+        <h1>Shaelvien Lite</h1>
+        <p class="landing__copy">A free-to-play AI-operated tabletop RPG and virtual tabletop for persistent heroes, quests, camp progression, and cooperative-ready campaigns.</p>
+        <div class="landing__actions">
+          <button class="primary" id="playFreeBtn" type="button">Play Free</button>
+          <span class="status-pill">Local PC Host</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="entryPanel" class="entry band">
+      <form id="accountForm" class="entry__form">
+        <label for="handleInput">Account handle</label>
+        <input id="handleInput" name="handle" autocomplete="username" placeholder="Owner or player handle" required>
+        <label for="passwordInput">Password</label>
+        <div class="entry__row">
+          <input id="passwordInput" name="password" type="password" autocomplete="current-password" placeholder="At least 8 characters" required>
+          <button class="primary" type="submit">Enter</button>
+        </div>
+        <p class="fine">Development mode: the first local account becomes Owner. Production mode requires a server-side Owner bootstrap token and fails closed.</p>
+      </form>
+      <div class="panel-grid screenshots">
+        <article>
+          <img src="/assets/location-emberhall.svg" alt="Emberhall Outpost placeholder panel">
+          <strong>Emberhall Outpost</strong>
+        </article>
+        <article>
+          <img src="/assets/location-forest-road.svg" alt="Forest Road placeholder panel">
+          <strong>Forest Road</strong>
+        </article>
+        <article>
+          <img src="/assets/hero-vanguard.svg" alt="Vanguard placeholder portrait">
+          <strong>Persistent Heroes</strong>
+        </article>
+      </div>
+    </section>
+
+    <section id="shell" class="shell hidden">
+      <header class="topline">
+        <div>
+          <span class="brand">Shaelvien Lite</span>
+          <span id="accountBadge" class="status-pill"></span>
+        </div>
+        <nav class="tabs" aria-label="Player dashboard">
+          <button data-tab="game">Continue</button>
+          <button data-tab="characters">Characters</button>
+          <button data-tab="camp">Camp</button>
+          <button data-tab="inventory">Inventory</button>
+          <button data-tab="quests">Quests</button>
+          <button data-tab="party">Party</button>
+          <button data-tab="settings">Settings</button>
+          <button id="adminTab" data-tab="admin" class="hidden">Owner</button>
+        </nav>
+      </header>
+
+      <section id="characterCreate" class="band hidden">
+        <div class="section-head">
+          <p class="eyebrow">Create Primary Character</p>
+          <h2>Choose a founding hero</h2>
+        </div>
+        <form id="characterForm" class="character-form">
+          <label for="characterName">Name</label>
+          <input id="characterName" name="name" placeholder="Hero name" required>
+          <label for="characterOrigin">Origin</label>
+          <input id="characterOrigin" name="ancestry" placeholder="Optional origin">
+          <input id="roleInput" name="role_id" type="hidden" value="vanguard">
+          <div id="roleChoices" class="role-grid"></div>
+          <button class="primary" type="submit">Create Character</button>
+        </form>
+      </section>
+
+      <section id="dashboard" class="dashboard">
+        <section id="gameView" class="view"></section>
+        <section id="charactersView" class="view hidden"></section>
+        <section id="campView" class="view hidden"></section>
+        <section id="inventoryView" class="view hidden"></section>
+        <section id="questsView" class="view hidden"></section>
+        <section id="partyView" class="view hidden"></section>
+        <section id="settingsView" class="view hidden"></section>
+        <section id="adminView" class="view hidden"></section>
+      </section>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
