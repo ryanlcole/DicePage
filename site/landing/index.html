@@ -170,9 +170,9 @@
     <header>
       <div class="brand"><span class="mark" aria-hidden="true">R</span><span>ReLiCGameMaster</span></div>
       <nav aria-label="Primary">
-        <a href="/app/">Play</a>
-        <a href="/docs/">Docs</a>
-        <a href="/store/">Store</a>
+        <a href="app/">Play</a>
+        <a href="docs/">Docs</a>
+        <a href="store/">Store</a>
         <a href="https://github.com/ryanlcole/DicePage">GitHub</a>
       </nav>
     </header>
@@ -182,9 +182,9 @@
         <h1>Shaelvien Tactical</h1>
         <p class="lead">A browser-based tabletop workspace for recursive maps, GM/player views, tactical encounters, deterministic replay, handcrafted assets, and perception-driven exploration.</p>
         <div class="actions">
-          <a class="button primary" href="/app/">Launch App</a>
-          <a class="button" href="/docs/">Documentation</a>
-          <a class="button" href="/store/">Store Shell</a>
+          <a class="button primary" href="app/">Launch App</a>
+          <a class="button" href="docs/">Documentation</a>
+          <a class="button" href="store/">Store Shell</a>
         </div>
       </section>
       <aside class="panel" aria-label="Alpha status">
@@ -200,7 +200,7 @@
     <footer>Privacy: this static alpha does not intentionally collect personal data. Report issues through the GitHub repository.</footer>
   </div>
   <script>
-    fetch('/build-info.json', { cache: 'no-store' })
+    fetch('build-info.json', { cache: 'no-store' })
       .then((response) => response.ok ? response.json() : null)
       .then((info) => {
         if (!info) return;
@@ -213,4 +213,3 @@
   </script>
 </body>
 </html>
-
