@@ -1,0 +1,258 @@
+{
+  "schemaVersion": "shaelvien.collision_presets.v1",
+  "presets": [
+    {
+      "id": "decorative",
+      "name": "Decorative",
+      "collision": {
+        "blocksMovement": false,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 0.25,
+        "heightUnit": "m",
+        "opacity": 0,
+        "soundTransmission": 1,
+        "soundAbsorption": 0,
+        "openings": []
+      },
+      "collisionShape": { "type": "tile_footprint", "anchor": "center", "width": 1, "depth": 1, "height": 0.25, "unit": "cell" }
+    },
+    {
+      "id": "solid_wall",
+      "name": "Solid Wall",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": true,
+        "blocksSound": true,
+        "blocksProjectile": true,
+        "blocksReach": true,
+        "height": 2.8,
+        "heightUnit": "m",
+        "opacity": 1,
+        "soundTransmission": 0.04,
+        "soundAbsorption": 0.85,
+        "openings": []
+      },
+      "collisionShape": { "type": "tile_footprint", "anchor": "center", "width": 1, "depth": 1, "height": 2.8, "unit": "cell" }
+    },
+    {
+      "id": "closed_door",
+      "name": "Closed Door",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": true,
+        "blocksSound": true,
+        "blocksProjectile": true,
+        "blocksReach": false,
+        "height": 2.2,
+        "heightUnit": "m",
+        "opacity": 1,
+        "soundTransmission": 0.35,
+        "soundAbsorption": 0.45,
+        "openings": []
+      },
+      "collisionShape": { "type": "doorway", "anchor": "center", "width": 1, "depth": 0.25, "height": 2.2, "unit": "cell" }
+    },
+    {
+      "id": "open_door",
+      "name": "Open Door",
+      "collision": {
+        "blocksMovement": false,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 2.2,
+        "heightUnit": "m",
+        "opacity": 0,
+        "soundTransmission": 0.9,
+        "soundAbsorption": 0.05,
+        "openings": [{ "type": "doorway", "state": "open" }]
+      },
+      "collisionShape": { "type": "doorway", "anchor": "center", "width": 1, "depth": 0.25, "height": 2.2, "unit": "cell" }
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": true,
+        "blocksProjectile": true,
+        "blocksReach": false,
+        "height": 1.2,
+        "heightUnit": "m",
+        "opacity": 0.15,
+        "soundTransmission": 0.45,
+        "soundAbsorption": 0.3,
+        "openings": [{ "type": "window", "state": "closed" }]
+      },
+      "collisionShape": { "type": "rectangle", "anchor": "center", "width": 1, "depth": 0.2, "height": 1.2, "unit": "cell" }
+    },
+    {
+      "id": "curtain",
+      "name": "Curtain",
+      "collision": {
+        "blocksMovement": false,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 2,
+        "heightUnit": "m",
+        "opacity": 0.55,
+        "soundTransmission": 0.75,
+        "soundAbsorption": 0.2,
+        "openings": []
+      },
+      "collisionShape": { "type": "rectangle", "anchor": "center", "width": 1, "depth": 0.1, "height": 2, "unit": "cell" }
+    },
+    {
+      "id": "bush",
+      "name": "Bush",
+      "collision": {
+        "blocksMovement": false,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 1,
+        "heightUnit": "m",
+        "opacity": 0.45,
+        "soundTransmission": 0.8,
+        "soundAbsorption": 0.18,
+        "openings": []
+      },
+      "collisionShape": { "type": "circle", "anchor": "center", "width": 1, "depth": 1, "height": 1, "unit": "cell" }
+    },
+    {
+      "id": "tree",
+      "name": "Tree",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": true,
+        "blocksSound": false,
+        "blocksProjectile": true,
+        "blocksReach": false,
+        "height": 5,
+        "heightUnit": "m",
+        "opacity": 0.8,
+        "soundTransmission": 0.65,
+        "soundAbsorption": 0.3,
+        "openings": []
+      },
+      "collisionShape": { "type": "circle", "anchor": "center", "width": 1, "depth": 1, "height": 5, "unit": "cell" }
+    },
+    {
+      "id": "table",
+      "name": "Table",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 0.9,
+        "heightUnit": "m",
+        "opacity": 0.2,
+        "soundTransmission": 0.85,
+        "soundAbsorption": 0.12,
+        "openings": []
+      },
+      "collisionShape": { "type": "rectangle", "anchor": "center", "width": 1, "depth": 1, "height": 0.9, "unit": "cell" }
+    },
+    {
+      "id": "chair",
+      "name": "Chair",
+      "collision": {
+        "blocksMovement": false,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 0.9,
+        "heightUnit": "m",
+        "opacity": 0.1,
+        "soundTransmission": 0.9,
+        "soundAbsorption": 0.08,
+        "openings": []
+      },
+      "collisionShape": { "type": "rectangle", "anchor": "center", "width": 0.7, "depth": 0.7, "height": 0.9, "unit": "cell" }
+    },
+    {
+      "id": "crate",
+      "name": "Crate",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": true,
+        "blocksReach": false,
+        "height": 1,
+        "heightUnit": "m",
+        "opacity": 0.25,
+        "soundTransmission": 0.78,
+        "soundAbsorption": 0.2,
+        "openings": []
+      },
+      "collisionShape": { "type": "rectangle", "anchor": "center", "width": 1, "depth": 1, "height": 1, "unit": "cell" }
+    },
+    {
+      "id": "floor_hazard",
+      "name": "Floor Hazard",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "isFloor": true,
+        "height": 0,
+        "heightUnit": "m",
+        "opacity": 0,
+        "soundTransmission": 1,
+        "soundAbsorption": 0.05,
+        "openings": []
+      },
+      "collisionShape": { "type": "tile_footprint", "anchor": "center", "width": 1, "depth": 1, "height": 0, "unit": "cell" }
+    },
+    {
+      "id": "player",
+      "name": "Player Character",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 1.8,
+        "heightUnit": "m",
+        "opacity": 0.15,
+        "soundTransmission": 0.9,
+        "soundAbsorption": 0.08,
+        "openings": []
+      },
+      "collisionShape": { "type": "circle", "anchor": "center", "width": 0.8, "depth": 0.8, "height": 1.8, "unit": "cell" }
+    },
+    {
+      "id": "creature",
+      "name": "Creature",
+      "collision": {
+        "blocksMovement": true,
+        "blocksVision": false,
+        "blocksSound": false,
+        "blocksProjectile": false,
+        "blocksReach": false,
+        "height": 1.7,
+        "heightUnit": "m",
+        "opacity": 0.15,
+        "soundTransmission": 0.9,
+        "soundAbsorption": 0.08,
+        "openings": []
+      },
+      "collisionShape": { "type": "circle", "anchor": "center", "width": 0.8, "depth": 0.8, "height": 1.7, "unit": "cell" }
+    }
+  ]
+}

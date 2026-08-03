@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-tavern-encounter",
+  "name": "Tavern Encounter",
+  "category": "encounter",
+  "parentMapId": "map-tavern-main-floor",
+  "parentTileId": "tile-tavern-ambush-trigger",
+  "width": 12,
+  "height": 8,
+  "tileSize": 16,
+  "terrain": {
+    "default": "floor",
+    "overrides": [
+      {"x": 0, "y": 0, "definitionId": "wall"}, {"x": 1, "y": 0, "definitionId": "wall"}, {"x": 2, "y": 0, "definitionId": "wall"}, {"x": 3, "y": 0, "definitionId": "wall"}, {"x": 4, "y": 0, "definitionId": "wall"}, {"x": 5, "y": 0, "definitionId": "wall"}, {"x": 6, "y": 0, "definitionId": "wall"}, {"x": 7, "y": 0, "definitionId": "wall"}, {"x": 8, "y": 0, "definitionId": "wall"}, {"x": 9, "y": 0, "definitionId": "wall"}, {"x": 10, "y": 0, "definitionId": "wall"}, {"x": 11, "y": 0, "definitionId": "wall"},
+      {"x": 0, "y": 1, "definitionId": "wall"}, {"x": 11, "y": 1, "definitionId": "wall"}, {"x": 0, "y": 2, "definitionId": "wall"}, {"x": 11, "y": 2, "definitionId": "wall"}, {"x": 0, "y": 3, "definitionId": "wall"}, {"x": 11, "y": 3, "definitionId": "wall"},
+      {"x": 0, "y": 4, "definitionId": "door"}, {"x": 11, "y": 4, "definitionId": "wall"}, {"x": 0, "y": 5, "definitionId": "wall"}, {"x": 11, "y": 5, "definitionId": "wall"}, {"x": 0, "y": 6, "definitionId": "wall"}, {"x": 11, "y": 6, "definitionId": "wall"},
+      {"x": 0, "y": 7, "definitionId": "wall"}, {"x": 1, "y": 7, "definitionId": "wall"}, {"x": 2, "y": 7, "definitionId": "wall"}, {"x": 3, "y": 7, "definitionId": "wall"}, {"x": 4, "y": 7, "definitionId": "wall"}, {"x": 5, "y": 7, "definitionId": "wall"}, {"x": 6, "y": 7, "definitionId": "wall"}, {"x": 7, "y": 7, "definitionId": "wall"}, {"x": 8, "y": 7, "definitionId": "wall"}, {"x": 9, "y": 7, "definitionId": "wall"}, {"x": 10, "y": 7, "definitionId": "wall"}, {"x": 11, "y": 7, "definitionId": "wall"}
+    ]
+  },
+  "placedTiles": [
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-door", "definitionId": "door", "x": 0, "y": 4, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [{"id": "battle-open-door", "type": "open", "label": "Open Door", "allowedActors": ["gm", "player"], "timeCost": 1, "requirements": {}, "effects": [{"type": "change_tile_state", "state": "open"}]}], "triggers": [], "encounterId": null, "metadata": {"label": "Doorway", "gmNotes": "Exit blocking order target."}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-table-a", "definitionId": "table", "x": 3, "y": 2, "width": 2, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": true, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Long Table", "gmNotes": "Obstacle from territory."}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-table-b", "definitionId": "table", "x": 6, "y": 5, "width": 2, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": true, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Corner Table", "gmNotes": "Obstacle from territory."}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-bar", "definitionId": "bar", "x": 8, "y": 2, "width": 3, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": true, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Bar", "gmNotes": "Obstacle from territory."}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-player-start-a", "definitionId": "player-start", "x": 2, "y": 4, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Lyra start", "gmNotes": ""}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-player-start-b", "definitionId": "player-start", "x": 2, "y": 5, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Borin start", "gmNotes": ""}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-enemy-start-a", "definitionId": "enemy-start", "x": 8, "y": 4, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Brigand start", "gmNotes": ""}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-enemy-start-b", "definitionId": "enemy-start", "x": 9, "y": 5, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Brigand start", "gmNotes": ""}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-enemy-start-c", "definitionId": "enemy-start", "x": 7, "y": 6, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Brigand start", "gmNotes": ""}},
+    {"schemaVersion": "shaelvien.tile.v1", "id": "battle-commander-start", "definitionId": "enemy-start", "x": 9, "y": 3, "width": 1, "height": 1, "rotation": 0, "visible": true, "hiddenFromPlayers": false, "blocked": false, "childMapId": null, "entryPointId": null, "actions": [], "triggers": [], "encounterId": null, "metadata": {"label": "Commander start", "gmNotes": ""}}
+  ],
+  "entities": [],
+  "entryPoints": [{"id": "entry-battle-door", "x": 2, "y": 4, "label": "Doorway", "fromMapId": "map-tavern-main-floor", "fromTileId": "tile-tavern-ambush-trigger"}],
+  "exitPoints": [{"id": "exit-battle-door", "x": 0, "y": 4, "label": "Tavern Main Floor", "targetMapId": "map-tavern-main-floor", "targetTileId": "tile-tavern-ambush-trigger"}],
+  "triggers": [],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
+  "atmosphere": {"light": "lamps and smoke", "sound": "scraping benches", "gmNotes": "Uses tavern territory as battle stage."},
+  "encounterReferences": [{"id": "ref-tavern-ambush-battle", "encounterId": "enc-tavern-ambush", "territoryId": "map-tavern-main-floor"}]
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "shaelvien.characters.v1",
+  "characters": [
+    {
+      "id": "char-lyra",
+      "name": "Lyra Vale",
+      "assignedPlayerId": "player-a",
+      "spriteId": "sprite-player-lyra",
+      "hp": 18,
+      "attack": 7,
+      "defense": 2,
+      "initiative": 16,
+      "actions": ["Move", "Basic Attack", "Defend", "Interact", "Wait", "Inspect"]
+    },
+    {
+      "id": "char-borin",
+      "name": "Borin Ash",
+      "assignedPlayerId": "player-b",
+      "spriteId": "sprite-player-borin",
+      "hp": 22,
+      "attack": 6,
+      "defense": 3,
+      "initiative": 14,
+      "actions": ["Move", "Basic Attack", "Defend", "Interact", "Wait", "Inspect"]
+    }
+  ]
+}

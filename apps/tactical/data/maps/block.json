@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-block",
+  "name": "Block",
+  "category": "block",
+  "parentMapId": "map-city",
+  "parentTileId": "tile-city-block",
+  "width": 14,
+  "height": 9,
+  "tileSize": 16,
+  "terrain": {
+    "default": "road",
+    "overrides": [
+      {"x": 0, "y": 0, "definitionId": "wall"}, {"x": 1, "y": 0, "definitionId": "wall"}, {"x": 2, "y": 0, "definitionId": "wall"}, {"x": 11, "y": 0, "definitionId": "wall"}, {"x": 12, "y": 0, "definitionId": "wall"}, {"x": 13, "y": 0, "definitionId": "wall"},
+      {"x": 0, "y": 8, "definitionId": "wall"}, {"x": 1, "y": 8, "definitionId": "wall"}, {"x": 12, "y": 8, "definitionId": "wall"}, {"x": 13, "y": 8, "definitionId": "wall"}
+    ]
+  },
+  "placedTiles": [
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-block-tavern",
+      "definitionId": "tavern",
+      "x": 6,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": "map-tavern-main-floor",
+      "entryPointId": "entry-front-door",
+      "actions": [
+        {
+          "id": "action-enter-tavern",
+          "type": "enter_child_map",
+          "label": "Enter Tavern",
+          "allowedActors": ["gm", "player"],
+          "timeCost": 0,
+          "requirements": {"revealed": true},
+          "effects": [{"type": "open_child_map", "mapId": "map-tavern-main-floor", "entryPointId": "entry-front-door"}]
+        }
+      ],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Old Kettle Tavern", "gmNotes": "Block-to-tavern recursive tile."}
+    }
+  ],
+  "entities": [],
+  "entryPoints": [{"id": "entry-from-city", "x": 6, "y": 7, "label": "Block Street", "fromMapId": "map-city", "fromTileId": "tile-city-block"}],
+  "exitPoints": [{"id": "exit-to-city", "x": 6, "y": 8, "label": "City", "targetMapId": "map-city", "targetTileId": "tile-city-block"}],
+  "triggers": [],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
+  "atmosphere": {"light": "late afternoon", "sound": "cart wheels", "gmNotes": "Block layer proof."},
+  "encounterReferences": []
+}

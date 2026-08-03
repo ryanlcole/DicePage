@@ -1,0 +1,2432 @@
+{
+  "schemaVersion": "shaelvien.tile_asset_registry.v2",
+  "assets": [
+    {
+      "assetId": "tile-asset-stone-floor-001",
+      "name": "Stone Floor",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/stone_floor_001.png",
+      "mimeType": "image/png",
+      "widthPx": 64,
+      "heightPx": 64,
+      "contentHash": "c2af9c9c1a2ae73ef29ef1967692ea27c3023243251defa75796e627a05c5c22",
+      "licenseStatus": "original",
+      "author": "Shaelvien local placeholder",
+      "tags": [
+        "floor",
+        "stone",
+        "placeholder"
+      ],
+      "createdAt": "2026-08-03T09:45:00-04:00",
+      "updatedAt": "2026-08-03T09:45:00-04:00"
+    },
+    {
+      "assetId": "tile-asset-tavern-table-001",
+      "name": "Tavern Table",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/tavern_table_001.png",
+      "mimeType": "image/png",
+      "widthPx": 64,
+      "heightPx": 64,
+      "contentHash": "8793102eb58ea59ec7b2202559427bcf688ebb2b2c2843d273a49b125f50a55a",
+      "licenseStatus": "original",
+      "author": "Shaelvien local placeholder",
+      "tags": [
+        "tavern",
+        "table",
+        "placeholder"
+      ],
+      "createdAt": "2026-08-03T09:45:00-04:00",
+      "updatedAt": "2026-08-03T09:45:00-04:00"
+    },
+    {
+      "assetId": "tile-asset-rune-trigger-001",
+      "name": "Rune Trigger",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/rune_trigger_001.png",
+      "mimeType": "image/png",
+      "widthPx": 64,
+      "heightPx": 64,
+      "contentHash": "64554f6fb6b3fad1435c9148e34750f4e547cf337ba17cf73b73f9334a1350b4",
+      "licenseStatus": "original",
+      "author": "Shaelvien local placeholder",
+      "tags": [
+        "trigger",
+        "rune",
+        "placeholder"
+      ],
+      "createdAt": "2026-08-03T09:45:00-04:00",
+      "updatedAt": "2026-08-03T09:45:00-04:00"
+    },
+    {
+      "assetId": "woodcut-atlas-001",
+      "name": "Shaelvien Woodcut Atlas 001",
+      "type": "tile_atlas",
+      "sourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "mimeType": "image/png",
+      "widthPx": 256,
+      "heightPx": 352,
+      "contentHash": "8d06a242048924367d051a060f4296614555a7d461f47ba0450c362c5800405e",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "atlas",
+        "original"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "tileSizePx": 32,
+      "columns": 8,
+      "frameCount": 82
+    },
+    {
+      "assetId": "woodcut-terrain-grass-001",
+      "name": "Grass",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-grass-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "11f8d814b7a8d34cfa2d6537cfe7e83b7d7dacaf841c01bcc5abef8688e64e77",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "temperate",
+        "grass"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-forest-001",
+      "name": "Forest",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-forest-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "e5ccb14a2548951f6bcb479f8d901caa8a9af2002456a388587183d739ccd734",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "forest",
+        "trees"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-mountain-001",
+      "name": "Mountains",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-mountain-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "7c640eaa316b180d457d26ae07e3fec632a0b4f1a39f57efbd5fec62a3cbdfab",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "mountain",
+        "relief"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-coast-001",
+      "name": "Coast",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-coast-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "2512603e8c23f5ef1a6e6c1accb5869d511c60e165ff508ea36750b14e24cebe",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "coast",
+        "shore"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-water-001",
+      "name": "Water",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-water-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "e9103bd8182ee4957ac7f53e49eeaaec2059a328a41963dbd1ede2e9f1b382c9",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "water",
+        "animated_candidate"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-road-001",
+      "name": "Road",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-road-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "f3dd9e1b0a46a4c379a7facc0b4496786c3d1b8d46e78faef6e40a5737c4f51a",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "road",
+        "route"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-sand-001",
+      "name": "Sand",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-sand-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "98fb46aeea92e5b5bae11c82a138bf7236874fb058601fb7514cb08a8e1b21a7",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "desert",
+        "sand"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-cliff-001",
+      "name": "Cliff",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-cliff-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "a3a53a5c03e5088221370afa78a6775ad73e140cac73211c879d4fc37c43e1a9",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "cliff",
+        "contour"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-snow-001",
+      "name": "Snow",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-snow-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "43bff5dffae933a81578e7fcd0bd9f1d0b5e90dd9f2a2d744948a084b8012cf6",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "snow",
+        "cold"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-swamp-001",
+      "name": "Swamp",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-swamp-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "cb00aea84e861d5df653412a0d09f9e4bf26a90289f90d9458bb7976af9bca78",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "swamp",
+        "pools"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-stone-001",
+      "name": "Stone",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-stone-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "1b6efc41f695bbb9e5c76d33ff4b9f0120370229a22991c2b8c58d29e4c2fa16",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "stone",
+        "dungeon"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-wood-floor-001",
+      "name": "Wood Floor",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-wood-floor-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "2bd92606ff8dc85670a1f53684780880597dbf33589ea3cf18ce111b66178d3a",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "tavern",
+        "floor"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-stone-wall-001",
+      "name": "Stone Wall",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-stone-wall-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "60ce76a14552f36611543bdce879919f95b0fc6cd2c380345f717796e119f23e",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "wall",
+        "dungeon"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-dungeon-floor-001",
+      "name": "Dungeon Floor",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-dungeon-floor-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "2310f638b3a8b702c74fe1a1c5428764868ac41f6bf25cc8e14d2add2b7c311f",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "dungeon",
+        "stone"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-castle-stone-001",
+      "name": "Castle Stone",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-castle-stone-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "9a320b05e2fffbc682c16f68cd573ca3153daa2e69948612c2a05d3ed3b4d927",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "castle",
+        "stone"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-ruins-stone-001",
+      "name": "Ruins Stone",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-ruins-stone-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "6c1c9201dcf9d6d8039099ad00ab25922447f25a03d05fe55e8d4ce12d4f0949",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "ruins",
+        "stone"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-terrain-magical-001",
+      "name": "Magical Terrain",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-terrain-magical-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "985d796b30fc1d19284e3b2e0b93b53360862cf2ab72a7b08c418463cfe4c204",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "terrain",
+        "magical",
+        "rune"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-symbol-village-001",
+      "name": "Village Symbol",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-symbol-village-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "6db0abca1dda81890411cbe2e55309aaf7e2769f4bf22ace03435ae2960e58e0",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "symbol",
+        "village",
+        "map_symbol"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-symbol-town-001",
+      "name": "Town Symbol",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-symbol-town-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "d475d104a16fad6187d3d69b7f968e644a9ae851de005cbfc561e80106715cf0",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "symbol",
+        "town",
+        "map_symbol"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-symbol-city-001",
+      "name": "City Symbol",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-symbol-city-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "6d447a32b8e7a28b77947d0952b29df01028a4096dda085d5a28d0f8d921ab1a",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "symbol",
+        "city",
+        "map_symbol"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-symbol-block-001",
+      "name": "Block Symbol",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-symbol-block-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "23d8e2e0963bbe6a869490abd5d1dd4741beec140570c8aaa476d106319d80ac",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "symbol",
+        "block",
+        "map_symbol"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-symbol-tavern-001",
+      "name": "Tavern Symbol",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-symbol-tavern-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "67a0894b7dadce28f71c55684237c14f2aac5c5b9544cbe8cab401f552db8bf0",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "symbol",
+        "tavern",
+        "map_symbol"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-tree-001",
+      "name": "Tree",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-tree-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "5021c30bede372a4b3357cd93febf7837c1da26ae9112f7dac45c5bb55497812",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "tree",
+        "forest"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-bush-001",
+      "name": "Bush",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-bush-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "132b49a112fffdcce42f1673452450d8660b619614c11e01e29d349d31490390",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "bush",
+        "forest"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 64,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-flowers-001",
+      "name": "Flowers",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-flowers-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "6dfe63601e71a190ada761550f85c80f828e90eb2977892816a6fae056395312",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "flowers",
+        "temperate"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-log-001",
+      "name": "Log",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-log-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "a84bc3e91f242debd8736e531073368ab68834f4317eab7dfcc30179da429577",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "log",
+        "forest"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-rock-001",
+      "name": "Rock",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-rock-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "5d26c96228bafdbe8d4afbfe6ba397de1136f6ffc7e81fac43a79094d4f978c6",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "rock",
+        "stone"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-boulder-001",
+      "name": "Boulder",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-boulder-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "31c36f9c22c0f95a5d82501240740a39a06fc8468c14d895a21ca641fdf97b16",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "boulder",
+        "stone"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-bridge-001",
+      "name": "Bridge",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-bridge-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "3f3bd1f97f85825d13d0c120794c5f8f7b6a1e64172971d3eebf774f1fe2e4e5",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "bridge",
+        "road"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-fence-001",
+      "name": "Fence",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-fence-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "136b9ca142f3b17c9520c0803e1794e00f6b8be7b4267ef2650eea0b7fefe579",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "fence",
+        "village"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-sign-001",
+      "name": "Sign",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-sign-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "8c9e7b02af32af05a741b4a1ea62ffab301b7aeacfb0e2b17685df974a347f2d",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "sign",
+        "village"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-crate-001",
+      "name": "Crate",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-crate-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "85e48e6df2bb0c96217cb971bfa216b5c3d9730f872c5b6256c4ab8b978afaad",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "crate",
+        "tavern"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 96,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-barrel-001",
+      "name": "Barrel",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-barrel-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "cc42b099bbce6efe8afbb78e0fc8bf54f877bcc8c90c368e92e733952d44eaf3",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "barrel",
+        "tavern"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-chest-001",
+      "name": "Chest",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-chest-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "502b80581ac68e766d060a915a34f68210905e63f88595953a1e0d61b312fa51",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "chest",
+        "container"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-table-001",
+      "name": "Table",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-table-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "9a9a0c2b81e5ee8111295a8053e79d9977002986961aea5d5ec601829cc90475",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "table",
+        "tavern"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-chair-001",
+      "name": "Chair",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-chair-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "9c7d7377ae36e666b1ca2a633888725b36e15d4f226a188ca3fc4b32dbb85fa1",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "chair",
+        "tavern"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-shelves-001",
+      "name": "Shelves",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-shelves-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "89c9e4fb6880a2644c5c5248ae7bb7013bdf4ca32d497379dfd667b9aa21aed6",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "shelves",
+        "interior"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-bed-001",
+      "name": "Bed",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-bed-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "d83e01714f12c73adedde5f16a1a40eb8758e32d87826af9fdc5a7f00da84fb8",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "bed",
+        "interior"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-fireplace-001",
+      "name": "Fireplace",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-fireplace-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "fc8982e9d3e38c5dee90ccaf8f26510a745b8cd186145da923d1e70011c249f5",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "fireplace",
+        "animated_candidate"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-door-001",
+      "name": "Door",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-door-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "bad7f6759e096c0c2dbe8ed5215fb20c40a4d03a54c24b5f82802f6c8081d567",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "door",
+        "interior"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 128,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-window-001",
+      "name": "Window",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-window-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "346a842593cf8e1d7a56d4cd9aee2cde7e9fff0b142dbc15a148b596589ac4f6",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "window",
+        "interior"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-stairs-001",
+      "name": "Stairs",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-stairs-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "ebd6ec2fa55d916e74afe9eb158da39a23abc1124578b2b27aabfb8f19b60a1e",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "stairs",
+        "interior"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-bar-001",
+      "name": "Bar",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-bar-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "79088f5f9e5abd01b3d9ae62c85b8684e8cd6f12ff0890f3f42fccf7052ecf82",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "bar",
+        "tavern"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-torch-001",
+      "name": "Torch",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-torch-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "2dd50af28f883cba9bfbbded0653649ae790c0a7f1db9e293b53a0282ec631f5",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "torch",
+        "animated_candidate"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-object-portal-001",
+      "name": "Portal",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-object-portal-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "165b12c51574e65645b4bb01bc82d10ce354e89145f67ab25fcc8a3973586062",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "object",
+        "portal",
+        "animated_candidate"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-marker-entrance-001",
+      "name": "Entrance Marker",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-marker-entrance-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "6bb2e878cc19ab92f8ffbf807f7e1c4685b57ed8d3e5b91b50bc24f23329fd05",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "marker",
+        "entrance",
+        "marker"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-marker-exit-001",
+      "name": "Exit Marker",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-marker-exit-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "c8aecbc2ff6bf7aaecdd4ab7646dddcecb7df83ed158389b6defc3ec68daf122",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "marker",
+        "exit",
+        "marker"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-marker-trigger-001",
+      "name": "Trigger Marker",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-marker-trigger-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "7f6b947af7f32457c5b603239ac5fe846ea668c087f8eec8da8f9a9b2d764f5f",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "marker",
+        "trigger",
+        "hidden"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 160,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-marker-player-start-001",
+      "name": "Player Start",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-marker-player-start-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "090c946e27df8238864f22609d1ba7916d4c19a6abc8543d7af3b954a5368bf2",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "marker",
+        "player",
+        "start"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-marker-enemy-start-001",
+      "name": "Enemy Start",
+      "type": "tile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-marker-enemy-start-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "8cf98b5228d5155db089df4d44368c2b4f93cea99c81f0c2223656eddc335592",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "marker",
+        "enemy",
+        "start"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-grass-n-001",
+      "name": "Grass Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-grass-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "2c07650d4046fd73f8fe161d2f1d9966a99cdabe4e04ee1d5dca31a8e1ce8452",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "grass",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-grass-e-001",
+      "name": "Grass Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-grass-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "c0ccddd10f49f5b39307c817846228ea2e33222f4731b28d342fc4d34898da5d",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "grass",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-grass-s-001",
+      "name": "Grass Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-grass-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "f6db43d7892d65458a2c0b25fa48b80c6f9a9a8e14ec1ef6c949ef261566b021",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "grass",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-grass-w-001",
+      "name": "Grass Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-grass-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "79a63c101677f2cad615a622208a3360d5afd19987c904f0eda97c0c4fade031",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "grass",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-road-n-001",
+      "name": "Road Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-road-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "a2909ee26abf73f2f0e7f5317272304df4949439d69fda80e052ba0b536732c5",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "road",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-road-e-001",
+      "name": "Road Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-road-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "316e71d8520d6c5217fda5b3f5e02415ccb1d6179128920dfb9d7e38a38613a2",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "road",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 192,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-road-s-001",
+      "name": "Road Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-road-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "995cd0c3828836a9927275806f34dfc7fd2f8096a7a06a4363fe39602462c746",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "road",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-road-w-001",
+      "name": "Road Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-road-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "f6a18987f1c33175b096c3cd7ce60473e3e5a6d1ceb0dc74def37ee14405f5cf",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "road",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-water-n-001",
+      "name": "Water Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-water-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "4f2fd2aaf814853ef0d6bb5afd912f5077232336aec8f61bcf03808e4c2e521d",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "water",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-water-e-001",
+      "name": "Water Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-water-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "1961bc9dde391d97244f435b4f2e9067cc6080eec35bf2cfe36e709e37468399",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "water",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-water-s-001",
+      "name": "Water Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-water-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "86ef8e3cb1b8229fbd9b45cce590e33c553da93fdfaf21d62039c9a9c4a3c194",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "water",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-water-w-001",
+      "name": "Water Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-water-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "61c9c02fcd4dc856273d8099b99e71381ef16a941c1dacb7a4c5050608edccf1",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "water",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-forest-n-001",
+      "name": "Forest Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-forest-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "80ef41aa974bc16a00c79c2cb336dc61b4ffdb48f7b55e6d43123c66c7e4350f",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "forest",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-forest-e-001",
+      "name": "Forest Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-forest-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "d9232fe6fa6682acf8ab261a04145c2afcec7a9295b433278f02c1b7fc62698e",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "forest",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 224,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-forest-s-001",
+      "name": "Forest Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-forest-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "295ed08809be304c4988eca8263eb60a3b35900cc476fb4dd28a2347fdcd44bd",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "forest",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-forest-w-001",
+      "name": "Forest Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-forest-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "4b07f8e0737422f4b8dce5ebaf0b6dcad8268c3f842a8dae6a9ce51e31c76579",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "forest",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-sand-n-001",
+      "name": "Sand Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-sand-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "52c17480556990489a27f44f71fe726b443420ea49c45511df82fae2fc6cc5e5",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "sand",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-sand-e-001",
+      "name": "Sand Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-sand-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "be9f06c396cdf624bba3a92458a42d6b33f152b1833786452b09f62ad9898a4d",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "sand",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-sand-s-001",
+      "name": "Sand Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-sand-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "b50eb774a7783db80cc0435d7f457a498b9cf3d38f44ea1b8eaa5dea573f7426",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "sand",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-sand-w-001",
+      "name": "Sand Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-sand-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "a843df07f7d02f4972151f29a0b0cb7469eebdeff9bbbe7bdc5eab6494baceec",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "sand",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-cliff-n-001",
+      "name": "Cliff Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-cliff-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "9a10930342d8e770cbc6032cb3719cbcf79594ade8737c3ff8c3f38614fba035",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "cliff",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-cliff-e-001",
+      "name": "Cliff Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-cliff-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "f2e2109602a667fb8ec34677e98515c251c8ce008dca1751388f985c303ceeab",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "cliff",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 256,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-cliff-s-001",
+      "name": "Cliff Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-cliff-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "b0841ba896cf5dd35a26b0e145caa035d74806b73c5b1272c1a20ac3e37d5887",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "cliff",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-cliff-w-001",
+      "name": "Cliff Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-cliff-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "e98fd6381433eb2378973717b183a22cc58159107d50d5aab76f3ee19653db53",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "cliff",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-snow-n-001",
+      "name": "Snow Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-snow-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "80646c7f1e61f0e0a9d5db41cd1f8954d26fa2e838fce22cb436613788c22b6e",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "snow",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 64,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-snow-e-001",
+      "name": "Snow Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-snow-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "cd67838a8b5b8f59347139e53b17d95a2ec8a025c62363cef532657d14b606d1",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "snow",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 96,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-snow-s-001",
+      "name": "Snow Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-snow-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "c6c08477d3170f977951051d5abbc790eb443887a31dc7daab0978a2326d1665",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "snow",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 128,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-snow-w-001",
+      "name": "Snow Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-snow-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "b60313b4ae0e306478ee4c292867bb3bddbd8c54beb700ac72bb0d712b19f729",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "snow",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 160,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-stone-n-001",
+      "name": "Stone Edge N",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-stone-n-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "ad218d3c0e0399e929b26fff143b8b895d2b7288a7c38eabba3400ab610ac6bc",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "stone",
+        "n"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 192,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-stone-e-001",
+      "name": "Stone Edge E",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-stone-e-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "693b802f5d2b8013b262ae41508d4dc91c87cbd0e44e868da49e636f3a875f27",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "stone",
+        "e"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 224,
+        "y": 288,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-stone-s-001",
+      "name": "Stone Edge S",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-stone-s-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "75da5ac8fa184efca67e1916759d49c2c64e322c16bd72cbc7ed631afc3b4f11",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "stone",
+        "s"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 0,
+        "y": 320,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "assetId": "woodcut-autotile-stone-w-001",
+      "name": "Stone Edge W",
+      "type": "autotile_image",
+      "sourcePath": "assets/tiles/woodcut/woodcut-autotile-stone-w-001.png",
+      "mimeType": "image/png",
+      "widthPx": 32,
+      "heightPx": 32,
+      "contentHash": "bb0ccb365418b092f33d32ed1ec3391f7d7207726b1bb8334176daa1794c900b",
+      "licenseStatus": "original",
+      "author": "Shaelvien deterministic local generator",
+      "tags": [
+        "shaelvien_woodcut_v1",
+        "autotile",
+        "autotile",
+        "stone",
+        "w"
+      ],
+      "createdAt": "2026-08-03T15:05:48+00:00",
+      "updatedAt": "2026-08-03T15:05:48+00:00",
+      "atlasId": "woodcut-atlas-001",
+      "atlasSourcePath": "assets/tiles/woodcut_atlas_001.png",
+      "sourceRect": {
+        "x": 32,
+        "y": 320,
+        "width": 32,
+        "height": 32
+      }
+    }
+  ],
+  "uploadEndpointStatus": "not_available_static_frontend",
+  "uploadPolicy": {
+    "supportedFormats": [
+      "image/png",
+      "image/jpeg",
+      "image/webp"
+    ],
+    "storeBlobsInMapJson": false,
+    "duplicateStrategy": "content_hash_reuse",
+    "requiresServerBoundary": true
+  },
+  "defaultVisualLanguage": "shaelvien_woodcut_v1",
+  "woodcutPolicy": {
+    "style": "hand_burned_engraved_cartography",
+    "authoritativeTileSizePx": 32,
+    "originality": "deterministic local drawing; no external source art",
+    "commercialAssetUse": "forbidden",
+    "atlasRequired": true,
+    "animationPolicy": "restrained handcrafted frame deltas only"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "shaelvien.encounter_definition.v1",
+  "id": "enc-tavern-ambush",
+  "name": "Tavern Ambush",
+  "territoryId": "map-tavern-main-floor",
+  "battleMapId": "map-tavern-encounter",
+  "roundTimeAllowance": 6,
+  "timeCosts": {
+    "move_one_cell": 1,
+    "open_close_door": 1,
+    "basic_attack": 3,
+    "defend": 2,
+    "simple_interaction": 2,
+    "inspect": 0,
+    "wait": "remaining"
+  },
+  "playerStarts": [
+    {"entityId": "pc-lyra", "definitionId": "char-lyra", "x": 2, "y": 4},
+    {"entityId": "pc-borin", "definitionId": "char-borin", "x": 2, "y": 5}
+  ],
+  "monsterStarts": [
+    {"entityId": "mob-brigand-1", "definitionId": "creature-brigand-1", "x": 7, "y": 4},
+    {"entityId": "mob-brigand-2", "definitionId": "creature-brigand-2", "x": 8, "y": 5},
+    {"entityId": "mob-brigand-3", "definitionId": "creature-brigand-3", "x": 7, "y": 6},
+    {"entityId": "mob-commander", "definitionId": "creature-tavern-commander", "x": 9, "y": 3}
+  ],
+  "victory": {"playersWinWhen": "all_monsters_defeated", "monstersWinWhen": "all_players_defeated"},
+  "permissions": {"gm": {"canCommandMonsters": true, "canDirectMonsters": true}, "player": {"canControlAssignedCharacters": true}}
+}

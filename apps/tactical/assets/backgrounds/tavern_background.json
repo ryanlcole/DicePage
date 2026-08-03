@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "shaelvien.background.v1",
+  "sourceMapId": "map-tavern-main-floor",
+  "usage": "The encounter renderer reads the same map model and placed tiles as the exploration tavern territory."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "shaelvien-recursive-tactical-tabletop",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test:replay": "C:\\Shaelvien\\tools\\node.cmd tests/deterministic_replay_test.mjs",
+    "test:editor": "C:\\Shaelvien\\tools\\node.cmd tests/editor_geometry_test.mjs",
+    "test:workspace": "python tools/cdp_verify_workspace.py",
+    "test:woodcut": "C:\\Shaelvien\\tools\\node.cmd tests/woodcut_asset_test.mjs"
+  }
+}

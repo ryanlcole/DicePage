@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "shaelvien.placeholder_tiles.v1",
+  "source": "original canvas pixel rect definitions in data/tile_manifest.json",
+  "tileSize": 16,
+  "assetPolicy": "No commercial assets. Runtime sprites are generated from local JSON rectangles and scaled with image-rendering: pixelated."
+}

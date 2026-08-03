@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-tavern-exterior",
+  "name": "Tavern Exterior",
+  "category": "building",
+  "parentMapId": "map-block",
+  "parentTileId": "tile-block-tavern",
+  "width": 12,
+  "height": 8,
+  "tileSize": 16,
+  "terrain": {"default": "road", "overrides": [{"x": 5, "y": 4, "definitionId": "entrance"}]},
+  "placedTiles": [
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-exterior-door",
+      "definitionId": "door",
+      "x": 5,
+      "y": 4,
+      "width": 1,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": "map-tavern-main-floor",
+      "entryPointId": "entry-front-door",
+      "actions": [
+        {
+          "id": "action-enter-main-floor-from-exterior",
+          "type": "enter_child_map",
+          "label": "Enter Main Floor",
+          "allowedActors": ["gm", "player"],
+          "timeCost": 0,
+          "requirements": {"revealed": true},
+          "effects": [{"type": "open_child_map", "mapId": "map-tavern-main-floor", "entryPointId": "entry-front-door"}]
+        }
+      ],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Front Door", "gmNotes": "Optional tavern exterior hop."}
+    }
+  ],
+  "entities": [],
+  "entryPoints": [{"id": "entry-from-block", "x": 5, "y": 6, "label": "Street", "fromMapId": "map-block", "fromTileId": "tile-block-tavern"}],
+  "exitPoints": [{"id": "exit-to-block", "x": 5, "y": 7, "label": "Block", "targetMapId": "map-block", "targetTileId": "tile-block-tavern"}],
+  "triggers": [],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
+  "atmosphere": {"light": "door glow", "sound": "muffled music", "gmNotes": "Exterior exists to prove building category without a separate engine."},
+  "encounterReferences": []
+}

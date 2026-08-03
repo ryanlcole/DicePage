@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "shaelvien.creatures.v1",
+  "creatures": [
+    {
+      "id": "creature-brigand-1",
+      "name": "Ash Knife",
+      "role": "ordinary",
+      "spriteId": "sprite-brigand",
+      "hp": 5,
+      "attack": 4,
+      "defense": 1,
+      "initiative": 12,
+      "actions": ["Move", "Basic Attack", "Defend", "Wait"]
+    },
+    {
+      "id": "creature-brigand-2",
+      "name": "Cellar Thug",
+      "role": "ordinary",
+      "spriteId": "sprite-brigand",
+      "hp": 5,
+      "attack": 4,
+      "defense": 1,
+      "initiative": 11,
+      "actions": ["Move", "Basic Attack", "Defend", "Wait"]
+    },
+    {
+      "id": "creature-brigand-3",
+      "name": "Backroom Cutter",
+      "role": "ordinary",
+      "spriteId": "sprite-brigand",
+      "hp": 5,
+      "attack": 4,
+      "defense": 1,
+      "initiative": 10,
+      "actions": ["Move", "Basic Attack", "Defend", "Wait"]
+    },
+    {
+      "id": "creature-tavern-commander",
+      "name": "Marn the Red",
+      "role": "commander",
+      "spriteId": "sprite-commander",
+      "hp": 8,
+      "attack": 5,
+      "defense": 2,
+      "initiative": 13,
+      "actions": ["Move", "Basic Attack", "Defend", "Wait"],
+      "commanderOrders": ["hold_position", "attack_nearest", "focus_target", "defend_target", "block_exit", "surround_target", "retreat"]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-world",
+  "name": "World",
+  "category": "world",
+  "parentMapId": null,
+  "parentTileId": null,
+  "width": 16,
+  "height": 10,
+  "tileSize": 16,
+  "terrain": {
+    "default": "grass",
+    "overrides": [
+      {"x": 0, "y": 5, "definitionId": "road"}, {"x": 1, "y": 5, "definitionId": "road"}, {"x": 2, "y": 5, "definitionId": "road"}, {"x": 3, "y": 5, "definitionId": "road"},
+      {"x": 4, "y": 5, "definitionId": "road"}, {"x": 5, "y": 5, "definitionId": "road"}, {"x": 6, "y": 5, "definitionId": "road"}, {"x": 7, "y": 5, "definitionId": "road"},
+      {"x": 8, "y": 5, "definitionId": "road"}, {"x": 9, "y": 5, "definitionId": "road"}, {"x": 10, "y": 5, "definitionId": "road"}, {"x": 11, "y": 5, "definitionId": "road"},
+      {"x": 12, "y": 5, "definitionId": "road"}, {"x": 13, "y": 5, "definitionId": "road"}, {"x": 14, "y": 5, "definitionId": "road"}, {"x": 15, "y": 5, "definitionId": "road"},
+      {"x": 1, "y": 1, "definitionId": "water"}, {"x": 2, "y": 1, "definitionId": "water"}, {"x": 1, "y": 2, "definitionId": "water"}
+    ]
+  },
+  "placedTiles": [
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-world-city",
+      "definitionId": "city",
+      "x": 7,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": "map-city",
+      "entryPointId": "entry-from-world",
+      "actions": [
+        {
+          "id": "action-enter-city",
+          "type": "enter_child_map",
+          "label": "Enter City",
+          "allowedActors": ["gm", "player"],
+          "timeCost": 0,
+          "requirements": {"revealed": true},
+          "effects": [{"type": "open_child_map", "mapId": "map-city", "entryPointId": "entry-from-world"}]
+        }
+      ],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "City", "gmNotes": "World-to-city recursive tile."}
+    }
+  ],
+  "entities": [],
+  "entryPoints": [{"id": "entry-root", "x": 0, "y": 5, "label": "World Road"}],
+  "exitPoints": [],
+  "triggers": [],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
+  "atmosphere": {"light": "day", "sound": "wind", "gmNotes": "World layer proof."},
+  "encounterReferences": []
+}

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="shaelvien-tabletop-build" content="SHAELVIEN-PERCEPTION-1">
+  <title>Shaelvien Tactical Tabletop</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css?v=shaelvien-perception-1">
+  <script type="module" src="js/app.js?v=shaelvien-perception-1"></script>
+</head>
+<body>
+  <main class="app-shell" aria-label="Shaelvien Tactical Tabletop">
+    <header class="app-bar">
+      <div class="brand-cluster">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <div class="brand-copy">
+          <strong>Shaelvien Tactical</strong>
+          <span id="currentLocationLabel" title="Current campaign and map">World</span>
+        </div>
+      </div>
+
+      <nav class="breadcrumb" id="breadcrumb" data-testid="breadcrumb" aria-label="Map breadcrumb"></nav>
+
+      <div class="app-state-cluster" aria-label="Runtime status">
+        <span class="state-chip" id="sceneStatus">BOOT</span>
+        <span class="state-chip" id="connectionStatus">Loading</span>
+        <span class="state-chip state-chip-warn" id="errorStatus">No errors</span>
+      </div>
+
+      <div class="mode-cluster" aria-label="Role and account">
+        <div class="segmented" role="group" aria-label="Role">
+          <button class="segment is-active" id="gmRoleButton" data-role="gm" data-testid="role-gm" type="button">GM</button>
+          <button class="segment" id="playerRoleButton" data-role="player" data-testid="role-player" type="button">Player</button>
+        </div>
+        <label class="compact-field player-field" for="playerIdentity">
+          <span>Player</span>
+          <select id="playerIdentity" data-testid="player-identity">
+            <option value="player-a">Player A</option>
+            <option value="player-b">Player B</option>
+          </select>
+        </label>
+        <button class="tool-icon" id="saveButton" data-testid="save-map" type="button" title="Save locally" aria-label="Save locally">Save</button>
+        <button class="tool-icon ghost-on-mobile" id="resetButton" type="button" title="Reset local state" aria-label="Reset local state">Reset</button>
+      </div>
+    </header>
+
+    <section class="main-toolbar" aria-label="Main toolbar">
+      <div class="toolbar-group toolbar-group-file" aria-label="File and map">
+        <button class="toolbar-button" id="newMapButton" type="button" title="New map" aria-label="New map">New</button>
+        <button class="toolbar-button" id="openMapMenuButton" type="button" title="Open map" aria-label="Open map">Open</button>
+        <button class="toolbar-button gm-only" id="mapSettingsButton" data-editor-command="map-settings" type="button" title="Map settings" aria-label="Map settings">Map Settings</button>
+      </div>
+
+      <div class="toolbar-group toolbar-group-edit gm-only" aria-label="Edit">
+        <button class="toolbar-button" data-editor-command="undo" type="button" title="Undo (Ctrl+Z)" aria-label="Undo">Undo</button>
+        <button class="toolbar-button" data-editor-command="redo" type="button" title="Redo (Ctrl+Y)" aria-label="Redo">Redo</button>
+        <button class="toolbar-button" data-editor-command="copy" type="button" title="Copy tile" aria-label="Copy tile">Copy</button>
+        <button class="toolbar-button" data-editor-command="paste" type="button" title="Paste tile" aria-label="Paste tile">Paste</button>
+        <button class="toolbar-button danger" data-editor-command="delete" type="button" title="Delete selected tile content" aria-label="Delete selected tile content">Delete</button>
+      </div>
+
+      <div class="toolbar-group toolbar-group-tools gm-only" aria-label="Authoring tools">
+        <button class="toolbar-button is-active" data-editor-tool="select" type="button" title="Select (V)" aria-label="Select">Select</button>
+        <button class="toolbar-button" data-editor-tool="pan" type="button" title="Pan (H)" aria-label="Pan">Pan</button>
+        <button class="toolbar-button" data-editor-tool="paint" type="button" title="Paint (B)" aria-label="Paint">Paint</button>
+        <button class="toolbar-button" data-editor-tool="erase" type="button" title="Erase (E)" aria-label="Erase">Erase</button>
+        <button class="toolbar-button" data-editor-tool="fill" type="button" title="Fill (F)" aria-label="Fill">Fill</button>
+        <button class="toolbar-button optional-tool" data-editor-tool="child" type="button" title="Place child map" aria-label="Place child map">Child</button>
+        <button class="toolbar-button optional-tool" data-editor-tool="trigger" type="button" title="Place trigger" aria-label="Place trigger">Trigger</button>
+        <button class="toolbar-button optional-tool" data-editor-tool="encounter" type="button" title="Place encounter" aria-label="Place encounter">Encounter</button>
+        <button class="toolbar-button optional-tool" data-editor-tool="entity-start" type="button" title="Place entity start" aria-label="Place entity start">Entity</button>
+      </div>
+
+      <div class="toolbar-group toolbar-group-view" aria-label="View">
+        <button class="toolbar-button" id="zoomOutButton" type="button" title="Zoom out" aria-label="Zoom out">-</button>
+        <select class="zoom-select" id="zoomSelect" aria-label="Zoom level">
+          <option value="0.25">25%</option>
+          <option value="0.5">50%</option>
+          <option value="0.67">67%</option>
+          <option value="0.75">75%</option>
+          <option value="1">100%</option>
+          <option value="1.25">125%</option>
+          <option value="1.5">150%</option>
+          <option value="2">200%</option>
+          <option value="3">300%</option>
+          <option value="4">400%</option>
+          <option value="fit-map">Fit Map</option>
+          <option value="fit-width">Fit Width</option>
+          <option value="fit-height">Fit Height</option>
+          <option value="actual-size">Actual Size</option>
+          <option value="fit-selection">Fit Selection</option>
+        </select>
+        <button class="toolbar-button" id="zoomInButton" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+        <button class="toolbar-button" id="fitMapButton" type="button" title="Fit Map">Fit</button>
+        <button class="toolbar-button optional-view" id="fitWidthButton" type="button" title="Fit Width">Width</button>
+        <button class="toolbar-button optional-view" id="fitHeightButton" type="button" title="Fit Height">Height</button>
+        <button class="toolbar-button optional-view" id="actualSizeButton" type="button" title="Actual Size">100%</button>
+        <button class="toolbar-button optional-view" id="fitSelectionButton" type="button" title="Fit Selection">Selection</button>
+        <button class="toolbar-button" id="rotateLeftButton" type="button" title="Rotate left 90 degrees" aria-label="Rotate left 90 degrees">Rot L</button>
+        <button class="toolbar-button" id="rotateRightButton" type="button" title="Rotate right 90 degrees" aria-label="Rotate right 90 degrees">Rot R</button>
+        <button class="toolbar-button optional-view" id="resetRotationButton" type="button" title="Reset rotation" aria-label="Reset rotation">North</button>
+        <label class="check-inline optional-view">
+          <input id="gridVisibleToggle" type="checkbox" checked>
+          <span>Grid</span>
+        </label>
+        <button class="toolbar-button" id="toggleInspectorButton" type="button" aria-expanded="true" title="Toggle inspector" aria-label="Toggle inspector">Inspector</button>
+      </div>
+
+      <div class="toolbar-group toolbar-group-mode" aria-label="Mode">
+        <button class="toolbar-button" id="mapViewButton" title="Map View" type="button">Map</button>
+        <button class="toolbar-button gm-only" id="mapEditButton" title="Map Edit" type="button">Edit</button>
+        <button class="toolbar-button" id="replayButton" title="Replay" type="button">Replay</button>
+        <button class="toolbar-button" id="pauseButton" title="Pause" type="button">Pause</button>
+        <button class="toolbar-button more-button" id="moreMenuButton" type="button" aria-expanded="false" title="More actions">More</button>
+      </div>
+    </section>
+
+    <section class="workspace-shell">
+      <aside class="tool-rail gm-only" aria-label="GM map tools">
+        <button class="rail-button is-active" data-editor-tool="select" type="button" title="Select (V)" aria-label="Select">V</button>
+        <button class="rail-button" data-editor-tool="pan" type="button" title="Pan (H)" aria-label="Pan">H</button>
+        <button class="rail-button" data-editor-tool="paint" type="button" title="Paint (B)" aria-label="Paint">B</button>
+        <button class="rail-button" data-editor-tool="erase" type="button" title="Erase (E)" aria-label="Erase">E</button>
+        <button class="rail-button" data-editor-tool="fill" type="button" title="Fill (F)" aria-label="Fill">F</button>
+        <button class="rail-button" data-editor-tool="child" type="button" title="Place child map" aria-label="Place child map">C</button>
+        <button class="rail-button" data-editor-tool="trigger" type="button" title="Place trigger" aria-label="Place trigger">T</button>
+        <button class="rail-button" data-editor-tool="encounter" type="button" title="Place encounter" aria-label="Place encounter">En</button>
+        <button class="rail-button" data-editor-tool="entity-start" type="button" title="Place entity start" aria-label="Place entity start">P</button>
+        <button class="rail-button" id="measureToolButton" type="button" title="Measure" aria-label="Measure">M</button>
+      </aside>
+
+      <section class="map-workspace" aria-label="Map workspace">
+        <div class="map-viewport" id="mapViewport">
+          <canvas id="gameCanvas" width="960" height="640" tabindex="0" aria-label="Shaelvien tabletop canvas"></canvas>
+          <div class="workspace-hud top-left" id="workspaceMapHud">World</div>
+          <button class="compass-control" id="compassButton" type="button" title="Reset view to North-up" aria-label="Reset view to North-up">
+            <span class="compass-needle" id="compassNeedle">N</span>
+            <span class="compass-angle" id="compassAngle">0 deg</span>
+          </button>
+          <div class="floating-zoom" aria-label="Viewport controls">
+            <button class="hud-button" id="mobileZoomOutButton" type="button" title="Zoom out" aria-label="Zoom out">-</button>
+            <span id="floatingZoomLabel">100%</span>
+            <button class="hud-button" id="mobileZoomInButton" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector-panel" id="inspectorPanel" aria-label="Inspector">
+        <div class="inspector-resize-handle" id="inspectorResizeHandle" title="Resize inspector" aria-hidden="true"></div>
+        <div class="inspector-title">
+          <div>
+            <span class="section-kicker">Properties</span>
+            <h2 id="inspectorHeading">Inspector</h2>
+          </div>
+          <button class="tool-icon" id="closeInspectorButton" type="button" aria-label="Close inspector">Close</button>
+        </div>
+
+        <section class="panel-section" id="mapPanel">
+          <div class="panel-head">
+            <h3>Map</h3>
+            <span id="mapMeta">World</span>
+          </div>
+          <div class="button-row">
+            <button class="command-button" id="openChildButton" data-testid="open-child" type="button">Open Child</button>
+            <button class="command-button" id="returnParentButton" data-testid="return-parent" type="button">Parent</button>
+            <button class="command-button player-only" id="interactButton" data-testid="player-interact" type="button">Interact</button>
+            <button class="command-button player-only" id="placePcButton" data-testid="place-pc" type="button">Place PC</button>
+          </div>
+          <div class="movement-pad" aria-label="Map movement">
+            <button class="icon-button" data-map-move="up" type="button">Up</button>
+            <button class="icon-button" data-map-move="left" type="button">Left</button>
+            <button class="icon-button" data-map-move="right" type="button">Right</button>
+            <button class="icon-button" data-map-move="down" type="button">Down</button>
+          </div>
+        </section>
+
+        <section class="panel-section gm-only" id="editorPanel">
+          <div class="panel-head">
+            <h3>Tile</h3>
+            <span id="editorModeLabel">MAP_EDIT</span>
+          </div>
+          <div class="selection-card" id="tileInspectorSummary">No tile selected</div>
+          <div class="button-row">
+            <button class="command-button" id="moveTileLeftButton" type="button">Left</button>
+            <button class="command-button" id="moveTileRightButton" type="button">Right</button>
+            <button class="command-button" id="moveTileUpButton" type="button">Up</button>
+            <button class="command-button" id="moveTileDownButton" type="button">Down</button>
+          </div>
+          <div class="button-row">
+            <button class="command-button danger" id="deleteTileButton" data-testid="delete-tile" type="button">Delete</button>
+            <button class="command-button" id="createChildButton" data-testid="create-child-map" type="button">Create Child</button>
+          </div>
+          <label class="check-row">
+            <input id="hiddenToggle" data-testid="hidden-toggle" type="checkbox">
+            <span>Hidden from players</span>
+          </label>
+          <label class="check-row">
+            <input id="blockedToggle" type="checkbox">
+            <span>Blocks movement</span>
+          </label>
+          <label class="select-label" for="collisionPresetSelect">Collision preset</label>
+          <select id="collisionPresetSelect"></select>
+          <div class="collision-grid" aria-label="Collision properties">
+            <label><input id="collisionMovementToggle" type="checkbox"> Move</label>
+            <label><input id="collisionVisionToggle" type="checkbox"> Vision</label>
+            <label><input id="collisionSoundToggle" type="checkbox"> Sound</label>
+            <label><input id="collisionProjectileToggle" type="checkbox"> Projectile</label>
+            <label><input id="collisionReachToggle" type="checkbox"> Reach</label>
+          </div>
+          <div class="field-grid compact">
+            <label>Shape<select id="collisionShapeSelect"><option value="tile_footprint">Tile footprint</option><option value="hex_footprint">Hex footprint</option><option value="rectangle">Rectangle</option><option value="circle">Circle</option><option value="polygon">Polygon</option><option value="line_segment">Line segment</option><option value="doorway">Doorway</option><option value="opening">Opening</option></select></label>
+            <label>Height<input id="collisionHeightInput" type="number" min="0" step="0.1"></label>
+            <label>Transmission<input id="soundTransmissionInput" type="number" min="0" max="1" step="0.05"></label>
+            <label>Absorption<input id="soundAbsorptionInput" type="number" min="0" max="1" step="0.05"></label>
+          </div>
+          <label class="select-label" for="assetSelect">Image</label>
+          <select id="assetSelect"></select>
+          <div class="button-row">
+            <button class="command-button" id="assignTileImageButton" type="button">Set Image</button>
+            <button class="command-button" id="removeTileImageButton" type="button">Remove Image</button>
+          </div>
+          <label class="select-label" for="childMapSelect">Child map</label>
+          <select id="childMapSelect" data-testid="child-map-select"></select>
+          <label class="select-label" for="actionTypeSelect">Action</label>
+          <select id="actionTypeSelect"></select>
+          <button class="command-button" id="attachActionButton" data-testid="attach-action" type="button">Attach Action</button>
+          <label class="select-label" for="triggerTypeSelect">Trigger</label>
+          <select id="triggerTypeSelect"></select>
+          <button class="command-button" id="attachTriggerButton" data-testid="attach-trigger" type="button">Attach Trigger</button>
+          <label class="select-label" for="encounterSelect">Encounter</label>
+          <select id="encounterSelect"></select>
+          <button class="command-button" id="attachEncounterButton" data-testid="attach-encounter" type="button">Attach Encounter</button>
+          <button class="command-button" id="manualTriggerButton" data-testid="manual-trigger" type="button">Manual Trigger</button>
+        </section>
+
+        <section class="panel-section gm-only palette-panel" id="palettePanel">
+          <div class="panel-head">
+            <h3>Palette</h3>
+            <span>Brush</span>
+          </div>
+          <div class="palette-grid" id="tilePalette" data-testid="tile-palette"></div>
+          <label class="select-label" for="brushImageSelect">Brush Image</label>
+          <select id="brushImageSelect" aria-label="Brush image asset"></select>
+          <input id="assetFileInput" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Validate local tile image">
+          <p class="microcopy" id="assetImportStatus">Registered assets only in this static build.</p>
+        </section>
+
+        <section class="panel-section" id="encounterPanel">
+          <div class="panel-head">
+            <h3>Encounter</h3>
+            <span id="encounterMeta">Inactive</span>
+          </div>
+          <div class="time-grid">
+            <span>Available</span><strong id="timeAvailable">0</strong>
+            <span>Spent</span><strong id="timeSpent">0</strong>
+            <span>Selected</span><strong id="selectedCost">0</strong>
+            <span>Remaining</span><strong id="timeRemaining">0</strong>
+          </div>
+          <div class="button-row player-action-row">
+            <button class="command-button" data-encounter-action="move" data-dir="up" type="button">Move Up</button>
+            <button class="command-button" data-encounter-action="move" data-dir="left" type="button">Move Left</button>
+            <button class="command-button" data-encounter-action="move" data-dir="right" type="button">Move Right</button>
+            <button class="command-button" data-encounter-action="move" data-dir="down" type="button">Move Down</button>
+            <button class="command-button" data-encounter-action="basic_attack" data-testid="basic-attack" type="button">Attack</button>
+            <button class="command-button" data-encounter-action="defend" type="button">Defend</button>
+            <button class="command-button" data-encounter-action="interact" type="button">Interact</button>
+            <button class="command-button" data-encounter-action="inspect" type="button">Inspect</button>
+            <button class="command-button" data-encounter-action="wait" type="button">Wait</button>
+          </div>
+          <div class="gm-only commander-tools">
+            <label class="select-label" for="commanderOrder">Commander order</label>
+            <select id="commanderOrder" data-testid="commander-order">
+              <option value="attack_nearest">attack_nearest</option>
+              <option value="hold_position">hold_position</option>
+              <option value="focus_target">focus_target</option>
+              <option value="defend_target">defend_target</option>
+              <option value="block_exit">block_exit</option>
+              <option value="surround_target">surround_target</option>
+              <option value="retreat">retreat</option>
+            </select>
+            <button class="command-button" id="issueCommanderButton" data-testid="issue-commander" type="button">Issue Order</button>
+            <label class="select-label" for="monsterSelect">Monster</label>
+            <select id="monsterSelect" data-testid="monster-select"></select>
+            <label class="select-label" for="directAction">Direct action</label>
+            <select id="directAction">
+              <option value="defend">Defend</option>
+              <option value="wait">Wait</option>
+              <option value="move_left">Move Left</option>
+              <option value="move_right">Move Right</option>
+              <option value="move_up">Move Up</option>
+              <option value="move_down">Move Down</option>
+              <option value="basic_attack">Attack</option>
+            </select>
+            <button class="command-button" id="directOverrideButton" data-testid="direct-override" type="button">Direct Override</button>
+            <button class="command-button" id="runQueuedButton" data-testid="run-queued" type="button">Run Queued</button>
+            <button class="command-button" id="finishEncounterButton" data-testid="finish-encounter" type="button">Finish Encounter</button>
+          </div>
+        </section>
+
+        <section class="panel-section" id="replayPanel">
+          <div class="panel-head">
+            <h3>Replay</h3>
+            <span id="replayMeta">None</span>
+          </div>
+          <div class="button-row">
+            <button class="command-button" id="replayRestartButton" type="button">Restart</button>
+            <button class="command-button" id="replayPlayButton" data-testid="replay-play" type="button">Play</button>
+            <button class="command-button" id="replayPauseButton" type="button">Pause</button>
+            <button class="command-button" id="replayPrevButton" type="button">Prev Event</button>
+            <button class="command-button" id="replayNextButton" type="button">Next Event</button>
+            <button class="command-button" id="replayPrevRoundButton" type="button">Prev Round</button>
+            <button class="command-button" id="replayNextRoundButton" type="button">Next Round</button>
+            <button class="command-button" id="replaySpeedButton" type="button">Double Speed</button>
+            <button class="command-button" id="replayInspectButton" type="button">Inspect Entity</button>
+          </div>
+          <select id="replaySelect" data-testid="replay-select"></select>
+          <div class="replay-detail" id="replayDetail"></div>
+        </section>
+
+        <section class="panel-section">
+          <div class="panel-head">
+            <h3>Log</h3>
+            <span id="logCount">0</span>
+          </div>
+          <ol class="event-log" id="eventLog" data-testid="event-log"></ol>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="status-bar" id="statusBar" aria-label="Workspace status">
+      <span id="statusMap">World</span>
+      <span id="statusGrid">Square 16x10</span>
+      <span id="statusScale">5 ft/cell</span>
+      <span id="selectionStatus">No selection</span>
+      <span id="statusZoom">100%</span>
+      <span id="statusRotation">North-up</span>
+      <span id="timeStatus">Time: 0 / 0</span>
+    </footer>
+  </main>
+
+  <div class="context-menu" id="tileContextMenu" role="menu" hidden>
+    <strong id="contextMenuTitle">Tile</strong>
+    <div class="menu-group" data-menu-group="selection">
+      <button type="button" data-context-action="select">Select tile</button>
+      <button type="button" data-context-action="inspect">Inspect tile</button>
+      <button type="button" data-context-action="edit">Edit tile</button>
+    </div>
+    <div class="menu-group" data-menu-group="appearance">
+      <button type="button" data-context-action="change_terrain">Change terrain</button>
+      <button type="button" data-context-action="set_image">Set image</button>
+      <button type="button" data-context-action="remove_image">Remove image</button>
+    </div>
+    <div class="menu-group" data-menu-group="behavior">
+      <button type="button" data-context-action="toggle_hidden">Toggle hidden from players</button>
+      <button type="button" data-context-action="toggle_blocked">Toggle blocks movement</button>
+      <button type="button" data-context-action="attach_action">Attach action</button>
+      <button type="button" data-context-action="attach_trigger">Attach trigger</button>
+      <button type="button" data-context-action="attach_encounter">Attach encounter</button>
+    </div>
+    <div class="menu-group" data-menu-group="links">
+      <button type="button" data-context-action="create_child">Create child map</button>
+      <button type="button" data-context-action="open_child">Open child map</button>
+    </div>
+    <div class="menu-group" data-menu-group="edit">
+      <button type="button" data-context-action="copy">Copy tile</button>
+      <button type="button" data-context-action="paste">Paste tile</button>
+      <button type="button" data-context-action="clear">Clear tile</button>
+    </div>
+    <div class="menu-group menu-group-danger" data-menu-group="delete">
+      <button type="button" data-context-action="delete">Delete tile content</button>
+    </div>
+  </div>
+
+  <div class="more-menu" id="moreMenu" role="menu" hidden>
+    <button type="button" data-more-action="fit-width">Fit Width</button>
+    <button type="button" data-more-action="fit-height">Fit Height</button>
+    <button type="button" data-more-action="actual-size">Actual Size</button>
+    <button type="button" data-more-action="fit-selection">Fit Selection</button>
+    <button type="button" data-more-action="reset-view">Reset View</button>
+    <button type="button" data-more-action="toggle-grid">Toggle Grid</button>
+    <button type="button" data-more-action="toggle-compass">Toggle Compass</button>
+    <button type="button" data-more-action="toggle-perception-debug" class="gm-only">Toggle Perception Debug</button>
+    <button type="button" data-more-action="map-settings" class="gm-only">Map Settings</button>
+  </div>
+
+  <dialog class="settings-dialog" id="mapSettingsDialog">
+    <form id="mapSettingsForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <span class="section-kicker">Workspace</span>
+          <h2>Map Settings</h2>
+        </div>
+        <button class="tool-icon" id="mapSettingsCancelButton" type="button">Close</button>
+      </div>
+      <div class="settings-grid">
+        <label>Map name<input id="settingsMapName" type="text" autocomplete="off"></label>
+        <label>Map ID<input id="settingsMapId" type="text" readonly></label>
+        <label>Grid type<select id="settingsGridType"><option value="square">Square</option><option value="hex">Hex</option></select></label>
+        <label>Hex orientation<select id="settingsHexOrientation"><option value="pointy">Pointy</option><option value="flat">Flat</option></select></label>
+        <label>Size mode<select id="settingsSizeMode"><option value="tile-count">Tile count</option><option value="physical">Physical dimensions</option></select></label>
+        <label>Columns<input id="settingsColumns" type="number" min="1" step="1"></label>
+        <label>Rows<input id="settingsRows" type="number" min="1" step="1"></label>
+        <label>Physical width<input id="settingsPhysicalWidth" type="number" min="1" step="0.1"></label>
+        <label>Physical height<input id="settingsPhysicalHeight" type="number" min="1" step="0.1"></label>
+        <label>Measurement system<select id="settingsUnitSystem"><option value="imperial">Imperial</option><option value="metric">Metric</option><option value="abstract">Abstract</option></select></label>
+        <label>Distance unit<select id="settingsDistanceUnit"><option value="ft">ft</option><option value="m">m</option><option value="tile">tile</option><option value="hex">hex</option></select></label>
+        <label>Cell width<input id="settingsCellWidth" type="number" min="0.1" step="0.1"></label>
+        <label>Cell height<input id="settingsCellHeight" type="number" min="0.1" step="0.1"></label>
+        <label>Hex radius<input id="settingsHexRadius" type="number" min="0.1" step="0.1"></label>
+        <label>Canvas cell px<input id="settingsTileSize" type="number" min="8" step="1"></label>
+        <label>Default terrain<select id="settingsDefaultTerrain"><option value="grass">grass</option><option value="floor">floor</option><option value="road">road</option><option value="wall">wall</option><option value="water">water</option></select></label>
+        <label>Player visibility<select id="settingsPlayerVisibility"><option value="visible">Visible</option><option value="hidden">Hidden</option></select></label>
+      </div>
+      <pre class="settings-preview" id="mapSettingsPreview"></pre>
+      <label class="check-row">
+        <input id="mapSettingsConfirmShrink" type="checkbox">
+        <span>Confirm shrink removal after reviewing listed content</span>
+      </label>
+      <div class="button-row dialog-actions">
+        <button class="command-button" type="submit">Apply</button>
+        <button class="command-button" type="button" data-dialog-close="mapSettingsDialog">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

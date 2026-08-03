@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "shaelvien.placeholder_sprites.v1",
+  "sprites": [
+    {"id": "sprite-player-lyra", "base": "#2f5d8a", "accent": "#8fd3ff"},
+    {"id": "sprite-player-borin", "base": "#4e6f40", "accent": "#b9dd73"},
+    {"id": "sprite-brigand", "base": "#813c3a", "accent": "#d96a57"},
+    {"id": "sprite-commander", "base": "#4a2936", "accent": "#f4c75e"}
+  ],
+  "assetPolicy": "Original placeholder sprites drawn by Canvas 2D at runtime."
+}

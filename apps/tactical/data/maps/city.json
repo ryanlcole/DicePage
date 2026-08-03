@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-city",
+  "name": "City",
+  "category": "city",
+  "parentMapId": "map-world",
+  "parentTileId": "tile-world-city",
+  "width": 14,
+  "height": 10,
+  "tileSize": 16,
+  "terrain": {
+    "default": "road",
+    "overrides": [
+      {"x": 0, "y": 0, "definitionId": "grass"}, {"x": 1, "y": 0, "definitionId": "grass"}, {"x": 12, "y": 0, "definitionId": "grass"}, {"x": 13, "y": 0, "definitionId": "grass"},
+      {"x": 0, "y": 9, "definitionId": "grass"}, {"x": 1, "y": 9, "definitionId": "grass"}, {"x": 12, "y": 9, "definitionId": "grass"}, {"x": 13, "y": 9, "definitionId": "grass"}
+    ]
+  },
+  "placedTiles": [
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-city-block",
+      "definitionId": "block",
+      "x": 6,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": "map-block",
+      "entryPointId": "entry-from-city",
+      "actions": [
+        {
+          "id": "action-enter-block",
+          "type": "enter_child_map",
+          "label": "Enter Block",
+          "allowedActors": ["gm", "player"],
+          "timeCost": 0,
+          "requirements": {"revealed": true},
+          "effects": [{"type": "open_child_map", "mapId": "map-block", "entryPointId": "entry-from-city"}]
+        }
+      ],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Market Block", "gmNotes": "City-to-block recursive tile."}
+    }
+  ],
+  "entities": [],
+  "entryPoints": [{"id": "entry-from-world", "x": 6, "y": 8, "label": "City Gate", "fromMapId": "map-world", "fromTileId": "tile-world-city"}],
+  "exitPoints": [{"id": "exit-to-world", "x": 6, "y": 9, "label": "World Road", "targetMapId": "map-world", "targetTileId": "tile-world-city"}],
+  "triggers": [],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
+  "atmosphere": {"light": "lanterns", "sound": "crowd", "gmNotes": "City layer proof."},
+  "encounterReferences": []
+}

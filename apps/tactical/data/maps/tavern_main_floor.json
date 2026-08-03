@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "shaelvien.map.v1",
+  "id": "map-tavern-main-floor",
+  "name": "Tavern Main Floor",
+  "category": "floor",
+  "parentMapId": "map-block",
+  "parentTileId": "tile-block-tavern",
+  "width": 12,
+  "height": 8,
+  "tileSize": 16,
+  "terrain": {
+    "default": "floor",
+    "overrides": [
+      {"x": 0, "y": 0, "definitionId": "wall"}, {"x": 1, "y": 0, "definitionId": "wall"}, {"x": 2, "y": 0, "definitionId": "wall"}, {"x": 3, "y": 0, "definitionId": "wall"}, {"x": 4, "y": 0, "definitionId": "wall"}, {"x": 5, "y": 0, "definitionId": "wall"}, {"x": 6, "y": 0, "definitionId": "wall"}, {"x": 7, "y": 0, "definitionId": "wall"}, {"x": 8, "y": 0, "definitionId": "wall"}, {"x": 9, "y": 0, "definitionId": "wall"}, {"x": 10, "y": 0, "definitionId": "wall"}, {"x": 11, "y": 0, "definitionId": "wall"},
+      {"x": 0, "y": 1, "definitionId": "wall"}, {"x": 11, "y": 1, "definitionId": "wall"}, {"x": 0, "y": 2, "definitionId": "wall"}, {"x": 11, "y": 2, "definitionId": "wall"}, {"x": 0, "y": 3, "definitionId": "wall"}, {"x": 11, "y": 3, "definitionId": "wall"},
+      {"x": 0, "y": 4, "definitionId": "door"}, {"x": 11, "y": 4, "definitionId": "wall"}, {"x": 0, "y": 5, "definitionId": "wall"}, {"x": 11, "y": 5, "definitionId": "wall"}, {"x": 0, "y": 6, "definitionId": "wall"}, {"x": 11, "y": 6, "definitionId": "wall"},
+      {"x": 0, "y": 7, "definitionId": "wall"}, {"x": 1, "y": 7, "definitionId": "wall"}, {"x": 2, "y": 7, "definitionId": "wall"}, {"x": 3, "y": 7, "definitionId": "wall"}, {"x": 4, "y": 7, "definitionId": "wall"}, {"x": 5, "y": 7, "definitionId": "wall"}, {"x": 6, "y": 7, "definitionId": "wall"}, {"x": 7, "y": 7, "definitionId": "wall"}, {"x": 8, "y": 7, "definitionId": "wall"}, {"x": 9, "y": 7, "definitionId": "wall"}, {"x": 10, "y": 7, "definitionId": "wall"}, {"x": 11, "y": 7, "definitionId": "wall"}
+    ]
+  },
+  "placedTiles": [
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-door",
+      "definitionId": "door",
+      "x": 0,
+      "y": 4,
+      "width": 1,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": null,
+      "entryPointId": "entry-front-door",
+      "actions": [
+        {
+          "id": "action-return-block",
+          "type": "return_to_parent",
+          "label": "Return to Block",
+          "allowedActors": ["gm", "player"],
+          "timeCost": 0,
+          "requirements": {},
+          "effects": [{"type": "return_to_parent"}]
+        }
+      ],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Front Door", "gmNotes": "Parent return point."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-table-a",
+      "definitionId": "table",
+      "x": 3,
+      "y": 2,
+      "width": 2,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": true,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [{"id": "action-search-table-a", "type": "search", "label": "Search Table", "allowedActors": ["gm", "player"], "timeCost": 2, "requirements": {}, "effects": [{"type": "display_message", "message": "Old mugs and knife marks."}]}],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Long Table", "gmNotes": "Obstacle."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-table-b",
+      "definitionId": "table",
+      "x": 6,
+      "y": 5,
+      "width": 2,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": true,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Corner Table", "gmNotes": "Obstacle."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-bar",
+      "definitionId": "bar",
+      "x": 8,
+      "y": 2,
+      "width": 3,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": true,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [{"id": "action-inspect-bar", "type": "inspect", "label": "Inspect Bar", "allowedActors": ["gm", "player"], "timeCost": 0, "requirements": {}, "effects": [{"type": "display_message", "message": "The bar smells of smoke and spilled ale."}]}],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Bar", "gmNotes": "Tactical cover."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-tavern-ambush-trigger",
+      "definitionId": "trigger-marker",
+      "x": 5,
+      "y": 4,
+      "width": 1,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": true,
+      "blocked": false,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [
+        {
+          "id": "action-start-tavern-ambush",
+          "type": "start_encounter",
+          "label": "Start Tavern Ambush",
+          "allowedActors": ["gm"],
+          "timeCost": 0,
+          "requirements": {},
+          "effects": [{"type": "start_encounter", "encounterId": "enc-tavern-ambush"}]
+        }
+      ],
+      "triggers": ["trigger-tavern-ambush"],
+      "encounterId": "enc-tavern-ambush",
+      "metadata": {"label": "Ambush Trigger", "gmNotes": "Hidden from players. Starts tavern encounter."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-player-start-a",
+      "definitionId": "player-start",
+      "x": 2,
+      "y": 4,
+      "width": 1,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Player A Start", "gmNotes": "Lyra exploration start."}
+    },
+    {
+      "schemaVersion": "shaelvien.tile.v1",
+      "id": "tile-main-player-start-b",
+      "definitionId": "player-start",
+      "x": 2,
+      "y": 5,
+      "width": 1,
+      "height": 1,
+      "rotation": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "blocked": false,
+      "childMapId": null,
+      "entryPointId": null,
+      "actions": [],
+      "triggers": [],
+      "encounterId": null,
+      "metadata": {"label": "Player B Start", "gmNotes": "Borin exploration start."}
+    }
+  ],
+  "entities": [
+    {"id": "pc-lyra", "definitionId": "char-lyra", "name": "Lyra", "controller": "player", "assignedPlayerId": "player-a", "x": 2, "y": 4, "visible": true},
+    {"id": "pc-borin", "definitionId": "char-borin", "name": "Borin", "controller": "player", "assignedPlayerId": "player-b", "x": 2, "y": 5, "visible": true}
+  ],
+  "entryPoints": [{"id": "entry-front-door", "x": 1, "y": 4, "label": "Front Door", "fromMapId": "map-block", "fromTileId": "tile-block-tavern"}],
+  "exitPoints": [{"id": "exit-to-block", "x": 0, "y": 4, "label": "Block", "targetMapId": "map-block", "targetTileId": "tile-block-tavern"}],
+  "triggers": [
+    {
+      "id": "trigger-tavern-ambush",
+      "hidden": true,
+      "once": true,
+      "enabled": true,
+      "sourceTileId": "tile-tavern-ambush-trigger",
+      "conditions": ["player_enters_tile", "gm_manual"],
+      "effects": [
+        {"type": "display_message", "message": "Benches scrape back. Steel comes out under the tavern lamps."},
+        {"type": "start_encounter", "encounterId": "enc-tavern-ambush"}
+      ],
+      "activated": false
+    }
+  ],
+  "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true, "hiddenData": false}},
+  "atmosphere": {"light": "warm lamps", "sound": "low music", "gmNotes": "Ambush lane proof."},
+  "encounterReferences": [{"id": "ref-tavern-ambush", "triggerId": "trigger-tavern-ambush", "encounterId": "enc-tavern-ambush", "territoryId": "map-tavern-main-floor"}]
+}

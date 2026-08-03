@@ -8,6 +8,7 @@ verification/*.png
 verification/*.json
 verification/*.jsonl
 verification/*.log
+dist/
 .pytest_cache/
 .coverage
 .env

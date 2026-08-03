@@ -1,0 +1,392 @@
+{
+  "schema_version": "SHAELVIEN-DEV-STUDIO-ALPHA-SNAPSHOT-0.1.0",
+  "generated_at_utc": "2026-07-28T17:31:15Z",
+  "studio": {
+    "name": "Shaelvien Dev Studio",
+    "version": "ALPHA-0.1.0",
+    "milestone": "DEV-STUDIO-ALPHA-0",
+    "milestone_status": "built_read_only_pending_mobile_acceptance",
+    "mode": "owner_facing_read_only_dashboard",
+    "primary_purpose": "Expose existing Shaelvien governance, project, and NHC state from one interface without expanding authority."
+  },
+  "mobile_acceptance": {
+    "status": "visual_pass_runtime_failed_input_camera_binding",
+    "device_target": "Chrome on iPhone over Tailscale/private network",
+    "visual_acceptance": "passed_from_owner_screenshots_after_polish",
+    "screenshot_review": {
+      "page_load_over_tailscale": "pass",
+      "portrait_layout": "pass",
+      "rendering_stability": "pass_observed_from_black_frame_to_rendered_tavern",
+      "touch_ui_placement": "pass",
+      "tavern_title_and_status_readability": "pass_after_polish",
+      "intentional_loading_presentation": "pass",
+      "tavern_frame_rendering": "pass",
+      "mode_switching_presentation": "pass",
+      "query_and_inspector_readability": "pass",
+      "routes_and_identity_data_accessibility": "pass",
+      "responsive_map_search": "pass",
+      "long_session_behavior": "not_verified"
+    },
+    "known_visual_weakness": "Spatial City 3D projection labels and objects can overlap near the center on mobile; Map remains the practical mobile overview.",
+    "pre_alpha_1_polish": [
+      "Tavern Lens visible title shortened to avoid iPhone header clipping.",
+      "Tavern status badge changed to compact display while preserving full status in title metadata.",
+      "Tavern loading indicator added for the initial black raster frame.",
+      "Tavern header grid and viewport clamps adjusted to reduce horizontal overflow risk."
+    ],
+    "required_checks": [
+      "All four tabs render and remain usable in portrait orientation.",
+      "The System Mesh canvas scales without horizontal page overflow.",
+      "Package cards and NHC cards remain readable without unintended clipping.",
+      "The inspector panel can be opened, read, scrolled, and dismissed.",
+      "Snapshot values match the authoritative local state.",
+      "No control implies execution authority that does not exist.",
+      "Refreshing or reconnecting through Tailscale does not create a broken or stale interface state."
+    ],
+    "runtime_acceptance": {
+      "status": "failed_input_camera_binding",
+      "failure_summary": [
+        "Left joystick initially did nothing.",
+        "Left joystick responded inconsistently after reload.",
+        "Both joysticks moved presentation layer instead of authoritative camera state.",
+        "Right joystick only produced horizontal frame movement.",
+        "Blank side regions were exposed by frame movement.",
+        "Status reported movement unavailable, provisional, or stale.",
+        "Reticle appeared unexpectedly after reload.",
+        "Spatial City reload reset to Map instead of preserving selected mode."
+      ],
+      "checks": [
+        {
+          "id": "runtime_reload",
+          "description": "Reload the Tavern page and confirm loading transitions to a rendered frame.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_reconnect",
+          "description": "Disconnect and reconnect VPN or network and confirm recovery without a permanently blank frame.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_rotation",
+          "description": "Rotate to landscape and back to portrait and confirm layout recovery.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_joystick",
+          "description": "Use both controls continuously and intermittently for several minutes.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_view_switching",
+          "description": "Switch between Tavern, 3D, Map, query, and inspector views.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_stale_state",
+          "description": "Confirm no frozen controls, duplicated overlays, stale status, runaway scrolling, or persistent blank canvas.",
+          "result": "pending"
+        },
+        {
+          "id": "runtime_server_log_review",
+          "description": "Review the server log after the session for repeating errors or uncontrolled reconnect loops.",
+          "result": "pending"
+        }
+      ]
+    },
+    "runtime_fix_attempt": {
+      "status": "desktop_app_remote_viewport_bridge_applied_pending_real_tavern_retest",
+      "scope": [
+        "Neutralize joystick-driven frame, canvas, viewport, and DOM presentation transforms.",
+        "Send joystick input as server intent without provisional presentation fallback.",
+        "Bind each gamepad exactly once and track active pointer IDs.",
+        "Reset input on pointer release, pointer cancel, lost capture, touch end, touch cancel, and blur.",
+        "Gate Tavern reticle behind explicit inspection intent.",
+        "Persist Spatial City 3D/Map mode using local presentation preference only.",
+        "Server owns a 360-degree Tavern perception sphere and returns browser view slices.",
+        "Human/daylight default visual range is recorded as 120 feet.",
+        "Near-field Tavern view renders as server-side 3D atoms; far field is represented as a distance sky snapshot.",
+        "Move/look responses return authoritative raster frames instead of delta-only responses.",
+        "Tavern joystick controls are moved inward and pad touch gestures are suppressed to reduce iPhone page swipes.",
+        "Desktop Tavern app bridge added as the preferred Tavern authority path.",
+        "Browser sends input intent to the desktop Tavern app through the authenticated mobile server.",
+        "Desktop Tavern publishes its own OpenGL frame stream back through a local-only bridge.",
+        "Phone/browser is a viewport and control surface, not the Tavern world authority.",
+        "OS-wide keyboard or mouse injection remains explicitly disabled.",
+        "Per-user profile field is carried as owner_human_default for the first bridge contract."
+      ],
+      "alpha_1_unblocked": false
+    },
+    "next_state_if_runtime_passes": "DEV-STUDIO-ALPHA-0 = mobile_accepted_read_only",
+    "shaelvien_hi_integration": "blocked_until_mobile_acceptance_passes"
+  },
+  "source_artifacts": {
+    "ssc_package_review": {
+      "path": "C:/shaelvien_spatial_compiler/data/system_consolidation_package_review.json",
+      "schema_version": "SSC-SYSTEM-CONSOLIDATION-5A-PACKAGE-REVIEW-SIGNING-1.0.0",
+      "hash": "b39730c9bf3fbe44e8c89f95cec3b0bf08363abee17aa3a2005d6f05d104b185",
+      "verification_status": "valid"
+    },
+    "ssc_foundation": {
+      "status": "CLOSED",
+      "test_result": "117 passed, 0 failed",
+      "canonical_invariant": "Planning authority is not execution authority."
+    },
+    "project_mind": {
+      "source": "C:/Shaelvien/shaelvien_hi/hi_seed_data.py",
+      "count": 588,
+      "hash": "fa4d8fc61a9a942f1df6c009241bb6b35f8ae58e54c35d972cbb8668d07b6063"
+    }
+  },
+  "systems": [
+    {
+      "id": "system.ssc",
+      "name": "SSC",
+      "status": "closed",
+      "role": "Governed planning and review foundation",
+      "primary_metric": "117 tests passed",
+      "authority": "read_only_planning_artifacts"
+    },
+    {
+      "id": "system.project_mind",
+      "name": "Project Mind",
+      "status": "available",
+      "role": "Knowledge and project memory surface",
+      "primary_metric": "588 records",
+      "authority": "reference_only"
+    },
+    {
+      "id": "system.carbon_imprint",
+      "name": "Carbon Imprint",
+      "status": "planned",
+      "role": "Evidence and impact record system",
+      "primary_metric": "concept present",
+      "authority": "not_operational"
+    },
+    {
+      "id": "system.relic",
+      "name": "ReLiC",
+      "status": "observer_only",
+      "role": "Runtime observation and review boundary",
+      "primary_metric": "observer only",
+      "authority": "no_runtime_mutation"
+    },
+    {
+      "id": "system.nhc_hq",
+      "name": "NHC Headquarters",
+      "status": "built_read_only_pending_owner_review",
+      "role": "Governed contributor organization, certification-path registry, reporting hierarchy, local LLM profile slots, and approval routing",
+      "primary_metric": "11 certification paths assigned / 0 certified",
+      "authority": "read_only_governance"
+    },
+    {
+      "id": "system.workspace",
+      "name": "Workspace",
+      "status": "mapped",
+      "role": "Local project and consolidation operating view",
+      "primary_metric": "23 decision ledger entries",
+      "authority": "review_only"
+    }
+  ],
+  "ssc": {
+    "version_family": "SSC-1.x",
+    "status": "CLOSED",
+    "package_review_ready": true,
+    "pending_owner_signature": 3,
+    "signed": 0,
+    "execution_authority_requested": false,
+    "tests_passed": 117,
+    "tests_failed": 0,
+    "package_review_hash": "b39730c9bf3fbe44e8c89f95cec3b0bf08363abee17aa3a2005d6f05d104b185"
+  },
+  "consolidation": {
+    "ledger_entries": 23,
+    "reviewed": 8,
+    "approved_for_planning": 3,
+    "deferred": 5,
+    "needs_more_evidence": 0,
+    "rejected": 0,
+    "unreviewed": 15,
+    "open_evidence_requests": 0,
+    "eligible_packages": 3,
+    "package_proposals": 3,
+    "migration_package_generation_ready": false
+  },
+  "package_reviews": [
+    {
+      "review_record_id": "SC5A-REVIEW-001",
+      "package_id": "SC5-PACKAGE-001",
+      "classification": "archive_proposal",
+      "source_path": "C:/AISeedOS_Chrome",
+      "destination_path": "C:/Users/ReLiC_Admin/OneDrive/Shaelvien_Archive/System_Consolidation/AISeedOS_Chrome",
+      "review_state": "pending_owner_signature",
+      "hash_count": 29,
+      "source_state_current": true,
+      "package_hash": "dcf7f8c85c43d1d136f5395edab4d09b234211e5f757f7c77caf719c7c6a657a"
+    },
+    {
+      "review_record_id": "SC5A-REVIEW-002",
+      "package_id": "SC5-PACKAGE-002",
+      "classification": "migration_proposal",
+      "source_path": "C:/chatgpt-project-vault-extension",
+      "destination_path": "C:/Shaelvien/tools/chatgpt-project-vault-extension",
+      "review_state": "pending_owner_signature",
+      "hash_count": 12,
+      "source_state_current": true,
+      "package_hash": "4e6558ad91d4da0651ae46bb5c0058b1fb2fcbf8bd775df533b44c9b4710f2b3"
+    },
+    {
+      "review_record_id": "SC5A-REVIEW-003",
+      "package_id": "SC5-PACKAGE-003",
+      "classification": "archive_proposal",
+      "source_path": "C:/ChromeDebug",
+      "destination_path": "C:/Users/ReLiC_Admin/OneDrive/Shaelvien_Archive/System_Consolidation/ChromeDebug",
+      "review_state": "pending_owner_signature",
+      "hash_count": 11,
+      "source_state_current": true,
+      "package_hash": "d767ded6ea24de7efd69527d4d42ae47bf67ca0e8fbe75305af90ddc56eac8fa"
+    }
+  ],
+  "nhcs": [
+    {
+      "id": "nhc_ceo",
+      "name": "CEO NHC",
+      "role": "Chief Executive Officer",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_cfo",
+      "name": "CFO NHC",
+      "role": "Finance and Codex budget manager",
+      "branch": "Treasury",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_hr_director",
+      "name": "HR Director NHC",
+      "role": "Role governance and contributor policy",
+      "branch": "Administrative",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_cio",
+      "name": "CIO NHC",
+      "role": "Security and information systems review",
+      "branch": "Security",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_legal",
+      "name": "Legal NHC",
+      "role": "Legal and policy review",
+      "branch": "Judicial",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_research",
+      "name": "Research NHC",
+      "role": "Evidence and source research",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_engineering",
+      "name": "Engineering NHC",
+      "role": "Implementation planning",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_qa",
+      "name": "QA NHC",
+      "role": "Verification and test review",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_relic_reviewer",
+      "name": "ReLiC Reviewer NHC",
+      "role": "Verification reviewer",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    },
+    {
+      "id": "nhc_project_mind_librarian",
+      "name": "Project Mind Librarian NHC",
+      "role": "Knowledge organization and reference custody",
+      "branch": "Executive",
+      "status": "active",
+      "knowledge_standard": "official_certification_path_required"
+    }
+  ],
+  "nhc_build": {
+    "status": "active",
+    "queue_path": "C:/Shaelvien/operator/nhc_build/NHC_BUILD_QUEUE.json",
+    "ledger_path": "C:/Shaelvien/operator/nhc_build/NHC_ACTIVE_BUILD_LEDGER.json",
+    "evidence_index_path": "C:/Shaelvien/operator/nhc_build/NHC_DESIGN_EVIDENCE_INDEX.json",
+    "operator_panel_route": "/nhc-build",
+    "operator_panel_json_route": "/api/nhc-build.json",
+    "active_packets": 5,
+    "queued_packets": 1,
+    "initial_deliverables_complete": [
+      "NHC-BUILD-001"
+    ],
+    "current_build_focus": [
+      "desktop Tavern remote viewport stabilization",
+      "runtime verification and iPhone acceptance",
+      "authority boundary audit",
+      "read-only NHC build dashboard"
+    ],
+    "owner_visibility_override": "Build directive 2026-07-28; dashboard visibility only, not execution authority.",
+    "nhc_not_npc": true,
+    "official_certification_path_required": true,
+    "mutation_authority_requested": false
+  },
+  "nhc_hq": {
+    "status": "built_read_only_pending_owner_review",
+    "charter_path": "C:/Shaelvien/operator/nhc_hq/NHC_HEADQUARTERS_CHARTER.md",
+    "status_path": "C:/Shaelvien/operator/nhc_hq/NHC_HQ_STATUS.json",
+    "operating_model_path": "C:/Shaelvien/operator/nhc_hq/NHC_AAA_STUDIO_OPERATING_MODEL.json",
+    "certification_paths_path": "C:/Shaelvien/operator/nhc_hq/NHC_CERTIFICATION_PATHS.json",
+    "local_llm_profiles_path": "C:/Shaelvien/operator/nhc_hq/NHC_LOCAL_LLM_PROFILES.json",
+    "reporting_graph_path": "C:/Shaelvien/operator/nhc_hq/NHC_REPORTING_AND_APPROVAL_GRAPH.json",
+    "temporary_knowledge_policy_path": "C:/Shaelvien/operator/nhc_hq/NHC_TEMPORARY_KNOWLEDGE_POLICY.json",
+    "work_ledger_path": "C:/Shaelvien/operator/nhc_hq/NHC_WORK_LEDGER.json",
+    "operator_panel_route": "/nhc-hq",
+    "operator_panel_json_route": "/api/nhc-hq.json",
+    "tiers_defined": 5,
+    "certification_paths_assigned": 11,
+    "certified_nhcs": 0,
+    "local_llm_profiles_seeded": 6,
+    "local_llm_runtime_detected": false,
+    "owner_only_human": true,
+    "ceo_highest_nhc_tier": true,
+    "public_admin_owner_approval_required": true,
+    "mutation_authority_requested": false
+  },
+  "authority_locks": {
+    "move_allowed": false,
+    "delete_allowed": false,
+    "archive_allowed": false,
+    "onedrive_write_allowed": false,
+    "source_repoint_allowed": false,
+    "windows_tag_write_allowed": false,
+    "execution_authority_requested": false,
+    "runtime_mutation_allowed": false,
+    "automatic_owner_signature_allowed": false
+  },
+  "next_phase": {
+    "recommended": "Dev Studio Alpha integration",
+    "not_started": "SSC-2.x controlled execution",
+    "reason": "Expose existing governed systems to the Owner before introducing any execution authority."
+  }
+}

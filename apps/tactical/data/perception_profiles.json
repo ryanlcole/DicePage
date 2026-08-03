@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "shaelvien.perception_profiles.v1",
+  "profiles": [
+    {
+      "id": "starter_pc_default",
+      "name": "Starter PC Default",
+      "vision": {
+        "range": 120,
+        "unit": "ft",
+        "arcDeg": 360,
+        "requiresLight": true,
+        "minimumLight": 0.2,
+        "ignoresPartialCover": false
+      },
+      "hearing": {
+        "range": 140,
+        "unit": "ft",
+        "directionAccuracy": 0.6,
+        "distanceAccuracy": 0.5,
+        "throughWalls": true
+      }
+    },
+    {
+      "id": "creature_default",
+      "name": "Creature Default",
+      "vision": {
+        "range": 90,
+        "unit": "ft",
+        "arcDeg": 360,
+        "requiresLight": true,
+        "minimumLight": 0.2,
+        "ignoresPartialCover": false
+      },
+      "hearing": {
+        "range": 110,
+        "unit": "ft",
+        "directionAccuracy": 0.45,
+        "distanceAccuracy": 0.4,
+        "throughWalls": true
+      }
+    },
+    {
+      "id": "blinded_test_profile",
+      "name": "Blinded Test Profile",
+      "vision": {
+        "range": 0,
+        "unit": "ft",
+        "arcDeg": 360,
+        "requiresLight": true,
+        "minimumLight": 1,
+        "ignoresPartialCover": false
+      },
+      "hearing": {
+        "range": 80,
+        "unit": "ft",
+        "directionAccuracy": 0.45,
+        "distanceAccuracy": 0.35,
+        "throughWalls": true
+      }
+    }
+  ]
+}

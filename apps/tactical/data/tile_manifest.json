@@ -1,0 +1,2201 @@
+{
+  "schemaVersion": "shaelvien.tile_manifest.v2",
+  "tileSize": 32,
+  "definitions": [
+    {
+      "id": "grass",
+      "name": "Grass",
+      "category": "grass",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#527a3d",
+        "rects": [
+          {
+            "x": 2,
+            "y": 3,
+            "w": 2,
+            "h": 2,
+            "color": "#6dbb55"
+          },
+          {
+            "x": 10,
+            "y": 10,
+            "w": 2,
+            "h": 2,
+            "color": "#365d2f"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-grass-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "category": "water",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#3b6fa5",
+        "rects": [
+          {
+            "x": 0,
+            "y": 5,
+            "w": 16,
+            "h": 2,
+            "color": "#65a6cc"
+          },
+          {
+            "x": 0,
+            "y": 11,
+            "w": 16,
+            "h": 1,
+            "color": "#2d557e"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-water-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "road",
+      "name": "Road",
+      "category": "road",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#8f876a",
+        "rects": [
+          {
+            "x": 1,
+            "y": 2,
+            "w": 3,
+            "h": 2,
+            "color": "#b2aa86"
+          },
+          {
+            "x": 9,
+            "y": 11,
+            "w": 4,
+            "h": 2,
+            "color": "#6c674f"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-road-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "wall",
+      "name": "Wall",
+      "category": "wall",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#5f5750",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 16,
+            "h": 3,
+            "color": "#8b8177"
+          },
+          {
+            "x": 0,
+            "y": 8,
+            "w": 16,
+            "h": 2,
+            "color": "#423d39"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-stone-wall-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "floor",
+      "name": "Floor",
+      "category": "floor",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#91724a",
+        "rects": [
+          {
+            "x": 0,
+            "y": 7,
+            "w": 16,
+            "h": 1,
+            "color": "#6d5138"
+          },
+          {
+            "x": 7,
+            "y": 0,
+            "w": 1,
+            "h": 16,
+            "color": "#a98558"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-wood-floor-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "door",
+      "name": "Door",
+      "category": "door",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#6a4329",
+        "rects": [
+          {
+            "x": 2,
+            "y": 1,
+            "w": 12,
+            "h": 14,
+            "color": "#8f5c35"
+          },
+          {
+            "x": 11,
+            "y": 7,
+            "w": 2,
+            "h": 2,
+            "color": "#f4c75e"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-door-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "city",
+      "name": "City",
+      "category": "city",
+      "defaultWidth": 2,
+      "defaultHeight": 2,
+      "blocked": false,
+      "sprite": {
+        "base": "#6e7582",
+        "rects": [
+          {
+            "x": 2,
+            "y": 8,
+            "w": 4,
+            "h": 7,
+            "color": "#c7c0aa"
+          },
+          {
+            "x": 7,
+            "y": 4,
+            "w": 4,
+            "h": 11,
+            "color": "#ded5bd"
+          },
+          {
+            "x": 12,
+            "y": 6,
+            "w": 3,
+            "h": 9,
+            "color": "#a9a08d"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-symbol-city-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "block",
+      "name": "Block",
+      "category": "block",
+      "defaultWidth": 2,
+      "defaultHeight": 2,
+      "blocked": false,
+      "sprite": {
+        "base": "#716553",
+        "rects": [
+          {
+            "x": 1,
+            "y": 1,
+            "w": 14,
+            "h": 4,
+            "color": "#b19a71"
+          },
+          {
+            "x": 1,
+            "y": 10,
+            "w": 14,
+            "h": 4,
+            "color": "#3c3b35"
+          },
+          {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 16,
+            "color": "#a6a097"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-symbol-block-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "tavern",
+      "name": "Tavern",
+      "category": "tavern",
+      "defaultWidth": 2,
+      "defaultHeight": 2,
+      "blocked": false,
+      "sprite": {
+        "base": "#6a3d2e",
+        "rects": [
+          {
+            "x": 1,
+            "y": 8,
+            "w": 14,
+            "h": 7,
+            "color": "#9b6242"
+          },
+          {
+            "x": 3,
+            "y": 4,
+            "w": 10,
+            "h": 5,
+            "color": "#bd7f4f"
+          },
+          {
+            "x": 5,
+            "y": 10,
+            "w": 3,
+            "h": 5,
+            "color": "#392620"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-symbol-tavern-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "stairs",
+      "name": "Stairs",
+      "category": "stairs",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#6e5d45",
+        "rects": [
+          {
+            "x": 1,
+            "y": 3,
+            "w": 14,
+            "h": 2,
+            "color": "#b09166"
+          },
+          {
+            "x": 3,
+            "y": 7,
+            "w": 12,
+            "h": 2,
+            "color": "#b09166"
+          },
+          {
+            "x": 5,
+            "y": 11,
+            "w": 10,
+            "h": 2,
+            "color": "#b09166"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-stairs-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "table",
+      "name": "Table",
+      "category": "table",
+      "defaultWidth": 2,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#6c4529",
+        "rects": [
+          {
+            "x": 1,
+            "y": 2,
+            "w": 14,
+            "h": 9,
+            "color": "#9a6237"
+          },
+          {
+            "x": 3,
+            "y": 12,
+            "w": 2,
+            "h": 3,
+            "color": "#3a251c"
+          },
+          {
+            "x": 11,
+            "y": 12,
+            "w": 2,
+            "h": 3,
+            "color": "#3a251c"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-table-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "chair",
+      "name": "Chair",
+      "category": "chair",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#5f3e2d",
+        "rects": [
+          {
+            "x": 4,
+            "y": 3,
+            "w": 8,
+            "h": 5,
+            "color": "#a56b3d"
+          },
+          {
+            "x": 5,
+            "y": 8,
+            "w": 6,
+            "h": 5,
+            "color": "#7d4e32"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-chair-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "bar",
+      "name": "Bar",
+      "category": "bar",
+      "defaultWidth": 3,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#503021",
+        "rects": [
+          {
+            "x": 0,
+            "y": 2,
+            "w": 16,
+            "h": 8,
+            "color": "#7f4f2f"
+          },
+          {
+            "x": 0,
+            "y": 10,
+            "w": 16,
+            "h": 3,
+            "color": "#2b1b16"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-bar-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "chest",
+      "name": "Chest",
+      "category": "chest",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#7a4a25",
+        "rects": [
+          {
+            "x": 2,
+            "y": 5,
+            "w": 12,
+            "h": 8,
+            "color": "#b87534"
+          },
+          {
+            "x": 7,
+            "y": 5,
+            "w": 2,
+            "h": 8,
+            "color": "#f4c75e"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-chest-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "entrance",
+      "name": "Entrance",
+      "category": "entrance",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#2d5c70",
+        "rects": [
+          {
+            "x": 3,
+            "y": 3,
+            "w": 10,
+            "h": 10,
+            "color": "#76c6d4"
+          },
+          {
+            "x": 6,
+            "y": 1,
+            "w": 4,
+            "h": 14,
+            "color": "#e6f6f7"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-marker-entrance-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "exit",
+      "name": "Exit",
+      "category": "exit",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#4e6f40",
+        "rects": [
+          {
+            "x": 2,
+            "y": 2,
+            "w": 12,
+            "h": 12,
+            "color": "#9bd36e"
+          },
+          {
+            "x": 6,
+            "y": 4,
+            "w": 4,
+            "h": 8,
+            "color": "#1c3421"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-marker-exit-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "trigger-marker",
+      "name": "Trigger Marker",
+      "category": "trigger marker",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#352445",
+        "rects": [
+          {
+            "x": 4,
+            "y": 4,
+            "w": 8,
+            "h": 8,
+            "color": "#d55bb3"
+          },
+          {
+            "x": 7,
+            "y": 1,
+            "w": 2,
+            "h": 14,
+            "color": "#f7c0ea"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-marker-trigger-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "player-start",
+      "name": "Player Start",
+      "category": "player start",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#2f5d8a",
+        "rects": [
+          {
+            "x": 5,
+            "y": 2,
+            "w": 6,
+            "h": 12,
+            "color": "#8fd3ff"
+          },
+          {
+            "x": 2,
+            "y": 6,
+            "w": 12,
+            "h": 3,
+            "color": "#fff2a6"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-marker-player-start-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "enemy-start",
+      "name": "Enemy Start",
+      "category": "enemy start",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#813c3a",
+        "rects": [
+          {
+            "x": 3,
+            "y": 3,
+            "w": 10,
+            "h": 10,
+            "color": "#d96a57"
+          },
+          {
+            "x": 1,
+            "y": 7,
+            "w": 14,
+            "h": 2,
+            "color": "#ffd0c4"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-marker-enemy-start-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "forest",
+      "name": "Forest",
+      "category": "forest",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-forest-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "mountain",
+      "name": "Mountain",
+      "category": "mountain",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-mountain-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "coast",
+      "name": "Coast",
+      "category": "coast",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-coast-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "sand",
+      "name": "Sand",
+      "category": "sand",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-sand-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "cliff",
+      "name": "Cliff",
+      "category": "cliff",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-cliff-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "snow",
+      "name": "Snow",
+      "category": "snow",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-snow-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "swamp",
+      "name": "Swamp",
+      "category": "swamp",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-swamp-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "category": "stone",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-stone-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "dungeon-floor",
+      "name": "Dungeon Floor",
+      "category": "dungeon",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-dungeon-floor-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "castle-stone",
+      "name": "Castle Stone",
+      "category": "castle",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-castle-stone-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "ruins-stone",
+      "name": "Ruins Stone",
+      "category": "ruins",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-ruins-stone-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "magical-terrain",
+      "name": "Magical Terrain",
+      "category": "magical terrain",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-terrain-magical-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "village",
+      "name": "Village",
+      "category": "village",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-symbol-village-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "town",
+      "name": "Town",
+      "category": "town",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-symbol-town-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "tree",
+      "name": "Tree",
+      "category": "tree",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-tree-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "bush",
+      "name": "Bush",
+      "category": "bush",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-bush-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "flowers",
+      "name": "Flowers",
+      "category": "flowers",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-flowers-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "log",
+      "name": "Log",
+      "category": "log",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-log-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "rock",
+      "name": "Rock",
+      "category": "rock",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-rock-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "boulder",
+      "name": "Boulder",
+      "category": "boulder",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-boulder-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "bridge",
+      "name": "Bridge",
+      "category": "bridge",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-bridge-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "fence",
+      "name": "Fence",
+      "category": "fence",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-fence-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "sign",
+      "name": "Sign",
+      "category": "sign",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-sign-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "crate",
+      "name": "Crate",
+      "category": "crate",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-crate-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "barrel",
+      "name": "Barrel",
+      "category": "barrel",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-barrel-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "shelves",
+      "name": "Shelves",
+      "category": "shelves",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-shelves-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "bed",
+      "name": "Bed",
+      "category": "bed",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-bed-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "fireplace",
+      "name": "Fireplace",
+      "category": "fireplace",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-fireplace-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "category": "window",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": true,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-window-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "torch",
+      "name": "Torch",
+      "category": "torch",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-torch-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    },
+    {
+      "id": "portal",
+      "name": "Portal",
+      "category": "portal",
+      "defaultWidth": 1,
+      "defaultHeight": 1,
+      "blocked": false,
+      "sprite": {
+        "base": "#b07a44",
+        "rects": [
+          {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 0,
+            "y": 31,
+            "w": 32,
+            "h": 1,
+            "color": "#2a221c"
+          },
+          {
+            "x": 5,
+            "y": 9,
+            "w": 22,
+            "h": 1,
+            "color": "#5d3822"
+          }
+        ]
+      },
+      "image": {
+        "imageAssetId": "woodcut-object-portal-001",
+        "fitMode": "cover",
+        "rotationDeg": 0,
+        "flipX": false,
+        "flipY": false,
+        "opacity": 1.0,
+        "tint": null
+      },
+      "visualStyle": "shaelvien_woodcut_v1"
+    }
+  ],
+  "visualLanguage": "shaelvien_woodcut_v1",
+  "defaultAssetSet": "shaelvien_woodcut_tileset_1",
+  "autotileVisualOnly": true,
+  "autotileSets": [
+    {
+      "id": "woodcut-autotile-grass-001",
+      "terrain": "grass",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-grass-n-001",
+        "e": "woodcut-autotile-grass-e-001",
+        "s": "woodcut-autotile-grass-s-001",
+        "w": "woodcut-autotile-grass-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-road-001",
+      "terrain": "road",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-road-n-001",
+        "e": "woodcut-autotile-road-e-001",
+        "s": "woodcut-autotile-road-s-001",
+        "w": "woodcut-autotile-road-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-water-001",
+      "terrain": "water",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-water-n-001",
+        "e": "woodcut-autotile-water-e-001",
+        "s": "woodcut-autotile-water-s-001",
+        "w": "woodcut-autotile-water-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-forest-001",
+      "terrain": "forest",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-forest-n-001",
+        "e": "woodcut-autotile-forest-e-001",
+        "s": "woodcut-autotile-forest-s-001",
+        "w": "woodcut-autotile-forest-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-sand-001",
+      "terrain": "sand",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-sand-n-001",
+        "e": "woodcut-autotile-sand-e-001",
+        "s": "woodcut-autotile-sand-s-001",
+        "w": "woodcut-autotile-sand-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-cliff-001",
+      "terrain": "cliff",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-cliff-n-001",
+        "e": "woodcut-autotile-cliff-e-001",
+        "s": "woodcut-autotile-cliff-s-001",
+        "w": "woodcut-autotile-cliff-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-snow-001",
+      "terrain": "snow",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-snow-n-001",
+        "e": "woodcut-autotile-snow-e-001",
+        "s": "woodcut-autotile-snow-s-001",
+        "w": "woodcut-autotile-snow-w-001"
+      }
+    },
+    {
+      "id": "woodcut-autotile-stone-001",
+      "terrain": "stone",
+      "visualOnly": true,
+      "edges": {
+        "n": "woodcut-autotile-stone-n-001",
+        "e": "woodcut-autotile-stone-e-001",
+        "s": "woodcut-autotile-stone-s-001",
+        "w": "woodcut-autotile-stone-w-001"
+      }
+    }
+  ]
+}

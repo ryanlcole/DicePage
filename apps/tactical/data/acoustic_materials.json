@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "shaelvien.acoustic_materials.v1",
+  "materials": [
+    {
+      "id": "open_air",
+      "name": "Open Air",
+      "soundTransmission": 1.0,
+      "soundAbsorption": 0.02,
+      "blocksSound": false
+    },
+    {
+      "id": "wood_wall",
+      "name": "Wood Wall",
+      "soundTransmission": 0.12,
+      "soundAbsorption": 0.75,
+      "blocksSound": true
+    },
+    {
+      "id": "stone_wall",
+      "name": "Stone Wall",
+      "soundTransmission": 0.04,
+      "soundAbsorption": 0.85,
+      "blocksSound": true
+    },
+    {
+      "id": "closed_wood_door",
+      "name": "Closed Wood Door",
+      "soundTransmission": 0.35,
+      "soundAbsorption": 0.45,
+      "blocksSound": true
+    },
+    {
+      "id": "open_doorway",
+      "name": "Open Doorway",
+      "soundTransmission": 0.9,
+      "soundAbsorption": 0.05,
+      "blocksSound": false
+    },
+    {
+      "id": "curtain",
+      "name": "Curtain",
+      "soundTransmission": 0.75,
+      "soundAbsorption": 0.2,
+      "blocksSound": false
+    },
+    {
+      "id": "brush",
+      "name": "Brush",
+      "soundTransmission": 0.8,
+      "soundAbsorption": 0.18,
+      "blocksSound": false
+    },
+    {
+      "id": "ceiling",
+      "name": "Ceiling",
+      "soundTransmission": 0.08,
+      "soundAbsorption": 0.8,
+      "blocksSound": true,
+      "verticalOnly": true
+    }
+  ]
+}
