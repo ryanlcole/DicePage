@@ -1,0 +1,106 @@
+name: Deploy ReLiCGameMaster to GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Branch, tag, or commit to deploy"
+        required: true
+        default: "live-alpha/tactical-import"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test-build-scan-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record workflow definition
+        run: |
+          echo "workflow_definition_ref=${GITHUB_REF}" >> "$GITHUB_STEP_SUMMARY"
+          echo "workflow_definition_sha=${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "requested_source_ref=${{ inputs.source_ref }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout requested source ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Validate requested source ref
+        run: |
+          resolved_source_commit="$(git rev-parse HEAD)"
+          echo "resolved_source_commit=${resolved_source_commit}" | tee -a "$GITHUB_STEP_SUMMARY"
+          git status --short
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Run Shaelvien Lite tests
+        run: python -m unittest tests.test_shaelvien_lite -v
+
+      - name: Run tactical replay test
+        working-directory: apps/tactical
+        run: node tests/deterministic_replay_test.mjs
+
+      - name: Run tactical geometry test
+        working-directory: apps/tactical
+        run: node tests/editor_geometry_test.mjs
+
+      - name: Run tactical woodcut asset test
+        working-directory: apps/tactical
+        run: node tests/woodcut_asset_test.mjs
+
+      - name: Run tactical perception test
+        working-directory: apps/tactical
+        run: node tests/perception_system_test.mjs
+
+      - name: Build public dist
+        run: python deployment/build_public.py
+
+      - name: Record build metadata
+        run: |
+          cat dist/build-info.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          info = json.loads(Path("dist/build-info.json").read_text())
+          print(f"build_id={info.get('buildId')}")
+          print(f"build_git_commit={info.get('gitCommit')}")
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"build_id={info.get('buildId')}\\n")
+              summary.write(f"build_git_commit={info.get('gitCommit')}\\n")
+          PY
+
+      - name: Scan public artifact
+        run: python deployment/public_build_scan.py --dist dist --report-dir verify_reports/public_build
+
+      - name: Verify Pages static routes and assets
+        run: python deployment/check_pages_static.py --dist dist --report verify_reports/pages_static_check.json
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
