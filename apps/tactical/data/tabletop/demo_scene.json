@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "shaelvien.tabletop.scene.v1",
+  "scenes": [
+    {
+      "sceneId": "scene-tavern-ambush-001",
+      "name": "Tavern Ambush Tabletop Demo",
+      "mapId": "map-tavern-main-floor",
+      "participants": ["player-a", "gm"],
+      "tabletopLayout": {
+        "gm": {
+          "left": ["initiative", "clock", "lore-scroll"],
+          "top": ["buffs", "debuffs", "scene-effects"],
+          "bottom": ["player-deck", "dice-row", "monster-deck"],
+          "right": ["active-cards", "shared-lore"]
+        },
+        "player": {
+          "bottom": ["character-card", "dice-row", "item-deck"],
+          "top": ["active-effects"],
+          "right": ["shared-lore"]
+        }
+      },
+      "initiativeId": "initiative-tavern-ambush-001",
+      "deckIds": ["deck-player-a-001", "deck-orcs-001", "deck-lore-tavern-001"],
+      "sharedCards": [],
+      "activeChipIds": ["chip-attack-buff-001", "chip-repeat-penalty-001"],
+      "effects": [],
+      "narration": [
+        {
+          "narrationId": "narration-tavern-start",
+          "visibility": "scene_shared",
+          "text": "PROVISIONAL PLAYTEST COPY - NOT CANON. The table is set at the edge of the Tavern Ambush."
+        }
+      ],
+      "permissions": {
+        "gm": ["view_private_decks", "share_lore", "pause_clock", "advance_initiative"],
+        "player": ["view_owned_deck", "roll_authorized_dice", "view_shared_lore"]
+      }
+    }
+  ]
+}

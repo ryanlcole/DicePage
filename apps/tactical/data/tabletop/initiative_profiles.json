@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "shaelvien.tabletop.initiative.v1",
+  "profiles": [
+    {
+      "initiativeId": "initiative-tavern-ambush-001",
+      "name": "Tavern Ambush Opening Order",
+      "clockSeconds": 90,
+      "entries": [
+        {
+          "entryId": "init-lyra",
+          "entityId": "pc-lyra",
+          "cardId": "card-player-lyra",
+          "name": "Lyra",
+          "role": "player",
+          "visibility": "scene_shared"
+        },
+        {
+          "entryId": "init-orc-commander",
+          "entityId": "orc-commander",
+          "cardId": "card-orc-commander",
+          "name": "Orc Commander",
+          "role": "monster_commander",
+          "visibility": "gm_private"
+        },
+        {
+          "entryId": "init-orc-warrior",
+          "entityId": "orc-warrior-1",
+          "cardId": "card-orc-warrior",
+          "name": "Orc Warrior",
+          "role": "monster",
+          "visibility": "gm_private"
+        }
+      ]
+    }
+  ]
+}

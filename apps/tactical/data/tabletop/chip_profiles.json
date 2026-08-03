@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "shaelvien.tabletop.chips.v1",
+  "chips": [
+    {
+      "chipId": "chip-attack-buff-001",
+      "label": "+1 Attack",
+      "category": "buff",
+      "value": 1,
+      "affectedRoll": "attack",
+      "duration": "scene",
+      "visibility": "scene_shared",
+      "stackBehavior": "additive"
+    },
+    {
+      "chipId": "chip-repeat-penalty-001",
+      "label": "-1 Repeat",
+      "category": "penalty",
+      "value": -1,
+      "affectedRoll": "attack",
+      "duration": "action",
+      "visibility": "scene_shared",
+      "stackBehavior": "additive"
+    }
+  ]
+}

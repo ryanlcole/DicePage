@@ -51,6 +51,17 @@ import { collisionSummary, normalizeMapCollision, presetCollision, presetShape }
 import { computePlayerPerception, legalStartCellsForPlayer, perceptionZoomBounds, placeOwnedPlayerCharacter, visibleForPlayer } from "./perception.js";
 import { FOG_STATES, cellKey, fogStateFor, isVisibleNow } from "./fog.js";
 import { emitSoundEvent } from "./sound.js";
+import { angleDeg, distance, midpoint as gestureMidpoint, sameTapTarget, snapRotationDeg } from "./tabletop/gestures.js";
+import { activeScene, closeOverlay, openOverlay, tabletopProjection } from "./tabletop/scene.js";
+import { drawTopCard, commanderHand, selectCard, selectDeck } from "./tabletop/decks.js";
+import { shareCard } from "./tabletop/cards.js";
+import { rollDie } from "./tabletop/dice.js";
+import { resolveDiceBagAction } from "./tabletop/dice_bag.js";
+import { visibleModifierRows } from "./tabletop/chips.js";
+import { advanceInitiative } from "./tabletop/initiative.js";
+import { pauseClock, resumeClock, clockProgress } from "./tabletop/clock.js";
+import { shareLoreCard, toggleLoreScroll } from "./tabletop/lore.js";
+import { startDrag, endDrag } from "./tabletop/drag_drop.js";
 
 let state = null;
 let bundleCache = null;
@@ -64,10 +75,15 @@ let activePointers = new Map();
 let gesture = null;
 let longPressTimer = null;
 let spacePanActive = false;
+let lastTap = null;
 
 const elements = {};
 
-document.addEventListener("DOMContentLoaded", boot);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot, { once: true });
+} else {
+  boot();
+}
 
 async function boot() {
   collectElements();
@@ -99,6 +115,8 @@ async function boot() {
       runEditorAcceptanceScript,
       runWorkspaceAcceptanceScript,
       runPerceptionAcceptanceScript,
+      runTabletopAcceptanceScript,
+      openTabletopOverlay,
       showMapForVerification,
       verifyCurrentReplay,
       workspacePointForCell,
@@ -114,6 +132,11 @@ async function boot() {
     setText("errorStatus", error.message);
     console.error(error);
   }
+}
+
+function openTabletopOverlay(category = "scene") {
+  openOverlay(state.tabletop, category);
+  renderAll();
 }
 
 function writeAcceptanceResult(payload) {
@@ -155,7 +178,11 @@ function collectElements() {
     "mapSettingsConfirmShrink", "settingsMapName", "settingsMapId", "settingsGridType", "settingsHexOrientation", "settingsSizeMode",
     "settingsColumns", "settingsRows", "settingsPhysicalWidth", "settingsPhysicalHeight", "settingsUnitSystem", "settingsDistanceUnit",
     "settingsCellWidth", "settingsCellHeight", "settingsHexRadius", "settingsTileSize", "settingsDefaultTerrain", "settingsPlayerVisibility",
-    "tileContextMenu", "contextMenuTitle"
+    "tileContextMenu", "contextMenuTitle", "tabletopOverlay", "tabletopOverlayBackdrop", "tabletopOverlayTitle",
+    "tabletopOverlayTabs", "tabletopOverlayContent", "closeTabletopOverlayButton", "tabletopInitiativeStrip",
+    "tabletopClock", "tabletopClockFace", "tabletopClockButton", "tabletopClockPauseButton", "tabletopLoreScroll",
+    "tabletopEffectsTray", "tabletopRightTray", "tabletopBottomTray", "tabletopPlayerDeck", "tabletopMonsterDeck",
+    "tabletopDiceRow", "tabletopCardDetail", "tabletopReducedMotionToggle"
   ].forEach((id) => {
     elements[id] = document.getElementById(id);
   });
@@ -394,6 +421,8 @@ function bindControls() {
     if (event.key !== "Escape") return;
     closeContextMenu();
     closeMoreMenu();
+    closeOverlay(state.tabletop);
+    renderAll();
   });
   document.addEventListener("keyup", (event) => {
     if (event.code === "Space") spacePanActive = false;
@@ -403,6 +432,70 @@ function bindControls() {
     if (!button) return;
     handleContextAction(button.dataset.contextAction);
   });
+  elements.tabletopOverlayBackdrop?.addEventListener("click", () => {
+    closeOverlay(state.tabletop);
+    persistAndRender();
+  });
+  elements.closeTabletopOverlayButton?.addEventListener("click", () => {
+    closeOverlay(state.tabletop);
+    persistAndRender();
+  });
+  elements.tabletopOverlayTabs?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-tabletop-category]");
+    if (!button) return;
+    openOverlay(state.tabletop, button.dataset.tabletopCategory);
+    persistAndRender();
+  });
+  document.addEventListener("click", (event) => {
+    const action = event.target.closest("[data-tabletop-action]")?.dataset.tabletopAction;
+    if (!action) return;
+    handleTabletopAction(action, event.target.closest("[data-card-id], [data-deck-id], [data-die-id]") || event.target);
+  });
+  document.addEventListener("dblclick", (event) => {
+    const card = event.target.closest("[data-card-id]");
+    const die = event.target.closest("[data-die-id]");
+    if (card) handleTabletopAction("open-card", card);
+    else if (die) handleTabletopAction("roll-die", die);
+  });
+  document.addEventListener("dragstart", (event) => {
+    if (event.target.closest(".tabletop-object")) event.preventDefault();
+  });
+}
+
+function handleTabletopAction(action, target = null) {
+  if (!state?.tabletop) return;
+  const deckId = target?.dataset?.deckId;
+  const cardId = target?.dataset?.cardId;
+  const dieId = target?.dataset?.dieId;
+  let result = { ok: true };
+  if (action === "open-menu") openOverlay(state.tabletop, target?.dataset?.tabletopCategory || "scene");
+  else if (action === "close-menu") closeOverlay(state.tabletop);
+  else if (action === "select-deck") result = selectDeck(state.tabletop, deckId);
+  else if (action === "draw-card") result = drawTopCard(state.tabletop, deckId);
+  else if (action === "select-card") result = selectCard(state.tabletop, cardId);
+  else if (action === "select-die") {
+    if (state.tabletop.dice[dieId]) state.tabletop.layout.selectedDieId = dieId;
+  }
+  else if (action === "open-card") {
+    result = selectCard(state.tabletop, cardId);
+    if (result.ok) openOverlay(state.tabletop, "cards", { cardId });
+  } else if (action === "open-commander") {
+    result = selectCard(state.tabletop, cardId || "card-orc-commander");
+    openOverlay(state.tabletop, "decks", { cardId: cardId || "card-orc-commander", deckId: "deck-orcs-001" });
+  } else if (action === "roll-die") result = rollDie(state.tabletop, dieId || "d20", { source: "tabletop_double_activation" });
+  else if (action === "dice-bag") result = resolveDiceBagAction(state.tabletop, cardId || "card-weapon-sword-001", "attack", { baseAttack: state.characters["pc-lyra"]?.baseAttack || 3 });
+  else if (action === "toggle-lore") result = toggleLoreScroll(state.tabletop);
+  else if (action === "share-lore") result = shareLoreCard(state.tabletop, cardId || "card-lore-tavern-warning", "scene_shared");
+  else if (action === "share-card") result = shareCard(state.tabletop, cardId || state.tabletop.layout.selectedCardId, "scene_shared");
+  else if (action === "advance-initiative") result = advanceInitiative(state.tabletop);
+  else if (action === "pause-clock") result = state.tabletop.initiative.paused ? resumeClock(state.tabletop) : pauseClock(state.tabletop);
+  else if (action === "start-drag") result = startDrag(state.tabletop, target?.dataset?.dragType || "card", cardId || dieId || deckId, { source: "pointer" });
+  else if (action === "end-drag") result = endDrag(state.tabletop, { type: "table" });
+  else if (action === "toggle-reduced-motion") {
+    state.tabletop.layout.reducedMotion = !state.tabletop.layout.reducedMotion;
+  } else if (action === "open-selected-child") openSelectedChild();
+  if (result && result.ok === false) pushMessage(state, result.message || "Tabletop action rejected.", "warn");
+  persistAndRender();
 }
 
 function setRole(role) {
@@ -772,13 +865,25 @@ function clearLongPressTimer() {
 }
 
 function startPinch() {
-  return { distance: currentPinchDistance() };
+  const viewport = currentViewport();
+  return {
+    distance: currentPinchDistance(),
+    angle: currentPinchAngle(),
+    startZoom: viewport.zoom,
+    startRotation: viewport.rotationDeg
+  };
 }
 
 function currentPinchDistance() {
   const points = [...activePointers.values()];
   if (points.length < 2) return 0;
   return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+}
+
+function currentPinchAngle() {
+  const points = [...activePointers.values()];
+  if (points.length < 2) return 0;
+  return angleDeg(points[0], points[1]);
 }
 
 function midpoint(points) {
@@ -810,6 +915,19 @@ function openContextMenuAt(point, cell) {
     tileId: tile?.id || null
   };
   renderContextMenu();
+}
+
+function openTabletopMapMenu(point, cell) {
+  const map = currentRenderedMap();
+  if (cell) selectCell(state, map, cell);
+  openOverlay(state.tabletop, "map");
+  state.input.lastGesture = {
+    type: "long_press_menu",
+    mapId: map.id,
+    cellId: cell?.cellId || null,
+    point: { x: point.clientX ?? point.x, y: point.clientY ?? point.y }
+  };
+  renderAll();
 }
 
 function openMoreMenu() {
@@ -1163,6 +1281,7 @@ function handleDirection(direction) {
 function handlePointerDown(point, event) {
   if (!state) return;
   closeContextMenu();
+  closeMoreMenu();
   const pointerId = event.pointerId ?? 1;
   activePointers.set(pointerId, point);
   const world = screenToWorld(point);
@@ -1186,13 +1305,15 @@ function handlePointerDown(point, event) {
   if (activePointers.size === 2) {
     gesture.panning = false;
     gesture.pinch = startPinch();
+    gesture.mode = "pinch";
     clearLongPressTimer();
-  } else if (event.pointerType === "touch" && state.role === "gm" && state.scene === SCENES.MAP_EDIT) {
+  } else if (event.pointerType === "touch" && state.scene !== SCENES.ENCOUNTER && state.scene !== SCENES.REPLAY) {
     clearLongPressTimer();
     longPressTimer = window.setTimeout(() => {
       if (!gesture || gesture.moved || gesture.pointerId !== pointerId) return;
       gesture.longPressed = true;
-      openContextMenuAt(point, cell);
+      if (state.role === "gm" && state.scene === SCENES.MAP_EDIT) openContextMenuAt(point, cell);
+      else openTabletopMapMenu(point, cell);
     }, state.editor.longPressMs);
   }
 }
@@ -1204,9 +1325,16 @@ function handlePointerMove(point, event) {
   if (activePointers.size === 2 && gesture?.pinch) {
     const next = currentPinchDistance();
     if (next > 0 && gesture.pinch.distance > 0) {
-      const focus = midpoint([...activePointers.values()]);
-      zoomViewport(next / gesture.pinch.distance, focus);
-      gesture.pinch.distance = next;
+      const focus = gestureMidpoint([...activePointers.values()]);
+      const worldBefore = screenToWorld(focus);
+      const viewport = currentViewport();
+      viewport.zoom = clamp(gesture.pinch.startZoom * (next / gesture.pinch.distance), minimumAllowedZoomForPlayer(currentRenderedMap()), 4);
+      const angleDelta = currentPinchAngle() - gesture.pinch.angle;
+      viewport.rotationDeg = snapRotationDeg(gesture.pinch.startRotation + angleDelta);
+      viewport.fitMode = "custom";
+      viewport.initialized = true;
+      centerScreenOnWorld(worldBefore, focus);
+      renderAll();
     }
     return;
   }
@@ -1232,6 +1360,13 @@ function handlePointerRelease(point, event) {
   const pointerId = event.pointerId ?? 1;
   activePointers.delete(pointerId);
   clearLongPressTimer();
+  if (gesture?.pinch && activePointers.size < 2) {
+    currentViewport().rotationDeg = snapRotationDeg(currentViewport().rotationDeg);
+    activePointers.clear();
+    persistAndRender();
+    gesture = null;
+    return;
+  }
   if (!gesture || gesture.pointerId !== pointerId) return;
   const currentGesture = gesture;
   gesture = null;
@@ -1246,7 +1381,54 @@ function handlePointerRelease(point, event) {
     persistAndRender();
     return;
   }
+  handleCanvasTap(cell, point);
+}
+
+function handleCanvasTap(cell, point) {
+  const map = currentRenderedMap();
+  const nextTap = {
+    mapId: map.id,
+    cellId: cell.cellId,
+    point,
+    time: performance.now()
+  };
+  const doubleTap = sameTapTarget(lastTap, nextTap);
   handleCanvasCell(cell);
+  if (doubleTap) {
+    lastTap = null;
+    handleCanvasDoubleActivation(cell);
+    return;
+  }
+  lastTap = nextTap;
+}
+
+function handleCanvasDoubleActivation(cell) {
+  if (state.scene === SCENES.ENCOUNTER || state.scene === SCENES.REPLAY) return;
+  const map = getCurrentMap(state);
+  const index = coordinateToIndex(map, cell.coordinates);
+  const hitEntity = map.entities.find((entity) => entity.visible !== false && entity.x === index.x && entity.y === index.y);
+  if (hitEntity) {
+    state.selectedEntityId = hitEntity.id;
+    openOverlay(state.tabletop, "entities");
+    pushMessage(state, `Opened entity ${hitEntity.name || hitEntity.id}.`);
+    persistAndRender();
+    return;
+  }
+  const tile = tileAt(map, index.x, index.y, state.role);
+  if (tile?.childMapId) {
+    const result = openChildMapFromTile(state, tile, actor());
+    if (!result.ok) pushMessage(state, result.message || "Child map entry rejected.", "warn");
+    else fitCurrentMap({ persist: false });
+    persistAndRender();
+    return;
+  }
+  if (state.role === "gm") {
+    openOverlay(state.tabletop, "map");
+    pushMessage(state, "No child map attached. Use Map tools to create or attach one.");
+  } else {
+    pushMessage(state, "No accessible child layer here.", "warn");
+  }
+  persistAndRender();
 }
 
 function handleCanvasCell(cell) {
@@ -1344,10 +1526,11 @@ function ensureTileThenAttach(kind) {
 }
 
 function handleCanvasContextMenu(point, event) {
-  if (state.role !== "gm" || state.scene !== SCENES.MAP_EDIT) return;
   event.preventDefault();
   const map = currentRenderedMap();
-  openContextMenuAt(point, worldToCell(map, screenToWorld(point)));
+  const cell = worldToCell(map, screenToWorld(point));
+  if (state.role === "gm" && state.scene === SCENES.MAP_EDIT) openContextMenuAt(point, cell);
+  else openTabletopMapMenu(point, cell);
 }
 
 function handleCanvasWheel(point, event) {
@@ -1401,6 +1584,7 @@ function renderAll() {
   renderReplayControls();
   renderLog();
   renderStatus();
+  renderTabletop();
   renderContextMenu();
   renderMoreMenu();
 }
@@ -1641,6 +1825,175 @@ function renderStatus() {
   if (elements.compassButton) elements.compassButton.hidden = viewport.compassVisible === false;
 }
 
+function renderTabletop() {
+  if (!state?.tabletop) return;
+  const projection = tabletopProjection(state.tabletop, state.role, state.actorPlayerId);
+  const active = activeScene(state.tabletop);
+  renderTabletopEffects(projection);
+  renderTabletopInitiative(projection);
+  renderTabletopClock();
+  renderTabletopDecks(projection);
+  renderTabletopDice(projection);
+  renderTabletopRightTray(projection);
+  renderTabletopOverlay(projection, active);
+  document.body.classList.toggle("tabletop-overlay-open", state.tabletop.overlay.open);
+}
+
+function renderTabletopEffects(projection) {
+  if (!elements.tabletopEffectsTray) return;
+  elements.tabletopEffectsTray.innerHTML = projection.chips.map((chip) => (
+    `<span class="tabletop-chip ${escapeHtml(chip.category)}" title="${escapeHtml(chip.duration || "scene")}">${escapeHtml(chip.label)}</span>`
+  )).join("");
+}
+
+function renderTabletopInitiative(projection) {
+  if (!elements.tabletopInitiativeStrip) return;
+  const activeEntryId = state.tabletop.initiative.activeEntryId;
+  elements.tabletopInitiativeStrip.innerHTML = projection.initiativeEntries.map((entry) => `
+    <button class="initiative-entry ${entry.entryId === activeEntryId ? "is-active" : ""}" data-card-id="${escapeHtml(entry.cardId || "")}" data-tabletop-action="open-card" type="button">
+      <strong>${escapeHtml(entry.name)}</strong>
+      <span>${escapeHtml(entry.role)}</span>
+    </button>
+  `).join("");
+}
+
+function renderTabletopClock() {
+  const progress = clockProgress(state.tabletop);
+  if (elements.tabletopClockFace) elements.tabletopClockFace.textContent = progress.paused ? "II" : String(Math.round(progress.remaining));
+  if (elements.tabletopClock) {
+    elements.tabletopClock.style.setProperty("--timer-used", String(progress.usedRatio));
+    elements.tabletopClock.classList.toggle("is-paused", progress.paused);
+    elements.tabletopClock.classList.add("tabletop-fade-card");
+  }
+  if (elements.tabletopClockPauseButton) elements.tabletopClockPauseButton.textContent = progress.paused ? "Resume" : "Pause";
+}
+
+function renderTabletopDecks(projection) {
+  const playerDeck = projection.decks.find((deck) => deck.deckType === "player");
+  const monsterDeck = projection.decks.find((deck) => deck.deckType === "monster");
+  if (elements.tabletopPlayerDeck) elements.tabletopPlayerDeck.innerHTML = renderDeck(playerDeck, "Player Deck");
+  if (elements.tabletopMonsterDeck) elements.tabletopMonsterDeck.innerHTML = renderDeck(monsterDeck, "Monster Deck");
+}
+
+function renderDeck(deck, fallbackTitle) {
+  if (!deck) return `<div class="deck-title"><span>${escapeHtml(fallbackTitle)}</span><span>Hidden</span></div>`;
+  const cards = (deck.cards || []).slice(0, 3).map((cardId) => state.tabletop.cards[cardId]).filter(Boolean);
+  return `
+    <div class="deck-title">
+      <span>${escapeHtml(deck.name || deck.groupName || fallbackTitle)}</span>
+      <button type="button" data-deck-id="${escapeHtml(deck.deckId)}" data-tabletop-action="draw-card">Draw</button>
+    </div>
+    ${cards.map((card, index) => renderSmallCard(card, index === 0 && deck.deckType === "monster" ? "open-commander" : "select-card")).join("")}
+  `;
+}
+
+function renderSmallCard(card, action = "select-card") {
+  const selected = state.tabletop.layout.selectedCardId === card.cardId;
+  const remaining = cardStackRemainingSafe(card.cardId);
+  const stack = card.stackCount ? `<span>Stack ${remaining}/${card.stackCount}</span>` : "";
+  return `
+    <button class="tabletop-deck-card ${selected ? "is-selected" : ""}" type="button" data-card-id="${escapeHtml(card.cardId)}" data-tabletop-action="${escapeHtml(action)}">
+      <strong>${escapeHtml(card.name)}</strong>
+      <span>${escapeHtml(card.cardType)}</span>
+      ${stack}
+    </button>
+  `;
+}
+
+function cardStackRemainingSafe(cardId) {
+  const card = state.tabletop.cards[cardId];
+  if (!card?.stackCount) return 0;
+  const used = Number(state.tabletop.sceneState.cardUseCounts[cardId] || 0);
+  return Math.max(0, Number(card.stackCount) - used);
+}
+
+function renderTabletopDice(projection) {
+  if (!elements.tabletopDiceRow) return;
+  elements.tabletopDiceRow.innerHTML = projection.dice.map((die) => `
+    <button class="tabletop-die ${state.tabletop.layout.selectedDieId === die.dieId ? "is-selected" : ""}" type="button" data-die-id="${escapeHtml(die.dieId)}" data-tabletop-action="select-die" title="Double-click or double-tap to roll ${escapeHtml(die.label)}">
+      ${escapeHtml(die.label)}
+    </button>
+  `).join("");
+}
+
+function renderTabletopRightTray(projection) {
+  if (!elements.tabletopRightTray) return;
+  const selected = state.tabletop.cards[state.tabletop.layout.selectedCardId];
+  const hand = selected?.cardId === "card-orc-commander" ? commanderHand(state.tabletop, selected.cardId) : [];
+  const latestRoll = state.tabletop.sceneState.diceResults.at(-1);
+  elements.tabletopRightTray.innerHTML = `
+    ${selected ? `<div class="tabletop-card-detail tabletop-object"><strong>${escapeHtml(selected.name)}</strong><br>${escapeHtml(selected.cardType)}${selected.cardId === "card-weapon-sword-001" ? `<br><button type="button" data-card-id="${escapeHtml(selected.cardId)}" data-tabletop-action="dice-bag">Dice Bag</button>` : ""}</div>` : ""}
+    ${hand.map((card) => renderSmallCard(card, "select-card")).join("")}
+    ${latestRoll ? `<div class="tabletop-result tabletop-object"><strong>${escapeHtml(latestRoll.label)}</strong><br>${escapeHtml(latestRoll.face)}</div>` : ""}
+  `;
+  if (elements.tabletopLoreScroll) elements.tabletopLoreScroll.classList.toggle("is-open", state.tabletop.layout.ancientScrollOpen);
+}
+
+function renderTabletopOverlay(projection, active) {
+  const overlay = elements.tabletopOverlay;
+  const backdrop = elements.tabletopOverlayBackdrop;
+  if (!overlay || !backdrop) return;
+  overlay.hidden = !state.tabletop.overlay.open;
+  backdrop.hidden = !state.tabletop.overlay.open;
+  if (!state.tabletop.overlay.open) return;
+  const category = state.tabletop.overlay.category || "scene";
+  setText("tabletopOverlayTitle", `${category[0].toUpperCase()}${category.slice(1)}`);
+  elements.tabletopOverlayTabs?.querySelectorAll("[data-tabletop-category]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.tabletopCategory === category);
+  });
+  if (!elements.tabletopOverlayContent) return;
+  elements.tabletopOverlayContent.innerHTML = tabletopOverlayHtml(category, projection, active);
+}
+
+function tabletopOverlayHtml(category, projection, active) {
+  if (category === "map") {
+    const map = getCurrentMap(state);
+    return `<div class="tabletop-menu-grid">
+      <section class="tabletop-menu-panel"><h3>${escapeHtml(map.name)}</h3><p>${escapeHtml(map.gridType)} ${map.width}x${map.height}</p><button type="button" data-tabletop-action="open-selected-child">Open selected child</button></section>
+      <section class="tabletop-menu-panel"><h3>Selection</h3><p>${escapeHtml(state.selection?.cellId || "No cell selected")}</p></section>
+    </div>`;
+  }
+  if (category === "decks") {
+    return `<div class="tabletop-menu-grid">${projection.decks.map((deck) => `<section class="tabletop-menu-panel"><h3>${escapeHtml(deck.name || deck.groupName)}</h3>${(deck.cards || []).map((id) => renderSmallCard(state.tabletop.cards[id], "open-card")).join("")}</section>`).join("")}</div>`;
+  }
+  if (category === "cards") {
+    const card = state.tabletop.cards[state.tabletop.overlay.detailCardId || state.tabletop.layout.selectedCardId] || projection.cards[0];
+    if (!card) return `<p>No authorized card selected.</p>`;
+    const modifiers = visibleModifierRows(state.tabletop, "attack").map((chip) => `<span class="tabletop-chip ${escapeHtml(chip.category)}">${escapeHtml(chip.label)}</span>`).join("");
+    return `<section class="tabletop-menu-panel">
+      <h3>${escapeHtml(card.name)}</h3>
+      <p>${escapeHtml(card.text || "")}</p>
+      <p>Visibility: ${escapeHtml(card.visibility)}</p>
+      ${card.cardId === "card-weapon-sword-001" ? `<button type="button" data-card-id="${escapeHtml(card.cardId)}" data-tabletop-action="dice-bag">Roll Dice Bag</button>` : ""}
+      <div>${modifiers}</div>
+    </section>`;
+  }
+  if (category === "dice") {
+    const latest = state.tabletop.sceneState.diceResults.at(-1);
+    return `<div class="tabletop-menu-grid">
+      <section class="tabletop-menu-panel"><h3>Dice Tray</h3><div class="tabletop-dice-row">${projection.dice.map((die) => `<button class="tabletop-die" type="button" data-die-id="${escapeHtml(die.dieId)}" data-tabletop-action="roll-die">${escapeHtml(die.label)}</button>`).join("")}</div></section>
+      <section class="tabletop-menu-panel"><h3>Latest Result</h3><p>${latest ? `${escapeHtml(latest.label)}: ${escapeHtml(latest.face)}` : "No roll yet."}</p></section>
+    </div>`;
+  }
+  if (category === "initiative") {
+    return `<section class="tabletop-menu-panel"><h3>Initiative</h3>${projection.initiativeEntries.map((entry) => `<p>${entry.entryId === state.tabletop.initiative.activeEntryId ? "> " : ""}${escapeHtml(entry.name)} - ${escapeHtml(entry.role)}</p>`).join("")}<button type="button" data-tabletop-action="advance-initiative">Advance</button><button type="button" data-tabletop-action="pause-clock">${state.tabletop.initiative.paused ? "Resume" : "Pause"}</button></section>`;
+  }
+  if (category === "effects") {
+    return `<section class="tabletop-menu-panel"><h3>Visible Modifier Chips</h3>${projection.chips.map((chip) => `<span class="tabletop-chip ${escapeHtml(chip.category)}">${escapeHtml(chip.label)}</span>`).join(" ")}</section>`;
+  }
+  if (category === "lore") {
+    const loreCards = projection.cards.filter((card) => card.cardType === "lore");
+    return `<section class="tabletop-menu-panel"><h3>Ancient Scroll</h3><button type="button" data-tabletop-action="toggle-lore">${state.tabletop.layout.ancientScrollOpen ? "Roll Scroll" : "Unroll Scroll"}</button>${loreCards.map((card) => `<article class="tabletop-card"><strong>${escapeHtml(card.name)}</strong><p>${escapeHtml(card.text)}</p><button type="button" data-card-id="${escapeHtml(card.cardId)}" data-tabletop-action="share-lore">Share to Scene</button></article>`).join("") || "<p>No lore cards authorized for this view.</p>"}</section>`;
+  }
+  if (category === "replay") {
+    return `<section class="tabletop-menu-panel"><h3>Tabletop Replay Boundary</h3><p>Authoritative tabletop events: ${state.tabletop.replayBoundary.authoritativeEvents.length}</p><p>Encounter replay events remain separate.</p></section>`;
+  }
+  if (category === "settings") {
+    return `<section class="tabletop-menu-panel"><h3>Accessibility</h3><button type="button" data-tabletop-action="toggle-reduced-motion">${state.tabletop.layout.reducedMotion ? "Disable" : "Enable"} reduced motion</button><p>Viewport, tray, and menu state are personal UI state and are excluded from gameplay replay.</p></section>`;
+  }
+  return `<section class="tabletop-menu-panel"><h3>${escapeHtml(active?.name || "Scene")}</h3><p>${escapeHtml(active?.narration?.[0]?.text || "Tabletop scene ready.")}</p></section>`;
+}
+
 function loop(timestamp) {
   const elapsed = lastFrame ? timestamp - lastFrame : 0;
   lastFrame = timestamp;
@@ -1650,6 +2003,10 @@ function loop(timestamp) {
       state.replay.accumulator = 0;
       stepReplay(1, false);
     }
+  }
+  if (state?.tabletop && !state.tabletop.initiative.paused && state.tabletop.initiative.remainingSeconds > 0 && !state.tabletop.layout.reducedMotion) {
+    state.tabletop.initiative.remainingSeconds = Math.max(0, state.tabletop.initiative.remainingSeconds - elapsed / 1000);
+    renderTabletopClock();
   }
   draw();
   window.requestAnimationFrame(loop);
@@ -2319,7 +2676,12 @@ async function runAcceptanceScript() {
   const restored = createGameState(bundleCache, JSON.parse(localStorage.getItem("shaelvien.recursive.tabletop.v0")));
   pass("refresh restores valid map", restored.scene === SCENES.MAP_VIEW && restored.maps[restored.currentMapId]);
   persistAndRender();
-  return { checks, finalStateHash: currentReplay()?.finalStateHash || null, eventCount: state.eventLog.length };
+  return {
+    checks,
+    finalStateHash: currentReplay()?.finalStateHash || null,
+    integrityHash: currentReplay()?.integrityHash || null,
+    eventCount: state.eventLog.length
+  };
 }
 
 async function runEditorAcceptanceScript() {
@@ -2569,6 +2931,83 @@ function verifyRotatedCellTarget(mapId, coordinates) {
     expected: expected.cellId,
     results,
     ok: results.every((result) => result.ok)
+  };
+}
+
+async function runTabletopAcceptanceScript() {
+  await resetApplication();
+  const checks = [];
+  const pass = (name, condition, data = {}) => {
+    const ok = Boolean(condition);
+    checks.push({ name, status: ok ? "PASS" : "FAIL", ...data });
+    if (!ok) throw new Error(`Tabletop acceptance failed: ${name}`);
+  };
+
+  setRole("gm");
+  setScene(SCENES.MAP_VIEW);
+  fitCurrentMap({ persist: false });
+  const shellRect = document.querySelector(".app-shell").getBoundingClientRect();
+  pass("fixed single-screen shell", Math.round(shellRect.height) <= window.innerHeight && document.documentElement.scrollHeight <= window.innerHeight + 1);
+  pass("tabletop map central", elements.mapViewport.getBoundingClientRect().height > window.innerHeight * 0.45);
+
+  const world = getCurrentMap(state);
+  const cityTile = findTile(world, "tile-world-city");
+  const cityCell = selectionForCell(world, coordinateFromCell(world, cityTile.x, cityTile.y));
+  const cityPoint = worldToScreen(cellCenter(world, cityCell.coordinates));
+  handleCanvasTap(cityCell, cityPoint);
+  handleCanvasTap(cityCell, cityPoint);
+  pass("double-tap child entry works", state.currentMapId === "map-city");
+
+  const viewport = currentViewport();
+  viewport.zoom = 1.5;
+  viewport.fitMode = "custom";
+  viewport.initialized = true;
+  const beforePanX = viewport.offsetX;
+  handlePointerDown({ x: 120, y: 120, clientX: 120, clientY: 120 }, { pointerId: 101, pointerType: "touch", button: 0 });
+  handlePointerMove({ x: 154, y: 132, clientX: 154, clientY: 132 }, { pointerId: 101, pointerType: "touch", buttons: 1 });
+  handlePointerRelease({ x: 154, y: 132, clientX: 154, clientY: 132 }, { pointerId: 101, pointerType: "touch", target: canvas });
+  pass("swipe pans map", currentViewport().offsetX !== beforePanX);
+
+  handlePointerDown({ x: 120, y: 120, clientX: 120, clientY: 120 }, { pointerId: 201, pointerType: "touch", button: 0 });
+  handlePointerDown({ x: 180, y: 120, clientX: 180, clientY: 120 }, { pointerId: 202, pointerType: "touch", button: 0 });
+  const pinchBefore = { zoom: currentViewport().zoom, rotation: currentViewport().rotationDeg };
+  handlePointerMove({ x: 110, y: 125, clientX: 110, clientY: 125 }, { pointerId: 201, pointerType: "touch", buttons: 1 });
+  handlePointerMove({ x: 198, y: 175, clientX: 198, clientY: 175 }, { pointerId: 202, pointerType: "touch", buttons: 1 });
+  handlePointerRelease({ x: 198, y: 175, clientX: 198, clientY: 175 }, { pointerId: 202, pointerType: "touch", target: canvas });
+  pass("pinch zoom works", currentViewport().zoom !== pinchBefore.zoom);
+  pass("pinch rotate snaps viewport", [0, 90, 180, 270].includes(currentViewport().rotationDeg));
+
+  openOverlay(state.tabletop, "scene");
+  renderAll();
+  pass("menus open over center", !elements.tabletopOverlay.hidden && !elements.tabletopOverlayBackdrop.hidden);
+  closeOverlay(state.tabletop);
+  renderAll();
+  pass("closed overlays do not intercept input", elements.tabletopOverlay.hidden && elements.tabletopOverlayBackdrop.hidden);
+
+  const gmProjection = tabletopProjection(state.tabletop, "gm", "player-a");
+  const playerProjection = tabletopProjection(state.tabletop, "player", "player-a");
+  pass("gm scene layout exists", gmProjection.decks.some((deck) => deck.deckId === "deck-orcs-001"));
+  pass("player scene privacy filters monster deck", !playerProjection.decks.some((deck) => deck.deckId === "deck-orcs-001"));
+  pass("dice row has all dice", gmProjection.dice.length === 9);
+
+  const weaponResult = resolveDiceBagAction(state.tabletop, "card-weapon-sword-001", "attack", { baseAttack: 3 });
+  pass("dice bag card action works", weaponResult.ok && weaponResult.result.totalAttack === 17);
+  pass("modifier chips visible in result", weaponResult.result.modifiers.length === 2);
+
+  const lore = shareLoreCard(state.tabletop);
+  const playerAfterShare = tabletopProjection(state.tabletop, "player", "player-a");
+  pass("lore card sharing respects audience", lore.ok && playerAfterShare.cards.some((card) => card.cardId === "card-lore-tavern-warning"));
+  const advanced = advanceInitiative(state.tabletop);
+  const paused = pauseClock(state.tabletop);
+  const resumed = resumeClock(state.tabletop);
+  pass("initiative and chess clock work", advanced.ok && paused.ok && resumed.ok);
+  pass("viewport state outside tabletop replay", !state.tabletop.replayBoundary.authoritativeEvents.some((event) => event.type.startsWith("viewport_")));
+  persistAndRender();
+  return {
+    checks,
+    tabletopEvents: state.tabletop.replayBoundary.authoritativeEvents.length,
+    latestDiceBag: weaponResult.result,
+    currentMapId: state.currentMapId
   };
 }
 

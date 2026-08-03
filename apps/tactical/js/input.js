@@ -25,9 +25,11 @@ export function bindInput(canvas, handlers) {
     handlers.onPointerDown?.(eventToCanvasPoint(canvas, event), event);
   });
   canvas.addEventListener("pointermove", (event) => {
+    if (event.cancelable) event.preventDefault();
     handlers.onPointerMove?.(eventToCanvasPoint(canvas, event), event);
-  });
+  }, { passive: false });
   const release = (event) => {
+    if (event.cancelable) event.preventDefault();
     handlers.onPointerState?.(false);
     handlers.onPointerRelease?.(eventToCanvasPoint(canvas, event), event);
   };
@@ -39,6 +41,7 @@ export function bindInput(canvas, handlers) {
     handlers.onWheel?.(eventToCanvasPoint(canvas, event), event);
   }, { passive: false });
   canvas.addEventListener("contextmenu", (event) => {
+    if (event.cancelable) event.preventDefault();
     handlers.onContextMenu?.(eventToCanvasPoint(canvas, event), event);
   });
   window.addEventListener("keydown", (event) => {

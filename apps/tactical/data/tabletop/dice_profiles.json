@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "shaelvien.tabletop.dice.v1",
+  "dice": [
+    { "dieId": "d100", "label": "D100", "sides": 100, "sequence": [73, 18, 91] },
+    { "dieId": "d30", "label": "D30", "sides": 30, "sequence": [17, 4, 29] },
+    { "dieId": "d20", "label": "D20", "sides": 20, "sequence": [14, 7, 19] },
+    { "dieId": "d12", "label": "D12", "sides": 12, "sequence": [9, 2, 11] },
+    { "dieId": "d10", "label": "D10", "sides": 10, "sequence": [6, 1, 10] },
+    { "dieId": "d8", "label": "D8", "sides": 8, "sequence": [5, 2, 8] },
+    { "dieId": "d6", "label": "D6", "sides": 6, "sequence": [4, 1, 6] },
+    { "dieId": "d4", "label": "D4", "sides": 4, "sequence": [3, 1, 4] },
+    { "dieId": "coin", "label": "Coin", "sides": 2, "faces": ["Heads", "Tails"], "sequence": [1, 2, 1] }
+  ]
+}

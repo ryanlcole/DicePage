@@ -1,4 +1,5 @@
 import { normalizeMapCollision } from "./collision.js";
+import { createTabletopState, serializableTabletopState } from "./tabletop/scene.js";
 
 export const SCENES = Object.freeze({
   BOOT: "BOOT",
@@ -55,6 +56,7 @@ export function createGameState(bundle, persisted = null) {
     playerKnowledge: { discoveredCellsByPlayer: {} },
     soundEvents: [],
     perception: { current: null },
+    tabletop: createTabletopState(bundle.tabletop || {}, persisted?.tabletop),
     activeEncounter: null,
     explorationBeforeEncounter: null,
     replay: {
@@ -266,6 +268,7 @@ export function serializableState(state) {
     messages: deepClone(state.messages),
     playerKnowledge: deepClone(state.playerKnowledge),
     soundEvents: deepClone(state.soundEvents),
+    tabletop: serializableTabletopState(state.tabletop),
     replays: deepClone(state.replays),
     replay: {
       selectedReplayId: state.replay.selectedReplayId

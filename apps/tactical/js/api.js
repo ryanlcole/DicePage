@@ -19,7 +19,15 @@ const DATA_PATHS = Object.freeze({
   tileAssetRegistry: "data/assets/tile_asset_registry.json",
   collisionPresets: "data/collision_presets.json",
   perceptionProfiles: "data/perception_profiles.json",
-  acousticMaterials: "data/acoustic_materials.json"
+  acousticMaterials: "data/acoustic_materials.json",
+  tabletop: {
+    cards: "data/tabletop/card_definitions.json",
+    decks: "data/tabletop/deck_definitions.json",
+    dice: "data/tabletop/dice_profiles.json",
+    chips: "data/tabletop/chip_profiles.json",
+    initiative: "data/tabletop/initiative_profiles.json",
+    demoScene: "data/tabletop/demo_scene.json"
+  }
 });
 
 export async function loadJson(path) {
@@ -29,7 +37,7 @@ export async function loadJson(path) {
 }
 
 export async function loadGameBundle() {
-  const [tileManifest, maps, encounters, characterGroups, creatureGroups, tileAssetRegistry, collisionPresets, perceptionProfiles, acousticMaterials] = await Promise.all([
+  const [tileManifest, maps, encounters, characterGroups, creatureGroups, tileAssetRegistry, collisionPresets, perceptionProfiles, acousticMaterials, tabletop] = await Promise.all([
     loadJson(DATA_PATHS.tileManifest),
     Promise.all(DATA_PATHS.maps.map(loadJson)),
     Promise.all(DATA_PATHS.encounters.map(loadJson)),
@@ -38,7 +46,9 @@ export async function loadGameBundle() {
     loadJson(DATA_PATHS.tileAssetRegistry).catch(() => ({ schemaVersion: "shaelvien.tile_asset_registry.v1", assets: [] })),
     loadJson(DATA_PATHS.collisionPresets).catch(() => ({ schemaVersion: "shaelvien.collision_presets.v1", presets: [] })),
     loadJson(DATA_PATHS.perceptionProfiles).catch(() => ({ schemaVersion: "shaelvien.perception_profiles.v1", profiles: [] })),
-    loadJson(DATA_PATHS.acousticMaterials).catch(() => ({ schemaVersion: "shaelvien.acoustic_materials.v1", materials: [] }))
+    loadJson(DATA_PATHS.acousticMaterials).catch(() => ({ schemaVersion: "shaelvien.acoustic_materials.v1", materials: [] })),
+    Promise.all(Object.entries(DATA_PATHS.tabletop).map(async ([key, path]) => [key, await loadJson(path).catch(() => null)]))
+      .then((entries) => Object.fromEntries(entries))
   ]);
   return {
     tileManifest,
@@ -49,7 +59,8 @@ export async function loadGameBundle() {
     tileAssetRegistry: normalizeAssetRegistry(tileAssetRegistry),
     collisionPresets,
     perceptionProfiles,
-    acousticMaterials
+    acousticMaterials,
+    tabletop
   };
 }
 

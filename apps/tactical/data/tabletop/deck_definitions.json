@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "shaelvien.tabletop.decks.v1",
+  "decks": [
+    {
+      "deckId": "deck-player-a-001",
+      "deckType": "player",
+      "name": "Player A Deck",
+      "ownerPlayerId": "player-a",
+      "visibility": "player_private",
+      "drawMode": "gm_select",
+      "cards": ["card-player-lyra", "card-weapon-sword-001"]
+    },
+    {
+      "deckId": "deck-orcs-001",
+      "deckType": "monster",
+      "groupName": "Orcs",
+      "commanderCardId": "card-orc-commander",
+      "visibility": "gm_private",
+      "drawMode": "ordered",
+      "cards": ["card-orc-commander", "card-orc-warrior", "card-orc-scout"]
+    },
+    {
+      "deckId": "deck-lore-tavern-001",
+      "deckType": "lore",
+      "name": "Tavern Lore Scroll",
+      "visibility": "gm_private",
+      "drawMode": "gm_select",
+      "cards": ["card-lore-tavern-warning"]
+    }
+  ]
+}

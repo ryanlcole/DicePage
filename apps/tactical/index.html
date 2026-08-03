@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="shaelvien-tabletop-build" content="SHAELVIEN-PERCEPTION-1">
+  <meta name="shaelvien-tabletop-build" content="SHAELVIEN-DIGITAL-TABLETOP-1">
   <title>Shaelvien Tactical Tabletop</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="styles.css?v=shaelvien-perception-1">
-  <script type="module" src="js/app.js?v=shaelvien-perception-1"></script>
+  <link rel="stylesheet" href="styles.css?v=shaelvien-digital-tabletop-1">
+  <script type="module" src="js/app.js?v=shaelvien-digital-tabletop-1"></script>
 </head>
 <body>
   <main class="app-shell" aria-label="Shaelvien Tactical Tabletop">
@@ -142,6 +142,21 @@
             <button class="hud-button" id="mobileZoomOutButton" type="button" title="Zoom out" aria-label="Zoom out">-</button>
             <span id="floatingZoomLabel">100%</span>
             <button class="hud-button" id="mobileZoomInButton" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+          </div>
+          <div class="tabletop-edge tabletop-left" aria-label="Initiative and lore">
+            <div class="tabletop-object initiative-strip" id="tabletopInitiativeStrip"></div>
+            <button class="tabletop-object lore-scroll" id="tabletopLoreScroll" data-tabletop-action="toggle-lore" type="button">Lore Scroll</button>
+            <button class="tabletop-object clock-face" id="tabletopClock" data-tabletop-action="advance-initiative" type="button">
+              <span id="tabletopClockFace">90</span>
+            </button>
+            <button class="tabletop-mini-button" id="tabletopClockPauseButton" data-tabletop-action="pause-clock" type="button">Pause</button>
+          </div>
+          <div class="tabletop-edge tabletop-top" id="tabletopEffectsTray" aria-label="Effects and modifier chips"></div>
+          <div class="tabletop-edge tabletop-right" id="tabletopRightTray" aria-label="Scene cards and active hand"></div>
+          <div class="tabletop-edge tabletop-bottom" id="tabletopBottomTray" aria-label="Decks and dice">
+            <div class="tabletop-deck" id="tabletopPlayerDeck"></div>
+            <div class="tabletop-dice-row" id="tabletopDiceRow"></div>
+            <div class="tabletop-deck" id="tabletopMonsterDeck"></div>
           </div>
         </div>
       </section>
@@ -338,6 +353,30 @@
       <span id="timeStatus">Time: 0 / 0</span>
     </footer>
   </main>
+
+  <div class="tabletop-overlay-backdrop" id="tabletopOverlayBackdrop" hidden></div>
+  <section class="tabletop-overlay" id="tabletopOverlay" role="dialog" aria-modal="true" aria-labelledby="tabletopOverlayTitle" hidden>
+    <header class="tabletop-overlay-header">
+      <div>
+        <span class="section-kicker">Tabletop Menu</span>
+        <h2 id="tabletopOverlayTitle">Scene</h2>
+      </div>
+      <button class="tool-icon" id="closeTabletopOverlayButton" data-tabletop-action="close-menu" type="button">Close</button>
+    </header>
+    <nav class="tabletop-overlay-tabs" id="tabletopOverlayTabs" aria-label="Tabletop menu categories">
+      <button type="button" data-tabletop-category="map">Map</button>
+      <button type="button" data-tabletop-category="scene">Scene</button>
+      <button type="button" data-tabletop-category="decks">Decks</button>
+      <button type="button" data-tabletop-category="cards">Cards</button>
+      <button type="button" data-tabletop-category="dice">Dice</button>
+      <button type="button" data-tabletop-category="initiative">Initiative</button>
+      <button type="button" data-tabletop-category="effects">Effects</button>
+      <button type="button" data-tabletop-category="lore">Lore</button>
+      <button type="button" data-tabletop-category="replay">Replay</button>
+      <button type="button" data-tabletop-category="settings">Settings</button>
+    </nav>
+    <div class="tabletop-overlay-content" id="tabletopOverlayContent"></div>
+  </section>
 
   <div class="context-menu" id="tileContextMenu" role="menu" hidden>
     <strong id="contextMenuTitle">Tile</strong>

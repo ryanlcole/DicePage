@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "shaelvien.tabletop.cards.v1",
+  "cards": [
+    {
+      "cardId": "card-player-lyra",
+      "name": "Lyra",
+      "cardType": "character",
+      "title": "Player A Character",
+      "visibility": "player_private",
+      "ownerPlayerId": "player-a",
+      "imageStyle": "woodcut-character",
+      "stats": {
+        "hp": 12,
+        "baseAttack": 3,
+        "defense": 11
+      },
+      "actionProfiles": [],
+      "text": "PROVISIONAL PLAYTEST COPY - NOT CANON. Tavern Ambush starter character card."
+    },
+    {
+      "cardId": "card-weapon-sword-001",
+      "name": "Practice Sword",
+      "cardType": "weapon",
+      "visibility": "player_private",
+      "ownerPlayerId": "player-a",
+      "stackMeaning": "opening_chapter_action_uses",
+      "stackCount": 4,
+      "actionProfiles": [
+        {
+          "actionId": "attack",
+          "label": "Attack",
+          "dice": ["d20", "d6"],
+          "baseModifierSource": "character.baseAttack",
+          "repeatPenaltyProfile": "starter-repeat-penalty",
+          "damageProfile": "weapon-d6",
+          "appliedEffects": ["chip-attack-buff-001", "chip-repeat-penalty-001"]
+        }
+      ],
+      "text": "A bounded Dice Bag weapon action for deterministic tabletop testing."
+    },
+    {
+      "cardId": "card-orc-commander",
+      "name": "Orc Commander",
+      "cardType": "monster_commander",
+      "visibility": "gm_private",
+      "entityId": "orc-commander",
+      "handCardIds": ["card-orc-warrior", "card-orc-scout"],
+      "stats": {
+        "hp": 10,
+        "baseAttack": 2
+      },
+      "text": "Commander card opens the subordinate monster hand."
+    },
+    {
+      "cardId": "card-orc-warrior",
+      "name": "Orc Warrior",
+      "cardType": "monster",
+      "visibility": "gm_private",
+      "entityId": "orc-warrior-1",
+      "stats": {
+        "hp": 8,
+        "baseAttack": 2
+      },
+      "text": "Subordinate monster card for Tavern Ambush."
+    },
+    {
+      "cardId": "card-orc-scout",
+      "name": "Orc Scout",
+      "cardType": "monster",
+      "visibility": "gm_private",
+      "entityId": "orc-warrior-2",
+      "stats": {
+        "hp": 6,
+        "baseAttack": 1
+      },
+      "text": "Second subordinate monster card for Tavern Ambush."
+    },
+    {
+      "cardId": "card-lore-tavern-warning",
+      "name": "A Warning in the Common Room",
+      "cardType": "lore",
+      "visibility": "gm_private",
+      "audience": [],
+      "sceneId": "scene-tavern-ambush-001",
+      "tags": ["tavern", "ambush", "opening"],
+      "text": "PROVISIONAL PLAYTEST COPY - NOT CANON. A tense sign that the tavern is no longer safe.",
+      "shareState": "private",
+      "discoveryState": "undiscovered"
+    }
+  ]
+}
