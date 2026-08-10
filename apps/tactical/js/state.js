@@ -1,5 +1,6 @@
 import { normalizeMapCollision } from "./collision.js";
 import { createTabletopState, serializableTabletopState } from "./tabletop/scene.js";
+import { atlasAssetsById, normalizeMapAtlasInstances } from "./atlas.js";
 
 export const SCENES = Object.freeze({
   BOOT: "BOOT",
@@ -41,12 +42,17 @@ export function createGameState(bundle, persisted = null) {
     selectedEntityId: "pc-lyra",
     selectedPaletteId: "grass",
     selectedTileImageAssetId: "",
+    selectedAtlasAssetId: "",
+    selectedAtlasCollection: "",
+    selectedAtlasInstanceId: null,
     selectedActionCost: 0,
     maps: normalizeMaps(byId(bundle.maps)),
     tileManifest: deepClone(bundle.tileManifest),
     tileDefinitions: byId(bundle.tileManifest.definitions),
     tileAssetRegistry: deepClone(bundle.tileAssetRegistry || { schemaVersion: "shaelvien.tile_asset_registry.v1", assets: [] }),
     tileAssets: byAssetId(bundle.tileAssetRegistry?.assets || []),
+    atlasRegistry: deepClone(bundle.atlasAssetRegistry || { schemaVersion: "shaelvien.atlas_asset_registry.v0", assets: [] }),
+    atlasAssets: atlasAssetsById(bundle.atlasAssetRegistry || { schemaVersion: "shaelvien.atlas_asset_registry.v0", assets: [] }),
     collisionPresets: byId(bundle.collisionPresets?.presets || []),
     perceptionProfiles: normalizePerceptionProfiles(bundle.perceptionProfiles || []),
     acousticMaterials: byId(bundle.acousticMaterials?.materials || []),
@@ -116,6 +122,9 @@ export function createGameState(bundle, persisted = null) {
     state.selectedEntityId = persisted.selectedEntityId || "pc-lyra";
     state.selectedPaletteId = state.tileDefinitions[persisted.selectedPaletteId] ? persisted.selectedPaletteId : "grass";
     state.selectedTileImageAssetId = state.tileAssets[persisted.selectedTileImageAssetId] ? persisted.selectedTileImageAssetId : "";
+    state.selectedAtlasAssetId = state.atlasAssets[persisted.selectedAtlasAssetId] ? persisted.selectedAtlasAssetId : "";
+    state.selectedAtlasCollection = typeof persisted.selectedAtlasCollection === "string" ? persisted.selectedAtlasCollection : "";
+    state.selectedAtlasInstanceId = typeof persisted.selectedAtlasInstanceId === "string" ? persisted.selectedAtlasInstanceId : null;
     state.maps = persisted.maps ? normalizeMaps(mergeKnownMaps(state.maps, persisted.maps)) : state.maps;
     state.eventLog = Array.isArray(persisted.eventLog) ? persisted.eventLog : [];
     state.messages = Array.isArray(persisted.messages) ? persisted.messages : [];
@@ -145,11 +154,13 @@ export function createGameState(bundle, persisted = null) {
   }
   state.lastValidMapId = state.currentMapId;
   Object.values(state.maps).forEach((map) => normalizeMapCollision(map, state));
+  Object.values(state.maps).forEach((map) => normalizeMapAtlasInstances(map));
   return state;
 }
 
 function normalizeMaps(maps) {
   Object.values(maps).forEach((map) => normalizeMapGeometry(map));
+  Object.values(maps).forEach((map) => normalizeMapAtlasInstances(map));
   return maps;
 }
 
@@ -263,6 +274,9 @@ export function serializableState(state) {
     selectedEntityId: state.selectedEntityId,
     selectedPaletteId: state.selectedPaletteId,
     selectedTileImageAssetId: state.selectedTileImageAssetId,
+    selectedAtlasAssetId: state.selectedAtlasAssetId,
+    selectedAtlasCollection: state.selectedAtlasCollection,
+    selectedAtlasInstanceId: state.selectedAtlasInstanceId,
     maps: deepClone(state.maps),
     eventLog: deepClone(state.eventLog),
     messages: deepClone(state.messages),

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "shaelvien.map.v2",
+  "id": "map-atlas-region-stream-source",
+  "name": "Stream Source Interior",
+  "category": "region_detail_test",
+  "parentMapId": "map-atlas-region-stream-demo",
+  "parentTileId": null,
+  "parentAtlasInstanceId": "atlas-region-stream-pool-001",
+  "width": 10,
+  "height": 8,
+  "tileSize": 24,
+  "gridType": "square",
+  "gridSettings": {
+    "square": {
+      "columns": 10,
+      "rows": 8,
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "unitSystem": "imperial",
+      "distanceUnit": "ft"
+    }
+  },
+  "terrain": {
+    "default": "water",
+    "overrides": [
+      { "x": 0, "y": 0, "definitionId": "grass" },
+      { "x": 1, "y": 0, "definitionId": "grass" },
+      { "x": 8, "y": 7, "definitionId": "grass" },
+      { "x": 9, "y": 7, "definitionId": "grass" }
+    ]
+  },
+  "atlasInstances": [
+    {
+      "instanceId": "atlas-stream-source-pool-001",
+      "assetId": "atlas.region.water.stream.pool.001",
+      "x": 120,
+      "y": 96,
+      "width": 90,
+      "height": 126,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Stream Source Detail",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    }
+  ],
+  "placedTiles": [],
+  "entities": [],
+  "entryPoints": [
+    {
+      "id": "entry-stream-source",
+      "x": 4,
+      "y": 4,
+      "label": "Stream Source Entry"
+    }
+  ],
+  "exitPoints": [],
+  "triggers": [],
+  "permissions": {
+    "gm": {
+      "canView": true,
+      "canEdit": true
+    },
+    "player": {
+      "canView": true
+    }
+  },
+  "atmosphere": {
+    "light": "day",
+    "sound": "spring water",
+    "gmNotes": "Child map for the Region Atlas stream demo."
+  },
+  "encounterReferences": []
+}

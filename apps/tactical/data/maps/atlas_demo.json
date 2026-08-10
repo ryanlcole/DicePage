@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "shaelvien.map.v2",
+  "id": "map-atlas-demo",
+  "name": "Atlas Pipeline Demo",
+  "category": "world_test",
+  "parentMapId": null,
+  "parentTileId": null,
+  "width": 20,
+  "height": 12,
+  "tileSize": 24,
+  "gridType": "square",
+  "gridSettings": {
+    "square": {
+      "columns": 20,
+      "rows": 12,
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "unitSystem": "imperial",
+      "distanceUnit": "ft"
+    }
+  },
+  "terrain": {
+    "default": "grass",
+    "overrides": []
+  },
+  "atlasInstances": [
+    {
+      "instanceId": "atlas-demo-plains-001",
+      "assetId": "atlas.terrain.plains.001",
+      "x": 120,
+      "y": 84,
+      "width": 120,
+      "height": 96,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "terrain",
+      "z": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Drive Plains Sample",
+        "sourceId": "drive.world_map.terrain.plains.001"
+      }
+    },
+    {
+      "instanceId": "atlas-demo-waterfall-001",
+      "assetId": "atlas.wonder.waterfall.001",
+      "x": 276,
+      "y": 148,
+      "width": 120,
+      "height": 120,
+      "rotationDeg": 90,
+      "scale": 1,
+      "layer": "natural_landmark",
+      "z": 1,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": "map-atlas-demo-waterfall-interior",
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Drive Waterfall Sample",
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001"
+      }
+    },
+    {
+      "instanceId": "atlas-demo-waterfall-002",
+      "assetId": "atlas.wonder.waterfall.001",
+      "x": 360,
+      "y": 204,
+      "width": 96,
+      "height": 96,
+      "rotationDeg": 180,
+      "scale": 1,
+      "layer": "natural_landmark",
+      "z": 2,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Second Reference To Same Waterfall Asset",
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001"
+      }
+    }
+  ],
+  "placedTiles": [],
+  "entities": [],
+  "entryPoints": [
+    {
+      "id": "entry-atlas-demo",
+      "x": 1,
+      "y": 1,
+      "label": "Atlas Demo Entry"
+    }
+  ],
+  "exitPoints": [],
+  "triggers": [],
+  "permissions": {
+    "gm": {
+      "canView": true,
+      "canEdit": true
+    },
+    "player": {
+      "canView": true
+    }
+  },
+  "atmosphere": {
+    "light": "day",
+    "sound": "water",
+    "gmNotes": "Atlas pipeline demonstration map. Not first-preset canon."
+  },
+  "encounterReferences": []
+}

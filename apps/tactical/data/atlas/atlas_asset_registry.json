@@ -1,0 +1,855 @@
+{
+  "schemaVersion": "shaelvien.atlas_asset_registry.v1",
+  "generatedAt": "2026-08-10T07:39:41Z",
+  "sourceAuthority": "google_drive",
+  "syncPolicy": {
+    "driveToShaelvienAuthoritative": true,
+    "localRuntimeRequiresLiveDrive": false,
+    "sourceFilesMutableInPlace": false,
+    "derivedAssetsMayBeRegenerated": true
+  },
+  "layerOrder": {
+    "base": 0,
+    "terrain": 1,
+    "terrain_transition": 2,
+    "water_system": 3,
+    "natural_landmark": 4,
+    "road": 5,
+    "civilization_landmark": 6,
+    "structure": 7,
+    "object": 8,
+    "gameplay_entity": 9,
+    "gm_overlay": 10
+  },
+  "sources": [
+    {
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "name": "Region Map Streams and Small Watercourses Source Sheet 001",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+      "driveParentId": "1h2MmUIDoSuW4nVL0o2bG-r6xT58IsEnT",
+      "drivePath": "Shaelvien/07_Media/Tiles/Region_Map/Water/Streams_and_Small_Watercourses/m_6a7617b975288191a52088e925924e6f",
+      "driveMimeType": "text/html",
+      "driveModifiedTime": "2026-08-07T17:37:17.426Z",
+      "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+      "chatgptShareUrl": "https://chatgpt.com/s/m_6a7617b975288191a52088e925924e6f",
+      "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae",
+      "chatgptConversationId": "6a76109a-661c-83ea-955d-1574bd8eaf1f",
+      "chatgptMessageId": "03bd1543-72b2-4b45-a4d3-d9e5f0803267",
+      "chatgptAssetPointer": "sediment://file_00000000416881f9b4530d25cfc97233",
+      "localSourcePath": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "mimeType": "image/png",
+      "widthPx": 1536,
+      "heightPx": 1024,
+      "contentHash": "b67cc0397aeccbebcddd5d18be5a7113a00930c0cb543b96c423e7871d3f09ca",
+      "syncStatus": "downloaded_from_chatgpt_pointer",
+      "approvedStatus": "owner_provided_drive_library",
+      "lastVerified": "2026-08-10T07:39:41Z"
+    },
+    {
+      "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+      "name": "World Map Hydrological Wonders Source Sheet 001",
+      "category": "landmark",
+      "collection": "hydrological_wonders",
+      "driveFileId": "1zKRmB_hut2O86tzEiLUFwfdEK5-zuLdg",
+      "driveParentId": "1OHC1mZ-gRHI2s7DUI1esp1osXOEFi8Of",
+      "drivePath": "Shaelvien/07_Media/Tiles/World_Map/Landmarks/Wonders/Hydrological/m_6a760abbfe548191aaf83ee7de13a95e",
+      "driveMimeType": "text/html",
+      "driveModifiedTime": "2026-08-07T16:41:55.751Z",
+      "chatgptShareId": "m_6a760abbfe548191aaf83ee7de13a95e",
+      "chatgptShareUrl": "https://chatgpt.com/s/m_6a760abbfe548191aaf83ee7de13a95e",
+      "chatgptGenerationId": "s_7d455fc7b3288191a3a4c609bf7ea713",
+      "chatgptConversationId": "6a739cfd-9430-83ea-8489-c839bad80468",
+      "chatgptMessageId": "50baecf2-61b0-46a0-964f-70938b13f5c4",
+      "chatgptAssetPointer": "sediment://file_00000000f760820ca63b349748579d51",
+      "localSourcePath": "assets/atlas/source/world_map/landmarks/wonders/hydrological/atlas-source-world-wonder-hydrological-001.png",
+      "mimeType": "image/png",
+      "widthPx": 1536,
+      "heightPx": 1024,
+      "contentHash": "4bc3aa893c5f2ecf3ccae2f41ed78fc3c28be4f769d792b0587c53ec2eda8efb",
+      "syncStatus": "downloaded_from_chatgpt_pointer",
+      "approvedStatus": "owner_provided_drive_library",
+      "lastVerified": "2026-08-10T07:39:41Z"
+    },
+    {
+      "sourceId": "drive.world_map.terrain.plains.001",
+      "name": "World Map Plains Source Sheet 001",
+      "category": "terrain",
+      "collection": "plains",
+      "driveFileId": "1xXUbi_2Ap7ExVt_nAPvhkPOZ2GBunkTz",
+      "driveParentId": "1QPAawZk0_LB1J5-kiLnKyeewlQYah13x",
+      "drivePath": "Shaelvien/07_Media/Tiles/World_Map/Terrain/Plains/m_6a739a197b848191b77eaac2010be9fe",
+      "driveMimeType": "text/html",
+      "driveModifiedTime": "2026-08-05T20:16:48.037Z",
+      "chatgptShareId": "m_6a739a197b848191b77eaac2010be9fe",
+      "chatgptShareUrl": "https://chatgpt.com/s/m_6a739a197b848191b77eaac2010be9fe",
+      "chatgptGenerationId": "s_530c2807f7b48191b133ec461afc04cd",
+      "chatgptConversationId": "6a734564-10dc-83ea-a509-26b334fc3572",
+      "chatgptMessageId": "6949ef78-619d-4595-8411-300272c1f6e2",
+      "chatgptAssetPointer": "sediment://file_00000000e944822faa9d1cba89136b33",
+      "localSourcePath": "assets/atlas/source/world_map/terrain/plains/atlas-source-world-terrain-plains-001.png",
+      "mimeType": "image/png",
+      "widthPx": 1536,
+      "heightPx": 1024,
+      "contentHash": "54df05f9bd4d035ed30b6069310291a34b9ee90d6be87755d2ca0ff1f9907f69",
+      "syncStatus": "downloaded_from_chatgpt_pointer",
+      "approvedStatus": "owner_provided_drive_library",
+      "lastVerified": "2026-08-10T07:39:41Z"
+    }
+  ],
+  "assets": [
+    {
+      "assetId": "atlas.terrain.plains.001",
+      "name": "Plains Terrain 001",
+      "category": "terrain",
+      "collection": "plains",
+      "sourceImage": "assets/atlas/source/world_map/terrain/plains/atlas-source-world-terrain-plains-001.png",
+      "sourceId": "drive.world_map.terrain.plains.001",
+      "sourceRect": {
+        "x": 12,
+        "y": 10,
+        "width": 288,
+        "height": 262
+      },
+      "derivedPath": "assets/atlas/derived/atlas-terrain-plains-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-terrain-plains-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 288,
+      "nativeHeight": 262,
+      "contentHash": "1d4f1278555cc2409b97a4390c9d3a3040d157e0fa956e01295cc9e071d70ac4",
+      "thumbnailHash": "8e02e121a63fb8276f1a22a9d4f406937392875ffd842541118b3d5cdc389c7d",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "terrain",
+      "layerOrder": 1,
+      "tags": [
+        "world_map",
+        "terrain",
+        "plains",
+        "carved"
+      ],
+      "connectors": [],
+      "transparentBackground": false,
+      "shapeModel": "rectangular_image",
+      "rectIsStorageEnvelope": false,
+      "alphaMaskSource": "none",
+      "createdFrom": {
+        "sourceId": "drive.world_map.terrain.plains.001",
+        "driveFileId": "1xXUbi_2Ap7ExVt_nAPvhkPOZ2GBunkTz",
+        "chatgptShareId": "m_6a739a197b848191b77eaac2010be9fe",
+        "chatgptGenerationId": "s_530c2807f7b48191b133ec461afc04cd"
+      },
+      "defaultPlacement": {
+        "widthCells": 5,
+        "heightCells": 4,
+        "snap": "cell_center"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.terrain.plains.002",
+      "name": "Plains Terrain 002",
+      "category": "terrain",
+      "collection": "plains",
+      "sourceImage": "assets/atlas/source/world_map/terrain/plains/atlas-source-world-terrain-plains-001.png",
+      "sourceId": "drive.world_map.terrain.plains.001",
+      "sourceRect": {
+        "x": 313,
+        "y": 10,
+        "width": 276,
+        "height": 262
+      },
+      "derivedPath": "assets/atlas/derived/atlas-terrain-plains-002.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-terrain-plains-002.png",
+      "mimeType": "image/png",
+      "nativeWidth": 276,
+      "nativeHeight": 262,
+      "contentHash": "ad701a46b86de8bba2584bba1231df49844f1c6039e4c25524b0d677566369b1",
+      "thumbnailHash": "965bb1642a327c8edc57e7721c400e2ba096ef3db43bb25535fef9ec4b94c427",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "terrain",
+      "layerOrder": 1,
+      "tags": [
+        "world_map",
+        "terrain",
+        "plains",
+        "carved"
+      ],
+      "connectors": [],
+      "transparentBackground": false,
+      "shapeModel": "rectangular_image",
+      "rectIsStorageEnvelope": false,
+      "alphaMaskSource": "none",
+      "createdFrom": {
+        "sourceId": "drive.world_map.terrain.plains.001",
+        "driveFileId": "1xXUbi_2Ap7ExVt_nAPvhkPOZ2GBunkTz",
+        "chatgptShareId": "m_6a739a197b848191b77eaac2010be9fe",
+        "chatgptGenerationId": "s_530c2807f7b48191b133ec461afc04cd"
+      },
+      "defaultPlacement": {
+        "widthCells": 5,
+        "heightCells": 4,
+        "snap": "cell_center"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.terrain.plains.edge.001",
+      "name": "Plains Edge 001",
+      "category": "terrain_transition",
+      "collection": "plains",
+      "sourceImage": "assets/atlas/source/world_map/terrain/plains/atlas-source-world-terrain-plains-001.png",
+      "sourceId": "drive.world_map.terrain.plains.001",
+      "sourceRect": {
+        "x": 1380,
+        "y": 15,
+        "width": 130,
+        "height": 66
+      },
+      "derivedPath": "assets/atlas/derived/atlas-terrain-plains-edge-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-terrain-plains-edge-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 130,
+      "nativeHeight": 66,
+      "contentHash": "45ebbcf31a7cec65f389f777da10e1f020eb38fa31a1ae1b73f664ac6798e804",
+      "thumbnailHash": "45ebbcf31a7cec65f389f777da10e1f020eb38fa31a1ae1b73f664ac6798e804",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "terrain_transition",
+      "layerOrder": 2,
+      "tags": [
+        "world_map",
+        "terrain",
+        "plains",
+        "edge",
+        "carved"
+      ],
+      "connectors": [
+        {
+          "type": "terrain-transition",
+          "edge": "S",
+          "position": 0.5,
+          "width": 1,
+          "direction": "out",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.world_map.terrain.plains.001",
+        "driveFileId": "1xXUbi_2Ap7ExVt_nAPvhkPOZ2GBunkTz",
+        "chatgptShareId": "m_6a739a197b848191b77eaac2010be9fe",
+        "chatgptGenerationId": "s_530c2807f7b48191b133ec461afc04cd"
+      },
+      "defaultPlacement": {
+        "widthCells": 3,
+        "heightCells": 2,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.region.water.stream.pool.001",
+      "name": "Stream Pool 001",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "sourceImage": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 119,
+        "y": 620,
+        "width": 93,
+        "height": 132
+      },
+      "derivedPath": "assets/atlas/derived/atlas-region-water-stream-pool-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-region-water-stream-pool-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 93,
+      "nativeHeight": 132,
+      "contentHash": "9b286f577a39cd7cbd0b7ea8bd600aab90f6f1e7e0aec7d56e077fd02e73fa75",
+      "thumbnailHash": "64a7bc50a6bea4205171e42411183398232dd1c4b32febbe9dc638cd0bee3a9b",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "water_system",
+      "layerOrder": 3,
+      "tags": [
+        "region_map",
+        "water",
+        "pool",
+        "spring",
+        "small_watercourse"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.32,
+          "direction": "bidirectional",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.32,
+          "direction": "bidirectional",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+        "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+        "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+        "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae"
+      },
+      "defaultPlacement": {
+        "widthCells": 3,
+        "heightCells": 4,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.region.water.stream.pool.002",
+      "name": "Stream Pool 002",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "sourceImage": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 226,
+        "y": 620,
+        "width": 92,
+        "height": 132
+      },
+      "derivedPath": "assets/atlas/derived/atlas-region-water-stream-pool-002.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-region-water-stream-pool-002.png",
+      "mimeType": "image/png",
+      "nativeWidth": 92,
+      "nativeHeight": 132,
+      "contentHash": "99fe0a560e3bdd4ad2478d5714c8069e4e2ef983348d995b6ca3fa73d3b82bcf",
+      "thumbnailHash": "3b8a1fe487fab2e295fc6b39c1b6f406748503b531d3b724c7b2507abfef7b60",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "water_system",
+      "layerOrder": 3,
+      "tags": [
+        "region_map",
+        "water",
+        "pool",
+        "spring",
+        "small_watercourse",
+        "narrow"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.28,
+          "direction": "bidirectional",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.28,
+          "direction": "bidirectional",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+        "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+        "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+        "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae"
+      },
+      "defaultPlacement": {
+        "widthCells": 3,
+        "heightCells": 4,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.region.water.stream.seep.001",
+      "name": "Stream Seep 001",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "sourceImage": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 575,
+        "y": 782,
+        "width": 116,
+        "height": 190
+      },
+      "derivedPath": "assets/atlas/derived/atlas-region-water-stream-seep-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-region-water-stream-seep-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 116,
+      "nativeHeight": 190,
+      "contentHash": "a0a8d81d3580497cc47f3d79f3c62fdeb35e2a2790df9ea4aa8a9697d9cbeb9a",
+      "thumbnailHash": "5f754c127f22787b6d97cf562b1d167d2d0ca3ad70730c77dc8b5edf5831c0ee",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "water_system",
+      "layerOrder": 3,
+      "tags": [
+        "region_map",
+        "water",
+        "stream",
+        "seep",
+        "runoff",
+        "small_watercourse"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.32,
+          "direction": "bidirectional",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.32,
+          "direction": "bidirectional",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+        "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+        "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+        "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae"
+      },
+      "defaultPlacement": {
+        "widthCells": 4,
+        "heightCells": 6,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.region.water.stream.straight.001",
+      "name": "Stream Straight 001",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "sourceImage": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 28,
+        "y": 26,
+        "width": 58,
+        "height": 214
+      },
+      "derivedPath": "assets/atlas/derived/atlas-region-water-stream-straight-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-region-water-stream-straight-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 58,
+      "nativeHeight": 214,
+      "contentHash": "ad07ec2a531983f841b61d3116d5722231af0cb128bba977c4af78f408ad1580",
+      "thumbnailHash": "80a8a3c94abe5ec7833aa380e06773912bb5932a56ecb5f1bf14f4ec934cf5f1",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "water_system",
+      "layerOrder": 3,
+      "tags": [
+        "region_map",
+        "water",
+        "stream",
+        "straight",
+        "small_watercourse"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.35,
+          "direction": "bidirectional",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.35,
+          "direction": "bidirectional",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+        "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+        "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+        "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae"
+      },
+      "defaultPlacement": {
+        "widthCells": 2,
+        "heightCells": 7,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.region.water.stream.straight.002",
+      "name": "Stream Straight 002",
+      "category": "water_system",
+      "collection": "streams_and_small_watercourses",
+      "sourceImage": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 107,
+        "y": 26,
+        "width": 52,
+        "height": 214
+      },
+      "derivedPath": "assets/atlas/derived/atlas-region-water-stream-straight-002.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-region-water-stream-straight-002.png",
+      "mimeType": "image/png",
+      "nativeWidth": 52,
+      "nativeHeight": 214,
+      "contentHash": "5deeb98cebe4f86e17adad633559b82b2989480c7ba40b57d88243dd0f5e1978",
+      "thumbnailHash": "0451c919988ecf3c0fe4923ad5986f36cb283bfcdba2c14208385c6f7bc84673",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "water_system",
+      "layerOrder": 3,
+      "tags": [
+        "region_map",
+        "water",
+        "stream",
+        "straight",
+        "small_watercourse",
+        "narrow"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.28,
+          "direction": "bidirectional",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.28,
+          "direction": "bidirectional",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+        "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+        "chatgptShareId": "m_6a7617b975288191a52088e925924e6f",
+        "chatgptGenerationId": "s_0900cdae7b048191bb38ab90e06a32ae"
+      },
+      "defaultPlacement": {
+        "widthCells": 2,
+        "heightCells": 7,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.wonder.waterfall.001",
+      "name": "Hydrological Wonder 001",
+      "category": "landmark",
+      "collection": "waterfall",
+      "sourceImage": "assets/atlas/source/world_map/landmarks/wonders/hydrological/atlas-source-world-wonder-hydrological-001.png",
+      "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+      "sourceRect": {
+        "x": 31,
+        "y": 38,
+        "width": 355,
+        "height": 318
+      },
+      "derivedPath": "assets/atlas/derived/atlas-wonder-waterfall-001.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-wonder-waterfall-001.png",
+      "mimeType": "image/png",
+      "nativeWidth": 355,
+      "nativeHeight": 318,
+      "contentHash": "b29b1c94ff0ea52e045a4714629c51d9309f6154e8d7a7d4a86f91e8ae2f9401",
+      "thumbnailHash": "abbcd26c2bdde2947c74e4686f10b2552a2b94304629bfc563485fc2acc91161",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "natural_landmark",
+      "layerOrder": 4,
+      "tags": [
+        "world_map",
+        "landmark",
+        "wonder",
+        "hydrological",
+        "waterfall",
+        "river"
+      ],
+      "connectors": [
+        {
+          "type": "river",
+          "edge": "N",
+          "position": 0.35,
+          "width": 0.35,
+          "direction": "in",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "E",
+          "position": 0.62,
+          "width": 0.45,
+          "direction": "out",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+        "driveFileId": "1zKRmB_hut2O86tzEiLUFwfdEK5-zuLdg",
+        "chatgptShareId": "m_6a760abbfe548191aaf83ee7de13a95e",
+        "chatgptGenerationId": "s_7d455fc7b3288191a3a4c609bf7ea713"
+      },
+      "defaultPlacement": {
+        "widthCells": 5,
+        "heightCells": 5,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.wonder.waterfall.002",
+      "name": "Hydrological Wonder 002",
+      "category": "landmark",
+      "collection": "waterfall",
+      "sourceImage": "assets/atlas/source/world_map/landmarks/wonders/hydrological/atlas-source-world-wonder-hydrological-001.png",
+      "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+      "sourceRect": {
+        "x": 837,
+        "y": 364,
+        "width": 73,
+        "height": 134
+      },
+      "derivedPath": "assets/atlas/derived/atlas-wonder-waterfall-002.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-wonder-waterfall-002.png",
+      "mimeType": "image/png",
+      "nativeWidth": 73,
+      "nativeHeight": 134,
+      "contentHash": "8c90f44376d933bce159b90ac87b7f4ac37b7bc72a8816ae65934343d8e45d48",
+      "thumbnailHash": "bc9d147281ab5660af74158d2f56b4bb1cb0aa380d67611d866c0980ac6a761c",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "natural_landmark",
+      "layerOrder": 4,
+      "tags": [
+        "world_map",
+        "landmark",
+        "wonder",
+        "hydrological",
+        "waterfall"
+      ],
+      "connectors": [
+        {
+          "type": "waterfall",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.35,
+          "direction": "down",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.4,
+          "direction": "out",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+        "driveFileId": "1zKRmB_hut2O86tzEiLUFwfdEK5-zuLdg",
+        "chatgptShareId": "m_6a760abbfe548191aaf83ee7de13a95e",
+        "chatgptGenerationId": "s_7d455fc7b3288191a3a4c609bf7ea713"
+      },
+      "defaultPlacement": {
+        "widthCells": 2,
+        "heightCells": 4,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    },
+    {
+      "assetId": "atlas.wonder.waterfall.003",
+      "name": "Hydrological Wonder 003",
+      "category": "landmark",
+      "collection": "waterfall",
+      "sourceImage": "assets/atlas/source/world_map/landmarks/wonders/hydrological/atlas-source-world-wonder-hydrological-001.png",
+      "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+      "sourceRect": {
+        "x": 1057,
+        "y": 361,
+        "width": 79,
+        "height": 138
+      },
+      "derivedPath": "assets/atlas/derived/atlas-wonder-waterfall-003.png",
+      "thumbnailPath": "assets/atlas/thumbnails/atlas-wonder-waterfall-003.png",
+      "mimeType": "image/png",
+      "nativeWidth": 79,
+      "nativeHeight": 138,
+      "contentHash": "22906ea5fe80d1f66d99127eb4f9876cadb731dc295c9c5fc53fad80c85698bc",
+      "thumbnailHash": "e079d08f60db8ea927dbc85025e8f7c7ce841b3d03cf99f291f7f6a3059b5779",
+      "anchor": "center",
+      "allowedRotations": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "layer": "natural_landmark",
+      "layerOrder": 4,
+      "tags": [
+        "world_map",
+        "landmark",
+        "wonder",
+        "hydrological",
+        "waterfall"
+      ],
+      "connectors": [
+        {
+          "type": "waterfall",
+          "edge": "N",
+          "position": 0.5,
+          "width": 0.3,
+          "direction": "down",
+          "variant": "manual"
+        },
+        {
+          "type": "river",
+          "edge": "S",
+          "position": 0.5,
+          "width": 0.36,
+          "direction": "out",
+          "variant": "manual"
+        }
+      ],
+      "transparentBackground": true,
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "createdFrom": {
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001",
+        "driveFileId": "1zKRmB_hut2O86tzEiLUFwfdEK5-zuLdg",
+        "chatgptShareId": "m_6a760abbfe548191aaf83ee7de13a95e",
+        "chatgptGenerationId": "s_7d455fc7b3288191a3a4c609bf7ea713"
+      },
+      "defaultPlacement": {
+        "widthCells": 2,
+        "heightCells": 4,
+        "snap": "optional"
+      },
+      "version": 1,
+      "enabled": true
+    }
+  ]
+}

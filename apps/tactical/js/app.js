@@ -46,6 +46,17 @@ import { COMMANDER_ORDERS, directMonsterOverride, issueCommanderOrder } from "./
 import { comparableEncounterState, rebuildEncounterState, replayRounds, stableHash, verifyReplayRecord } from "./replay.js";
 import { bindInput, directionVector } from "./input.js";
 import { atlasAssets, duplicateAssetByHash, hashBrowserFile, tileAssets } from "./assets.js";
+import {
+  atlasCollections,
+  atlasRenderableAssets,
+  createAtlasInstance,
+  findAtlasInstance,
+  moveSelectedAtlasInstance,
+  removeSelectedAtlasInstance,
+  rotateSelectedAtlasInstance,
+  setAtlasInstanceChildMap,
+  sortedAtlasInstances
+} from "./atlas.js";
 import { GRID_TYPES, cellCenter, cellId, cellPolygon, coordinateFromCell, coordinateToIndex, deriveHexCoverage, hexPhysicalRadius, hexPixelRadius, isCellInBounds, mapPixelBounds, normalizeMapGeometry, pointInPolygon, selectionForCell, worldToCell } from "./grid.js";
 import { collisionSummary, normalizeMapCollision, presetCollision, presetShape } from "./collision.js";
 import { computePlayerPerception, legalStartCellsForPlayer, perceptionZoomBounds, placeOwnedPlayerCharacter, visibleForPlayer } from "./perception.js";
@@ -70,6 +81,7 @@ let context = null;
 let lastFrame = 0;
 let spriteCache = new Map();
 let assetImageCache = new Map();
+let atlasAlphaHitCache = new Map();
 let viewportElement = null;
 let activePointers = new Map();
 let gesture = null;
@@ -92,6 +104,15 @@ async function boot() {
     bundleCache = await loadGameBundle();
     const hasPersistedState = Boolean(localStorage.getItem(STORAGE_KEY));
     state = await createInitialState();
+    if (!hasPersistedState && state.maps["map-atlas-region-stream-demo"]) {
+      state.currentMapId = "map-atlas-region-stream-demo";
+      state.lastValidMapId = state.currentMapId;
+      state.scene = SCENES.MAP_EDIT;
+      state.role = "gm";
+      state.editor.inspectorOpen = window.innerWidth >= 900;
+      state.editor.inspectorSheetState = "collapsed";
+      state.selectedAtlasCollection = "streams_and_small_watercourses";
+    }
     if (!hasPersistedState && window.innerWidth < 900) {
       state.editor.inspectorOpen = false;
       state.editor.inspectorSheetState = "collapsed";
@@ -116,6 +137,7 @@ async function boot() {
       runWorkspaceAcceptanceScript,
       runPerceptionAcceptanceScript,
       runTabletopAcceptanceScript,
+      runAtlasAcceptanceScript,
       openTabletopOverlay,
       showMapForVerification,
       verifyCurrentReplay,
@@ -169,6 +191,9 @@ function collectElements() {
     "replayNextRoundButton", "replaySpeedButton", "replayInspectButton", "replaySelect", "replayMeta", "replayDetail", "eventLog", "logCount",
     "toggleInspectorButton", "closeInspectorButton", "inspectorPanel", "assetSelect", "assignTileImageButton", "removeTileImageButton",
     "brushImageSelect", "assetFileInput", "assetImportStatus", "zoomInButton", "zoomOutButton", "fitMapButton", "fitSelectionButton",
+    "atlasCollectionSelect", "atlasSearchInput", "atlasBrowser", "placeAtlasAssetButton", "selectedAtlasInstanceSummary",
+    "moveAtlasLeftButton", "moveAtlasRightButton", "moveAtlasUpButton", "moveAtlasDownButton", "rotateAtlasLeftButton",
+    "rotateAtlasRightButton", "removeAtlasInstanceButton", "atlasChildMapSelect", "attachAtlasChildButton", "openAtlasChildButton",
     "fitWidthButton", "fitHeightButton", "actualSizeButton", "resetViewButton", "rotateLeftButton", "rotateRightButton",
     "resetRotationButton", "compassButton", "compassNeedle", "compassAngle", "zoomSelect", "mobileZoomInButton", "mobileZoomOutButton",
     "floatingZoomLabel", "gridVisibleToggle", "moreMenuButton", "moreMenu", "workspaceMapHud", "currentLocationLabel",
@@ -312,6 +337,21 @@ function bindControls() {
   elements.assignTileImageButton?.addEventListener("click", () => editorCommand("assign tile image", () => setSelectedTileImage(state, state.selectedTileImageAssetId || elements.assetSelect.value)));
   elements.removeTileImageButton?.addEventListener("click", () => editorCommand("remove tile image", () => setSelectedTileImage(state, "")));
   elements.assetFileInput?.addEventListener("change", inspectSelectedAssetFile);
+  elements.atlasCollectionSelect?.addEventListener("change", () => {
+    state.selectedAtlasCollection = elements.atlasCollectionSelect.value;
+    renderAtlasBrowser();
+  });
+  elements.atlasSearchInput?.addEventListener("input", renderAtlasBrowser);
+  elements.placeAtlasAssetButton?.addEventListener("click", () => editorCommand("place atlas asset", placeSelectedAtlasAsset));
+  elements.moveAtlasLeftButton?.addEventListener("click", () => editorCommand("move atlas left", () => moveSelectedAtlasInstance(state, getCurrentMap(state), -8, 0)));
+  elements.moveAtlasRightButton?.addEventListener("click", () => editorCommand("move atlas right", () => moveSelectedAtlasInstance(state, getCurrentMap(state), 8, 0)));
+  elements.moveAtlasUpButton?.addEventListener("click", () => editorCommand("move atlas up", () => moveSelectedAtlasInstance(state, getCurrentMap(state), 0, -8)));
+  elements.moveAtlasDownButton?.addEventListener("click", () => editorCommand("move atlas down", () => moveSelectedAtlasInstance(state, getCurrentMap(state), 0, 8)));
+  elements.rotateAtlasLeftButton?.addEventListener("click", () => editorCommand("rotate atlas left", () => rotateSelectedAtlasInstance(state, getCurrentMap(state), -90)));
+  elements.rotateAtlasRightButton?.addEventListener("click", () => editorCommand("rotate atlas right", () => rotateSelectedAtlasInstance(state, getCurrentMap(state), 90)));
+  elements.removeAtlasInstanceButton?.addEventListener("click", () => editorCommand("remove atlas instance", () => removeSelectedAtlasInstance(state, getCurrentMap(state))));
+  elements.attachAtlasChildButton?.addEventListener("click", () => editorCommand("attach atlas child", () => setAtlasInstanceChildMap(state, getCurrentMap(state), elements.atlasChildMapSelect?.value || "")));
+  elements.openAtlasChildButton?.addEventListener("click", openSelectedAtlasChild);
 
   elements.openChildButton.addEventListener("click", openSelectedChild);
   elements.returnParentButton.addEventListener("click", () => commandResult(returnToParentMap(state, actor())));
@@ -855,6 +895,7 @@ function beginInspectorResize(event) {
 function clearMapSelection() {
   state.selection = null;
   state.selectedTileId = null;
+  state.selectedAtlasInstanceId = null;
 }
 
 function clearLongPressTimer() {
@@ -1186,6 +1227,39 @@ function openSelectedChild() {
   commandResult(tile ? openChildMapFromTile(state, tile, actor()) : { ok: false, message: "No tile selected." });
 }
 
+function placeSelectedAtlasAsset() {
+  const map = getCurrentMap(state);
+  const coordinates = state.selection?.mapId === map.id ? state.selection.coordinates : null;
+  return createAtlasInstance(state, map, state.selectedAtlasAssetId, coordinates);
+}
+
+function openSelectedAtlasChild() {
+  const map = getCurrentMap(state);
+  const instance = findAtlasInstance(map, state.selectedAtlasInstanceId);
+  if (!instance) {
+    commandResult({ ok: false, message: "No Atlas instance selected." });
+    return;
+  }
+  if (!instance.childMapId || !state.maps[instance.childMapId]) {
+    commandResult({ ok: false, message: "Selected Atlas instance has no child map." });
+    return;
+  }
+  const previousMapId = map.id;
+  state.currentMapId = instance.childMapId;
+  state.lastValidMapId = state.currentMapId;
+  state.selectedTileId = null;
+  state.selectedAtlasInstanceId = null;
+  state.selection = null;
+  recordEvent(state, "atlas_child_map_entered", {
+    parentMapId: previousMapId,
+    childMapId: state.currentMapId,
+    atlasInstanceId: instance.instanceId,
+    actorRole: state.role
+  });
+  fitCurrentMap({ persist: false });
+  persistAndRender();
+}
+
 function interactSelectedTile() {
   const map = getCurrentMap(state);
   const tile = findTile(map, state.selectedTileId);
@@ -1393,18 +1467,35 @@ function handleCanvasTap(cell, point) {
     time: performance.now()
   };
   const doubleTap = sameTapTarget(lastTap, nextTap);
-  handleCanvasCell(cell);
+  handleCanvasCell(cell, point);
   if (doubleTap) {
     lastTap = null;
-    handleCanvasDoubleActivation(cell);
+    handleCanvasDoubleActivation(cell, point);
     return;
   }
   lastTap = nextTap;
 }
 
-function handleCanvasDoubleActivation(cell) {
+function handleCanvasDoubleActivation(cell, point = null) {
   if (state.scene === SCENES.ENCOUNTER || state.scene === SCENES.REPLAY) return;
   const map = getCurrentMap(state);
+  const worldPoint = point ? screenToWorld(point) : cellCenter(map, cell.coordinates);
+  const atlasInstance = hitTestAtlasInstanceAtPoint(map, worldPoint, state.role);
+  if (atlasInstance) {
+    state.selectedAtlasInstanceId = atlasInstance.instanceId;
+    if (atlasInstance.childMapId && state.maps[atlasInstance.childMapId]) {
+      openSelectedAtlasChild();
+      return;
+    }
+    if (state.role === "gm") {
+      state.editor.inspectorOpen = true;
+      pushMessage(state, "Atlas instance selected. Attach a child map from the Atlas panel.");
+    } else {
+      pushMessage(state, "No accessible child layer here.", "warn");
+    }
+    persistAndRender();
+    return;
+  }
   const index = coordinateToIndex(map, cell.coordinates);
   const hitEntity = map.entities.find((entity) => entity.visible !== false && entity.x === index.x && entity.y === index.y);
   if (hitEntity) {
@@ -1431,7 +1522,7 @@ function handleCanvasDoubleActivation(cell) {
   persistAndRender();
 }
 
-function handleCanvasCell(cell) {
+function handleCanvasCell(cell, point = null) {
   const map = currentRenderedMap();
   const index = coordinateToIndex(map, cell.coordinates);
   if (state.scene === SCENES.ENCOUNTER) {
@@ -1448,6 +1539,8 @@ function handleCanvasCell(cell) {
   }
   const role = state.role;
   const mapState = getCurrentMap(state);
+  const worldPoint = point ? screenToWorld(point) : cellCenter(mapState, cell.coordinates);
+  const atlasInstance = hitTestAtlasInstanceAtPoint(mapState, worldPoint, role);
   const perception = role === "player" && state.scene === SCENES.MAP_VIEW
     ? computePlayerPerception(state, mapState, state.actorPlayerId, { updateKnowledge: true })
     : null;
@@ -1458,8 +1551,21 @@ function handleCanvasCell(cell) {
     return visibleCell || (entity.controller === "player" && entity.assignedPlayerId === state.actorPlayerId);
   });
   if (state.scene === SCENES.MAP_EDIT && role === "gm") {
+    if (state.editor.activeTool === "select" && atlasInstance) {
+      state.selectedAtlasInstanceId = atlasInstance.instanceId;
+      state.selectedTileId = null;
+      state.selection = {
+        mapId: mapState.id,
+        cellId: cell.cellId,
+        gridType: cell.gridType,
+        coordinates: deepClone(cell.coordinates)
+      };
+      persistAndRender();
+      return;
+    }
     handleEditorToolCell(mapState, cell);
   } else {
+    if (atlasInstance && role === "gm") state.selectedAtlasInstanceId = atlasInstance.instanceId;
     if (hitEntity) state.selectedEntityId = hitEntity.id;
     selectCell(state, mapState, cell);
     if (role === "player" && !visibleCell) state.selectedTileId = null;
@@ -1578,6 +1684,7 @@ function renderAll() {
   renderBreadcrumb();
   renderToolbars();
   renderAssetSelectors();
+  renderAtlasBrowser();
   renderPalette();
   renderEditorControls();
   renderEncounterControls();
@@ -1671,6 +1778,94 @@ function renderAssetSelectors() {
   }
   if (elements.assetSelect) elements.assetSelect.value = state.selectedTileImageAssetId || selectedTile(state)?.image?.imageAssetId || "";
   if (elements.brushImageSelect) elements.brushImageSelect.value = state.selectedTileImageAssetId || "";
+}
+
+function renderAtlasBrowser() {
+  if (!elements.atlasBrowser) return;
+  const collections = atlasCollections(state.atlasRegistry);
+  if (!state.selectedAtlasCollection && collections[0]) state.selectedAtlasCollection = collections[0].id;
+  const collectionOptions = collections
+    .map((collection) => `<option value="${escapeHtml(collection.id)}">${escapeHtml(collection.name)} (${collection.count})</option>`)
+    .join("");
+  if (elements.atlasCollectionSelect && elements.atlasCollectionSelect.dataset.options !== collectionOptions) {
+    elements.atlasCollectionSelect.innerHTML = collectionOptions;
+    elements.atlasCollectionSelect.dataset.options = collectionOptions;
+  }
+  if (elements.atlasCollectionSelect) elements.atlasCollectionSelect.value = state.selectedAtlasCollection || "";
+
+  const query = String(elements.atlasSearchInput?.value || "").trim().toLowerCase();
+  const assets = atlasRenderableAssets(state.atlasRegistry).filter((asset) => {
+    if (state.selectedAtlasCollection && asset.collection !== state.selectedAtlasCollection) return false;
+    if (!query) return true;
+    return [asset.name, asset.category, asset.collection, ...(asset.tags || [])].join(" ").toLowerCase().includes(query);
+  });
+  elements.atlasBrowser.innerHTML = "";
+  assets.forEach((asset) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `atlas-asset-card${state.selectedAtlasAssetId === asset.assetId ? " is-active" : ""}`;
+    button.dataset.atlasAssetId = asset.assetId;
+    button.title = `${asset.name} | ${asset.collection} | ${asset.layer}`;
+    const img = document.createElement("img");
+    img.src = asset.thumbnailPath;
+    img.alt = "";
+    img.loading = "lazy";
+    const label = document.createElement("span");
+    label.textContent = asset.name;
+    const meta = document.createElement("small");
+    meta.textContent = `${asset.category} | ${asset.layer}`;
+    button.append(img, label, meta);
+    button.addEventListener("click", () => {
+      state.selectedAtlasAssetId = asset.assetId;
+      renderAtlasBrowser();
+    });
+    button.addEventListener("dblclick", () => editorCommand("place atlas asset", placeSelectedAtlasAsset));
+    elements.atlasBrowser.appendChild(button);
+  });
+  if (!assets.length) {
+    const empty = document.createElement("p");
+    empty.className = "microcopy";
+    empty.textContent = "No Atlas assets match the current filter.";
+    elements.atlasBrowser.appendChild(empty);
+  }
+
+  const map = getCurrentMap(state);
+  const selectedInstance = findAtlasInstance(map, state.selectedAtlasInstanceId);
+  if (elements.selectedAtlasInstanceSummary) {
+    const selectedAsset = selectedInstance ? state.atlasAssets[selectedInstance.assetId] : null;
+    elements.selectedAtlasInstanceSummary.textContent = selectedInstance
+      ? `${selectedAsset?.name || selectedInstance.assetId} | x:${Math.round(selectedInstance.x)} y:${Math.round(selectedInstance.y)} | r:${selectedInstance.rotationDeg} | ${selectedInstance.childMapId || "no child"}`
+      : "No Atlas instance selected";
+  }
+  const hasAsset = Boolean(state.selectedAtlasAssetId && state.atlasAssets[state.selectedAtlasAssetId]);
+  const hasInstance = Boolean(selectedInstance);
+  [
+    elements.placeAtlasAssetButton,
+    elements.moveAtlasLeftButton,
+    elements.moveAtlasRightButton,
+    elements.moveAtlasUpButton,
+    elements.moveAtlasDownButton,
+    elements.rotateAtlasLeftButton,
+    elements.rotateAtlasRightButton,
+    elements.removeAtlasInstanceButton,
+    elements.attachAtlasChildButton,
+    elements.openAtlasChildButton
+  ].forEach((button) => {
+    if (!button) return;
+    button.disabled = button === elements.placeAtlasAssetButton ? !hasAsset : !hasInstance;
+  });
+  if (elements.atlasChildMapSelect) {
+    const childOptions = [`<option value="">No child map</option>`].concat(
+      Object.values(state.maps)
+        .filter((candidate) => candidate.id !== map.id)
+        .map((candidate) => `<option value="${escapeHtml(candidate.id)}">${escapeHtml(candidate.name)}</option>`)
+    ).join("");
+    if (elements.atlasChildMapSelect.dataset.options !== childOptions) {
+      elements.atlasChildMapSelect.innerHTML = childOptions;
+      elements.atlasChildMapSelect.dataset.options = childOptions;
+    }
+    elements.atlasChildMapSelect.value = selectedInstance?.childMapId || "";
+  }
 }
 
 function renderEditorControls() {
@@ -2095,6 +2290,7 @@ function drawMapBase(map, perception = null) {
       context.restore();
     }
   }
+  drawAtlasMapInstances(map, perception);
   const tiles = state.role === "player" && state.scene !== SCENES.ENCOUNTER && state.scene !== SCENES.REPLAY
     ? map.placedTiles.filter((tile) => tile.visible !== false && !tile.hiddenFromPlayers && tilePerceptionState(tile, map, perception) !== FOG_STATES.UNKNOWN && tilePerceptionState(tile, map, perception) !== FOG_STATES.AUDIBLE_ONLY)
     : map.placedTiles.filter((tile) => tile.visible !== false);
@@ -2118,6 +2314,8 @@ function drawExploration(map, perception = null) {
   });
   const tile = findTile(map, state.selectedTileId);
   if (tile && (state.role === "gm" || (!tile.hiddenFromPlayers && tilePerceptionState(tile, map, perception) === FOG_STATES.VISIBLE_NOW))) drawTileSelection(map, tile, "#f4c75e");
+  const atlasInstance = findAtlasInstance(map, state.selectedAtlasInstanceId);
+  if (atlasInstance && (state.role === "gm" || atlasInstance.hiddenFromPlayers !== true)) drawAtlasSelection(atlasInstance, "#8fd3ff");
   if (state.selection?.mapId === map.id && !tile) drawCellSelection(map, state.selection.coordinates, "#f4c75e");
 }
 
@@ -2349,6 +2547,107 @@ function drawPlacedTile(tile, map) {
   }
 }
 
+function drawAtlasMapInstances(map, perception = null) {
+  sortedAtlasInstances(map, state.atlasRegistry).forEach(({ instance, asset }) => {
+    if (state.role === "player" && instance.hiddenFromPlayers) return;
+    if (perception) {
+      const cell = worldToCell(map, { x: instance.x, y: instance.y });
+      const fogState = cell ? fogStateFor(perception, map, cell.coordinates) : FOG_STATES.UNKNOWN;
+      if (fogState === FOG_STATES.UNKNOWN || fogState === FOG_STATES.AUDIBLE_ONLY) return;
+      context.save();
+      if (fogState === FOG_STATES.DISCOVERED_NOT_VISIBLE) context.globalAlpha = 0.35;
+      drawAtlasInstance(instance, asset);
+      context.restore();
+      return;
+    }
+    drawAtlasInstance(instance, asset);
+  });
+}
+
+function drawAtlasInstance(instance, asset) {
+  const image = asset ? assetImageCache.get(asset.assetId) : null;
+  context.save();
+  context.translate(instance.x, instance.y);
+  context.rotate(((instance.rotationDeg || 0) * Math.PI) / 180);
+  const width = instance.width * (instance.scale || 1);
+  const height = instance.height * (instance.scale || 1);
+  if (image && image.complete && image.naturalWidth > 0) {
+    context.drawImage(image, -width / 2, -height / 2, width, height);
+  } else {
+    context.fillStyle = "#3f2034";
+    context.fillRect(-width / 2, -height / 2, width, height);
+    context.strokeStyle = "#f4c75e";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(-width / 2, -height / 2);
+    context.lineTo(width / 2, height / 2);
+    context.moveTo(width / 2, -height / 2);
+    context.lineTo(-width / 2, height / 2);
+    context.stroke();
+  }
+  context.restore();
+}
+
+function drawAtlasSelection(instance, color) {
+  context.save();
+  context.translate(instance.x, instance.y);
+  context.rotate(((instance.rotationDeg || 0) * Math.PI) / 180);
+  context.strokeStyle = color;
+  context.lineWidth = 2;
+  context.strokeRect(-instance.width / 2, -instance.height / 2, instance.width, instance.height);
+  context.restore();
+}
+
+function hitTestAtlasInstanceAtPoint(map, worldPoint, role = "gm") {
+  const rows = sortedAtlasInstances(map, state.atlasRegistry).filter((row) => role !== "player" || row.instance.hiddenFromPlayers !== true);
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    const { instance, asset } = rows[index];
+    if (atlasAlphaHitTest(instance, asset, worldPoint)) return instance;
+  }
+  return null;
+}
+
+function atlasAlphaHitTest(instance, asset, worldPoint) {
+  const local = atlasLocalPoint(instance, worldPoint);
+  if (local.x < 0 || local.y < 0 || local.x > 1 || local.y > 1) return false;
+  if (!asset) return true;
+  const image = assetImageCache.get(asset.assetId);
+  if (!image || image.dataset.failed === "true" || !image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) return true;
+  const sample = atlasAlphaSample(asset.assetId, image, local);
+  return sample == null ? true : sample > 12;
+}
+
+function atlasLocalPoint(instance, worldPoint) {
+  const width = instance.width * (instance.scale || 1);
+  const height = instance.height * (instance.scale || 1);
+  const angle = -((instance.rotationDeg || 0) * Math.PI) / 180;
+  const dx = worldPoint.x - instance.x;
+  const dy = worldPoint.y - instance.y;
+  const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
+  const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
+  return {
+    x: (localX + width / 2) / width,
+    y: (localY + height / 2) / height
+  };
+}
+
+function atlasAlphaSample(assetId, image, local) {
+  let cached = atlasAlphaHitCache.get(assetId);
+  if (!cached) {
+    const canvasNode = document.createElement("canvas");
+    canvasNode.width = image.naturalWidth;
+    canvasNode.height = image.naturalHeight;
+    const ctx = canvasNode.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(image, 0, 0);
+    cached = { canvas: canvasNode, ctx };
+    atlasAlphaHitCache.set(assetId, cached);
+  }
+  const x = clamp(Math.floor(local.x * cached.canvas.width), 0, cached.canvas.width - 1);
+  const y = clamp(Math.floor(local.y * cached.canvas.height), 0, cached.canvas.height - 1);
+  return cached.ctx.getImageData(x, y, 1, 1).data[3];
+}
+
 function drawEntitySprite(entity, x, y, map, selected) {
   context.save();
   const base = entity.faction === "monsters" || entity.controller === "gm" ? "#813c3a" : entity.assignedPlayerId === "player-b" ? "#4e6f40" : "#2f5d8a";
@@ -2521,6 +2820,7 @@ function buildSpriteCache() {
 
 function buildAssetImageCache() {
   assetImageCache = new Map();
+  atlasAlphaHitCache = new Map();
   [...tileAssets(state.tileAssetRegistry), ...atlasAssets(state.tileAssetRegistry)].forEach((asset) => {
     const image = new Image();
     image.decoding = "async";
@@ -2530,6 +2830,17 @@ function buildAssetImageCache() {
       renderAll();
     };
     image.src = asset.sourcePath;
+    assetImageCache.set(asset.assetId, image);
+  });
+  atlasRenderableAssets(state.atlasRegistry).forEach((asset) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => renderAll();
+    image.onerror = () => {
+      image.dataset.failed = "true";
+      renderAll();
+    };
+    image.src = asset.derivedPath;
     assetImageCache.set(asset.assetId, image);
   });
 }
@@ -3009,6 +3320,97 @@ async function runTabletopAcceptanceScript() {
     latestDiceBag: weaponResult.result,
     currentMapId: state.currentMapId
   };
+}
+
+async function runAtlasAcceptanceScript() {
+  await resetApplication();
+  const checks = [];
+  const pass = (name, condition, data = {}) => {
+    const ok = Boolean(condition);
+    checks.push({ name, status: ok ? "PASS" : "FAIL", ...data });
+    if (!ok) throw new Error(`Atlas acceptance failed: ${name}`);
+  };
+
+  setRole("gm");
+  setScene(SCENES.MAP_EDIT);
+  state.currentMapId = "map-atlas-demo";
+  state.lastValidMapId = state.currentMapId;
+  state.editor.inspectorOpen = true;
+  fitCurrentMap({ persist: false });
+  renderAll();
+
+  pass("atlas registry loaded", state.atlasRegistry.sources.length === 3 && state.atlasRegistry.assets.length === 11);
+  pass("asset browser generated from registry", elements.atlasBrowser?.querySelectorAll("[data-atlas-asset-id]").length >= 1);
+  pass("source provenance retained", state.atlasRegistry.sources.every((source) => source.driveFileId && source.driveParentId && source.chatgptShareId && source.localSourcePath));
+  const collections = atlasCollections(state.atlasRegistry);
+  pass("collections are data driven", collections.some((collection) => collection.id === "waterfall") && collections.some((collection) => collection.id === "streams_and_small_watercourses"));
+
+  const map = getCurrentMap(state);
+  const existingRefs = map.atlasInstances.filter((instance) => instance.assetId === "atlas.wonder.waterfall.001").length;
+  pass("multiple instances reference one asset", existingRefs === 2);
+  pass("layer ordering deterministic", sortedAtlasInstances(map, state.atlasRegistry)[0].instance.instanceId === "atlas-demo-plains-001");
+
+  const cell = selectionForCell(map, { x: 10, y: 6 });
+  selectCell(state, map, cell);
+  state.selectedAtlasAssetId = "atlas.wonder.waterfall.002";
+  const placed = createAtlasInstance(state, map, state.selectedAtlasAssetId, cell.coordinates);
+  pass("atlas asset placement works", placed.ok && map.atlasInstances.some((instance) => instance.instanceId === placed.instance.instanceId));
+  const beforeMove = { x: placed.instance.x, y: placed.instance.y };
+  const moved = moveSelectedAtlasInstance(state, map, 8, -8);
+  pass("atlas move works", moved.ok && moved.instance.x === beforeMove.x + 8 && moved.instance.y === beforeMove.y - 8);
+  const rotated = rotateSelectedAtlasInstance(state, map, 90);
+  pass("atlas rotation works", rotated.ok && rotated.instance.rotationDeg === 90);
+  const child = setAtlasInstanceChildMap(state, map, "map-atlas-demo-waterfall-interior");
+  pass("atlas child map attachment works", child.ok && child.instance.childMapId === "map-atlas-demo-waterfall-interior");
+
+  openSelectedAtlasChild();
+  pass("atlas child map entry works", state.currentMapId === "map-atlas-demo-waterfall-interior");
+  commandResult(returnToParentMap(state, actor()));
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  pass("atlas child map return works", state.currentMapId === "map-atlas-demo" && state.selectedAtlasInstanceId === "atlas-demo-waterfall-001");
+
+  state.currentMapId = "map-atlas-demo";
+  state.selectedAtlasInstanceId = placed.instance.instanceId;
+  saveState(state);
+  const restored = await createInitialState();
+  const restoredMap = restored.maps["map-atlas-demo"];
+  const restoredInstance = restoredMap.atlasInstances.find((instance) => instance.instanceId === placed.instance.instanceId);
+  pass("atlas save reload restores instance", restoredInstance?.assetId === "atlas.wonder.waterfall.002");
+  pass("atlas rotation survives reload", restoredInstance?.rotationDeg === 90);
+  pass("atlas child relation survives reload", restoredInstance?.childMapId === "map-atlas-demo-waterfall-interior");
+
+  const missingRows = sortedAtlasInstances({ atlasInstances: [{ instanceId: "missing", assetId: "atlas.nope", x: 0, y: 0, width: 1, height: 1, visible: true }] }, state.atlasRegistry);
+  pass("unknown asset does not substitute image", missingRows.length === 1 && missingRows[0].asset === null);
+
+  state.currentMapId = "map-atlas-region-stream-demo";
+  state.lastValidMapId = state.currentMapId;
+  state.selectedAtlasCollection = "streams_and_small_watercourses";
+  renderAtlasBrowser();
+  const streamMap = getCurrentMap(state);
+  const streamAssets = state.atlasRegistry.assets.filter((asset) => asset.collection === "streams_and_small_watercourses");
+  const streamRefs = streamMap.atlasInstances.filter((instance) => instance.assetId === "atlas.region.water.stream.straight.001").length;
+  pass("production stream collection registered", streamAssets.length === 5);
+  pass("production stream collection appears in browser", elements.atlasBrowser?.querySelectorAll("[data-atlas-asset-id]").length >= 5);
+  pass("production stream map reuses registered asset", streamRefs === 2);
+  pass("production stream map rotation survives load", streamMap.atlasInstances.some((instance) => instance.rotationDeg === 270));
+  const streamChild = streamMap.atlasInstances.find((instance) => instance.childMapId === "map-atlas-region-stream-source");
+  pass("production stream child map link exists", Boolean(streamChild));
+  state.selectedAtlasInstanceId = streamChild.instanceId;
+  openSelectedAtlasChild();
+  pass("production stream child map entry works", state.currentMapId === "map-atlas-region-stream-source");
+  commandResult(returnToParentMap(state, actor()));
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  pass("production stream child map return works", state.currentMapId === "map-atlas-region-stream-demo" && state.selectedAtlasInstanceId === "atlas-region-stream-pool-001");
+
+  state = restored;
+  state.currentMapId = "map-atlas-region-stream-demo";
+  state.lastValidMapId = state.currentMapId;
+  state.scene = SCENES.MAP_EDIT;
+  state.role = "gm";
+  state.selectedAtlasCollection = "streams_and_small_watercourses";
+  buildAssetImageCache();
+  persistAndRender();
+  return { checks, placedInstanceId: placed.instance.instanceId, restoredRotation: restoredInstance?.rotationDeg, productionMapId: "map-atlas-region-stream-demo" };
 }
 
 async function runPerceptionAcceptanceScript() {

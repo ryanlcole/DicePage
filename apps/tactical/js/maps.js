@@ -233,6 +233,7 @@ export function openChildMapFromTile(state, tile, actor = { role: state.role }) 
   state.currentMapId = tile.childMapId;
   state.lastValidMapId = state.currentMapId;
   state.selectedTileId = null;
+  state.selectedAtlasInstanceId = null;
   state.selection = null;
   state.scene = SCENES.MAP_VIEW;
   recordEvent(state, "map_opened", { mapId: state.currentMapId, fromMapId: previousMapId, viaTileId: tile.id, actorRole: actor.role });
@@ -248,6 +249,7 @@ export function returnToParentMap(state, actor = { role: state.role }) {
   state.currentMapId = map.parentMapId;
   state.lastValidMapId = state.currentMapId;
   state.selectedTileId = map.parentTileId || null;
+  state.selectedAtlasInstanceId = map.parentAtlasInstanceId || null;
   const parentMap = state.maps[state.currentMapId];
   const parentTile = parentMap ? findTile(parentMap, state.selectedTileId) : null;
   state.selection = parentMap && parentTile ? selectionForCell(parentMap, coordinateFromCell(parentMap, parentTile.x, parentTile.y)) : null;

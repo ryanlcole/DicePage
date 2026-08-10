@@ -1,0 +1,1670 @@
+{
+  "schemaVersion": "shaelvien.atlas_detection_candidates.v1",
+  "generatedAt": "2026-08-10T07:39:24Z",
+  "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+  "sourcePath": "assets/atlas/source/region_map/water/streams_and_small_watercourses/atlas-source-region-water-streams-001.png",
+  "sourceHash": "b67cc0397aeccbebcddd5d18be5a7113a00930c0cb543b96c423e7871d3f09ca",
+  "driveFileId": "1ev4ilc27nybpvFEWh24SMJ7J2MRu_Ge9",
+  "drivePath": "Shaelvien/07_Media/Tiles/Region_Map/Water/Streams_and_Small_Watercourses/m_6a7617b975288191a52088e925924e6f",
+  "parameters": {
+    "threshold": 90,
+    "backgroundMode": "edge_flood",
+    "scale": 2,
+    "mergeGap": 5,
+    "padding": 8,
+    "minArea": 80,
+    "minWidth": 35,
+    "minHeight": 35,
+    "maxGroupWidth": 320,
+    "maxGroupHeight": 260
+  },
+  "componentCount": 186,
+  "candidateCount": 47,
+  "candidates": [
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-001",
+      "scanOrder": 1,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 18,
+        "y": 8,
+        "width": 72,
+        "height": 220,
+        "componentArea": 3600,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-002",
+      "scanOrder": 2,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 408,
+        "y": 8,
+        "width": 124,
+        "height": 206,
+        "componentArea": 5332,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-003",
+      "scanOrder": 3,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 534,
+        "y": 8,
+        "width": 104,
+        "height": 204,
+        "componentArea": 6164,
+        "mergedComponents": 5
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-004",
+      "scanOrder": 4,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1064,
+        "y": 8,
+        "width": 268,
+        "height": 242,
+        "componentArea": 9848,
+        "mergedComponents": 9
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-005",
+      "scanOrder": 5,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1340,
+        "y": 8,
+        "width": 186,
+        "height": 232,
+        "componentArea": 8764,
+        "mergedComponents": 4
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-006",
+      "scanOrder": 6,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 330,
+        "y": 12,
+        "width": 80,
+        "height": 208,
+        "componentArea": 4076,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-007",
+      "scanOrder": 7,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 644,
+        "y": 12,
+        "width": 120,
+        "height": 210,
+        "componentArea": 7436,
+        "mergedComponents": 4
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-008",
+      "scanOrder": 8,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 774,
+        "y": 12,
+        "width": 100,
+        "height": 226,
+        "componentArea": 5080,
+        "mergedComponents": 4
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-009",
+      "scanOrder": 9,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 154,
+        "y": 14,
+        "width": 68,
+        "height": 204,
+        "componentArea": 3880,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-010",
+      "scanOrder": 10,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 888,
+        "y": 16,
+        "width": 170,
+        "height": 196,
+        "componentArea": 7056,
+        "mergedComponents": 7
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-011",
+      "scanOrder": 11,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 230,
+        "y": 36,
+        "width": 88,
+        "height": 192,
+        "componentArea": 4440,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-012",
+      "scanOrder": 12,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 100,
+        "y": 44,
+        "width": 50,
+        "height": 120,
+        "componentArea": 1196,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-013",
+      "scanOrder": 13,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1192,
+        "y": 218,
+        "width": 328,
+        "height": 270,
+        "componentArea": 11304,
+        "mergedComponents": 7
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-014",
+      "scanOrder": 14,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 406,
+        "y": 220,
+        "width": 330,
+        "height": 276,
+        "componentArea": 13120,
+        "mergedComponents": 19
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-015",
+      "scanOrder": 15,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 114,
+        "y": 224,
+        "width": 308,
+        "height": 276,
+        "componentArea": 14116,
+        "mergedComponents": 10
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-016",
+      "scanOrder": 16,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 942,
+        "y": 238,
+        "width": 202,
+        "height": 180,
+        "componentArea": 6184,
+        "mergedComponents": 5
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-017",
+      "scanOrder": 17,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 714,
+        "y": 242,
+        "width": 252,
+        "height": 206,
+        "componentArea": 11540,
+        "mergedComponents": 4
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-018",
+      "scanOrder": 18,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 16,
+        "y": 244,
+        "width": 96,
+        "height": 180,
+        "componentArea": 4000,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-019",
+      "scanOrder": 19,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1174,
+        "y": 274,
+        "width": 182,
+        "height": 156,
+        "componentArea": 5520,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-020",
+      "scanOrder": 20,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 808,
+        "y": 418,
+        "width": 322,
+        "height": 268,
+        "componentArea": 13388,
+        "mergedComponents": 10
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-021",
+      "scanOrder": 21,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 24,
+        "y": 436,
+        "width": 310,
+        "height": 218,
+        "componentArea": 13388,
+        "mergedComponents": 10
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-022",
+      "scanOrder": 22,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 564,
+        "y": 438,
+        "width": 312,
+        "height": 276,
+        "componentArea": 12592,
+        "mergedComponents": 10
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-023",
+      "scanOrder": 23,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 310,
+        "y": 454,
+        "width": 284,
+        "height": 224,
+        "componentArea": 10848,
+        "mergedComponents": 8
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-024",
+      "scanOrder": 24,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1150,
+        "y": 462,
+        "width": 76,
+        "height": 52,
+        "componentArea": 692,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-025",
+      "scanOrder": 25,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1344,
+        "y": 468,
+        "width": 172,
+        "height": 126,
+        "componentArea": 3856,
+        "mergedComponents": 3
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-026",
+      "scanOrder": 26,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 978,
+        "y": 494,
+        "width": 332,
+        "height": 268,
+        "componentArea": 7664,
+        "mergedComponents": 8
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-027",
+      "scanOrder": 27,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1272,
+        "y": 604,
+        "width": 78,
+        "height": 40,
+        "componentArea": 520,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-028",
+      "scanOrder": 28,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1348,
+        "y": 612,
+        "width": 174,
+        "height": 166,
+        "componentArea": 3576,
+        "mergedComponents": 5
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-029",
+      "scanOrder": 29,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 16,
+        "y": 630,
+        "width": 84,
+        "height": 116,
+        "componentArea": 2272,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-030",
+      "scanOrder": 30,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 232,
+        "y": 644,
+        "width": 228,
+        "height": 238,
+        "componentArea": 8240,
+        "mergedComponents": 6
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-031",
+      "scanOrder": 31,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 126,
+        "y": 648,
+        "width": 82,
+        "height": 82,
+        "componentArea": 1900,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-032",
+      "scanOrder": 32,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 596,
+        "y": 688,
+        "width": 104,
+        "height": 72,
+        "componentArea": 1764,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-033",
+      "scanOrder": 33,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1148,
+        "y": 692,
+        "width": 170,
+        "height": 96,
+        "componentArea": 2452,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-034",
+      "scanOrder": 34,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 884,
+        "y": 696,
+        "width": 54,
+        "height": 48,
+        "componentArea": 500,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-035",
+      "scanOrder": 35,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 476,
+        "y": 710,
+        "width": 102,
+        "height": 78,
+        "componentArea": 824,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-036",
+      "scanOrder": 36,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 10,
+        "y": 748,
+        "width": 190,
+        "height": 258,
+        "componentArea": 11756,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-037",
+      "scanOrder": 37,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 726,
+        "y": 770,
+        "width": 166,
+        "height": 202,
+        "componentArea": 6592,
+        "mergedComponents": 6
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-038",
+      "scanOrder": 38,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 936,
+        "y": 778,
+        "width": 82,
+        "height": 216,
+        "componentArea": 5408,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-039",
+      "scanOrder": 39,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 614,
+        "y": 780,
+        "width": 80,
+        "height": 160,
+        "componentArea": 4072,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-040",
+      "scanOrder": 40,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1296,
+        "y": 786,
+        "width": 94,
+        "height": 76,
+        "componentArea": 1340,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-041",
+      "scanOrder": 41,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1386,
+        "y": 788,
+        "width": 84,
+        "height": 80,
+        "componentArea": 1280,
+        "mergedComponents": 2
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-042",
+      "scanOrder": 42,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 470,
+        "y": 790,
+        "width": 100,
+        "height": 206,
+        "componentArea": 6704,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-043",
+      "scanOrder": 43,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1118,
+        "y": 790,
+        "width": 124,
+        "height": 162,
+        "componentArea": 2972,
+        "mergedComponents": 3
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-044",
+      "scanOrder": 44,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 252,
+        "y": 858,
+        "width": 172,
+        "height": 140,
+        "componentArea": 5852,
+        "mergedComponents": 3
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-045",
+      "scanOrder": 45,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1368,
+        "y": 884,
+        "width": 150,
+        "height": 82,
+        "componentArea": 1748,
+        "mergedComponents": 3
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-046",
+      "scanOrder": 46,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 1304,
+        "y": 964,
+        "width": 222,
+        "height": 48,
+        "componentArea": 1176,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    },
+    {
+      "candidateId": "drive-region-map-water-streams-small-watercourses-001-candidate-047",
+      "scanOrder": 47,
+      "sourceId": "drive.region_map.water.streams_small_watercourses.001",
+      "sourceRect": {
+        "x": 736,
+        "y": 970,
+        "width": 150,
+        "height": 36,
+        "componentArea": 676,
+        "mergedComponents": 1
+      },
+      "shapeModel": "irregular_alpha_mask",
+      "rectIsStorageEnvelope": true,
+      "alphaMaskSource": "derived_png_alpha",
+      "detection": {
+        "method": "left_to_right_top_down_edge_background_component_distance",
+        "backgroundMode": "edge_flood",
+        "backgroundRgb": [
+          38,
+          41,
+          44
+        ],
+        "threshold": 90,
+        "scale": 2,
+        "mergeGapPx": 10,
+        "paddingPx": 8,
+        "reviewStatus": "candidate_unapproved",
+        "notes": [
+          "Candidates are sorted from top to bottom, then left to right.",
+          "sourceRect is the non-authoritative storage envelope for the transparent derived asset.",
+          "The playable/art shape is the derived PNG alpha mask; square and hex grids are not used as art-crop constraints."
+        ]
+      }
+    }
+  ]
+}

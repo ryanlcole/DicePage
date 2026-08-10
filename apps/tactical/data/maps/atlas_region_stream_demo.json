@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "shaelvien.map.v2",
+  "id": "map-atlas-region-stream-demo",
+  "name": "Atlas Region Stream Demo",
+  "category": "region_test",
+  "parentMapId": null,
+  "parentTileId": null,
+  "width": 28,
+  "height": 16,
+  "tileSize": 24,
+  "gridType": "square",
+  "gridSettings": {
+    "square": {
+      "columns": 28,
+      "rows": 16,
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "unitSystem": "imperial",
+      "distanceUnit": "ft"
+    }
+  },
+  "terrain": {
+    "default": "grass",
+    "overrides": []
+  },
+  "atlasInstances": [
+    {
+      "instanceId": "atlas-region-plains-001",
+      "assetId": "atlas.terrain.plains.001",
+      "x": 166,
+      "y": 102,
+      "width": 220,
+      "height": 154,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "terrain",
+      "z": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Regional Plains Ground",
+        "sourceId": "drive.world_map.terrain.plains.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-straight-001",
+      "assetId": "atlas.region.water.stream.straight.001",
+      "x": 152,
+      "y": 138,
+      "width": 52,
+      "height": 166,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 1,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Stream Segment A",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-straight-002",
+      "assetId": "atlas.region.water.stream.straight.001",
+      "x": 152,
+      "y": 270,
+      "width": 52,
+      "height": 166,
+      "rotationDeg": 180,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 2,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Repeated Stream Segment",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-straight-003",
+      "assetId": "atlas.region.water.stream.straight.002",
+      "x": 250,
+      "y": 190,
+      "width": 72,
+      "height": 166,
+      "rotationDeg": 90,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 3,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Rotated Stream Connector",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-pool-001",
+      "assetId": "atlas.region.water.stream.pool.001",
+      "x": 342,
+      "y": 190,
+      "width": 82,
+      "height": 116,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 4,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": "map-atlas-region-stream-source",
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Spring Pool Entry",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-pool-002",
+      "assetId": "atlas.region.water.stream.pool.002",
+      "x": 448,
+      "y": 250,
+      "width": 82,
+      "height": 116,
+      "rotationDeg": 270,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 5,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Rotated Pool Module",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    },
+    {
+      "instanceId": "atlas-region-stream-seep-001",
+      "assetId": "atlas.region.water.stream.seep.001",
+      "x": 528,
+      "y": 138,
+      "width": 96,
+      "height": 146,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "water_system",
+      "z": 6,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Runoff Seep",
+        "sourceId": "drive.region_map.water.streams_small_watercourses.001"
+      }
+    }
+  ],
+  "placedTiles": [],
+  "entities": [],
+  "entryPoints": [
+    {
+      "id": "entry-atlas-stream-demo",
+      "x": 2,
+      "y": 2,
+      "label": "Atlas Stream Demo Entry"
+    }
+  ],
+  "exitPoints": [],
+  "triggers": [],
+  "permissions": {
+    "gm": {
+      "canView": true,
+      "canEdit": true
+    },
+    "player": {
+      "canView": true
+    }
+  },
+  "atmosphere": {
+    "light": "day",
+    "sound": "running water",
+    "gmNotes": "Region Atlas production collection demonstration. Not first-preset canon."
+  },
+  "encounterReferences": []
+}

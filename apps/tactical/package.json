@@ -8,6 +8,7 @@
     "test:editor": "C:\\Shaelvien\\tools\\node.cmd tests/editor_geometry_test.mjs",
     "test:workspace": "python tools/cdp_verify_workspace.py",
     "test:woodcut": "C:\\Shaelvien\\tools\\node.cmd tests/woodcut_asset_test.mjs",
-    "test:tabletop": "C:\\Shaelvien\\tools\\node.cmd tests/tabletop_system_test.mjs"
+    "test:tabletop": "C:\\Shaelvien\\tools\\node.cmd tests/tabletop_system_test.mjs",
+    "test:atlas": "C:\\Shaelvien\\tools\\node.cmd tests/atlas_asset_pipeline_test.mjs"
   }
 }

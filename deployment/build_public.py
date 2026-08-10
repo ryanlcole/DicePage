@@ -41,6 +41,38 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def sanitize_public_atlas(app_dst: Path) -> None:
+    atlas_source = app_dst / "assets" / "atlas" / "source"
+    atlas_manifest = app_dst / "data" / "atlas" / "atlas_source_manifest.json"
+    atlas_detections = app_dst / "data" / "atlas" / "detections"
+    for path in (atlas_source, atlas_detections):
+        safe_rmtree(path)
+    if atlas_manifest.exists():
+        atlas_manifest.unlink()
+
+    registry_path = app_dst / "data" / "atlas" / "atlas_asset_registry.json"
+    if not registry_path.exists():
+        return
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    public_assets = []
+    for asset in registry.get("assets", []):
+        public_asset = dict(asset)
+        public_asset.pop("sourceImage", None)
+        public_assets.append(public_asset)
+    public_registry = {
+        "schemaVersion": registry.get("schemaVersion", "shaelvien.atlas_asset_registry.v1"),
+        "generatedAt": registry.get("generatedAt", ""),
+        "sourceAuthority": registry.get("sourceAuthority", "google_drive"),
+        "syncPolicy": registry.get("syncPolicy", {}),
+        "layerOrder": registry.get("layerOrder", {}),
+        "publicRuntimeRegistry": True,
+        "sourceCacheIncluded": False,
+        "sources": [],
+        "assets": public_assets,
+    }
+    write_json(registry_path, public_registry)
+
+
 def main() -> int:
     if not TACTICAL.exists():
         raise FileNotFoundError(f"Missing tactical source: {TACTICAL}")
@@ -86,6 +118,7 @@ def main() -> int:
                 "*.key",
             ),
         )
+    sanitize_public_atlas(app_dst)
 
     build_info = {
         "applicationVersion": tactical_package.get("version", "0.0.0"),

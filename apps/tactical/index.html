@@ -261,6 +261,38 @@
           <p class="microcopy" id="assetImportStatus">Registered assets only in this static build.</p>
         </section>
 
+        <section class="panel-section gm-only atlas-panel" id="atlasPanel">
+          <div class="panel-head">
+            <h3>Atlas</h3>
+            <span>Drive-backed assets</span>
+          </div>
+          <label class="select-label" for="atlasCollectionSelect">Collection</label>
+          <select id="atlasCollectionSelect" aria-label="Atlas collection"></select>
+          <label class="select-label" for="atlasSearchInput">Search</label>
+          <input id="atlasSearchInput" type="search" autocomplete="off" placeholder="terrain, waterfall, river">
+          <div class="atlas-browser" id="atlasBrowser" aria-label="Atlas asset browser"></div>
+          <button class="command-button" id="placeAtlasAssetButton" type="button">Place Atlas Asset</button>
+          <div class="selection-card" id="selectedAtlasInstanceSummary">No Atlas instance selected</div>
+          <div class="button-row">
+            <button class="command-button" id="moveAtlasLeftButton" type="button">Left</button>
+            <button class="command-button" id="moveAtlasRightButton" type="button">Right</button>
+            <button class="command-button" id="moveAtlasUpButton" type="button">Up</button>
+            <button class="command-button" id="moveAtlasDownButton" type="button">Down</button>
+          </div>
+          <div class="button-row">
+            <button class="command-button" id="rotateAtlasLeftButton" type="button">Rotate Left</button>
+            <button class="command-button" id="rotateAtlasRightButton" type="button">Rotate Right</button>
+            <button class="command-button danger" id="removeAtlasInstanceButton" type="button">Remove</button>
+          </div>
+          <label class="select-label" for="atlasChildMapSelect">Child map</label>
+          <select id="atlasChildMapSelect"></select>
+          <div class="button-row">
+            <button class="command-button" id="attachAtlasChildButton" type="button">Attach Child</button>
+            <button class="command-button" id="openAtlasChildButton" type="button">Open Child</button>
+          </div>
+          <p class="microcopy">Atlas source artwork remains in Google Drive. Runtime instances reference registry asset IDs and never modify source artwork.</p>
+        </section>
+
         <section class="panel-section" id="encounterPanel">
           <div class="panel-head">
             <h3>Encounter</h3>

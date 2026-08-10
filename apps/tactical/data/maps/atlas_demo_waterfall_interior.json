@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "shaelvien.map.v2",
+  "id": "map-atlas-demo-waterfall-interior",
+  "name": "Waterfall Interior Layer",
+  "category": "interior_test",
+  "parentMapId": "map-atlas-demo",
+  "parentTileId": null,
+  "parentAtlasInstanceId": "atlas-demo-waterfall-001",
+  "width": 8,
+  "height": 6,
+  "tileSize": 24,
+  "gridType": "square",
+  "gridSettings": {
+    "square": {
+      "columns": 8,
+      "rows": 6,
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "unitSystem": "imperial",
+      "distanceUnit": "ft"
+    }
+  },
+  "terrain": {
+    "default": "water",
+    "overrides": [
+      { "x": 0, "y": 0, "definitionId": "stone" },
+      { "x": 1, "y": 0, "definitionId": "stone" },
+      { "x": 6, "y": 5, "definitionId": "stone" },
+      { "x": 7, "y": 5, "definitionId": "stone" }
+    ]
+  },
+  "atlasInstances": [],
+  "placedTiles": [],
+  "entities": [],
+  "entryPoints": [
+    {
+      "id": "entry-from-atlas-waterfall",
+      "x": 1,
+      "y": 1,
+      "label": "Entry From Atlas Waterfall",
+      "fromMapId": "map-atlas-demo",
+      "fromAtlasInstanceId": "atlas-demo-waterfall-001"
+    }
+  ],
+  "exitPoints": [
+    {
+      "id": "exit-to-atlas-demo",
+      "x": 1,
+      "y": 1,
+      "label": "Return To Atlas Demo",
+      "targetMapId": "map-atlas-demo",
+      "targetAtlasInstanceId": "atlas-demo-waterfall-001"
+    }
+  ],
+  "triggers": [],
+  "permissions": {
+    "gm": {
+      "canView": true,
+      "canEdit": true
+    },
+    "player": {
+      "canView": true
+    }
+  },
+  "atmosphere": {
+    "light": "mist",
+    "sound": "waterfall",
+    "gmNotes": "Child map reached through an Atlas instance, not a terrain rewrite."
+  },
+  "encounterReferences": []
+}
