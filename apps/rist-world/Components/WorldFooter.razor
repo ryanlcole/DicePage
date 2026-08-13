@@ -1,0 +1,3 @@
+@inject WorldSession Session
+<footer class="footer">@foreach(var d in Session.Dice){<button @onclick="()=>Session.Roll(d)">D@d</button>}<button @onclick="()=>Session.AddGem(1)">+1 gem</button><button @onclick="()=>Session.AddGem(-1)">-1 gem</button><div class="sum">SUM @Session.Total</div><button @onclick="Session.ClearRolls">Clear</button>@foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}</footer>
+@if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
