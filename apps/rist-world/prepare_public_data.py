@@ -19,9 +19,13 @@ for asset in registry.get('assets', [])[:40]:
     rows.append({'id': asset['assetId'], 'name': asset.get('name', asset['assetId']), 'image': 'assets/atlas/' + source.name})
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
+(web / 'data' / 'asset-config.json').write_text(json.dumps({
+    'worldMapUrl': 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png'
+}))
+
 cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
 (web / 'data' / 'cards-public.json').write_text(json.dumps([
     {'id': c['cardId'], 'name': c.get('name', 'Card'), 'type': c.get('cardType', 'card'), 'text': c.get('text', '')}
     for c in cards
 ]))
-print(f'atlas={len(rows)} cards={len(cards)}')
+print(f'atlas={len(rows)} cards={len(cards)} world=aws-cloudfront')
