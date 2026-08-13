@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Net.Http.Json;
 using Microsoft.JSInterop;
 
 namespace RistWorld;
@@ -23,52 +24,12 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Value) + Gems.Sum(x => x.Value);
     public int[] Dice { get; } = [4,6,8,10,12,20,30,100];
-
     public void Notify() => Changed?.Invoke();
-
-    public async Task InitializeAsync()
-    {
-        await LoadAtlasAsync();
-        await LoadCardsAsync();
-        Notify();
-    }
-
-    private async Task LoadAtlasAsync()
-    {
-        var rows = await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
-        if (rows is not null) AtlasTiles.AddRange(rows);
-    }
-
-    private async Task LoadCardsAsync()
-    {
-        var rows = await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");
-        if (rows is not null) Cards.AddRange(rows);
-    }
-
-    public void MapTap(double x, double y)
-    {
-        x = Math.Clamp(x, 0, 1); y = Math.Clamp(y, 0, 1);
-        if (Mode == "tile" && !string.IsNullOrWhiteSpace(SelectedTile))
-        {
-            var tile = AtlasTiles.FirstOrDefault(t => t.Id == SelectedTile);
-            if (tile is not null) PlacedTiles.Add(new(tile.Id, tile.Name, tile.Image, x, y));
-        }
-        else Pieces.Add(new(PieceKind, x, y));
-        Notify();
-    }
-
-    public void Roll(int sides)
-    {
-        var value = Random.Shared.Next(1, sides + 1);
-        Rolls.Add(new($"D{sides}", value, .18 + Random.Shared.NextDouble()*.64, .18 + Random.Shared.NextDouble()*.64));
-        Notify();
-    }
-
-    public void AddGem(int value)
-    {
-        Gems.Add(new(value, .20 + Random.Shared.NextDouble()*.60, .20 + Random.Shared.NextDouble()*.60));
-        Notify();
-    }
-
-    public void ClearRolls(){ Rolls.Clear(); Gems.Clear(); Notify(); }
+    public async Task InitializeAsync(){await LoadAtlasAsync();await LoadCardsAsync();Notify();}
+    async Task LoadAtlasAsync(){var rows=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");if(rows is not null)AtlasTiles.AddRange(rows);}
+    async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
+    public void MapTap(double x,double y){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(Mode=="tile"&&!string.IsNullOrWhiteSpace(SelectedTile)){var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is not null)PlacedTiles.Add(new(tile.Id,tile.Name,tile.Image,x,y));}else Pieces.Add(new(PieceKind,x,y));Notify();}
+    public void Roll(int sides){var value=Random.Shared.Next(1,sides+1);Rolls.Add(new($"D{sides}",value,.18+Random.Shared.NextDouble()*.64,.18+Random.Shared.NextDouble()*.64));Notify();}
+    public void AddGem(int value){Gems.Add(new(value,.20+Random.Shared.NextDouble()*.60,.20+Random.Shared.NextDouble()*.60));Notify();}
+    public void ClearRolls(){Rolls.Clear();Gems.Clear();Notify();}
 }
