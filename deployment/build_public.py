@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DIST = REPO_ROOT / "dist"
 TACTICAL = REPO_ROOT / "apps" / "tactical"
 SITE = REPO_ROOT / "site"
+NAEJA_WEB_JPEG_SHA256 = "a941cbd44ad6d7ef9a31ea95fd08c0821a23d76a7528f15ddcc3715c9f9f9734"
 
 
 def run_git(args: list[str], fallback: str) -> str:
@@ -39,6 +43,32 @@ def copy_tree(src: Path, dst: Path, ignore: shutil.IgnorePattern | None = None) 
 
 def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def verify_embedded_naeja() -> None:
+    asset_path = TACTICAL / "js" / "naeja_world_asset.js"
+    text = asset_path.read_text(encoding="utf-8")
+    match = re.search(r'data:image/jpeg;base64,([^\"]+)', text)
+    if not match:
+        raise RuntimeError("Naeja public map is not embedded as JPEG data")
+    encoded = re.sub(r"\s+", "", match.group(1))
+    try:
+        payload = base64.b64decode(encoded, validate=True)
+    except Exception as exc:
+        raise RuntimeError(f"Naeja embedded JPEG base64 is invalid: {exc}") from exc
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != NAEJA_WEB_JPEG_SHA256:
+        raise RuntimeError(f"Naeja embedded JPEG hash mismatch: {digest}")
+    if not payload.startswith(b"\xff\xd8") or not payload.endswith(b"\xff\xd9"):
+        raise RuntimeError("Naeja embedded payload is not a complete JPEG")
+
+
+def cache_bust_tactical_index(app_dst: Path, build_id: str) -> None:
+    index_path = app_dst / "index.html"
+    text = index_path.read_text(encoding="utf-8")
+    text = re.sub(r'styles\.css\?v=[^\"]+', f"styles.css?v={build_id}", text)
+    text = re.sub(r'js/app\.js\?v=[^\"]+', f"js/app.js?v={build_id}", text)
+    index_path.write_text(text, encoding="utf-8")
 
 
 def sanitize_public_atlas(app_dst: Path) -> None:
@@ -83,6 +113,7 @@ def main() -> int:
     tactical_package = json.loads((TACTICAL / "package.json").read_text(encoding="utf-8"))
     build_id = f"live-alpha-0-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{short_commit}"
 
+    verify_embedded_naeja()
     safe_rmtree(DIST)
     DIST.mkdir(parents=True, exist_ok=True)
 
@@ -118,6 +149,7 @@ def main() -> int:
                 "*.key",
             ),
         )
+    cache_bust_tactical_index(app_dst, build_id)
     sanitize_public_atlas(app_dst)
 
     build_info = {
