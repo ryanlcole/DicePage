@@ -1,13 +1,24 @@
 {
-  "schemaVersion": "shaelvien.map.v1",
+  "schemaVersion": "shaelvien.map.v2",
   "id": "map-world",
-  "name": "World",
+  "name": "World of Naeja",
   "category": "world",
   "parentMapId": null,
   "parentTileId": null,
   "width": 16,
   "height": 10,
   "tileSize": 16,
+  "gridType": "square",
+  "gridSettings": {
+    "square": {
+      "columns": 16,
+      "rows": 10,
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "unitSystem": "abstract",
+      "distanceUnit": "tile"
+    }
+  },
   "terrain": {
     "default": "grass",
     "overrides": [
@@ -18,9 +29,55 @@
       {"x": 1, "y": 1, "definitionId": "water"}, {"x": 2, "y": 1, "definitionId": "water"}, {"x": 1, "y": 2, "definitionId": "water"}
     ]
   },
+  "atlasInstances": [
+    {
+      "instanceId": "naeja-world-plains-west",
+      "assetId": "atlas.terrain.plains.001",
+      "x": 48,
+      "y": 118,
+      "width": 72,
+      "height": 58,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "terrain",
+      "z": 0,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Naeja World Plains Tile",
+        "sourceId": "drive.world_map.terrain.plains.001"
+      }
+    },
+    {
+      "instanceId": "naeja-world-waterfall-east",
+      "assetId": "atlas.wonder.waterfall.001",
+      "x": 210,
+      "y": 58,
+      "width": 48,
+      "height": 48,
+      "rotationDeg": 0,
+      "scale": 1,
+      "layer": "natural_landmark",
+      "z": 1,
+      "visible": true,
+      "hiddenFromPlayers": false,
+      "childMapId": null,
+      "interactionId": null,
+      "triggerId": null,
+      "encounterId": null,
+      "metadata": {
+        "label": "Naeja World Waterfall Tile",
+        "sourceId": "drive.world_map.landmarks.wonders.hydrological.001"
+      }
+    }
+  ],
   "placedTiles": [
     {
-      "schemaVersion": "shaelvien.tile.v1",
+      "schemaVersion": "shaelvien.tile.v2",
       "id": "tile-world-city",
       "definitionId": "city",
       "x": 7,
@@ -54,6 +111,10 @@
   "exitPoints": [],
   "triggers": [],
   "permissions": {"gm": {"canView": true, "canEdit": true}, "player": {"canView": true}},
-  "atmosphere": {"light": "day", "sound": "wind", "gmNotes": "World layer proof."},
+  "atmosphere": {
+    "light": "day",
+    "sound": "wind",
+    "gmNotes": "WORLD layer uses Naeja.PNG as the presentation map and the Google Drive-backed Atlas registry for reusable world terrain and landmark assets."
+  },
   "encounterReferences": []
 }
