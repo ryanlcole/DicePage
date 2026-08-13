@@ -1,0 +1,69 @@
+name: Deploy RIST WORLD Blazor
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/deploy-rist-world.yml']
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Prepare Naeja and Atlas assets
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64,json,re,shutil
+          r=Path('.'); t=r/'apps/tactical'; w=r/'apps/rist-world/wwwroot'
+          (w/'assets/atlas').mkdir(parents=True,exist_ok=True); (w/'data').mkdir(parents=True,exist_ok=True)
+          s=(t/'js/naeja_world_asset.js').read_text(); m=re.search(r'data:image/jpeg;base64,([^\"]+)',s); assert m
+          (w/'assets/naeja.jpg').write_bytes(base64.b64decode(re.sub(r'\s+','',m.group(1))))
+          reg=json.loads((t/'data/atlas/atlas_asset_registry.json').read_text()); out=[]
+          for a in reg.get('assets',[])[:40]:
+              p=t/a.get('derivedPath','')
+              if not p.exists(): continue
+              q=w/'assets/atlas'/p.name; shutil.copy2(p,q)
+              out.append({'id':a['assetId'],'name':a.get('name',a['assetId']),'image':'assets/atlas/'+p.name})
+          (w/'data/atlas-public.json').write_text(json.dumps(out))
+          cards=json.loads((t/'data/tabletop/card_definitions.json').read_text()).get('cards',[])
+          (w/'data/cards-public.json').write_text(json.dumps([{'id':c['cardId'],'name':c.get('name','Card'),'type':c.get('cardType','card'),'text':c.get('text','')} for c in cards]))
+          print('atlas assets',len(out),'cards',len(cards))
+          PY
+      - name: Build .NET 10 Blazor WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+      - name: Assemble public site
+        shell: bash
+        run: |
+          rm -rf dist
+          mkdir -p dist/app
+          cp site/landing/index.html dist/index.html
+          cp site/site-shell.css dist/site-shell.css
+          cp -r site/store site/docs site/lab dist/
+          cp -r build/rist/wwwroot/. dist/app/
+          touch dist/.nojekyll
+          test -f dist/app/_framework/blazor.webassembly.js
+          test -f dist/app/assets/naeja.jpg
+          grep -q 'RIST WORLD' dist/app/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
