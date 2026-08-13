@@ -1,4 +1,5 @@
 name: Deploy RIST WORLD Blazor
+# retry: compile-fix-1
 on:
   workflow_dispatch:
   push:
