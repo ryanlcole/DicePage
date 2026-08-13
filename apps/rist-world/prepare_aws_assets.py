@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import base64
 import json
-import re
 import shutil
 from pathlib import Path
 
@@ -19,12 +18,23 @@ def main() -> None:
     (STAGE / "cards").mkdir(parents=True)
 
     source = (TACTICAL / "js" / "naeja_world_asset.js").read_text(encoding="utf-8")
-    match = re.search(r"base64,(.*?)\";\s*$", source, flags=re.S)
-    if not match:
-        raise SystemExit("Naeja embedded source not found")
-    image = base64.b64decode(re.sub(r"\s+", "", match.group(1)))
+    marker = "base64,"
+    start = source.find(marker)
+    if start < 0:
+        raise SystemExit("Naeja embedded source not found: base64 marker missing")
+    start += len(marker)
+    end = source.find('"', start)
+    if end < 0:
+        raise SystemExit("Naeja embedded source not found: closing quote missing")
+    payload = "".join(source[start:end].split())
+    try:
+        image = base64.b64decode(payload, validate=True)
+    except Exception as exc:
+        raise SystemExit(f"Naeja base64 decode failed: {exc}") from exc
     if len(image) < 100_000:
         raise SystemExit(f"Naeja image unexpectedly small: {len(image)} bytes")
+    if not image.startswith(b"\xff\xd8\xff"):
+        raise SystemExit("Naeja decoded payload is not a JPEG")
     (STAGE / "worlds" / "naeja" / "world.jpg").write_bytes(image)
 
     registry = json.loads((TACTICAL / "data" / "atlas" / "atlas_asset_registry.json").read_text(encoding="utf-8"))
