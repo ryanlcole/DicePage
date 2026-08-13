@@ -1,0 +1,40 @@
+name: Deploy RIST WORLD Drive
+on: [workflow_dispatch, push]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Get assets
+        run: |
+          mkdir -p apps/rist-world/wwwroot/assets
+          curl -fL 'https://drive.usercontent.google.com/download?id=1tESehBzxAPrugiE4gNL9Vsfc5Mmh0tCT&export=download&confirm=t' -o apps/rist-world/wwwroot/assets/naeja.jpg
+          test $(stat -c%s apps/rist-world/wwwroot/assets/naeja.jpg) -gt 100000
+      - name: Build
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+      - name: Package
+        run: |
+          mkdir -p dist/app
+          cp -r build/rist/wwwroot/. dist/app/
+          touch dist/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: pages
+        uses: actions/deploy-pages@v4
