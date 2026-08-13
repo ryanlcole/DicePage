@@ -19,8 +19,9 @@ for asset in registry.get('assets', [])[:40]:
     rows.append({'id': asset['assetId'], 'name': asset.get('name', asset['assetId']), 'image': 'assets/atlas/' + source.name})
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
+# Version the URL so browsers do not reuse the earlier cached 403 response.
 (web / 'data' / 'asset-config.json').write_text(json.dumps({
-    'worldMapUrl': 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png'
+    'worldMapUrl': 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=335967-20260813'
 }))
 
 cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
@@ -28,4 +29,4 @@ cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').re
     {'id': c['cardId'], 'name': c.get('name', 'Card'), 'type': c.get('cardType', 'card'), 'text': c.get('text', '')}
     for c in cards
 ]))
-print(f'atlas={len(rows)} cards={len(cards)} world=aws-cloudfront')
+print(f'atlas={len(rows)} cards={len(cards)} world=aws-cloudfront-versioned')
