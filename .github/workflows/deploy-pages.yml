@@ -1,6 +1,6 @@
 name: Deploy ReLiCGameMaster to GitHub Pages
 
-# Publish marker: naeja-world-1
+# Publish marker: naeja-world-2
 on:
   workflow_dispatch:
     inputs:
