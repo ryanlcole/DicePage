@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Blazor
-# retry: image-fix-1
+# retry: drive-source-1
 on:
   workflow_dispatch:
   push:
@@ -29,21 +29,18 @@ jobs:
         shell: bash
         run: |
           mkdir -p apps/rist-world/wwwroot/assets/atlas apps/rist-world/wwwroot/data
-          node --input-type=module - <<'NODE'
-          import { writeFileSync } from 'node:fs';
-          import { NAEJA_WORLD_MAP } from './apps/tactical/js/naeja_world_asset.js';
-          const marker = 'base64,';
-          const at = NAEJA_WORLD_MAP.indexOf(marker);
-          if (at < 0) throw new Error('Naeja map data URL is missing base64 payload');
-          const bytes = Buffer.from(NAEJA_WORLD_MAP.slice(at + marker.length), 'base64');
-          if (bytes.length < 100000) throw new Error(`Naeja map unexpectedly small: ${bytes.length} bytes`);
-          writeFileSync('apps/rist-world/wwwroot/assets/naeja.jpg', bytes);
-          console.log('Naeja bytes', bytes.length);
-          NODE
+          curl --fail --location --retry 3 --output apps/rist-world/wwwroot/assets/naeja.png \
+            'https://drive.usercontent.google.com/download?id=1tESehBzxAPrugiE4gNL9Vsfc5Mmh0tCT&export=download&confirm=t'
           python - <<'PY'
           from pathlib import Path
           import json,shutil
           r=Path('.'); t=r/'apps/tactical'; w=r/'apps/rist-world/wwwroot'
+          naeja=w/'assets/naeja.png'
+          payload=naeja.read_bytes()
+          if len(payload) < 100000:
+              raise SystemExit(f'Naeja download unexpectedly small: {len(payload)} bytes')
+          if not payload.startswith(b'\x89PNG\r\n\x1a\n'):
+              raise SystemExit('Naeja Drive download is not a PNG')
           reg=json.loads((t/'data/atlas/atlas_asset_registry.json').read_text()); out=[]
           for a in reg.get('assets',[])[:40]:
               p=t/a.get('derivedPath','')
@@ -53,7 +50,7 @@ jobs:
           (w/'data/atlas-public.json').write_text(json.dumps(out))
           cards=json.loads((t/'data/tabletop/card_definitions.json').read_text()).get('cards',[])
           (w/'data/cards-public.json').write_text(json.dumps([{'id':c['cardId'],'name':c.get('name','Card'),'type':c.get('cardType','card'),'text':c.get('text','')} for c in cards]))
-          print('atlas assets',len(out),'cards',len(cards))
+          print('Naeja bytes',len(payload),'atlas assets',len(out),'cards',len(cards))
           PY
       - name: Build .NET 10 Blazor WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
@@ -68,8 +65,8 @@ jobs:
           cp -r build/rist/wwwroot/. dist/app/
           touch dist/.nojekyll
           test -f dist/app/_framework/blazor.webassembly.js
-          test -s dist/app/assets/naeja.jpg
-          test $(stat -c%s dist/app/assets/naeja.jpg) -gt 100000
+          test -s dist/app/assets/naeja.png
+          test $(stat -c%s dist/app/assets/naeja.png) -gt 100000
           grep -q 'RIST WORLD' dist/app/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
