@@ -1,12 +1,3 @@
 @inject WorldSession Session
-
-<div class="rist">
-  <WorldHeader />
-  <WorldMap />
-  <WorldFooter />
-  <CardDialog />
-</div>
-
-@code {
-  protected override async Task OnInitializedAsync() => await Session.InitializeAsync();
-}
+<div class="rist"><WorldHeader /><WorldMap /><WorldFooter /></div>
+@code{protected override async Task OnInitializedAsync()=>await Session.InitializeAsync();}
