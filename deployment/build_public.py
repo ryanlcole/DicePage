@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DIST = REPO_ROOT / "dist"
 TACTICAL = REPO_ROOT / "apps" / "tactical"
 SITE = REPO_ROOT / "site"
-NAEJA_WEB_JPEG_SHA256 = "a941cbd44ad6d7ef9a31ea95fd08c0821a23d76a7528f15ddcc3715c9f9f9734"
+NAEJA_WEB_JPEG_SHA256 = "6bf8c2bc12b014570c487ffe01b03d86bfbc29a6f9e19e13447cb032e7890557"
 
 
 def run_git(args: list[str], fallback: str) -> str:
