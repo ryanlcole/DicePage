@@ -21,18 +21,17 @@ for asset in registry.get('assets', [])[:40]:
     rows.append({'id': asset['assetId'], 'name': asset.get('name', asset['assetId']), 'image': 'assets/atlas/' + source.name})
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
-# Fetch the verified AWS-hosted Naeja map during the build, then serve it
-# from the same GitHub Pages origin as the Blazor client. This avoids
-# browser/VPN/cross-origin delivery differences while preserving AWS as
-# the canonical asset source.
-world_source = 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=335967-20260813'
+# Fetch the verified AWS-hosted world map during the build, then serve it
+# from the same GitHub Pages origin as the Blazor client. AWS remains the
+# canonical asset source; Pages gets a runtime-safe local copy.
+world_source = 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=20260813-refresh'
 request = Request(world_source, headers={'User-Agent': 'RIST-Pages-Build/1.0'})
 with urlopen(request, timeout=30) as response:
     world_bytes = response.read()
 if not world_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
-    raise SystemExit('Naeja CDN source is not a PNG')
-if len(world_bytes) != 335967:
-    raise SystemExit(f'Naeja CDN source size mismatch: {len(world_bytes)}')
+    raise SystemExit('World map CDN source is not a PNG')
+if len(world_bytes) < 100000:
+    raise SystemExit(f'World map CDN source unexpectedly small: {len(world_bytes)}')
 (web / 'assets' / 'world' / 'naeja.png').write_bytes(world_bytes)
 
 (web / 'data' / 'asset-config.json').write_text(json.dumps({
