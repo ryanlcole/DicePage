@@ -1,0 +1,2 @@
+Deploy RIST WORLD using live-alpha-rist-blazor-world source commit 3b096a7f055623078f3148f5a3a410811cceed52.
+Naeja asset: https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png
