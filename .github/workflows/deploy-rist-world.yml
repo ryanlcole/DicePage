@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Blazor
-# retry: compile-fix-1
+# retry: image-fix-1
 on:
   workflow_dispatch:
   push:
@@ -28,13 +28,22 @@ jobs:
       - name: Prepare Naeja and Atlas assets
         shell: bash
         run: |
+          mkdir -p apps/rist-world/wwwroot/assets/atlas apps/rist-world/wwwroot/data
+          node --input-type=module - <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          import { NAEJA_WORLD_MAP } from './apps/tactical/js/naeja_world_asset.js';
+          const marker = 'base64,';
+          const at = NAEJA_WORLD_MAP.indexOf(marker);
+          if (at < 0) throw new Error('Naeja map data URL is missing base64 payload');
+          const bytes = Buffer.from(NAEJA_WORLD_MAP.slice(at + marker.length), 'base64');
+          if (bytes.length < 100000) throw new Error(`Naeja map unexpectedly small: ${bytes.length} bytes`);
+          writeFileSync('apps/rist-world/wwwroot/assets/naeja.jpg', bytes);
+          console.log('Naeja bytes', bytes.length);
+          NODE
           python - <<'PY'
           from pathlib import Path
-          import base64,json,re,shutil
+          import json,shutil
           r=Path('.'); t=r/'apps/tactical'; w=r/'apps/rist-world/wwwroot'
-          (w/'assets/atlas').mkdir(parents=True,exist_ok=True); (w/'data').mkdir(parents=True,exist_ok=True)
-          s=(t/'js/naeja_world_asset.js').read_text(); m=re.search(r'data:image/jpeg;base64,([^\"]+)',s); assert m
-          (w/'assets/naeja.jpg').write_bytes(base64.b64decode(re.sub(r'\s+','',m.group(1))))
           reg=json.loads((t/'data/atlas/atlas_asset_registry.json').read_text()); out=[]
           for a in reg.get('assets',[])[:40]:
               p=t/a.get('derivedPath','')
@@ -59,7 +68,8 @@ jobs:
           cp -r build/rist/wwwroot/. dist/app/
           touch dist/.nojekyll
           test -f dist/app/_framework/blazor.webassembly.js
-          test -f dist/app/assets/naeja.jpg
+          test -s dist/app/assets/naeja.jpg
+          test $(stat -c%s dist/app/assets/naeja.jpg) -gt 100000
           grep -q 'RIST WORLD' dist/app/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
