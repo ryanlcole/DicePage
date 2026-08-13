@@ -21,6 +21,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string GridStyle { get; set; } = "square";
     public const int GridColumns = 10;
     public const int GridRows = 20;
+    public int GridDiameter { get; set; } = 48;
     public double GridDistance { get; set; } = 5;
     public double GridCalibrationZoom { get; set; } = 1;
     public double ViewZoom { get; set; } = 1;
