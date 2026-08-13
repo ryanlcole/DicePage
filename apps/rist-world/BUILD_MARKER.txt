@@ -1,0 +1,1 @@
+RIST Blazor WORLD deployment target
