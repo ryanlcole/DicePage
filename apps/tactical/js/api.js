@@ -1,3 +1,4 @@
+import "./world_naeja.js";
 import { createGameState, serializableState } from "./state.js";
 import { normalizeAssetRegistry } from "./assets.js";
 import { normalizeAtlasRegistry } from "./atlas.js";
