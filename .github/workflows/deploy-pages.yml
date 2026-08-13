@@ -7,6 +7,11 @@ on:
         description: "Branch, tag, or commit to deploy"
         required: true
         default: "live-alpha/tactical-import"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/deploy-pages.yml"
 
 permissions:
   contents: read
@@ -23,17 +28,19 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || 'live-alpha/tactical-import' }}
     steps:
       - name: Record workflow definition
         run: |
           echo "workflow_definition_ref=${GITHUB_REF}" >> "$GITHUB_STEP_SUMMARY"
           echo "workflow_definition_sha=${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
-          echo "requested_source_ref=${{ inputs.source_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "requested_source_ref=${SOURCE_REF}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Checkout requested source ref
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_ref }}
+          ref: ${{ env.SOURCE_REF }}
 
       - name: Validate requested source ref
         run: |
@@ -83,8 +90,8 @@ jobs:
           print(f"build_id={info.get('buildId')}")
           print(f"build_git_commit={info.get('gitCommit')}")
           with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-              summary.write(f"build_id={info.get('buildId')}\\n")
-              summary.write(f"build_git_commit={info.get('gitCommit')}\\n")
+              summary.write(f"build_id={info.get('buildId')}\n")
+              summary.write(f"build_git_commit={info.get('gitCommit')}\n")
           PY
 
       - name: Scan public artifact
