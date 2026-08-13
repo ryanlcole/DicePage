@@ -1,0 +1,108 @@
+name: Deploy RIST WORLD AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-rist-world-aws.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
+  DISTRIBUTION_ID: E1D9TALLP51FI5
+  ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
+
+jobs:
+  publish:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RIST WORLD source
+        uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Stage approved Naeja and Atlas assets
+        run: python apps/rist-world/prepare_aws_assets.py
+
+      - name: Publish assets to private S3 origin
+        run: aws s3 sync build/aws-assets/ "s3://${ASSET_BUCKET}/" --delete --only-show-errors
+
+      - name: Refresh CloudFront
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/*' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
+
+      - name: Verify Naeja through CloudFront
+        run: |
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/naeja.jpg "${ASSET_BASE_URL}worlds/naeja/world.jpg"
+          test $(stat -c%s /tmp/naeja.jpg) -gt 100000
+
+      - name: Generate Blazor CDN manifests
+        shell: bash
+        run: |
+          mkdir -p apps/rist-world/wwwroot/data
+          python - <<'PY'
+          from pathlib import Path
+          import json, os
+          root=Path('.')
+          www=root/'apps/rist-world/wwwroot'
+          base=os.environ['ASSET_BASE_URL'].rstrip('/')+'/'
+          manifest=json.loads((root/'build/aws-assets/atlas-manifest.json').read_text())
+          atlas=[{'id':x['id'],'name':x['name'],'image':base+x['path']} for x in manifest]
+          (www/'data/atlas-public.json').write_text(json.dumps(atlas),encoding='utf-8')
+          (www/'data/asset-config.json').write_text(json.dumps({'worldMapUrl':base+'worlds/naeja/world.jpg'}),encoding='utf-8')
+          cards=json.loads((root/'apps/tactical/data/tabletop/card_definitions.json').read_text()).get('cards',[])
+          public=[{'id':c['cardId'],'name':c.get('name','Card'),'type':c.get('cardType','card'),'text':c.get('text','')} for c in cards]
+          (www/'data/cards-public.json').write_text(json.dumps(public),encoding='utf-8')
+          print('CDN atlas assets',len(atlas),'cards',len(public))
+          PY
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Blazor WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+
+      - name: Assemble Pages site
+        shell: bash
+        run: |
+          rm -rf dist
+          mkdir -p dist/app
+          cp site/landing/index.html dist/index.html
+          cp site/site-shell.css dist/site-shell.css
+          cp -r site/store site/docs site/lab dist/
+          cp -r build/rist/wwwroot/. dist/app/
+          touch dist/.nojekyll
+          test -f dist/app/_framework/blazor.webassembly.js
+          grep -q 'd2d6rnm6fnsp89.cloudfront.net' dist/app/data/asset-config.json
+          grep -q 'd2d6rnm6fnsp89.cloudfront.net' dist/app/data/atlas-public.json
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
