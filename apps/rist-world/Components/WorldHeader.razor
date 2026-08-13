@@ -1,0 +1,19 @@
+@inject WorldSession Session
+@inject NavigationManager Nav
+<header class="topbar">
+ <div class="brand">ReLiCGameMaster • WORLD</div>
+ <div class="control"><label>Tile</label><select @bind="Session.SelectedTile"><option value="">None</option>@foreach(var t in Session.AtlasTiles){<option value="@t.Id">@t.Name</option>}</select></div>
+ <button @onclick="TileMode">Place tile</button>
+ <div class="control"><label>Piece</label><select @bind="Session.PieceKind"><option>pin</option><option>coin</option><option>caravan</option><option>token</option></select></div>
+ <button @onclick="PieceMode">Place piece</button>
+ <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>
+ <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify"><option>square</option><option>hex</option></select></div>
+ <div class="control"><label>Diameter</label><input type="number" min="8" max="240" @bind="Session.GridDiameter" @bind:after="Session.Notify" /></div>
+ <div class="control"><label>Distance</label><input type="number" min="1" @bind="Session.GridDistance" @bind:after="Session.Notify" /></div>
+ <button @onclick="Session.SaveAsync">Save changes</button><button @onclick="Session.LoadAsync">Load</button><button @onclick="Exit">Exit</button>
+</header>
+@code{
+ void TileMode(){Session.Mode="tile";Session.Notify();}
+ void PieceMode(){Session.Mode="piece";Session.Notify();}
+ void Exit()=>Nav.NavigateTo("../",true);
+}
