@@ -1,7 +1,7 @@
 {
   "schemaVersion": "shaelvien.map.v2",
   "id": "map-world",
-  "name": "World of Naeja",
+  "name": "World",
   "category": "world",
   "parentMapId": null,
   "parentTileId": null,
