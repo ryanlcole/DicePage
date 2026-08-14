@@ -3,14 +3,14 @@
 @if(Session.MixerOpen)
 {
  <div class="mixer-modal" @onclick="Session.CloseMixer">
-  <section class="character-mixer character-console" @onclick:stopPropagation="true">
+  <section class="character-mixer character-console" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @ontouchstart:stopPropagation="true">
    <button class="console-close" @onclick="Session.CloseMixer" aria-label="Close character sheet">×</button>
    <header class="console-identity">
     <div class="character-portrait"><span>PORTRAIT</span></div>
-    <label>NAME<input @bind="Session.CharacterName" /></label>
-    <label>SPECIES<input @bind="Session.CharacterSpecies" /></label>
-    <label>AGE<input @bind="Session.CharacterAge" /></label>
-    <label>ALIGNMENT<input @bind="Session.CharacterAlignment" /></label>
+    <label>NAME<input @bind="Session.CharacterName" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" /></label>
+    <label>SPECIES<input @bind="Session.CharacterSpecies" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" /></label>
+    <label>AGE<input @bind="Session.CharacterAge" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" /></label>
+    <label>ALIGNMENT<input @bind="Session.CharacterAlignment" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" /></label>
    </header>
 
    <section class="console-bank pools-bank">
@@ -51,12 +51,12 @@
 
    @if(AddingGroup is not null)
    {
-    <section class="field-builder console-builder">
-     <div><strong>Add @AddingGroup</strong><button @onclick="()=>AddingGroup=null">×</button></div>
-     <input value="@Session.FieldSearch" @oninput="SearchChanged" placeholder="Start typing a name…" autocomplete="off" autofocus />
+    <section class="field-builder console-builder" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @ontouchstart:stopPropagation="true">
+     <div><strong>Add @AddingGroup</strong><button @onclick="CloseBuilder">×</button></div>
+     <input value="@Session.FieldSearch" @oninput="SearchChanged" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @ontouchstart:stopPropagation="true" placeholder="Start typing a name…" autocomplete="off" inputmode="text" />
      @if(!string.IsNullOrWhiteSpace(Session.FieldSearch))
      {
-      <div class="field-suggestions">
+      <div class="field-suggestions" @onclick:stopPropagation="true">
        @foreach(var option in Session.FilteredFieldVocabulary.Where(x=>x.Group==AddingGroup)){<button @onclick="()=>AddField(option)"><strong>@option.Name</strong><small>@option.Kind</small></button>}
        <button class="custom-field" @onclick="AddCustom"><strong>Custom: @Session.FieldSearch</strong><small>Create new</small></button>
       </div>
@@ -69,9 +69,9 @@
      @foreach(var tab in new[]{"Description","Background","Feats"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}
     </nav>
     @if(Session.CharacterTab=="Description")
-    {<textarea aria-label="Public Description" @bind="Session.CharacterDescription" placeholder="Public description…"></textarea>}
+    {<textarea aria-label="Public Description" @bind="Session.CharacterDescription" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" placeholder="Public description…"></textarea>}
     else if(Session.CharacterTab=="Background")
-    {<textarea aria-label="Background" @bind="Session.CharacterBackground" placeholder="Background…"></textarea>}
+    {<textarea aria-label="Background" @bind="Session.CharacterBackground" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" placeholder="Background…"></textarea>}
     else
     {
      <div class="feat-workspace">
@@ -92,6 +92,7 @@
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
  void BeginAdd(string group){AddingGroup=group;Session.SetCharacterTab(group);Session.SetFieldSearch("");}
+ void CloseBuilder(){AddingGroup=null;Session.SetFieldSearch("");}
  void SearchChanged(ChangeEventArgs e)=>Session.SetFieldSearch(e.Value?.ToString()??"");
  void AddField(CharacterFieldOption option){Session.AddCharacterField(option);AddingGroup=null;}
  void AddCustom(){Session.AddCustomCharacterField();AddingGroup=null;}
