@@ -2,10 +2,31 @@
 <footer class="footer dice-footer">
  @foreach(var die in Session.DiceSet)
  {
-  <button class="die-button" title="Roll @die.Label" @onclick="()=>Session.RollAsync(die.Key)">
-   <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-   <small>@die.Label</small>
-  </button>
+  if(die.Key=="d5-bonus")
+  {
+   <div class="die-control d5-control bonus-d5">
+    <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
+    <button class="die-button" title="Roll selected bonus" @onclick="()=>Session.RollAsync(die.Key,Session.BonusD5Value)">
+     <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+    </button>
+   </div>
+  }
+  else if(die.Key=="d5-penalty")
+  {
+   <div class="die-control d5-control penalty-d5">
+    <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
+    <button class="die-button" title="Roll selected penalty" @onclick="()=>Session.RollAsync(die.Key,Session.PenaltyD5Value)">
+     <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+    </button>
+   </div>
+  }
+  else
+  {
+   <button class="die-button" title="Roll @die.Label" @onclick="()=>Session.RollAsync(die.Key)">
+    <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span>
+    <small>@die.Label</small>
+   </button>
+  }
  }
  <div class="sum">SUM @Session.Total</div>
  <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
