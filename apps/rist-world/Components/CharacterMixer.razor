@@ -42,11 +42,11 @@
        else if(field.Kind=="VALUE")
        {
         <label class="dial skill-knob"><input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetFieldCurrent(field,e)"/><small>Value</small></label>
-        <button class="show-hand" disabled title="Card hand wiring is next">Show Hand</button>
+        <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
        }
        else
        {
-        <div class="ability-panel">Custom ability</div><button class="show-hand" disabled title="Card hand wiring is next">Show Hand</button>
+        <div class="ability-panel">Custom ability</div><button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
        }
       </article>
      }
