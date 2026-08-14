@@ -9,7 +9,7 @@
   {
    @foreach(var card in Session.HandCards)
    {
-    <article class="hand-card dial-hand-card color-@card.Field.Color">
+    <article class="hand-card dial-hand-card color-@card.Field.Color" style="@CardWidth(card.Name)">
      <div class="hand-card-dial"><span>@card.Value</span></div>
      <div class="hand-card-plate"><strong>@card.Name</strong><small>@card.Type</small></div>
      <button class="dicebag-button" title="@(Session.MixerOpen&&Session.CharacterEditMode?"Open dice bag editor":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
@@ -59,6 +59,7 @@
 }
 
 @code{
+ string CardWidth(string name)=>$"--hand-card-width:{Math.Clamp(150+(name?.Length??0)*6,160,300)}px";
  async Task BagClick(HandCard card){if(Session.MixerOpen&&Session.CharacterEditMode)Session.EditDiceBag(card);else await Session.RollHandCardAsync(card);}
  void SetCount(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagCount(entry,v);}
  void SetMagnitude(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagMagnitude(entry,v);}
