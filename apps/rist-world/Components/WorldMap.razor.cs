@@ -24,6 +24,13 @@ public partial class WorldMap:IDisposable
  static string PinStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)};--placement-zoom:{Math.Max(p.PlacementZoom,.01).ToString("0.###",CultureInfo.InvariantCulture)}";
  static string PieceStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)}";
  static string TileStyle(TileItem t)=>$"left:{Pct(t.X)};top:{Pct(t.Y)}";
+ static string RollStyle(RollItem r,DiceSpec die)
+ {
+  var col=r.Frame%die.Columns;var row=r.Frame/die.Columns;
+  var bx=die.Columns<=1?0:col*100.0/(die.Columns-1);
+  var by=die.Rows<=1?0:row*100.0/(die.Rows-1);
+  return $"left:{Pct(r.X)};top:{Pct(r.Y)};background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{bx.ToString("0.###",CultureInfo.InvariantCulture)}% {by.ToString("0.###",CultureInfo.InvariantCulture)}%";
+ }
  string DragPreviewStyle=>$"left:{DragClientX:0.#}px;top:{DragClientY:0.#}px";
 
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
@@ -40,18 +47,9 @@ public partial class WorldMap:IDisposable
   DragClientX=e.ClientX;DragClientY=e.ClientY;
   var p=await DropPoint(e);
   var inside=p.Length>=3&&p[0]>.5;
-  if(TrayDragging is not null)
-  {
-   if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);
-  }
-  else if(PieceDragging is not null)
-  {
-   if(inside)Session.MovePiece(PieceDragging,p[1],p[2]);else Session.RemovePiece(PieceDragging);
-  }
-  else if(TileDragging is not null)
-  {
-   if(inside)Session.MoveTile(TileDragging,p[1],p[2]);else Session.RemoveTile(TileDragging);
-  }
+  if(TrayDragging is not null){if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);}
+  else if(PieceDragging is not null){if(inside)Session.MovePiece(PieceDragging,p[1],p[2]);else Session.RemovePiece(PieceDragging);}
+  else if(TileDragging is not null){if(inside)Session.MoveTile(TileDragging,p[1],p[2]);else Session.RemoveTile(TileDragging);}
   ClearDrag();
   await InvokeAsync(StateHasChanged);
  }
@@ -65,7 +63,6 @@ public partial class WorldMap:IDisposable
   if(G.Pointers.Count==1){G.LastX=e.ClientX;G.LastY=e.ClientY;}
   if(G.Pointers.Count==2)G.LastDistance=G.Distance();
  }
-
  Task Move(PointerEventArgs e)
  {
   if(Dragging)return Task.CompletedTask;
@@ -74,23 +71,15 @@ public partial class WorldMap:IDisposable
   if(G.Pointers.Count==1)Pan(e);else if(G.Pointers.Count>=2)Pinch();
   return Task.CompletedTask;
  }
-
  void Pan(PointerEventArgs e){var dx=e.ClientX-G.LastX;var dy=e.ClientY-G.LastY;if(Math.Abs(dx)+Math.Abs(dy)>1){G.PanX+=dx;G.PanY+=dy;G.Moved=true;}G.LastX=e.ClientX;G.LastY=e.ClientY;}
  void Pinch(){var d=G.Distance();if(G.LastDistance>0){G.Zoom=Math.Clamp(G.Zoom*(d/G.LastDistance),.5,5);Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;}G.LastDistance=d;}
-
  async Task Up(PointerEventArgs e)
  {
   if(Dragging){await DragEnd(e);return;}
-  var wasTracked=G.Pointers.ContainsKey(e.PointerId);
-  var wasMoved=G.Moved;
+  var wasTracked=G.Pointers.ContainsKey(e.PointerId);var wasMoved=G.Moved;
   G.Pointers.Remove(e.PointerId);G.LastDistance=0;
-  if(wasTracked&&!wasMoved&&G.Pointers.Count==0)
-  {
-   var p=await WorldPoint(e);
-   Session.MapTap(p[0],p[1]);
-  }
+  if(wasTracked&&!wasMoved&&G.Pointers.Count==0){var p=await WorldPoint(e);Session.MapTap(p[0],p[1]);}
  }
-
  void Cancel(PointerEventArgs e){G.Pointers.Remove(e.PointerId);G.LastDistance=0;}
  void PinTap(PieceItem p)=>Session.PinTap(p);
  public void Dispose()=>Session.Changed-=Refresh;
