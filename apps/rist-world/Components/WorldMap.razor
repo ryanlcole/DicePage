@@ -41,7 +41,7 @@
      var die=Session.Dice(roll.Key);
      if(die is not null)
      {
-      <div class="rolled-die" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>
+      <div class="rolled-die die-@die.Key" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>
      }
     }
     @foreach(var p in Session.Pieces)
