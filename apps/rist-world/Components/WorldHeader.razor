@@ -8,8 +8,8 @@
  <button @onclick="PieceMode">Place piece</button>
  <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>
  <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
- <div class="control"><label>Miles / cell at this zoom</label><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" /></div>
- <button @onclick="Session.CalibrateGrid">Set scale here</button>
+ <div class="control scale-control"><label>Mi / cell</label><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" /></div>
+ <button class="scale-button" @onclick="Session.CalibrateGrid">Set scale</button>
  <div class="scale-readout">@($"{Session.EffectiveGridDistance:0.##} mi/cell")</div>
  <button @onclick="Session.SaveAsync">Save changes</button><button @onclick="Session.LoadAsync">Load</button><button @onclick="Exit">Exit</button>
 </header>
