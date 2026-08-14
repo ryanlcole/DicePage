@@ -19,15 +19,15 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
-        new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 6),
-        new("d5-bonus", "+D5", "assets/dice/d5-bonus.png", 5, 10, 1, 10, 8),
-        new("d5-penalty", "-D5", "assets/dice/d5-penalty.png", 5, 10, 1, 10, 8, 1, -1),
-        new("d6", "D6", "assets/dice/d6.png", 6, 12, 1, 12, 10),
-        new("d8", "D8", "assets/dice/d8.png", 8, 16, 1, 16, 14),
-        new("d10", "D10", "assets/dice/d10.png", 10, 10, 2, 20, 18, 0),
-        new("d10-inverse", "D10 dark", "assets/dice/d10-inverse.png", 10, 10, 2, 20, 18, 0),
-        new("d12", "D12", "assets/dice/d12.png", 12, 12, 2, 24, 22),
-        new("d20", "D20", "assets/dice/d20.png", 20, 10, 4, 40, 38)
+        new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 6, VisualAspect:1.06),
+        new("d5-bonus", "+D5", "assets/dice/d5-bonus.png", 5, 10, 1, 10, 8, VisualAspect:.77),
+        new("d5-penalty", "-D5", "assets/dice/d5-penalty.png", 5, 10, 1, 10, 8, 1, -1, .73),
+        new("d6", "D6", "assets/dice/d6.png", 6, 12, 1, 12, 10, VisualAspect:.83),
+        new("d8", "D8", "assets/dice/d8.png", 8, 16, 1, 16, 14, VisualAspect:.92),
+        new("d10", "D10", "assets/dice/d10.png", 10, 10, 2, 20, 18, 0, 1, .87),
+        new("d10-inverse", "D10 dark", "assets/dice/d10-inverse.png", 10, 10, 2, 20, 18, 0, 1, .88),
+        new("d12", "D12", "assets/dice/d12.png", 12, 12, 2, 24, 22, VisualAspect:.92),
+        new("d20", "D20", "assets/dice/d20.png", 20, 10, 4, 40, 38, VisualAspect:.79)
     ];
 
     public int BonusD5Value { get; set; } = 1;
