@@ -1,0 +1,62 @@
+@inject WorldSession Session
+@if(Session.HandCards.Count>0)
+{
+ <section class="hand-rail" aria-label="Player hand">
+  @foreach(var card in Session.HandCards)
+  {
+   <article class="hand-card">
+    <header><strong>@card.Name</strong><span>@card.Type</span></header>
+    <div class="hand-card-value">@card.Value</div>
+    <div class="hand-card-tools">
+     <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
+     <button class="dicebag-button" title="Roll dice bag" @onclick="()=>Session.RollHandCardAsync(card)">🎲</button>
+     <button title="Edit dice bag" @onclick="()=>Session.EditDiceBag(card)">Edit</button>
+     <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
+     <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
+    </div>
+   </article>
+  }
+ </section>
+}
+
+@if(Session.EditingHandCard is not null)
+{
+ var card=Session.EditingHandCard;
+ <div class="dicebag-modal" @onclick="Session.CloseDiceBag">
+  <section class="dicebag-editor" @onclick:stopPropagation="true">
+   <header><div><strong>@card.Name</strong><span>Dice bag</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
+   <p class="dicebag-help">Add the dice this card should always roll. Bonus and penalty D5s can lock a selected value.</p>
+   <div class="dicebag-add">
+    @foreach(var die in Session.DiceSet)
+    {
+     <button @onclick="()=>Session.AddDiceBagEntry(die.Key)">@die.Label</button>
+    }
+   </div>
+   <div class="dicebag-entries">
+    @if(card.DiceBag.Count==0){<div class="empty-bag">Dice bag is empty.</div>}
+    @foreach(var entry in card.DiceBag)
+    {
+     var die=Session.Dice(entry.DieKey);
+     if(die is not null)
+     {
+      <div class="dicebag-entry">
+       <strong>@die.Label</strong>
+       <label>Count<input type="number" min="1" max="20" value="@entry.Count" @onchange="e=>SetCount(entry,e)" /></label>
+       @if(entry.DieKey is "d5-bonus" or "d5-penalty")
+       {
+        <label>Value<select value="@entry.SelectedMagnitude" @onchange="e=>SetMagnitude(entry,e)">@for(var i=1;i<=5;i++){<option value="@i">@(entry.DieKey=="d5-bonus"?"+":"-")@i</option>}</select></label>
+       }
+       <button @onclick="()=>Session.RemoveDiceBagEntry(entry)">Remove</button>
+      </div>
+     }
+    }
+   </div>
+   <button class="roll-bag-now" @onclick="()=>Session.RollHandCardAsync(card)">Roll bag now</button>
+  </section>
+ </div>
+}
+
+@code{
+ void SetCount(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagCount(entry,v);}
+ void SetMagnitude(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagMagnitude(entry,v);}
+}
