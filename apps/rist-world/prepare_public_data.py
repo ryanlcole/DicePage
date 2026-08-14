@@ -21,9 +21,8 @@ for asset in registry.get('assets', [])[:40]:
     rows.append({'id': asset['assetId'], 'name': asset.get('name', asset['assetId']), 'image': 'assets/atlas/' + source.name})
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
-# Fetch the verified AWS-hosted world map during the build, then serve it
-# from the same GitHub Pages origin as the Blazor client. AWS remains the
-# canonical asset source; Pages gets a runtime-safe local copy.
+# Verify the canonical AWS-hosted world map during every build and retain a
+# packaged Pages copy as a backup artifact.
 world_source = 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=20260813-refresh'
 request = Request(world_source, headers={'User-Agent': 'RIST-Pages-Build/1.0'})
 with urlopen(request, timeout=30) as response:
@@ -34,10 +33,10 @@ if len(world_bytes) < 100000:
     raise SystemExit(f'World map CDN source unexpectedly small: {len(world_bytes)}')
 (web / 'assets' / 'world' / 'naeja.png').write_bytes(world_bytes)
 
-# Pages hosts the app under /DicePage/app/. Use the explicit repository-rooted
-# URL so browser route resolution cannot turn the image request into a 404.
+# Runtime uses the verified CDN URL directly. This removes browser-relative
+# path ambiguity while preserving the packaged same-origin copy above.
 (web / 'data' / 'asset-config.json').write_text(json.dumps({
-    'worldMapUrl': '/DicePage/app/assets/world/naeja.png'
+    'worldMapUrl': world_source
 }))
 
 cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
@@ -45,4 +44,4 @@ cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').re
     {'id': c['cardId'], 'name': c.get('name', 'Card'), 'type': c.get('cardType', 'card'), 'text': c.get('text', '')}
     for c in cards
 ]))
-print(f'atlas={len(rows)} cards={len(cards)} world=pages-local-from-aws bytes={len(world_bytes)}')
+print(f'atlas={len(rows)} cards={len(cards)} world=cdn-runtime+pages-backup bytes={len(world_bytes)}')
