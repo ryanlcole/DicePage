@@ -1,6 +1,6 @@
 /* Exact source sprite-cell geometry. Preserve source frame proportions and crop only transparent padding. */
 .die-sprite{width:38px!important;height:auto!important;background-repeat:no-repeat;background-color:transparent!important;justify-self:center;align-self:center}
-.rolled-die{width:50px!important;height:auto!important;background-repeat:no-repeat;background-color:transparent!important}
+.rolled-die{width:50px!important;height:auto!important;background-repeat:no-repeat;background-color:transparent!important;transform:translate(-50%,-50%) translate(var(--collision-x,0px),var(--collision-y,0px))!important}
 .die-d4{aspect-ratio:.375!important}
 .die-d5-bonus,.die-d5-penalty{aspect-ratio:.3!important}
 .die-d6{aspect-ratio:.25!important}
