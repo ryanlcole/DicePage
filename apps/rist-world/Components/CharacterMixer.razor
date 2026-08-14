@@ -9,7 +9,6 @@
     else{<button class="edit-character" @onclick="Session.EditCharacter">Edit</button>}
     <button class="console-close" @onclick="Session.CloseMixer" aria-label="Close character sheet">×</button>
    </div>
-
    <header class="console-identity">
     <div class="character-portrait"><span>PORTRAIT</span></div>
     <label>NAME<input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" /></label>
@@ -18,93 +17,58 @@
     <label>ALIGNMENT<input @bind="Session.CharacterAlignment" readonly="@(!Session.CharacterEditMode)" /></label>
    </header>
 
-   <section class="console-bank">
-    <div class="bank-title"><strong>POOLS</strong><span>current / maximum</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>
-     @for(var copy=0;copy<3;copy++)
-     {
-      <div class="circular-set character-control-set">
-       @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Pools"))
-       {
-        <article class="pool-channel physical-channel color-@field.Color">
-         @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-         <div class="pool-scale"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
-         <input class="pool-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" disabled="@(!Session.CharacterEditMode)" @oninput="e=>SetCurrent(field,e)" />
-         <div class="field-value-box">@field.Current</div>
-         @if(Session.CharacterEditMode){<input class="field-max-box" type="number" min="1" max="999" value="@field.Max" @onchange="e=>SetMax(field,e)" />}
-         else{<div class="field-max-box">@field.Max</div>}
-         <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
-         @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" title="@c" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-        </article>
-       }
-       @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="()=>Session.AddBlankCharacterField("Pools")">+</button>}
-      </div>
-     }
-    </div>
+   <section class="console-bank"><div class="bank-title"><strong>POOLS</strong><span>current / maximum</span></div>
+    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Pools")){<article class="pool-channel physical-channel color-@field.Color">
+      @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
+      <div class="pool-scale"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
+      <input class="pool-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" disabled="@(!Session.CharacterEditMode)" @oninput="e=>SetCurrent(field,e)" />
+      <div class="field-value-box">@field.Current</div>
+      @if(Session.CharacterEditMode){<input class="field-max-box" type="number" min="1" max="999" value="@field.Max" @onchange="e=>SetMax(field,e)" />}else{<div class="field-max-box">@field.Max</div>}
+      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" title="@c" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
+     </article>}
+     @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="AddPool">+</button>}
+    </div>}</div>
    </section>
 
-   <section class="console-bank">
-    <div class="bank-title"><strong>SKILLS</strong><span>dial value</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>
-     @for(var copy=0;copy<3;copy++)
-     {
-      <div class="circular-set character-control-set">
-       @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills"))
-       {
-        <article class="dial-channel physical-dial-card color-@field.Color">
-         @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-         <div class="max-crown">MAX @field.Max</div>
-         <div class="rotary-dial">
-          @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
-          <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
-          @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
-         </div>
-         <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
-         @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-         <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
-        </article>
-       }
-       @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="()=>Session.AddBlankCharacterField("Skills")">+</button>}
+   <section class="console-bank"><div class="bank-title"><strong>SKILLS</strong><span>dial value</span></div>
+    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills")){<article class="dial-channel physical-dial-card color-@field.Color">
+      @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
+      <div class="max-crown">MAX @field.Max</div><div class="rotary-dial">
+       @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
+       <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
+       @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
       </div>
-     }
-    </div>
+      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
+      <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
+     </article>}
+     @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
+    </div>}</div>
    </section>
 
-   <section class="console-bank">
-    <div class="bank-title"><strong>FEATS</strong><span>dial value</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>
-     @for(var copy=0;copy<3;copy++)
-     {
-      <div class="circular-set character-control-set">
-       @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats"))
-       {
-        <article class="dial-channel physical-dial-card color-@field.Color">
-         @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-         <div class="max-crown">MAX @field.Max</div>
-         <div class="rotary-dial">
-          @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
-          <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
-          @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
-         </div>
-         <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
-         @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-         <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
-        </article>
-       }
-       @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="()=>Session.AddBlankCharacterField("Feats")">+</button>}
+   <section class="console-bank"><div class="bank-title"><strong>FEATS</strong><span>dial value</span></div>
+    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats")){<article class="dial-channel physical-dial-card color-@field.Color">
+      @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
+      <div class="max-crown">MAX @field.Max</div><div class="rotary-dial">
+       @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
+       <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
+       @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
       </div>
-     }
-    </div>
+      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
+      <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
+     </article>}
+     @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddFeat">+</button>}
+    </div>}</div>
    </section>
 
-   <section class="console-notebook">
-    <nav class="notebook-tabs">
-     @foreach(var tab in new[]{"Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}
-    </nav>
-    @if(Session.CharacterTab=="Background")
-    {<textarea aria-label="Background" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}
-    else
-    {<textarea aria-label="Public Description" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}
+   <section class="console-notebook"><nav class="notebook-tabs">@foreach(var tab in new[]{"Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}</nav>
+    @if(Session.CharacterTab=="Background"){<textarea aria-label="Background" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}
+    else{<textarea aria-label="Public Description" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}
    </section>
   </section>
  </div>
@@ -114,6 +78,9 @@
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
+ void AddPool()=>Session.AddBlankCharacterField("Pools");
+ void AddSkill()=>Session.AddBlankCharacterField("Skills");
+ void AddFeat()=>Session.AddBlankCharacterField("Feats");
  void SetCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
  void SetMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,field.Current,v);}
  void Rename(CharacterField field,ChangeEventArgs e)=>Session.RenameCharacterField(field,e.Value?.ToString()??field.Name);
