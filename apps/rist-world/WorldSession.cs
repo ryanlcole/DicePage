@@ -39,17 +39,24 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string CharacterAge { get; set; } = "";
     public string CharacterAlignment { get; set; } = "";
     public string CharacterDescription { get; set; } = "";
-    public List<MixerChannel> MixerChannels { get; } =
+    public string CharacterBackground { get; set; } = "";
+    public string CharacterTab { get; set; } = "Pools";
+    public string FieldSearch { get; set; } = "";
+    public List<CharacterField> CharacterFields { get; } = [];
+    public IReadOnlyList<CharacterFieldOption> FieldVocabulary { get; } =
     [
-        new("Knowledge", 0, 20),
-        new("Swim", 0, 20),
-        new("Perception", 0, 20),
-        new("Athletics", 0, 20),
-        new("Stealth", 0, 20),
-        new("Insight", 0, 20),
-        new("Survival", 0, 20),
-        new("Craft", 0, 20)
+        new("Health","POOL","Pools"), new("HP","POOL","Pools"), new("Hit Points","POOL","Pools"), new("Vitality","POOL","Pools"), new("Life","POOL","Pools"), new("Wounds","POOL","Pools"),
+        new("Stamina","POOL","Pools"), new("Endurance","POOL","Pools"), new("Mana","POOL","Pools"), new("MP","POOL","Pools"), new("Spell Points","POOL","Pools"), new("Sanity","POOL","Pools"), new("Resolve","POOL","Pools"), new("Morale","POOL","Pools"), new("Luck","POOL","Pools"),
+        new("Strength","VALUE","Skills"), new("Dexterity","VALUE","Skills"), new("Constitution","VALUE","Skills"), new("Intelligence","VALUE","Skills"), new("Wisdom","VALUE","Skills"), new("Charisma","VALUE","Skills"),
+        new("Perception","VALUE","Skills"), new("Knowledge","VALUE","Skills"), new("Athletics","VALUE","Skills"), new("Acrobatics","VALUE","Skills"), new("Swim","VALUE","Skills"), new("Stealth","VALUE","Skills"), new("Insight","VALUE","Skills"), new("Survival","VALUE","Skills"), new("Craft","VALUE","Skills"), new("Investigation","VALUE","Skills"), new("Persuasion","VALUE","Skills"), new("Deception","VALUE","Skills"), new("Intimidation","VALUE","Skills"), new("Initiative","VALUE","Skills"), new("Defense","VALUE","Skills"), new("Armor","VALUE","Skills"), new("Armor Class","VALUE","Skills"),
+        new("Feat","ABILITY","Feats"), new("Talent","ABILITY","Feats"), new("Trait","ABILITY","Feats"), new("Ability","ABILITY","Feats"), new("Power","ABILITY","Feats"), new("Advantage","ABILITY","Feats"), new("Disadvantage","ABILITY","Feats"), new("Feature","ABILITY","Feats")
     ];
+    public IEnumerable<CharacterFieldOption> FilteredFieldVocabulary => FieldVocabulary
+        .Where(x => string.IsNullOrWhiteSpace(FieldSearch) || x.Name.Contains(FieldSearch,StringComparison.OrdinalIgnoreCase))
+        .Take(12);
+
+    public List<MixerChannel> MixerChannels { get; } =
+    [new("Knowledge",0,20),new("Swim",0,20),new("Perception",0,20),new("Athletics",0,20),new("Stealth",0,20),new("Insight",0,20),new("Survival",0,20),new("Craft",0,20)];
 
     public string SelectedTile { get; set; } = "";
     public string PieceKind { get; set; } = "pin";
@@ -70,113 +77,35 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
-    public void CalibrateGrid(){GridDistance=Math.Max(0.01,GridDistance);GridCalibrationZoom=Math.Max(0.01,ViewZoom);Notify();}
+    public void CalibrateGrid(){GridDistance=Math.Max(.01,GridDistance);GridCalibrationZoom=Math.Max(.01,ViewZoom);Notify();}
 
     public void OpenMixer(){MixerOpen=true;Notify();}
     public void CloseMixer(){MixerOpen=false;Notify();}
-    public void SetMixerChannel(string name,int current,int max)
-    {
-        var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);
-        if(channel is null)return;
-        max=Math.Clamp(max,0,999);
-        current=Math.Clamp(current,0,max);
-        channel.Current=current;
-        channel.Max=max;
-        Notify();
-    }
+    public void SetCharacterTab(string tab){CharacterTab=tab;Notify();}
+    public void SetFieldSearch(string value){FieldSearch=value;Notify();}
+    public void AddCharacterField(CharacterFieldOption option){if(CharacterFields.Any(x=>x.Name.Equals(option.Name,StringComparison.OrdinalIgnoreCase)))return;CharacterFields.Add(new(option.Name,option.Kind,option.Group));FieldSearch="";Notify();}
+    public void AddCustomCharacterField(){var name=FieldSearch.Trim();if(name.Length==0||CharacterFields.Any(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))return;var kind=CharacterTab=="Pools"?"POOL":CharacterTab=="Skills"?"VALUE":"ABILITY";CharacterFields.Add(new(name,kind,CharacterTab));FieldSearch="";Notify();}
+    public void RemoveCharacterField(CharacterField field){CharacterFields.Remove(field);Notify();}
+    public void SetCharacterField(CharacterField field,int current,int? max=null){field.Max=Math.Clamp(max??field.Max,0,999);field.Current=Math.Clamp(current,0,field.Kind=="POOL"?Math.Max(field.Max,0):999);Notify();}
+    public void SetMixerChannel(string name,int current,int max){var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);if(channel is null)return;max=Math.Clamp(max,0,999);current=Math.Clamp(current,0,max);channel.Current=current;channel.Max=max;Notify();}
 
-    public void SetDistanceUnit(string unit)
-    {
-        if (EncounterActive) return;
-        unit = unit switch { "mi" or "km" or "m" or "yd" or "ft" => unit, _ => DistanceUnit };
-        if (unit == DistanceUnit) return;
-        var meters = GridDistance * MetersPerUnit(DistanceUnit);
-        GridDistance = meters / MetersPerUnit(unit);
-        DistanceUnit = unit;
-        Notify();
-    }
-
-    static double MetersPerUnit(string unit) => unit switch
-    {
-        "mi" => 1609.344,
-        "km" => 1000.0,
-        "m" => 1.0,
-        "yd" => 0.9144,
-        "ft" => 0.3048,
-        _ => 1.0
-    };
-
+    public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
+    static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
     public async Task InitializeAsync(){await LoadAtlasAsync();await LoadCardsAsync();Notify();}
     async Task LoadAtlasAsync(){var rows=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");if(rows is not null)AtlasTiles.AddRange(rows);}
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
-
-    public DiceSpec? Dice(string key) => DiceSet.FirstOrDefault(x => x.Key == key);
-
+    public DiceSpec? Dice(string key)=>DiceSet.FirstOrDefault(x=>x.Key==key);
     public Task RollAsync(string key)=>RollAsync(key,null);
-
-    public async Task RollAsync(string key,int? selectedMagnitude)
-    {
-        var die = Dice(key);
-        if (die is null) return;
-        var x = .16 + Random.Shared.NextDouble() * .68;
-        var y = .16 + Random.Shared.NextDouble() * .68;
-        var item = new RollItem(die.Key, die.Label, 0, Random.Shared.Next(die.FrameCount), x, y);
-        Rolls.Add(item);
-        Notify();
-
-        var steps = Random.Shared.Next(13, 23);
-        for (var n = 0; n < steps; n++)
-        {
-            var i = Rolls.IndexOf(item);
-            if (i < 0) return;
-            item = item with { Frame = (item.Frame + 1) % die.FrameCount };
-            Rolls[i] = item;
-            Notify();
-            await Task.Delay(52 + Math.Min(n * 3, 34));
-        }
-
-        var face = selectedMagnitude.HasValue && (die.Key is "d5-bonus" or "d5-penalty")
-            ? Math.Clamp(selectedMagnitude.Value,1,5)-1
-            : Random.Shared.Next(die.Sides);
-        var value = (face + die.ValueOffset) * die.Sign;
-        var finalFrame = face * 2;
-        var finalIndex = Rolls.IndexOf(item);
-        if (finalIndex >= 0) Rolls[finalIndex] = item with { Value = value, Frame = finalFrame };
-        Notify();
-    }
-
-    public void StagePiece(string kind)
-    {
-        if (Role != "GM") return;
-        if (kind is not ("pin" or "token")) return;
-        var key = $"piece:{kind}";
-        if (StagedAssets.All(x => x.Key != key)) StagedAssets.Add(new(key, kind, kind == "pin" ? "Pin" : "Token"));
-        Notify();
-    }
-
-    public void StageSelectedTile()
-    {
-        if (Role != "GM" || string.IsNullOrWhiteSpace(SelectedTile)) return;
-        var tile = AtlasTiles.FirstOrDefault(t => t.Id == SelectedTile);
-        if (tile is null) return;
-        var key = $"tile:{tile.Id}";
-        if (StagedAssets.All(x => x.Key != key)) StagedAssets.Add(new(key, "tile", tile.Name, tile.Image));
-        Notify();
-    }
-
+    public async Task RollAsync(string key,int? selectedMagnitude){var die=Dice(key);if(die is null)return;var x=.16+Random.Shared.NextDouble()*.68;var y=.16+Random.Shared.NextDouble()*.68;var item=new RollItem(die.Key,die.Label,0,Random.Shared.Next(die.FrameCount),x,y);Rolls.Add(item);Notify();var steps=Random.Shared.Next(13,23);for(var n=0;n<steps;n++){var i=Rolls.IndexOf(item);if(i<0)return;item=item with{Frame=(item.Frame+1)%die.FrameCount};Rolls[i]=item;Notify();await Task.Delay(52+Math.Min(n*3,34));}var face=selectedMagnitude.HasValue&&(die.Key is "d5-bonus" or "d5-penalty")?Math.Clamp(selectedMagnitude.Value,1,5)-1:Random.Shared.Next(die.Sides);var value=(face+die.ValueOffset)*die.Sign;var finalFrame=face*2;var finalIndex=Rolls.IndexOf(item);if(finalIndex>=0)Rolls[finalIndex]=item with{Value=value,Frame=finalFrame};Notify();}
+    public void StagePiece(string kind){if(Role!="GM"||kind is not("pin" or "token"))return;var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,kind=="pin"?"Pin":"Token"));Notify();}
+    public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
-    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom)
-    {
-        x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);
-        if(staged.Kind=="tile") PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y));
-        else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));
-        Notify();
-    }
-    public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();}
+    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
+    public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
-    public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();}
+    public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemoveTile(TileItem tile){PlacedTiles.Remove(tile);Notify();}
-    public void MapTap(double x,double y) { }
+    public void MapTap(double x,double y){}
     public void PlacePin(double x,double y,double placementZoom)=>Pieces.Add(new("pin",Math.Clamp(x,0,1),Math.Clamp(y,0,1),Math.Max(placementZoom,.01)));
     public void AddGem(int value){Gems.Add(new(value,.20+Random.Shared.NextDouble()*.60,.20+Random.Shared.NextDouble()*.60));Notify();}
     public void ClearRolls(){Rolls.Clear();Gems.Clear();Notify();}
