@@ -29,7 +29,7 @@ public partial class WorldMap:IDisposable
   var col=r.Frame%die.Columns;var row=r.Frame/die.Columns;
   var bx=die.Columns<=1?0:col*100.0/(die.Columns-1);
   var by=die.Rows<=1?0:row*100.0/(die.Rows-1);
-  return $"left:{Pct(r.X)};top:{Pct(r.Y)};background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{bx.ToString("0.###",CultureInfo.InvariantCulture)}% {by.ToString("0.###",CultureInfo.InvariantCulture)}%";
+  return $"left:{Pct(r.X)};top:{Pct(r.Y)};--die-aspect:{die.VisualAspect.ToString("0.###",CultureInfo.InvariantCulture)};background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{bx.ToString("0.###",CultureInfo.InvariantCulture)}% {by.ToString("0.###",CultureInfo.InvariantCulture)}%";
  }
  string DragPreviewStyle=>$"left:{DragClientX:0.#}px;top:{DragClientY:0.#}px";
 
