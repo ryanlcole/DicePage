@@ -9,14 +9,34 @@ public sealed record RollItem(string Key, string Label, int Value, int Frame, do
 public sealed record GemItem(int Value, double X, double Y);
 public sealed record CardItem(string Id, string Name, string Type, string Text);
 public sealed record CharacterFieldOption(string Name, string Kind, string Group);
+
 public sealed class CharacterField(string name,string kind,string group)
 {
+    public string Id { get; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = name;
     public string Kind { get; set; } = kind;
     public string Group { get; set; } = group;
     public int Current { get; set; }
     public int Max { get; set; } = kind == "POOL" ? 20 : 0;
 }
+
+public sealed class DiceBagEntry(string dieKey,int count=1,int selectedMagnitude=1)
+{
+    public string DieKey { get; set; } = dieKey;
+    public int Count { get; set; } = Math.Clamp(count,1,20);
+    public int SelectedMagnitude { get; set; } = Math.Clamp(selectedMagnitude,1,5);
+}
+
+public sealed class HandCard(CharacterField field)
+{
+    public string Id { get; } = Guid.NewGuid().ToString("N");
+    public CharacterField Field { get; } = field;
+    public List<DiceBagEntry> DiceBag { get; } = [];
+    public string Name => Field.Name;
+    public string Type => Field.Kind == "VALUE" ? "Skill" : Field.Kind == "ABILITY" ? "Feat / Ability" : "Pool";
+    public int Value => Field.Current;
+}
+
 public sealed class MixerChannel(string name,int current,int max)
 {
     public string Name { get; } = name;
