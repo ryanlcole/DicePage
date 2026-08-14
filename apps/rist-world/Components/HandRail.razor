@@ -1,28 +1,33 @@
 @inject WorldSession Session
-<section class="hand-rail tabletop-dial-rail" aria-label="Player hand">
- @if(Session.HandCards.Count==0)
+<section class="hand-rail tabletop-dial-rail circular-rail" data-circular-rail aria-label="Player hand">
+ @for(var copy=0;copy<3;copy++)
  {
-  <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill, feat, or ability to place its card here.</div>
- }
- else
- {
-  @foreach(var card in Session.HandCards)
-  {
-   <article class="hand-card tabletop-dial-item">
-    <header><strong>@card.Name</strong><span>@card.Type</span></header>
-    <div class="hand-card-value">@card.Value</div>
-    <button class="dicebag-button" title="Open custom dice bag" aria-label="Open @card.Name dice bag" @onclick="()=>Session.EditDiceBag(card)">
-     <img src="assets/ui/custom_dicebag.png" alt="" aria-hidden="true" />
-     <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
-    </button>
-    <div class="hand-card-tools">
-     <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
-     <button class="roll-card-button" title="Roll saved dice" @onclick="()=>Session.RollHandCardAsync(card)">Roll</button>
-     <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
-     <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
-    </div>
-   </article>
-  }
+  <div class="circular-set hand-circular-set">
+   @if(Session.HandCards.Count==0)
+   {
+    <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill, feat, or ability to place its card here.</div>
+   }
+   else
+   {
+    @foreach(var card in Session.HandCards)
+    {
+     <article class="hand-card tabletop-dial-item">
+      <header><strong>@card.Name</strong><span>@card.Type</span></header>
+      <div class="hand-card-value">@card.Value</div>
+      <button class="dicebag-button" title="Open custom dice bag" aria-label="Open @card.Name dice bag" @onclick="()=>Session.EditDiceBag(card)">
+       <img src="assets/ui/custom_dicebag.png" alt="" aria-hidden="true" />
+       <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
+      </button>
+      <div class="hand-card-tools">
+       <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
+       <button class="roll-card-button" title="Roll saved dice" @onclick="()=>Session.RollHandCardAsync(card)">Roll</button>
+       <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
+       <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
+      </div>
+     </article>
+    }
+   }
+  </div>
  }
 </section>
 
