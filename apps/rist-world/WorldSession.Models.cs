@@ -17,7 +17,8 @@ public sealed class CharacterField(string name,string kind,string group)
     public string Kind { get; set; } = kind;
     public string Group { get; set; } = group;
     public int Current { get; set; }
-    public int Max { get; set; } = kind == "POOL" ? 20 : 0;
+    public int Max { get; set; } = kind == "POOL" ? 20 : 20;
+    public string Color { get; set; } = "gold";
 }
 
 public sealed class DiceBagEntry(string dieKey,int count=1,int selectedMagnitude=1)
