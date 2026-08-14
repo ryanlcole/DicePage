@@ -1,0 +1,40 @@
+/* RIST tabletop rails: physical horizontal dial behavior without distorting items. */
+.dice-footer{scroll-snap-type:x mandatory;scroll-padding-inline:50%;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain;scrollbar-width:none;padding-inline:50%;}
+.dice-footer::-webkit-scrollbar{display:none}
+.dice-footer>*{scroll-snap-align:center;scroll-snap-stop:always;flex-shrink:0}
+.dice-footer .die-button,.dice-footer .character-footer-button,.dice-footer .die-control,.dice-footer .sum,.dice-footer .clear-dice,.dice-footer .card{scroll-snap-align:center;scroll-snap-stop:always}
+
+/* Character window: landscape keeps the mixing-board layout; portrait becomes a wrapped sheet. */
+@media (orientation:portrait) and (max-width:800px){
+ .mixer-modal{padding:5px;place-items:start center}
+ .character-mixer{width:calc(100vw - 10px);max-height:calc(100dvh - 10px);padding:8px;border-radius:14px;overflow-x:hidden}
+ .mixer-titlebar{grid-template-columns:48px minmax(0,1fr) auto;gap:8px;padding:8px;position:sticky;top:0}
+ .character-portrait{width:44px;height:44px;font-size:8px}
+ .character-heading strong{font-size:17px}.character-heading span{font-size:10px}
+ .mixer-titlebar button{padding:7px 9px}
+ .mixer-identity{grid-template-columns:1fr;min-width:0!important;gap:7px;margin:9px 0}
+ .mixer-identity label{min-width:0}.mixer-identity input{width:100%;min-width:0}
+ .character-tabs{display:flex;flex-wrap:wrap;overflow:visible;gap:5px;margin-bottom:9px}
+ .character-tabs button{flex:1 1 auto;min-width:max-content;padding:7px 9px}
+ .field-builder{max-width:none;width:100%;margin-bottom:10px}
+ .field-builder input{width:100%}
+ .mixer-channels{grid-template-columns:1fr 1fr;min-width:0!important;gap:7px;width:100%}
+ .mixer-channel{min-width:0}
+ .channel-meter{height:116px}.channel-meter input[type=range]{height:104px}
+ .skill-knob{width:86px;margin:12px auto}
+ .mixer-notes textarea{min-height:46dvh}
+
+ /* Keyboard/focus mode: prioritize the active search and its results. */
+ .character-mixer:has(.field-builder input:focus) .mixer-titlebar,
+ .character-mixer:has(.field-builder input:focus) .mixer-identity,
+ .character-mixer:has(.field-builder input:focus) .character-tabs{display:none}
+ .character-mixer:has(.field-builder input:focus){padding-top:6px}
+ .character-mixer:has(.field-builder input:focus) .field-builder{position:sticky;top:0;z-index:20;background:#17140feF;padding:6px 0 4px;margin:0}
+ .character-mixer:has(.field-builder input:focus) .field-suggestions{position:static;margin-top:5px;max-height:34dvh;overflow:auto;border-radius:7px}
+ .character-mixer:has(.field-builder input:focus) .mixer-channels{display:none}
+}
+
+@media (orientation:portrait) and (max-width:440px){
+ .mixer-channels{grid-template-columns:1fr}
+ .character-tabs button{font-size:11px}
+}
