@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 @implements IDisposable
 @inject WorldSession Session
 @if(Session.MixerOpen)
@@ -5,65 +6,71 @@
  <div class="mixer-modal" @onclick="Session.CloseMixer">
   <section class="character-mixer character-console" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @ontouchstart:stopPropagation="true">
    <div class="character-console-tools">
-    @if(Session.CharacterEditMode){<button class="save-character" @onclick="Session.SaveCharacter">Save</button>}
+    <span class="character-number">CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>
+    @if(Session.CharacterEditMode){<button class="new-character" @onclick="Session.NewCharacter">+ Character</button><button class="save-character" @onclick="Session.SaveCharacter">Save</button>}
     else{<button class="edit-character" @onclick="Session.EditCharacter">Edit</button>}
     <button class="console-close" @onclick="Session.CloseMixer" aria-label="Close character sheet">×</button>
    </div>
    <header class="console-identity">
-    <div class="character-portrait"><span>PORTRAIT</span></div>
+    <div class="character-portrait">
+     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait" />}
+     else{<span>PORTRAIT</span>}
+     @if(Session.CharacterEditMode){<label class="portrait-upload">Upload<InputFile OnChange="UploadPortrait" accept="image/*" /></label>}
+    </div>
     <label>NAME<input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" /></label>
     <label>SPECIES<input @bind="Session.CharacterSpecies" readonly="@(!Session.CharacterEditMode)" /></label>
     <label>AGE<input @bind="Session.CharacterAge" readonly="@(!Session.CharacterEditMode)" /></label>
     <label>ALIGNMENT<input @bind="Session.CharacterAlignment" readonly="@(!Session.CharacterEditMode)" /></label>
    </header>
 
-   <section class="console-bank"><div class="bank-title"><strong>POOLS</strong><span>current / maximum</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
-     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Pools")){<article class="pool-channel physical-channel color-@field.Color">
+   <section class="console-bank"><div class="bank-title"><strong>POOLS</strong><span>0–100</span></div>
+    <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Pools")){<article class="pool-channel physical-channel color-@field.Color" style="@PoolWidth(field.Name)">
       @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
       <div class="pool-scale"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
-      <input class="pool-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" disabled="@(!Session.CharacterEditMode)" @oninput="e=>SetCurrent(field,e)" />
+      <input class="pool-slider scarab-slider" type="range" min="0" max="100" value="@field.Current" disabled="@(!Session.CharacterEditMode)" @oninput="e=>SetCurrent(field,e)" />
       <div class="field-value-box">@field.Current</div>
-      @if(Session.CharacterEditMode){<input class="field-max-box" type="number" min="1" max="999" value="@field.Max" @onchange="e=>SetMax(field,e)" />}else{<div class="field-max-box">@field.Max</div>}
-      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      <div class="name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
       @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" title="@c" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
      </article>}
      @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="AddPool">+</button>}
-    </div>}</div>
+    </div></div>
    </section>
 
    <section class="console-bank"><div class="bank-title"><strong>SKILLS</strong><span>dial value</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
-     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills")){<article class="dial-channel physical-dial-card color-@field.Color">
+    <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills")){<article class="dial-channel physical-dial-card color-@field.Color" style="@DialWidth(field.Name)">
       @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-      <div class="max-crown">MAX @field.Max</div><div class="rotary-dial">
+      <div class="rotary-dial clean-dial">
        @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
        <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
        @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
       </div>
-      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      <div class="name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
       @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-      <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
+      @{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}
+      <button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button>
      </article>}
      @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
-    </div>}</div>
+    </div></div>
    </section>
 
    <section class="console-bank"><div class="bank-title"><strong>FEATS</strong><span>dial value</span></div>
-    <div class="character-circular-rail circular-rail" data-circular-rail>@for(var copy=0;copy<3;copy++){<div class="circular-set character-control-set">
-     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats")){<article class="dial-channel physical-dial-card color-@field.Color">
+    <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats")){<article class="dial-channel physical-dial-card color-@field.Color" style="@DialWidth(field.Name)">
       @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-      <div class="max-crown">MAX @field.Max</div><div class="rotary-dial">
+      <div class="rotary-dial clean-dial">
        @if(Session.CharacterEditMode){<button class="dial-step dial-minus" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}
        <div class="dial-center">@if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)" />}else{<span>@field.Current</span>}</div>
        @if(Session.CharacterEditMode){<button class="dial-step dial-plus" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}
       </div>
-      <div class="name-plate">@if(Session.CharacterEditMode){<input value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+      <div class="name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
       @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-      <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Card</button>
+      @{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}
+      <button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button>
      </article>}
      @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddFeat">+</button>}
-    </div>}</div>
+    </div></div>
    </section>
 
    <section class="console-notebook"><nav class="notebook-tabs">@foreach(var tab in new[]{"Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}</nav>
@@ -82,6 +89,18 @@
  void AddSkill()=>Session.AddBlankCharacterField("Skills");
  void AddFeat()=>Session.AddBlankCharacterField("Feats");
  void SetCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
- void SetMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,field.Current,v);}
  void Rename(CharacterField field,ChangeEventArgs e)=>Session.RenameCharacterField(field,e.Value?.ToString()??field.Name);
+ int InputSize(string name)=>Math.Clamp((name?.Length??0)+2,6,28);
+ string PoolWidth(string name)=>$"--control-width:{Math.Clamp(88+(name?.Length??0)*6,96,220)}px";
+ string DialWidth(string name)=>$"--control-width:{Math.Clamp(130+(name?.Length??0)*7,145,270)}px";
+ async Task UploadPortrait(InputFileChangeEventArgs e)
+ {
+  var file=e.File;
+  if(file is null)return;
+  await using var stream=file.OpenReadStream(5*1024*1024);
+  using var ms=new MemoryStream();
+  await stream.CopyToAsync(ms);
+  var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;
+  Session.SetCharacterPortrait($"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");
+ }
 }
