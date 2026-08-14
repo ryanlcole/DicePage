@@ -3,6 +3,7 @@ namespace RistWorld;
 public sealed record AtlasTile(string Id, string Name, string Image);
 public sealed record PieceItem(string Kind, double X, double Y, double PlacementZoom = 1.0);
 public sealed record TileItem(string Id, string Name, string Image, double X, double Y);
+public sealed record StagedAsset(string Key, string Kind, string Name, string Image = "");
 public sealed record RollItem(string Label, int Value, double X, double Y);
 public sealed record GemItem(int Value, double X, double Y);
 public sealed record CardItem(string Id, string Name, string Type, string Text);
