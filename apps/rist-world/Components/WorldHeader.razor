@@ -1,20 +1,27 @@
 @inject WorldSession Session
 @inject NavigationManager Nav
 <header class="topbar">
- <div class="brand">ReLiCGameMaster • WORLD</div>
+ <div class="brand">ReLiCGameMaster • @(Session.EncounterActive ? "ENCOUNTER" : Session.Layer)</div>
+ <div class="control"><label>Layer</label><select value="@Session.Layer" @onchange="LayerChanged" disabled="@Session.EncounterActive">@foreach(var layer in WorldSession.TableLayers){<option value="@layer">@LayerName(layer)</option>}</select></div>
+ <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
  <div class="control"><label>Tile</label><select @bind="Session.SelectedTile"><option value="">None</option>@foreach(var t in Session.AtlasTiles){<option value="@t.Id">@t.Name</option>}</select></div>
  <button @onclick="TileMode">Place tile</button>
  <div class="control"><label>Piece</label><select @bind="Session.PieceKind"><option>pin</option><option>coin</option><option>caravan</option><option>token</option></select></div>
  <button @onclick="PieceMode">Place piece</button>
  <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>
- <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
- <div class="control scale-control"><label>Mi / cell</label><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" /></div>
- <button class="scale-button" @onclick="Session.CalibrateGrid">Set scale</button>
- <div class="scale-readout">@($"{Session.EffectiveGridDistance:0.##} mi/cell")</div>
+ <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
+ <div class="control unit-control"><label>Unit</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive"><option value="mi">mi/sq</option><option value="km">km/sq</option><option value="m">m/sq</option><option value="yd">yd/sq</option><option value="ft">ft/sq</option></select></div>
+ <div class="control scale-control"><label>@(Session.EncounterActive ? "ft / hex" : $"{Session.DistanceUnit} / sq")</label><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" disabled="@Session.EncounterActive" /></div>
+ <button class="scale-button" @onclick="Session.CalibrateGrid" disabled="@Session.EncounterActive">Set scale</button>
+ <div class="scale-readout">@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</div>
  <button @onclick="Session.SaveAsync">Save changes</button><button @onclick="Session.LoadAsync">Load</button><button @onclick="Exit">Exit</button>
 </header>
 @code{
  void TileMode(){Session.Mode="tile";Session.Notify();}
  void PieceMode(){Session.Mode="piece";Session.Notify();}
+ void LayerChanged(ChangeEventArgs e)=>Session.SetLayer(e.Value?.ToString()??"WORLD");
+ void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
+ void ToggleEncounter(){if(Session.EncounterActive)Session.ExitEncounter();else Session.EnterEncounter();}
+ static string LayerName(string layer)=>layer[0]+layer[1..].ToLowerInvariant();
  void Exit()=>Nav.NavigateTo("../",true);
 }
