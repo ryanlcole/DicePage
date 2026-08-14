@@ -8,6 +8,12 @@ public sealed record DiceSpec(string Key, string Label, string Image, int Sides,
 public sealed record RollItem(string Key, string Label, int Value, int Frame, double X, double Y);
 public sealed record GemItem(int Value, double X, double Y);
 public sealed record CardItem(string Id, string Name, string Type, string Text);
+public sealed class MixerChannel(string name,int current,int max)
+{
+    public string Name { get; } = name;
+    public int Current { get; set; } = current;
+    public int Max { get; set; } = max;
+}
 
 public sealed class SavedWorld
 {
