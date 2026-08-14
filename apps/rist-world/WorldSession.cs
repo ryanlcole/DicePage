@@ -14,9 +14,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<StagedAsset> StagedAssets { get; } = [];
     public List<RollItem> Rolls { get; } = [];
     public List<GemItem> Gems { get; } = [];
+    public List<HandCard> HandCards { get; } = [];
+    public HandCard? EditingHandCard { get; private set; }
 
     public string WorldMapUrl { get; } = "assets/world/naeja.png";
-
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
         new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 6, VisualAspect:1.06),
@@ -32,7 +33,6 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public int BonusD5Value { get; set; } = 1;
     public int PenaltyD5Value { get; set; } = 1;
-
     public bool MixerOpen { get; set; }
     public string CharacterName { get; set; } = "";
     public string CharacterSpecies { get; set; } = "";
@@ -45,18 +45,13 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<CharacterField> CharacterFields { get; } = [];
     public IReadOnlyList<CharacterFieldOption> FieldVocabulary { get; } =
     [
-        new("Health","POOL","Pools"), new("HP","POOL","Pools"), new("Hit Points","POOL","Pools"), new("Vitality","POOL","Pools"), new("Life","POOL","Pools"), new("Wounds","POOL","Pools"),
-        new("Stamina","POOL","Pools"), new("Endurance","POOL","Pools"), new("Mana","POOL","Pools"), new("MP","POOL","Pools"), new("Spell Points","POOL","Pools"), new("Sanity","POOL","Pools"), new("Resolve","POOL","Pools"), new("Morale","POOL","Pools"), new("Luck","POOL","Pools"),
-        new("Strength","VALUE","Skills"), new("Dexterity","VALUE","Skills"), new("Constitution","VALUE","Skills"), new("Intelligence","VALUE","Skills"), new("Wisdom","VALUE","Skills"), new("Charisma","VALUE","Skills"),
-        new("Perception","VALUE","Skills"), new("Knowledge","VALUE","Skills"), new("Athletics","VALUE","Skills"), new("Acrobatics","VALUE","Skills"), new("Swim","VALUE","Skills"), new("Stealth","VALUE","Skills"), new("Insight","VALUE","Skills"), new("Survival","VALUE","Skills"), new("Craft","VALUE","Skills"), new("Investigation","VALUE","Skills"), new("Persuasion","VALUE","Skills"), new("Deception","VALUE","Skills"), new("Intimidation","VALUE","Skills"), new("Initiative","VALUE","Skills"), new("Defense","VALUE","Skills"), new("Armor","VALUE","Skills"), new("Armor Class","VALUE","Skills"),
+        new("Health","POOL","Pools"), new("HP","POOL","Pools"), new("Hit Points","POOL","Pools"), new("Vitality","POOL","Pools"), new("Life","POOL","Pools"), new("Wounds","POOL","Pools"), new("Stamina","POOL","Pools"), new("Endurance","POOL","Pools"), new("Mana","POOL","Pools"), new("MP","POOL","Pools"), new("Spell Points","POOL","Pools"), new("Sanity","POOL","Pools"), new("Resolve","POOL","Pools"), new("Morale","POOL","Pools"), new("Luck","POOL","Pools"),
+        new("Strength","VALUE","Skills"), new("Dexterity","VALUE","Skills"), new("Constitution","VALUE","Skills"), new("Intelligence","VALUE","Skills"), new("Wisdom","VALUE","Skills"), new("Charisma","VALUE","Skills"), new("Perception","VALUE","Skills"), new("Knowledge","VALUE","Skills"), new("Athletics","VALUE","Skills"), new("Acrobatics","VALUE","Skills"), new("Swim","VALUE","Skills"), new("Stealth","VALUE","Skills"), new("Insight","VALUE","Skills"), new("Survival","VALUE","Skills"), new("Craft","VALUE","Skills"), new("Investigation","VALUE","Skills"), new("Persuasion","VALUE","Skills"), new("Deception","VALUE","Skills"), new("Intimidation","VALUE","Skills"), new("Initiative","VALUE","Skills"), new("Defense","VALUE","Skills"), new("Armor","VALUE","Skills"), new("Armor Class","VALUE","Skills"),
         new("Feat","ABILITY","Feats"), new("Talent","ABILITY","Feats"), new("Trait","ABILITY","Feats"), new("Ability","ABILITY","Feats"), new("Power","ABILITY","Feats"), new("Advantage","ABILITY","Feats"), new("Disadvantage","ABILITY","Feats"), new("Feature","ABILITY","Feats")
     ];
-    public IEnumerable<CharacterFieldOption> FilteredFieldVocabulary => FieldVocabulary
-        .Where(x => string.IsNullOrWhiteSpace(FieldSearch) || x.Name.Contains(FieldSearch,StringComparison.OrdinalIgnoreCase))
-        .Take(12);
+    public IEnumerable<CharacterFieldOption> FilteredFieldVocabulary => FieldVocabulary.Where(x => string.IsNullOrWhiteSpace(FieldSearch) || x.Name.Contains(FieldSearch,StringComparison.OrdinalIgnoreCase)).Take(12);
 
-    public List<MixerChannel> MixerChannels { get; } =
-    [new("Knowledge",0,20),new("Swim",0,20),new("Perception",0,20),new("Athletics",0,20),new("Stealth",0,20),new("Insight",0,20),new("Survival",0,20),new("Craft",0,20)];
+    public List<MixerChannel> MixerChannels { get; } = [new("Knowledge",0,20),new("Swim",0,20),new("Perception",0,20),new("Athletics",0,20),new("Stealth",0,20),new("Insight",0,20),new("Survival",0,20),new("Craft",0,20)];
 
     public string SelectedTile { get; set; } = "";
     public string PieceKind { get; set; } = "pin";
@@ -85,9 +80,20 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void SetFieldSearch(string value){FieldSearch=value;Notify();}
     public void AddCharacterField(CharacterFieldOption option){if(CharacterFields.Any(x=>x.Name.Equals(option.Name,StringComparison.OrdinalIgnoreCase)))return;CharacterFields.Add(new(option.Name,option.Kind,option.Group));FieldSearch="";Notify();}
     public void AddCustomCharacterField(){var name=FieldSearch.Trim();if(name.Length==0||CharacterFields.Any(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))return;var kind=CharacterTab=="Pools"?"POOL":CharacterTab=="Skills"?"VALUE":"ABILITY";CharacterFields.Add(new(name,kind,CharacterTab));FieldSearch="";Notify();}
-    public void RemoveCharacterField(CharacterField field){CharacterFields.Remove(field);Notify();}
+    public void RemoveCharacterField(CharacterField field){CharacterFields.Remove(field);HandCards.RemoveAll(x=>ReferenceEquals(x.Field,field));if(EditingHandCard is not null&&ReferenceEquals(EditingHandCard.Field,field))EditingHandCard=null;Notify();}
     public void SetCharacterField(CharacterField field,int current,int? max=null){field.Max=Math.Clamp(max??field.Max,0,999);field.Current=Math.Clamp(current,0,field.Kind=="POOL"?Math.Max(field.Max,0):999);Notify();}
     public void SetMixerChannel(string name,int current,int max){var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);if(channel is null)return;max=Math.Clamp(max,0,999);current=Math.Clamp(current,0,max);channel.Current=current;channel.Max=max;Notify();}
+
+    public void ShowHand(CharacterField field){if(field.Kind is not("VALUE" or "ABILITY")||HandCards.Any(x=>ReferenceEquals(x.Field,field)))return;HandCards.Add(new(field));Notify();}
+    public void HideHand(HandCard card){HandCards.Remove(card);if(ReferenceEquals(EditingHandCard,card))EditingHandCard=null;Notify();}
+    public void MoveHandCard(HandCard card,int delta){var from=HandCards.IndexOf(card);if(from<0)return;var to=Math.Clamp(from+delta,0,HandCards.Count-1);if(to==from)return;HandCards.RemoveAt(from);HandCards.Insert(to,card);Notify();}
+    public void EditDiceBag(HandCard card){EditingHandCard=card;Notify();}
+    public void CloseDiceBag(){EditingHandCard=null;Notify();}
+    public void AddDiceBagEntry(string dieKey){if(EditingHandCard is null||Dice(dieKey) is null)return;EditingHandCard.DiceBag.Add(new(dieKey));Notify();}
+    public void RemoveDiceBagEntry(DiceBagEntry entry){EditingHandCard?.DiceBag.Remove(entry);Notify();}
+    public void SetDiceBagCount(DiceBagEntry entry,int count){entry.Count=Math.Clamp(count,1,20);Notify();}
+    public void SetDiceBagMagnitude(DiceBagEntry entry,int magnitude){entry.SelectedMagnitude=Math.Clamp(magnitude,1,5);Notify();}
+    public async Task RollHandCardAsync(HandCard card){if(card.DiceBag.Count==0){EditDiceBag(card);return;}var tasks=new List<Task>();foreach(var entry in card.DiceBag){for(var i=0;i<entry.Count;i++){var selected=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude:(int?)null;tasks.Add(RollAsync(entry.DieKey,selected));}}await Task.WhenAll(tasks);}
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
