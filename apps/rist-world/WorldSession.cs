@@ -14,7 +14,12 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<TileItem> PlacedTiles { get; private set; } = [];
     public List<RollItem> Rolls { get; } = [];
     public List<GemItem> Gems { get; } = [];
-    public string WorldMapUrl { get; private set; } = "assets/naeja.jpg";
+
+    // The public build always packages the verified map at this same-origin path.
+    // Keep it as the runtime fallback so a delayed/cached config request cannot
+    // fall back to the obsolete assets/naeja.jpg path.
+    public string WorldMapUrl { get; private set; } = "assets/world/naeja.png";
+
     public string SelectedTile { get; set; } = "";
     public string PieceKind { get; set; } = "coin";
     public string Role { get; set; } = "GM";
@@ -59,7 +64,20 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     };
 
     public async Task InitializeAsync(){await LoadAssetConfigAsync();await LoadAtlasAsync();await LoadCardsAsync();Notify();}
-    async Task LoadAssetConfigAsync(){try{var cfg=await http.GetFromJsonAsync<AssetConfig>("data/asset-config.json");if(!string.IsNullOrWhiteSpace(cfg?.WorldMapUrl))WorldMapUrl=cfg.WorldMapUrl;}catch(HttpRequestException){}}
+
+    async Task LoadAssetConfigAsync()
+    {
+        try
+        {
+            var cfg = await http.GetFromJsonAsync<AssetConfig>("data/asset-config.json");
+            if (!string.IsNullOrWhiteSpace(cfg?.WorldMapUrl)) WorldMapUrl = cfg.WorldMapUrl;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
+        {
+            // Retain the packaged same-origin PNG fallback above.
+        }
+    }
+
     async Task LoadAtlasAsync(){var rows=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");if(rows is not null)AtlasTiles.AddRange(rows);}
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
     public void MapTap(double x,double y){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(Mode=="tile"&&!string.IsNullOrWhiteSpace(SelectedTile)){var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is not null)PlacedTiles.Add(new(tile.Id,tile.Name,tile.Image,x,y));}else Pieces.Add(new(PieceKind,x,y,PieceKind=="pin"?Math.Max(ViewZoom,.01):1));Notify();}
