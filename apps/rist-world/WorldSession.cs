@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Net.Http.Json;
 using Microsoft.JSInterop;
 
@@ -7,7 +6,6 @@ namespace RistWorld;
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
     private const string SaveKey = "rist.world.blazor.v1";
-    private const string VerifiedWorldMap = "https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=20260813-refresh";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -17,10 +15,21 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<RollItem> Rolls { get; } = [];
     public List<GemItem> Gems { get; } = [];
 
-    // Use the verified CDN PNG directly at runtime. The Pages build still carries
-    // a same-origin copy as a packaging backup, but Safari no longer has to
-    // resolve a repository-relative image URL.
-    public string WorldMapUrl { get; private set; } = VerifiedWorldMap;
+    // Same-origin packaged asset. This removes CDN/CORS/path ambiguity on iOS.
+    public string WorldMapUrl { get; } = "assets/world/naeja.png";
+
+    public IReadOnlyList<DiceSpec> DiceSet { get; } =
+    [
+        new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 6),
+        new("d5-bonus", "+D5", "assets/dice/d5-bonus.png", 5, 10, 1, 10, 8),
+        new("d5-penalty", "-D5", "assets/dice/d5-penalty.png", 5, 10, 1, 10, 8, 1, -1),
+        new("d6", "D6", "assets/dice/d6.png", 6, 12, 1, 12, 10),
+        new("d8", "D8", "assets/dice/d8.png", 8, 16, 1, 16, 14),
+        new("d10", "D10", "assets/dice/d10.png", 10, 10, 2, 20, 18, 0),
+        new("d10-inverse", "D10 dark", "assets/dice/d10-inverse.png", 10, 10, 2, 20, 18, 0),
+        new("d12", "D12", "assets/dice/d12.png", 12, 12, 2, 24, 22),
+        new("d20", "D20", "assets/dice/d20.png", 20, 10, 4, 40, 38)
+    ];
 
     public string SelectedTile { get; set; } = "";
     public string PieceKind { get; set; } = "pin";
@@ -40,7 +49,6 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string Mode { get; set; } = "piece";
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Value) + Gems.Sum(x => x.Value);
-    public int[] Dice { get; } = [4,6,8,10,12,20,30,100];
     public void Notify() => Changed?.Invoke();
     public void CalibrateGrid(){GridDistance=Math.Max(0.01,GridDistance);GridCalibrationZoom=Math.Max(0.01,ViewZoom);Notify();}
 
@@ -65,29 +73,47 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         _ => 1.0
     };
 
-    public async Task InitializeAsync(){await LoadAssetConfigAsync();await LoadAtlasAsync();await LoadCardsAsync();Notify();}
-
-    async Task LoadAssetConfigAsync()
-    {
-        try
-        {
-            var cfg = await http.GetFromJsonAsync<AssetConfig>("data/asset-config.json");
-            if (!string.IsNullOrWhiteSpace(cfg?.WorldMapUrl) && cfg.WorldMapUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                WorldMapUrl = cfg.WorldMapUrl;
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
-        {
-            WorldMapUrl = VerifiedWorldMap;
-        }
-    }
-
+    public async Task InitializeAsync(){await LoadAtlasAsync();await LoadCardsAsync();Notify();}
     async Task LoadAtlasAsync(){var rows=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");if(rows is not null)AtlasTiles.AddRange(rows);}
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
+
+    public DiceSpec? Dice(string key) => DiceSet.FirstOrDefault(x => x.Key == key);
+
+    public async Task RollAsync(string key)
+    {
+        var die = Dice(key);
+        if (die is null) return;
+        var x = .16 + Random.Shared.NextDouble() * .68;
+        var y = .16 + Random.Shared.NextDouble() * .68;
+        var item = new RollItem(die.Key, die.Label, 0, Random.Shared.Next(die.FrameCount), x, y);
+        Rolls.Add(item);
+        Notify();
+
+        var steps = Random.Shared.Next(13, 23);
+        for (var n = 0; n < steps; n++)
+        {
+            var i = Rolls.IndexOf(item);
+            if (i < 0) return;
+            item = item with { Frame = (item.Frame + 1) % die.FrameCount };
+            Rolls[i] = item;
+            Notify();
+            await Task.Delay(52 + Math.Min(n * 3, 34));
+        }
+
+        // Landing frames are always real numbered faces: 0,2,4... Halfway
+        // frames are animation-only and can never be the final resting state.
+        var face = Random.Shared.Next(die.Sides);
+        var value = (face + die.ValueOffset) * die.Sign;
+        var finalFrame = face * 2;
+        var finalIndex = Rolls.IndexOf(item);
+        if (finalIndex >= 0) Rolls[finalIndex] = item with { Value = value, Frame = finalFrame };
+        Notify();
+    }
 
     public void StagePiece(string kind)
     {
         if (Role != "GM") return;
-        if (kind is not ("pin" or "token")) return; // coin art is intentionally withheld for now.
+        if (kind is not ("pin" or "token")) return;
         var key = $"piece:{kind}";
         if (StagedAssets.All(x => x.Key != key)) StagedAssets.Add(new(key, kind, kind == "pin" ? "Pin" : "Token"));
         Notify();
@@ -104,7 +130,6 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     }
 
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
-
     public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom)
     {
         x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);
@@ -112,26 +137,12 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));
         Notify();
     }
-
-    public void MovePiece(PieceItem piece,double x,double y)
-    {
-        var i=Pieces.IndexOf(piece);if(i<0)return;
-        Pieces[i]=piece with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();
-    }
+    public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
-    public void MoveTile(TileItem tile,double x,double y)
-    {
-        var i=PlacedTiles.IndexOf(tile);if(i<0)return;
-        PlacedTiles[i]=tile with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();
-    }
+    public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with { X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1) };Notify();}
     public void RemoveTile(TileItem tile){PlacedTiles.Remove(tile);Notify();}
-
-    // Direct tap placement is intentionally disabled. Assets enter through the
-    // staging tray so the tabletop behaves like a physical work surface.
     public void MapTap(double x,double y) { }
     public void PlacePin(double x,double y,double placementZoom)=>Pieces.Add(new("pin",Math.Clamp(x,0,1),Math.Clamp(y,0,1),Math.Max(placementZoom,.01)));
-    public void Roll(int sides){var value=Random.Shared.Next(1,sides+1);Rolls.Add(new($"D{sides}",value,.18+Random.Shared.NextDouble()*.64,.18+Random.Shared.NextDouble()*.64));Notify();}
     public void AddGem(int value){Gems.Add(new(value,.20+Random.Shared.NextDouble()*.60,.20+Random.Shared.NextDouble()*.60));Notify();}
     public void ClearRolls(){Rolls.Clear();Gems.Clear();Notify();}
-    sealed record AssetConfig(string WorldMapUrl);
 }
