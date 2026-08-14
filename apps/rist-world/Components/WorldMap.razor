@@ -36,6 +36,14 @@
      <img class="tile" src="@t.Image" style="@TileStyle(t)" alt="@t.Name"
           @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true" />
     }
+    @foreach(var roll in Session.Rolls)
+    {
+     var die=Session.Dice(roll.Key);
+     if(die is not null)
+     {
+      <div class="rolled-die" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>
+     }
+    }
     @foreach(var p in Session.Pieces)
     {
      @if(p.Kind=="pin")
