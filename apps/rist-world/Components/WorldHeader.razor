@@ -2,7 +2,6 @@
 @inject NavigationManager Nav
 <header class="topbar">
  <div class="brand">ReLiCGameMaster • @(Session.EncounterActive ? "ENCOUNTER" : Session.Layer)</div>
- <button class="mixer-button" @onclick="Session.OpenMixer">Mixer</button>
  <div class="control"><label>Layer</label><select value="@Session.Layer" @onchange="LayerChanged" disabled="@Session.EncounterActive">@foreach(var layer in WorldSession.TableLayers){<option value="@layer">@LayerName(layer)</option>}</select></div>
  <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
  <div class="control"><label>Tile</label><select @bind="Session.SelectedTile"><option value="">None</option>@foreach(var t in Session.AtlasTiles){<option value="@t.Id">@t.Name</option>}</select></div>
