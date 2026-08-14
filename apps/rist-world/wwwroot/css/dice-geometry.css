@@ -9,6 +9,7 @@
 .die-d10-inverse{aspect-ratio:.6!important}
 .die-d12{aspect-ratio:.333333!important}
 .die-d20{aspect-ratio:.6!important}
+.die-sprite.die-d12{transform:translateY(5px)}
 
 .character-footer-button{flex:0 0 54px!important;width:54px!important;height:52px!important;padding:7px!important;display:grid!important;place-items:center!important;background:#1d2630!important;border:1px solid #725d30!important;border-radius:9px!important;color:#f4ead1!important;touch-action:manipulation;cursor:pointer}
 .character-footer-button svg{width:31px;height:31px;display:block;fill:currentColor;pointer-events:none}
@@ -17,6 +18,7 @@
 @media(max-width:800px){
  .die-sprite{width:34px!important}
  .rolled-die{width:44px!important}
+ .die-sprite.die-d12{transform:translateY(4px)}
  .character-footer-button{flex-basis:50px!important;width:50px!important;height:48px!important;padding:6px!important}
  .character-footer-button svg{width:29px;height:29px}
 }
