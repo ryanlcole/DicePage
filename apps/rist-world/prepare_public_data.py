@@ -34,8 +34,10 @@ if len(world_bytes) < 100000:
     raise SystemExit(f'World map CDN source unexpectedly small: {len(world_bytes)}')
 (web / 'assets' / 'world' / 'naeja.png').write_bytes(world_bytes)
 
+# Pages hosts the app under /DicePage/app/. Use the explicit repository-rooted
+# URL so browser route resolution cannot turn the image request into a 404.
 (web / 'data' / 'asset-config.json').write_text(json.dumps({
-    'worldMapUrl': 'assets/world/naeja.png'
+    'worldMapUrl': '/DicePage/app/assets/world/naeja.png'
 }))
 
 cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
