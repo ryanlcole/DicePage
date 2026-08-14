@@ -7,7 +7,10 @@
    <article class="hand-card">
     <header><strong>@card.Name</strong><span>@card.Type</span></header>
     <div class="hand-card-value">@card.Value</div>
-    <button class="dicebag-button" title="Open custom dice bag" aria-label="Open @card.Name dice bag" @onclick="()=>Session.EditDiceBag(card)"><span class="bag-shape">◆</span><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button>
+    <button class="dicebag-button" title="Open custom dice bag" aria-label="Open @card.Name dice bag" @onclick="()=>Session.EditDiceBag(card)">
+     <img src="assets/ui/custom_dicebag.png" alt="" aria-hidden="true" />
+     <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
+    </button>
     <div class="hand-card-tools">
      <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
      <button class="roll-card-button" title="Roll saved dice" @onclick="()=>Session.RollHandCardAsync(card)">Roll</button>
@@ -26,8 +29,7 @@
   <section class="dicebag-workspace" @onclick:stopPropagation="true" aria-label="Custom fillable dice bag">
    <header class="dicebag-title"><div><strong>@card.Name</strong><span>Custom fillable dice bag</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
    <div class="physical-bag">
-    <div class="bag-mouth"></div>
-    <div class="bag-emblem">ReLiC</div>
+    <img src="assets/ui/custom_dicebag.png" alt="Custom fillable dice bag" />
     <div class="bag-summary">@card.DiceBag.Sum(x=>x.Count) dice</div>
    </div>
    <p class="dicebag-help">Tap a die below to place it into this card's bag. The bag remembers its contents. Bonus and penalty D5s can lock a selected value.</p>
