@@ -62,10 +62,42 @@ window.ristWorld={
  }
  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(resolveDiceCollisions);}
  const observer=new MutationObserver(mutations=>{
-  if(mutations.some(m=>m.type==='childList'&&(m.addedNodes.length||m.removedNodes.length)))schedule();
+  if(mutations.some(m=>m.type==='childList'&&(m.addedNodes.length||m.removedNodes.length))){schedule();initCircularRails();}
  });
- function start(){observer.observe(document.body,{childList:true,subtree:true});schedule();}
+ function start(){observer.observe(document.body,{childList:true,subtree:true});schedule();initCircularRails();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
- window.addEventListener('resize',schedule,{passive:true});
- window.addEventListener('orientationchange',schedule,{passive:true});
+ window.addEventListener('resize',()=>{schedule();initCircularRails(true);},{passive:true});
+ window.addEventListener('orientationchange',()=>{schedule();initCircularRails(true);},{passive:true});
+
+ let railInitScheduled=false;
+ function initCircularRails(force=false){
+  if(railInitScheduled)return;
+  railInitScheduled=true;
+  requestAnimationFrame(()=>{
+   railInitScheduled=false;
+   document.querySelectorAll('[data-circular-rail]').forEach(rail=>setupCircularRail(rail,force));
+  });
+ }
+ function setupCircularRail(rail,force=false){
+  const sets=[...rail.children].filter(x=>x.classList&&x.classList.contains('circular-set'));
+  if(sets.length!==3)return;
+  const width=sets[1].getBoundingClientRect().width;
+  if(width<1)return;
+  const oldWidth=Number(rail.dataset.loopWidth)||0;
+  if(force||!rail.classList.contains('is-circular-ready')||Math.abs(oldWidth-width)>1){
+   rail.dataset.loopWidth=String(width);
+   rail.scrollLeft=width;
+   rail.classList.add('is-circular-ready');
+  }
+  if(rail.dataset.loopBound==='1')return;
+  rail.dataset.loopBound='1';
+  let adjusting=false;
+  rail.addEventListener('scroll',()=>{
+   if(adjusting)return;
+   const w=Number(rail.dataset.loopWidth)||sets[1].getBoundingClientRect().width;
+   if(!w)return;
+   if(rail.scrollLeft<w*.45){adjusting=true;rail.scrollLeft+=w;requestAnimationFrame(()=>adjusting=false);}
+   else if(rail.scrollLeft>w*1.55){adjusting=true;rail.scrollLeft-=w;requestAnimationFrame(()=>adjusting=false);}
+  },{passive:true});
+ }
 })();
