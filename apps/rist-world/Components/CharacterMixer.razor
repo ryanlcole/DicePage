@@ -3,68 +3,98 @@
 @if(Session.MixerOpen)
 {
  <div class="mixer-modal" @onclick="Session.CloseMixer">
-  <section class="character-mixer character-window" @onclick:stopPropagation="true">
-   <header class="mixer-titlebar">
+  <section class="character-mixer character-console" @onclick:stopPropagation="true">
+   <button class="console-close" @onclick="Session.CloseMixer" aria-label="Close character sheet">×</button>
+   <header class="console-identity">
     <div class="character-portrait"><span>PORTRAIT</span></div>
-    <div class="character-heading"><strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"CHARACTER":Session.CharacterName)</strong><span>RIST character sheet</span></div>
-    <button @onclick="Session.CloseMixer">Close</button>
+    <label>NAME<input @bind="Session.CharacterName" /></label>
+    <label>SPECIES<input @bind="Session.CharacterSpecies" /></label>
+    <label>AGE<input @bind="Session.CharacterAge" /></label>
+    <label>ALIGNMENT<input @bind="Session.CharacterAlignment" /></label>
    </header>
-   <div class="mixer-identity">
-    <label>Name<input @bind="Session.CharacterName" /></label><label>Species<input @bind="Session.CharacterSpecies" /></label><label>Age<input @bind="Session.CharacterAge" /></label><label>Alignment<input @bind="Session.CharacterAlignment" /></label>
-   </div>
-   <nav class="character-tabs">
-    @foreach(var tab in new[]{"Pools","Skills","Feats","Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}
-   </nav>
 
-   @if(Session.CharacterTab is "Pools" or "Skills" or "Feats")
+   <section class="console-bank pools-bank">
+    <div class="bank-title"><strong>POOLS</strong><span>current / maximum</span></div>
+    <div class="pool-strip">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Pools"))
+     {
+      <article class="pool-channel">
+       <button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>
+       <div class="pool-scale"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
+       <input class="pool-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" @oninput="e=>SetFieldCurrent(field,e)" />
+       <output>@field.Current</output>
+       <input class="pool-max" type="number" min="1" max="999" value="@field.Max" @onchange="e=>SetFieldMax(field,e)" />
+       <strong class="field-label">@field.Name</strong>
+      </article>
+     }
+     <button class="console-add" @onclick="()=>BeginAdd("Pools")">+</button>
+    </div>
+   </section>
+
+   <section class="console-bank skills-bank">
+    <div class="bank-title"><strong>SKILLS</strong><span>tap a dial to expose its card</span></div>
+    <div class="skill-strip">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills"))
+     {
+      <article class="skill-channel">
+       <button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>
+       <input class="skill-max" type="number" min="0" max="999" value="@field.Max" @onchange="e=>SetFieldMax(field,e)" aria-label="Maximum" />
+       <button class="skill-dial" @onclick="()=>Session.ShowHand(field)" title="Show @field.Name card"><span>@field.Current</span></button>
+       <input class="skill-value" type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetFieldCurrent(field,e)" />
+       <strong class="field-label">@field.Name</strong>
+       <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
+      </article>
+     }
+     <button class="console-add round-add" @onclick="()=>BeginAdd("Skills")">+</button>
+    </div>
+   </section>
+
+   @if(AddingGroup is not null)
    {
-    <section class="field-builder">
-     <label>Add @Session.CharacterTab
-      <input value="@Session.FieldSearch" @oninput="SearchChanged" placeholder="Start typing a name…" autocomplete="off" />
-     </label>
+    <section class="field-builder console-builder">
+     <div><strong>Add @AddingGroup</strong><button @onclick="()=>AddingGroup=null">×</button></div>
+     <input value="@Session.FieldSearch" @oninput="SearchChanged" placeholder="Start typing a name…" autocomplete="off" autofocus />
      @if(!string.IsNullOrWhiteSpace(Session.FieldSearch))
      {
       <div class="field-suggestions">
-       @foreach(var option in Session.FilteredFieldVocabulary){<button @onclick="()=>Session.AddCharacterField(option)"><strong>@option.Name</strong><small>@option.Kind</small></button>}
-       <button class="custom-field" @onclick="Session.AddCustomCharacterField"><strong>Custom: @Session.FieldSearch</strong><small>Create new</small></button>
+       @foreach(var option in Session.FilteredFieldVocabulary.Where(x=>x.Group==AddingGroup)){<button @onclick="()=>AddField(option)"><strong>@option.Name</strong><small>@option.Kind</small></button>}
+       <button class="custom-field" @onclick="AddCustom"><strong>Custom: @Session.FieldSearch</strong><small>Create new</small></button>
       </div>
      }
     </section>
-    <div class="mixer-channels dynamic-fields">
-     @foreach(var field in Session.CharacterFields.Where(x=>x.Group==Session.CharacterTab))
-     {
-      <article class="mixer-channel">
-       <div class="channel-name">@field.Name <button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button></div>
-       @if(field.Kind=="POOL")
-       {
-        <div class="channel-meter"><input type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" @oninput="e=>SetFieldCurrent(field,e)" /></div>
-        <div class="channel-dials"><label class="dial"><span>@field.Current</span><small>Current</small></label><label class="dial"><input type="number" min="0" max="999" value="@field.Max" @onchange="e=>SetFieldMax(field,e)"/><small>Max</small></label></div>
-       }
-       else if(field.Kind=="VALUE")
-       {
-        <label class="dial skill-knob"><input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetFieldCurrent(field,e)"/><small>Value</small></label>
-        <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
-       }
-       else
-       {
-        <div class="ability-panel">Custom ability</div><button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
-       }
-      </article>
-     }
-    </div>
    }
-   else if(Session.CharacterTab=="Description")
-   {<div class="mixer-notes"><label>Public Description<textarea rows="12" @bind="Session.CharacterDescription"></textarea></label></div>}
-   else
-   {<div class="mixer-notes"><label>Background<textarea rows="12" @bind="Session.CharacterBackground"></textarea></label></div>}
+
+   <section class="console-notebook">
+    <nav class="notebook-tabs">
+     @foreach(var tab in new[]{"Description","Background","Feats"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}
+    </nav>
+    @if(Session.CharacterTab=="Description")
+    {<textarea aria-label="Public Description" @bind="Session.CharacterDescription" placeholder="Public description…"></textarea>}
+    else if(Session.CharacterTab=="Background")
+    {<textarea aria-label="Background" @bind="Session.CharacterBackground" placeholder="Background…"></textarea>}
+    else
+    {
+     <div class="feat-workspace">
+      <div class="feat-list">
+       @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats"))
+       {<article><strong>@field.Name</strong><button @onclick="()=>Session.ShowHand(field)">Show Hand</button><button @onclick="()=>Session.RemoveCharacterField(field)">×</button></article>}
+      </div>
+      <button class="console-add feat-add" @onclick="()=>BeginAdd("Feats")">+</button>
+     </div>
+    }
+   </section>
   </section>
  </div>
 }
 @code{
+ string? AddingGroup;
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
+ void BeginAdd(string group){AddingGroup=group;Session.SetCharacterTab(group);Session.SetFieldSearch("");}
  void SearchChanged(ChangeEventArgs e)=>Session.SetFieldSearch(e.Value?.ToString()??"");
+ void AddField(CharacterFieldOption option){Session.AddCharacterField(option);AddingGroup=null;}
+ void AddCustom(){Session.AddCustomCharacterField();AddingGroup=null;}
  void SetFieldCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
  void SetFieldMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,field.Current,v);}
 }
