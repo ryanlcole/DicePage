@@ -16,6 +16,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<GemItem> Gems { get; } = [];
     public List<HandCard> HandCards { get; } = [];
     public HandCard? EditingHandCard { get; private set; }
+    public string? DraggedDieKey { get; private set; }
 
     public string WorldMapUrl { get; } = "assets/world/naeja.png";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
@@ -34,13 +35,14 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public int BonusD5Value { get; set; } = 1;
     public int PenaltyD5Value { get; set; } = 1;
     public bool MixerOpen { get; set; }
+    public bool CharacterEditMode { get; private set; } = true;
     public string CharacterName { get; set; } = "";
     public string CharacterSpecies { get; set; } = "";
     public string CharacterAge { get; set; } = "";
     public string CharacterAlignment { get; set; } = "";
     public string CharacterDescription { get; set; } = "";
     public string CharacterBackground { get; set; } = "";
-    public string CharacterTab { get; set; } = "Pools";
+    public string CharacterTab { get; set; } = "Description";
     public string FieldSearch { get; set; } = "";
     public List<CharacterField> CharacterFields { get; } = [];
     public IReadOnlyList<CharacterFieldOption> FieldVocabulary { get; } =
@@ -75,25 +77,34 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void CalibrateGrid(){GridDistance=Math.Max(.01,GridDistance);GridCalibrationZoom=Math.Max(.01,ViewZoom);Notify();}
 
     public void OpenMixer(){MixerOpen=true;Notify();}
-    public void CloseMixer(){MixerOpen=false;Notify();}
+    public void CloseMixer(){MixerOpen=false;EditingHandCard=null;DraggedDieKey=null;Notify();}
+    public void EditCharacter(){CharacterEditMode=true;Notify();}
+    public void SaveCharacter(){CharacterEditMode=false;EditingHandCard=null;DraggedDieKey=null;Notify();}
     public void SetCharacterTab(string tab){CharacterTab=tab;Notify();}
     public void SetFieldSearch(string value){FieldSearch=value;Notify();}
     public void AddCharacterField(CharacterFieldOption option){if(CharacterFields.Any(x=>x.Name.Equals(option.Name,StringComparison.OrdinalIgnoreCase)))return;CharacterFields.Add(new(option.Name,option.Kind,option.Group));FieldSearch="";Notify();}
     public void AddCustomCharacterField(){var name=FieldSearch.Trim();if(name.Length==0||CharacterFields.Any(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))return;var kind=CharacterTab=="Pools"?"POOL":CharacterTab=="Skills"?"VALUE":"ABILITY";CharacterFields.Add(new(name,kind,CharacterTab));FieldSearch="";Notify();}
-    public void RemoveCharacterField(CharacterField field){CharacterFields.Remove(field);HandCards.RemoveAll(x=>ReferenceEquals(x.Field,field));if(EditingHandCard is not null&&ReferenceEquals(EditingHandCard.Field,field))EditingHandCard=null;Notify();}
-    public void SetCharacterField(CharacterField field,int current,int? max=null){field.Max=Math.Clamp(max??field.Max,0,999);field.Current=Math.Clamp(current,0,field.Kind=="POOL"?Math.Max(field.Max,0):999);Notify();}
+    public void AddBlankCharacterField(string group){if(!CharacterEditMode)return;var kind=group=="Pools"?"POOL":group=="Skills"?"VALUE":"ABILITY";var prefix=group=="Pools"?"Pool":group=="Skills"?"Skill":"Feat";var n=1;var name=$"{prefix} {n}";while(CharacterFields.Any(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))name=$"{prefix} {++n}";CharacterFields.Add(new(name,kind,group));Notify();}
+    public void RenameCharacterField(CharacterField field,string name){if(!CharacterEditMode)return;name=name.Trim();if(name.Length==0)return;field.Name=name;Notify();}
+    public void SetCharacterFieldColor(CharacterField field,string color){if(!CharacterEditMode)return;field.Color=color switch{"red" or "orange" or "gold" or "green" or "teal" or "blue" or "purple"=>color,_=>"gold"};Notify();}
+    public void RemoveCharacterField(CharacterField field){if(!CharacterEditMode)return;CharacterFields.Remove(field);HandCards.RemoveAll(x=>ReferenceEquals(x.Field,field));if(EditingHandCard is not null&&ReferenceEquals(EditingHandCard.Field,field))EditingHandCard=null;Notify();}
+    public void SetCharacterField(CharacterField field,int current,int? max=null){if(!CharacterEditMode)return;field.Max=Math.Clamp(max??field.Max,0,999);field.Current=Math.Clamp(current,0,field.Kind=="POOL"?Math.Max(field.Max,0):999);Notify();}
+    public void TurnCharacterDial(CharacterField field,int delta){if(!CharacterEditMode)return;var max=Math.Max(field.Max,0);var next=Math.Clamp(field.Current+delta,0,field.Kind=="POOL"?max:999);field.Current=next;Notify();}
     public void SetMixerChannel(string name,int current,int max){var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);if(channel is null)return;max=Math.Clamp(max,0,999);current=Math.Clamp(current,0,max);channel.Current=current;channel.Max=max;Notify();}
 
     public void ShowHand(CharacterField field){if(field.Kind is not("VALUE" or "ABILITY")||HandCards.Any(x=>ReferenceEquals(x.Field,field)))return;HandCards.Add(new(field));Notify();}
     public void HideHand(HandCard card){HandCards.Remove(card);if(ReferenceEquals(EditingHandCard,card))EditingHandCard=null;Notify();}
     public void MoveHandCard(HandCard card,int delta){var from=HandCards.IndexOf(card);if(from<0)return;var to=Math.Clamp(from+delta,0,HandCards.Count-1);if(to==from)return;HandCards.RemoveAt(from);HandCards.Insert(to,card);Notify();}
-    public void EditDiceBag(HandCard card){EditingHandCard=card;Notify();}
-    public void CloseDiceBag(){EditingHandCard=null;Notify();}
+    public void EditDiceBag(HandCard card){if(MixerOpen&&!CharacterEditMode)return;EditingHandCard=card;Notify();}
+    public void CloseDiceBag(){EditingHandCard=null;DraggedDieKey=null;Notify();}
     public void AddDiceBagEntry(string dieKey){if(EditingHandCard is null||Dice(dieKey) is null)return;EditingHandCard.DiceBag.Add(new(dieKey));Notify();}
     public void RemoveDiceBagEntry(DiceBagEntry entry){EditingHandCard?.DiceBag.Remove(entry);Notify();}
     public void SetDiceBagCount(DiceBagEntry entry,int count){entry.Count=Math.Clamp(count,1,20);Notify();}
     public void SetDiceBagMagnitude(DiceBagEntry entry,int magnitude){entry.SelectedMagnitude=Math.Clamp(magnitude,1,5);Notify();}
-    public async Task RollHandCardAsync(HandCard card){if(card.DiceBag.Count==0){EditDiceBag(card);return;}var tasks=new List<Task>();foreach(var entry in card.DiceBag){for(var i=0;i<entry.Count;i++){var selected=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude:(int?)null;tasks.Add(RollAsync(entry.DieKey,selected));}}await Task.WhenAll(tasks);}
+    public void BeginDiceDrag(string dieKey){DraggedDieKey=Dice(dieKey) is null?null:dieKey;Notify();}
+    public void DropDraggedDieIntoBag(){if(DraggedDieKey is null||EditingHandCard is null)return;AddDiceBagEntry(DraggedDieKey);DraggedDieKey=null;Notify();}
+    public void DropBagEntryOutside(DiceBagEntry entry){if(EditingHandCard is null)return;EditingHandCard.DiceBag.Remove(entry);Notify();}
+    public async Task RollHandCardAsync(HandCard card){if(MixerOpen&&CharacterEditMode){EditDiceBag(card);return;}if(card.DiceBag.Count==0){EditDiceBag(card);return;}var tasks=new List<Task>();foreach(var entry in card.DiceBag){for(var i=0;i<entry.Count;i++){var selected=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude:(int?)null;tasks.Add(RollAsync(entry.DieKey,selected));}}await Task.WhenAll(tasks);}
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
