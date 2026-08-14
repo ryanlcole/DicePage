@@ -12,12 +12,12 @@ public sealed record CharacterFieldOption(string Name, string Kind, string Group
 
 public sealed class CharacterField(string name,string kind,string group)
 {
-    public string Id { get; } = Guid.NewGuid().ToString("N");
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = name;
     public string Kind { get; set; } = kind;
     public string Group { get; set; } = group;
     public int Current { get; set; }
-    public int Max { get; set; } = kind == "POOL" ? 20 : 20;
+    public int Max { get; set; } = kind == "POOL" ? 100 : 999;
     public string Color { get; set; } = "gold";
 }
 
