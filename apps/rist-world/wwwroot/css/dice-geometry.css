@@ -1,0 +1,24 @@
+/* Exact source sprite-cell geometry. The sprite element is deliberately taller than
+   its visible footer slot; the button clips transparent padding while preserving the
+   die itself without X/Y distortion. */
+.die-sprite{width:44px!important;height:auto!important;background-repeat:no-repeat;background-color:transparent!important;justify-self:center;align-self:center}
+.rolled-die{width:58px!important;height:auto!important;background-repeat:no-repeat;background-color:transparent!important}
+.die-d4{aspect-ratio:.375!important}
+.die-d5-bonus,.die-d5-penalty{aspect-ratio:.3!important}
+.die-d6{aspect-ratio:.25!important}
+.die-d8{aspect-ratio:.1875!important}
+.die-d10{aspect-ratio:.609524!important}
+.die-d10-inverse{aspect-ratio:.6!important}
+.die-d12{aspect-ratio:.333333!important}
+.die-d20{aspect-ratio:.6!important}
+
+.character-footer-button{flex:0 0 54px!important;width:54px!important;height:52px!important;padding:7px!important;display:grid!important;place-items:center!important;background:#1d2630!important;border:1px solid #725d30!important;border-radius:9px!important;color:#f4ead1!important;touch-action:manipulation}
+.character-footer-button svg{width:31px;height:31px;display:block;fill:currentColor;pointer-events:none}
+.character-footer-button:active{transform:translateY(1px);background:#2b3743!important}
+
+@media(max-width:800px){
+ .die-sprite{width:40px!important}
+ .rolled-die{width:52px!important}
+ .character-footer-button{flex-basis:50px!important;width:50px!important;height:48px!important;padding:6px!important}
+ .character-footer-button svg{width:29px;height:29px}
+}
