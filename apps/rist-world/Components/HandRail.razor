@@ -5,22 +5,21 @@
   <div class="circular-set hand-circular-set">
    @if(Session.HandCards.Count==0)
    {
-    <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill, feat, or ability to place its card here.</div>
+    <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill or feat to place its card here.</div>
    }
    else
    {
     @foreach(var card in Session.HandCards)
     {
-     <article class="hand-card tabletop-dial-item">
-      <header><strong>@card.Name</strong><span>@card.Type</span></header>
-      <div class="hand-card-value">@card.Value</div>
-      <button class="dicebag-button" title="Open custom dice bag" aria-label="Open @card.Name dice bag" @onclick="()=>Session.EditDiceBag(card)">
+     <article class="hand-card dial-hand-card color-@card.Field.Color">
+      <div class="hand-card-dial"><span>@card.Value</span></div>
+      <div class="hand-card-plate"><strong>@card.Name</strong><small>@card.Type</small></div>
+      <button class="dicebag-button" title="@(Session.MixerOpen&&Session.CharacterEditMode?"Edit dice bag":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
        <img src="assets/ui/custom_dicebag.png" alt="" aria-hidden="true" />
        <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
       </button>
       <div class="hand-card-tools">
        <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
-       <button class="roll-card-button" title="Roll saved dice" @onclick="()=>Session.RollHandCardAsync(card)">Roll</button>
        <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
        <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
       </div>
@@ -34,45 +33,36 @@
 @if(Session.EditingHandCard is not null)
 {
  var card=Session.EditingHandCard;
- <div class="dicebag-modal" @onclick="Session.CloseDiceBag">
-  <section class="dicebag-workspace" @onclick:stopPropagation="true" aria-label="Custom fillable dice bag">
-   <header class="dicebag-title"><div><strong>@card.Name</strong><span>Custom fillable dice bag</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
-   <div class="physical-bag">
+ <div class="dicebag-modal @(Session.MixerOpen?"sheet-bag-modal":"")" @onclick="Session.CloseDiceBag">
+  <section class="dicebag-workspace" @onclick:stopPropagation="true" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag" aria-label="Custom fillable dice bag">
+   <header class="dicebag-title"><div><strong>@card.Name</strong><span>Drag dice here from the bottom rail</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
+   <div class="physical-bag bag-drop-zone" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag">
     <img src="assets/ui/custom_dicebag.png" alt="Custom fillable dice bag" />
     <div class="bag-summary">@card.DiceBag.Sum(x=>x.Count) dice</div>
    </div>
-   <p class="dicebag-help">Tap a die below to place it into this card's bag. The bag remembers its contents. Bonus and penalty D5s can lock a selected value.</p>
-   <div class="dicebag-add" aria-label="Dice shelf">
-    @foreach(var die in Session.DiceSet)
-    {
-     <button @onclick="()=>Session.AddDiceBagEntry(die.Key)">@die.Label</button>
-    }
-   </div>
    <div class="dicebag-entries">
-    @if(card.DiceBag.Count==0){<div class="empty-bag">The bag is empty. Add dice from the shelf above.</div>}
-    @foreach(var entry in card.DiceBag)
+    @if(card.DiceBag.Count==0){<div class="empty-bag">Empty bag — drag dice up from the bottom dice rail.</div>}
+    @foreach(var entry in card.DiceBag.ToArray())
     {
      var die=Session.Dice(entry.DieKey);
      if(die is not null)
      {
-      <div class="dicebag-entry">
+      <div class="dicebag-entry bag-die-chip" draggable="true" @ondragstart="()=>Session.RemoveDiceBagEntry(entry)" title="Drag out to remove">
        <strong>@die.Label</strong>
-       <label>Count<input type="number" min="1" max="20" value="@entry.Count" @onchange="e=>SetCount(entry,e)" /></label>
+       <label>×<input type="number" min="1" max="20" value="@entry.Count" @onchange="e=>SetCount(entry,e)" /></label>
        @if(entry.DieKey is "d5-bonus" or "d5-penalty")
-       {
-        <label>Value<select value="@entry.SelectedMagnitude" @onchange="e=>SetMagnitude(entry,e)">@for(var i=1;i<=5;i++){<option value="@i">@(entry.DieKey=="d5-bonus"?"+":"-")@i</option>}</select></label>
-       }
-       <button @onclick="()=>Session.RemoveDiceBagEntry(entry)">Remove</button>
+       {<label>Value<select value="@entry.SelectedMagnitude" @onchange="e=>SetMagnitude(entry,e)">@for(var i=1;i<=5;i++){<option value="@i">@(entry.DieKey=="d5-bonus"?"+":"-")@i</option>}</select></label>}
+       <span class="drag-hint">drag out</span>
       </div>
      }
     }
    </div>
-   <button class="roll-bag-now" @onclick="()=>Session.RollHandCardAsync(card)">Roll this bag</button>
   </section>
  </div>
 }
 
 @code{
+ async Task BagClick(HandCard card){if(Session.MixerOpen&&Session.CharacterEditMode)Session.EditDiceBag(card);else await Session.RollHandCardAsync(card);}
  void SetCount(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagCount(entry,v);}
  void SetMagnitude(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagMagnitude(entry,v);}
 }
