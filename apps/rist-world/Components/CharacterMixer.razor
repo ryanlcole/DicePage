@@ -1,3 +1,4 @@
+@implements IDisposable
 @inject WorldSession Session
 @if(Session.MixerOpen)
 {
@@ -60,6 +61,9 @@
  </div>
 }
 @code{
+ protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=SessionChanged;
  void SearchChanged(ChangeEventArgs e)=>Session.SetFieldSearch(e.Value?.ToString()??"");
  void SetFieldCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
  void SetFieldMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,field.Current,v);}
