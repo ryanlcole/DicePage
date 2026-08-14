@@ -19,7 +19,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string PieceKind { get; set; } = "coin";
     public string Role { get; set; } = "GM";
     public string GridStyle { get; set; } = "square";
-    public const int GridColumns = 10;
+    public const int GridColumns = 20;
     public const int GridRows = 20;
     public int GridDiameter { get; set; } = 48;
     public double GridDistance { get; set; } = 5;
