@@ -1,5 +1,8 @@
 @inject WorldSession Session
 <footer class="footer dice-footer">
+ <button type="button" class="character-footer-button" title="Open character" aria-label="Open character" @onclick="()=>Session.OpenMixer()">
+  <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="18" r="11"></circle><path d="M12 55c1-14 8-22 20-22s19 8 20 22z"></path></svg>
+ </button>
  @foreach(var die in Session.DiceSet)
  {
   if(die.Key=="d5-bonus")
@@ -7,7 +10,7 @@
    <div class="die-control d5-control bonus-d5">
     <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
     <button class="die-button" title="Roll selected bonus" @onclick="()=>Session.RollAsync(die.Key,Session.BonusD5Value)">
-     <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+     <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
     </button>
    </div>
   }
@@ -16,14 +19,14 @@
    <div class="die-control d5-control penalty-d5">
     <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
     <button class="die-button" title="Roll selected penalty" @onclick="()=>Session.RollAsync(die.Key,Session.PenaltyD5Value)">
-     <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+     <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
     </button>
    </div>
   }
   else
   {
    <button class="die-button" title="Roll @die.Label" @onclick="()=>Session.RollAsync(die.Key)">
-    <span class="die-sprite" style="@DieSpriteStyle(die,die.RestFrame)"></span>
+    <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
     <small>@die.Label</small>
    </button>
   }
@@ -39,6 +42,6 @@
   var col=frame%die.Columns;var row=frame/die.Columns;
   var x=die.Columns<=1?0:col*100.0/(die.Columns-1);
   var y=die.Rows<=1?0:row*100.0/(die.Rows-1);
-  return $"--die-aspect:{die.VisualAspect:0.###};background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
+  return $"background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
  }
 }
