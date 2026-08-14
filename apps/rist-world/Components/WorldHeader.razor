@@ -1,11 +1,9 @@
 @inject WorldSession Session
 @inject NavigationManager Nav
-<header class="topbar circular-rail" data-circular-rail>
+<header class="topbar circular-rail header-rail" data-circular-rail>
  @for(var copy=0;copy<3;copy++)
  {
-  <div class="circular-set">
-   <div class="brand">ReLiCGameMaster • @(Session.EncounterActive ? "ENCOUNTER" : Session.Layer)</div>
-   <div class="control"><label>Layer</label><select value="@Session.Layer" @onchange="LayerChanged" disabled="@Session.EncounterActive">@foreach(var layer in WorldSession.TableLayers){<option value="@layer">@LayerName(layer)</option>}</select></div>
+  <div class="circular-set header-circular-set">
    <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
    <div class="control"><label>Tile</label><select @bind="Session.SelectedTile"><option value="">None</option>@foreach(var t in Session.AtlasTiles){<option value="@t.Id">@t.Name</option>}</select></div>
    <button @onclick="Session.StageSelectedTile">To tray</button>
@@ -23,9 +21,7 @@
 </header>
 @code{
  void StagePiece()=>Session.StagePiece(Session.PieceKind);
- void LayerChanged(ChangeEventArgs e)=>Session.SetLayer(e.Value?.ToString()??"WORLD");
  void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
  void ToggleEncounter(){if(Session.EncounterActive)Session.ExitEncounter();else Session.EnterEncounter();}
- static string LayerName(string layer)=>layer[0]+layer[1..].ToLowerInvariant();
  void Exit()=>Nav.NavigateTo("../",true);
 }
