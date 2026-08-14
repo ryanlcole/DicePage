@@ -15,10 +15,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<RollItem> Rolls { get; } = [];
     public List<GemItem> Gems { get; } = [];
 
-    // The public build always packages the verified map at this same-origin path.
-    // Keep it as the runtime fallback so a delayed/cached config request cannot
-    // fall back to the obsolete assets/naeja.jpg path.
-    public string WorldMapUrl { get; private set; } = "assets/world/naeja.png";
+    // GitHub Pages serves this application under /DicePage/app/.
+    // Use an explicit repository-rooted URL so Safari cannot resolve the map
+    // against a stale or unexpected relative route.
+    public string WorldMapUrl { get; private set; } = "/DicePage/app/assets/world/naeja.png";
 
     public string SelectedTile { get; set; } = "";
     public string PieceKind { get; set; } = "coin";
@@ -74,7 +74,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
         {
-            // Retain the packaged same-origin PNG fallback above.
+            // Retain the explicit packaged GitHub Pages PNG fallback above.
         }
     }
 
