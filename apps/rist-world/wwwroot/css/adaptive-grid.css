@@ -1,1 +1,46 @@
-.map{aspect-ratio:3/2;width:min(100%,calc((100dvh - 170px)*1.5))}.grid{display:none}.map:has(.grid.square)::before,.map:has(.grid.hex)::before{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;opacity:.3}.map:has(.grid.square)::before{background-image:linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px);background-size:10% 5%}.map:has(.grid.hex)::before{background-image:linear-gradient(30deg,#fff3 12%,transparent 12.5%,transparent 87%,#fff3 87.5%),linear-gradient(150deg,#fff3 12%,transparent 12.5%,transparent 87%,#fff3 87.5%),linear-gradient(30deg,#fff3 12%,transparent 12.5%,transparent 87%,#fff3 87.5%);background-size:10% 5%;background-position:0 0,0 0,5% 2.5%}.scale-readout{padding:7px 9px;border:1px solid #725d30;border-radius:7px;white-space:nowrap;font-size:12px}
+.map{aspect-ratio:3/2;width:min(100%,calc((100dvh - 170px)*1.5))}
+.grid{display:none}
+
+/* Viewport grid: 20 columns x 20 rows. The overlay stays screen-fixed while
+   map zoom changes the calibrated miles represented by each visible cell. */
+.map:has(.grid.square)::before,
+.map:has(.grid.hex)::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:7;
+  pointer-events:none;
+}
+
+.map:has(.grid.square)::before{
+  opacity:.42;
+  background-image:
+    linear-gradient(to right,rgba(255,255,255,.78) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(255,255,255,.78) 1px,transparent 1px);
+  background-size:5% 5%;
+}
+
+/* Catan-style flat-top hexes: bold warm outline plus dark edge so the cells
+   stay readable over snow, ocean, forest, desert, and volcanic terrain. */
+.map:has(.grid.hex)::before{
+  opacity:.9;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='173.205' viewBox='0 0 150 173.205'%3E%3Cg fill='none' stroke-linejoin='round'%3E%3Cg stroke='%23070b0f' stroke-width='5'%3E%3Cpolygon points='0,43.301 25,0 75,0 100,43.301 75,86.603 25,86.603'/%3E%3Cpolygon points='75,43.301 100,0 150,0 175,43.301 150,86.603 100,86.603'/%3E%3Cpolygon points='-37.5,129.904 -12.5,86.603 37.5,86.603 62.5,129.904 37.5,173.205 -12.5,173.205'/%3E%3Cpolygon points='37.5,129.904 62.5,86.603 112.5,86.603 137.5,129.904 112.5,173.205 62.5,173.205'/%3E%3Cpolygon points='112.5,129.904 137.5,86.603 187.5,86.603 212.5,129.904 187.5,173.205 137.5,173.205'/%3E%3C/g%3E%3Cg stroke='%23e7c56b' stroke-width='2.2'%3E%3Cpolygon points='0,43.301 25,0 75,0 100,43.301 75,86.603 25,86.603'/%3E%3Cpolygon points='75,43.301 100,0 150,0 175,43.301 150,86.603 100,86.603'/%3E%3Cpolygon points='-37.5,129.904 -12.5,86.603 37.5,86.603 62.5,129.904 37.5,173.205 -12.5,173.205'/%3E%3Cpolygon points='37.5,129.904 62.5,86.603 112.5,86.603 137.5,129.904 112.5,173.205 62.5,173.205'/%3E%3Cpolygon points='112.5,129.904 137.5,86.603 187.5,86.603 212.5,129.904 187.5,173.205 137.5,173.205'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-size:7.5% 8.66025%;
+  background-position:0 0;
+}
+
+/* Compact calibration controls so the map toolbar does not get dominated by
+   the numeric miles-per-cell field on phones. */
+.scale-control{min-width:74px}
+.scale-control label{white-space:nowrap}
+.scale-control input{width:74px;min-width:74px;padding-left:7px;padding-right:5px}
+.scale-button{white-space:nowrap}
+.scale-readout{padding:6px 8px;border:1px solid #725d30;border-radius:7px;white-space:nowrap;font-size:11px}
+
+@media(max-width:800px){
+  .scale-control{min-width:62px}
+  .scale-control input{width:62px;min-width:62px;padding:5px 6px}
+  .scale-control label{font-size:9px}
+  .scale-button{padding-left:7px!important;padding-right:7px!important}
+  .scale-readout{padding:5px 6px;font-size:10px}
+}
