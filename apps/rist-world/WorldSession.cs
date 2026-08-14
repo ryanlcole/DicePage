@@ -15,7 +15,6 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<RollItem> Rolls { get; } = [];
     public List<GemItem> Gems { get; } = [];
 
-    // Same-origin packaged asset. This removes CDN/CORS/path ambiguity on iOS.
     public string WorldMapUrl { get; } = "assets/world/naeja.png";
 
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
@@ -29,6 +28,27 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         new("d10-inverse", "D10 dark", "assets/dice/d10-inverse.png", 10, 10, 2, 20, 18, 0),
         new("d12", "D12", "assets/dice/d12.png", 12, 12, 2, 24, 22),
         new("d20", "D20", "assets/dice/d20.png", 20, 10, 4, 40, 38)
+    ];
+
+    public int BonusD5Value { get; set; } = 1;
+    public int PenaltyD5Value { get; set; } = 1;
+
+    public bool MixerOpen { get; set; }
+    public string CharacterName { get; set; } = "";
+    public string CharacterSpecies { get; set; } = "";
+    public string CharacterAge { get; set; } = "";
+    public string CharacterAlignment { get; set; } = "";
+    public string CharacterDescription { get; set; } = "";
+    public List<MixerChannel> MixerChannels { get; } =
+    [
+        new("Knowledge", 0, 20),
+        new("Swim", 0, 20),
+        new("Perception", 0, 20),
+        new("Athletics", 0, 20),
+        new("Stealth", 0, 20),
+        new("Insight", 0, 20),
+        new("Survival", 0, 20),
+        new("Craft", 0, 20)
     ];
 
     public string SelectedTile { get; set; } = "";
@@ -51,6 +71,19 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public int Total => Rolls.Sum(x => x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
     public void CalibrateGrid(){GridDistance=Math.Max(0.01,GridDistance);GridCalibrationZoom=Math.Max(0.01,ViewZoom);Notify();}
+
+    public void OpenMixer(){MixerOpen=true;Notify();}
+    public void CloseMixer(){MixerOpen=false;Notify();}
+    public void SetMixerChannel(string name,int current,int max)
+    {
+        var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);
+        if(channel is null)return;
+        max=Math.Clamp(max,0,999);
+        current=Math.Clamp(current,0,max);
+        channel.Current=current;
+        channel.Max=max;
+        Notify();
+    }
 
     public void SetDistanceUnit(string unit)
     {
@@ -79,7 +112,9 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public DiceSpec? Dice(string key) => DiceSet.FirstOrDefault(x => x.Key == key);
 
-    public async Task RollAsync(string key)
+    public Task RollAsync(string key)=>RollAsync(key,null);
+
+    public async Task RollAsync(string key,int? selectedMagnitude)
     {
         var die = Dice(key);
         if (die is null) return;
@@ -100,9 +135,9 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
             await Task.Delay(52 + Math.Min(n * 3, 34));
         }
 
-        // Landing frames are always real numbered faces: 0,2,4... Halfway
-        // frames are animation-only and can never be the final resting state.
-        var face = Random.Shared.Next(die.Sides);
+        var face = selectedMagnitude.HasValue && (die.Key is "d5-bonus" or "d5-penalty")
+            ? Math.Clamp(selectedMagnitude.Value,1,5)-1
+            : Random.Shared.Next(die.Sides);
         var value = (face + die.ValueOffset) * die.Sign;
         var finalFrame = face * 2;
         var finalIndex = Rolls.IndexOf(item);
