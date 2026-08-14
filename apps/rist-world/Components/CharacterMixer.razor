@@ -27,7 +27,7 @@
        <strong class="field-label">@field.Name</strong>
       </article>
      }
-     <button class="console-add" @onclick="()=>BeginAdd("Pools")">+</button>
+     <button class="console-add" @onclick="OpenPoolsBuilder">+</button>
     </div>
    </section>
 
@@ -45,7 +45,7 @@
        <button class="show-hand" @onclick="()=>Session.ShowHand(field)">Show Hand</button>
       </article>
      }
-     <button class="console-add round-add" @onclick="()=>BeginAdd("Skills")">+</button>
+     <button class="console-add round-add" @onclick="OpenSkillsBuilder">+</button>
     </div>
    </section>
 
@@ -79,7 +79,7 @@
        @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats"))
        {<article><strong>@field.Name</strong><button @onclick="()=>Session.ShowHand(field)">Show Hand</button><button @onclick="()=>Session.RemoveCharacterField(field)">×</button></article>}
       </div>
-      <button class="console-add feat-add" @onclick="()=>BeginAdd("Feats")">+</button>
+      <button class="console-add feat-add" @onclick="OpenFeatsBuilder">+</button>
      </div>
     }
    </section>
@@ -92,6 +92,9 @@
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
  void BeginAdd(string group){AddingGroup=group;Session.SetCharacterTab(group);Session.SetFieldSearch("");}
+ void OpenPoolsBuilder()=>BeginAdd("Pools");
+ void OpenSkillsBuilder()=>BeginAdd("Skills");
+ void OpenFeatsBuilder()=>BeginAdd("Feats");
  void CloseBuilder(){AddingGroup=null;Session.SetFieldSearch("");}
  void SearchChanged(ChangeEventArgs e)=>Session.SetFieldSearch(e.Value?.ToString()??"");
  void AddField(CharacterFieldOption option){Session.AddCharacterField(option);AddingGroup=null;}
