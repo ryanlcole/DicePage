@@ -12,7 +12,7 @@
     {
      <div class="die-control d5-control bonus-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
-      <button class="die-button" title="Roll selected bonus" @onclick="()=>Session.RollAsync(die.Key,Session.BonusD5Value)">
+      <button class="die-button" title="Roll selected bonus" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
        <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
       </button>
      </div>
@@ -21,14 +21,14 @@
     {
      <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
-      <button class="die-button" title="Roll selected penalty" @onclick="()=>Session.RollAsync(die.Key,Session.PenaltyD5Value)">
+      <button class="die-button" title="Roll selected penalty" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
        <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
       </button>
      </div>
     }
     else
     {
-     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="Roll @die.Label" @onclick="()=>Session.RollAsync(die.Key)">
+     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="Roll @die.Label" @onclick="()=>DieClick(die.Key,null)">
       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
       <small>@die.Label</small>
      </button>
@@ -42,6 +42,7 @@
 </footer>
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
+ async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollAsync(key,magnitude);}
  static string DieSpriteStyle(DiceSpec die,int frame)
  {
   var col=frame%die.Columns;var row=frame/die.Columns;
