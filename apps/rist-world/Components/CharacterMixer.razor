@@ -2,50 +2,65 @@
 @if(Session.MixerOpen)
 {
  <div class="mixer-modal" @onclick="Session.CloseMixer">
-  <section class="character-mixer" @onclick:stopPropagation="true">
+  <section class="character-mixer character-window" @onclick:stopPropagation="true">
    <header class="mixer-titlebar">
-    <div><strong>CHARACTER MIXER</strong><span>Attributes • skills • identity</span></div>
+    <div class="character-portrait"><span>PORTRAIT</span></div>
+    <div class="character-heading"><strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"CHARACTER":Session.CharacterName)</strong><span>RIST character sheet</span></div>
     <button @onclick="Session.CloseMixer">Close</button>
    </header>
-
    <div class="mixer-identity">
-    <label>Name<input @bind="Session.CharacterName" /></label>
-    <label>Species<input @bind="Session.CharacterSpecies" /></label>
-    <label>Age<input @bind="Session.CharacterAge" /></label>
-    <label>Alignment<input @bind="Session.CharacterAlignment" /></label>
+    <label>Name<input @bind="Session.CharacterName" /></label><label>Species<input @bind="Session.CharacterSpecies" /></label><label>Age<input @bind="Session.CharacterAge" /></label><label>Alignment<input @bind="Session.CharacterAlignment" /></label>
    </div>
+   <nav class="character-tabs">
+    @foreach(var tab in new[]{"Pools","Skills","Feats","Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}
+   </nav>
 
-   <div class="mixer-channels">
-    @foreach(var channel in Session.MixerChannels)
-    {
-     <article class="mixer-channel">
-      <div class="channel-name">@channel.Name</div>
-      <div class="channel-meter">
-       <input type="range" min="0" max="@Math.Max(channel.Max,1)" value="@channel.Current" @oninput="e=>SetCurrent(channel,e)" />
+   @if(Session.CharacterTab is "Pools" or "Skills" or "Feats")
+   {
+    <section class="field-builder">
+     <label>Add @Session.CharacterTab
+      <input value="@Session.FieldSearch" @oninput="SearchChanged" placeholder="Start typing a name…" autocomplete="off" />
+     </label>
+     @if(!string.IsNullOrWhiteSpace(Session.FieldSearch))
+     {
+      <div class="field-suggestions">
+       @foreach(var option in Session.FilteredFieldVocabulary){<button @onclick="()=>Session.AddCharacterField(option)"><strong>@option.Name</strong><small>@option.Kind</small></button>}
+       <button class="custom-field" @onclick="Session.AddCustomCharacterField"><strong>Custom: @Session.FieldSearch</strong><small>Create new</small></button>
       </div>
-      <div class="channel-dials">
-       <label class="dial current-dial"><span>@channel.Current</span><small>Current</small></label>
-       <label class="dial max-dial"><input type="number" min="0" max="999" value="@channel.Max" @onchange="e=>SetMax(channel,e)" /><small>Max</small></label>
-      </div>
-     </article>
-    }
-   </div>
-
-   <div class="mixer-notes">
-    <label>Description • background • feats • notes
-     <textarea rows="6" @bind="Session.CharacterDescription"></textarea>
-    </label>
-   </div>
+     }
+    </section>
+    <div class="mixer-channels dynamic-fields">
+     @foreach(var field in Session.CharacterFields.Where(x=>x.Group==Session.CharacterTab))
+     {
+      <article class="mixer-channel">
+       <div class="channel-name">@field.Name <button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button></div>
+       @if(field.Kind=="POOL")
+       {
+        <div class="channel-meter"><input type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" @oninput="e=>SetFieldCurrent(field,e)" /></div>
+        <div class="channel-dials"><label class="dial"><span>@field.Current</span><small>Current</small></label><label class="dial"><input type="number" min="0" max="999" value="@field.Max" @onchange="e=>SetFieldMax(field,e)"/><small>Max</small></label></div>
+       }
+       else if(field.Kind=="VALUE")
+       {
+        <label class="dial skill-knob"><input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetFieldCurrent(field,e)"/><small>Value</small></label>
+        <button class="show-hand" disabled title="Card hand wiring is next">Show Hand</button>
+       }
+       else
+       {
+        <div class="ability-panel">Custom ability</div><button class="show-hand" disabled title="Card hand wiring is next">Show Hand</button>
+       }
+      </article>
+     }
+    </div>
+   }
+   else if(Session.CharacterTab=="Description")
+   {<div class="mixer-notes"><label>Public Description<textarea rows="12" @bind="Session.CharacterDescription"></textarea></label></div>}
+   else
+   {<div class="mixer-notes"><label>Background<textarea rows="12" @bind="Session.CharacterBackground"></textarea></label></div>}
   </section>
  </div>
 }
 @code{
- void SetCurrent(MixerChannel channel,ChangeEventArgs e)
- {
-  if(int.TryParse(e.Value?.ToString(),out var value))Session.SetMixerChannel(channel.Name,value,channel.Max);
- }
- void SetMax(MixerChannel channel,ChangeEventArgs e)
- {
-  if(int.TryParse(e.Value?.ToString(),out var value))Session.SetMixerChannel(channel.Name,channel.Current,value);
- }
+ void SearchChanged(ChangeEventArgs e)=>Session.SetFieldSearch(e.Value?.ToString()??"");
+ void SetFieldCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
+ void SetFieldMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,field.Current,v);}
 }
