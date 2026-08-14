@@ -1,33 +1,30 @@
 @inject WorldSession Session
-<section class="hand-rail tabletop-dial-rail circular-rail" data-circular-rail aria-label="Player hand">
- @for(var copy=0;copy<3;copy++)
- {
-  <div class="circular-set hand-circular-set">
-   @if(Session.HandCards.Count==0)
+<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand">
+ <div class="finite-set hand-circular-set">
+  @if(Session.HandCards.Count==0)
+  {
+   <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill or feat to place its card here.</div>
+  }
+  else
+  {
+   @foreach(var card in Session.HandCards)
    {
-    <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill or feat to place its card here.</div>
+    <article class="hand-card dial-hand-card color-@card.Field.Color">
+     <div class="hand-card-dial"><span>@card.Value</span></div>
+     <div class="hand-card-plate"><strong>@card.Name</strong><small>@card.Type</small></div>
+     <button class="dicebag-button" title="@(Session.MixerOpen&&Session.CharacterEditMode?"Open dice bag editor":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
+      <img src="assets/ui/custom_dicebag.png" alt="Dice bag" />
+      <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
+     </button>
+     <div class="hand-card-tools">
+      <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
+      <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
+      <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
+     </div>
+    </article>
    }
-   else
-   {
-    @foreach(var card in Session.HandCards)
-    {
-     <article class="hand-card dial-hand-card color-@card.Field.Color">
-      <div class="hand-card-dial"><span>@card.Value</span></div>
-      <div class="hand-card-plate"><strong>@card.Name</strong><small>@card.Type</small></div>
-      <button class="dicebag-button" title="@(Session.MixerOpen&&Session.CharacterEditMode?"Edit dice bag":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
-       <img src="assets/ui/custom_dicebag.png" alt="" aria-hidden="true" />
-       <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
-      </button>
-      <div class="hand-card-tools">
-       <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
-       <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
-       <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
-      </div>
-     </article>
-    }
-   }
-  </div>
- }
+  }
+ </div>
 </section>
 
 @if(Session.EditingHandCard is not null)
@@ -35,24 +32,24 @@
  var card=Session.EditingHandCard;
  <div class="dicebag-modal @(Session.MixerOpen?"sheet-bag-modal":"")" @onclick="Session.CloseDiceBag">
   <section class="dicebag-workspace" @onclick:stopPropagation="true" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag" aria-label="Custom fillable dice bag">
-   <header class="dicebag-title"><div><strong>@card.Name</strong><span>Drag dice here from the bottom rail</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
+   <header class="dicebag-title"><div><strong>@card.Name</strong><span>Drag or tap dice from the bottom rail to add them.</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
    <div class="physical-bag bag-drop-zone" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag">
     <img src="assets/ui/custom_dicebag.png" alt="Custom fillable dice bag" />
     <div class="bag-summary">@card.DiceBag.Sum(x=>x.Count) dice</div>
    </div>
    <div class="dicebag-entries">
-    @if(card.DiceBag.Count==0){<div class="empty-bag">Empty bag — drag dice up from the bottom dice rail.</div>}
+    @if(card.DiceBag.Count==0){<div class="empty-bag">Empty bag — drag or tap dice from the footer below.</div>}
     @foreach(var entry in card.DiceBag.ToArray())
     {
      var die=Session.Dice(entry.DieKey);
      if(die is not null)
      {
-      <div class="dicebag-entry bag-die-chip" draggable="true" @ondragstart="()=>Session.RemoveDiceBagEntry(entry)" title="Drag out to remove">
+      <div class="dicebag-entry bag-die-chip" draggable="true" @ondragstart="()=>Session.RemoveDiceBagEntry(entry)" title="Drag out or tap remove">
        <strong>@die.Label</strong>
        <label>×<input type="number" min="1" max="20" value="@entry.Count" @onchange="e=>SetCount(entry,e)" /></label>
        @if(entry.DieKey is "d5-bonus" or "d5-penalty")
        {<label>Value<select value="@entry.SelectedMagnitude" @onchange="e=>SetMagnitude(entry,e)">@for(var i=1;i<=5;i++){<option value="@i">@(entry.DieKey=="d5-bonus"?"+":"-")@i</option>}</select></label>}
-       <span class="drag-hint">drag out</span>
+       <button class="remove-bag-die" @onclick="()=>Session.RemoveDiceBagEntry(entry)">Remove</button>
       </div>
      }
     }
