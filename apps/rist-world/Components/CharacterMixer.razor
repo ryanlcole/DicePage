@@ -1,0 +1,51 @@
+@inject WorldSession Session
+@if(Session.MixerOpen)
+{
+ <div class="mixer-modal" @onclick="Session.CloseMixer">
+  <section class="character-mixer" @onclick:stopPropagation="true">
+   <header class="mixer-titlebar">
+    <div><strong>CHARACTER MIXER</strong><span>Attributes • skills • identity</span></div>
+    <button @onclick="Session.CloseMixer">Close</button>
+   </header>
+
+   <div class="mixer-identity">
+    <label>Name<input @bind="Session.CharacterName" /></label>
+    <label>Species<input @bind="Session.CharacterSpecies" /></label>
+    <label>Age<input @bind="Session.CharacterAge" /></label>
+    <label>Alignment<input @bind="Session.CharacterAlignment" /></label>
+   </div>
+
+   <div class="mixer-channels">
+    @foreach(var channel in Session.MixerChannels)
+    {
+     <article class="mixer-channel">
+      <div class="channel-name">@channel.Name</div>
+      <div class="channel-meter">
+       <input type="range" min="0" max="@Math.Max(channel.Max,1)" value="@channel.Current" @oninput="e=>SetCurrent(channel,e)" />
+      </div>
+      <div class="channel-dials">
+       <label class="dial current-dial"><span>@channel.Current</span><small>Current</small></label>
+       <label class="dial max-dial"><input type="number" min="0" max="999" value="@channel.Max" @onchange="e=>SetMax(channel,e)" /><small>Max</small></label>
+      </div>
+     </article>
+    }
+   </div>
+
+   <div class="mixer-notes">
+    <label>Description • background • feats • notes
+     <textarea rows="6" @bind="Session.CharacterDescription"></textarea>
+    </label>
+   </div>
+  </section>
+ </div>
+}
+@code{
+ void SetCurrent(MixerChannel channel,ChangeEventArgs e)
+ {
+  if(int.TryParse(e.Value?.ToString(),out var value))Session.SetMixerChannel(channel.Name,value,channel.Max);
+ }
+ void SetMax(MixerChannel channel,ChangeEventArgs e)
+ {
+  if(int.TryParse(e.Value?.ToString(),out var value))Session.SetMixerChannel(channel.Name,channel.Current,value);
+ }
+}
