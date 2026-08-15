@@ -1,4 +1,4 @@
-# character-console-deploy-2026-08-15-1
+# character-console-deploy-2026-08-15-2
 name: Deploy RIST WORLD Public
 # restore-card-character-layout-17
 on: [workflow_dispatch, push]
