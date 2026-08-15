@@ -19,6 +19,10 @@ public sealed class CharacterField(string name,string kind,string group)
     public int Current { get; set; }
     public int Max { get; set; } = kind == "POOL" ? 100 : 999;
     public string Color { get; set; } = "gold";
+    public string Description { get; set; } = "";
+    public bool DescriptionEnabled { get; set; } = true;
+    public string ImageDataUrl { get; set; } = "";
+    public List<DiceBagEntry> DiceBag { get; } = [];
 }
 
 public sealed class DiceBagEntry(string dieKey,int count=1,int selectedMagnitude=1)
@@ -32,9 +36,9 @@ public sealed class HandCard(CharacterField field)
 {
     public string Id { get; } = Guid.NewGuid().ToString("N");
     public CharacterField Field { get; } = field;
-    public List<DiceBagEntry> DiceBag { get; } = [];
+    public List<DiceBagEntry> DiceBag => Field.DiceBag;
     public string Name => Field.Name;
-    public string Type => Field.Kind == "VALUE" ? "Skill" : Field.Kind == "ABILITY" ? "Feat / Ability" : "Pool";
+    public string Type => Field.Kind == "VALUE" ? "Skill" : Field.Kind == "ABILITY" ? "Feat / Ability" : Field.Group;
     public int Value => Field.Current;
 }
 
