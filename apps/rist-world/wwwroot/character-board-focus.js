@@ -144,7 +144,13 @@
    crop.addEventListener('touchend',done);crop.addEventListener('touchcancel',done);
  }
 
- function wire(root){
+function wire(root){
+   if(root.matches('[data-board-static="true"]')){
+     root.classList.remove('board-fit','board-section-focus','board-card-focus');
+     root.querySelectorAll('.board-section-active,.board-card-active').forEach(x=>x.classList.remove('board-section-active','board-card-active'));
+     decorate(root);
+     return;
+   }
    if(root.dataset.boardFocus==='2'){decorate(root);return;}
    root.dataset.boardFocus='2';fit(root);navFor(root);decorate(root);
    root.addEventListener('click',e=>{
