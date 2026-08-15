@@ -35,11 +35,11 @@
 
 /* Exact reference-backed character sheet screens. */
 .mixer-modal:has(.exact-sheet-screen){inset:0 0 160px!important;z-index:100!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;padding:0!important;background:#0b0f11!important;overflow:hidden!important}
-.universal-sheet:has(.exact-sheet-screen){position:relative;width:auto!important;max-width:100vw!important;height:calc(100dvh - 160px)!important;max-height:none!important;aspect-ratio:727/1536;overflow:hidden!important;padding:0!important;border:0!important;border-radius:0!important;background:#f3ede3!important;box-shadow:none!important;color:#75664b!important}
+.universal-sheet:has(.exact-sheet-screen){position:relative;width:auto!important;max-width:100vw!important;height:calc(100dvh - 160px)!important;max-height:none!important;aspect-ratio:727/1380;overflow:hidden!important;padding:0!important;border:0!important;border-radius:0!important;background:#f3ede3!important;box-shadow:none!important;color:#75664b!important}
 .exact-sheet-toolbar{position:absolute;z-index:40;inset:0 auto auto 0;width:11%;height:7%;font-size:0}
 .exact-sheet-toolbar span,.exact-sheet-toolbar button:not(:last-child){display:none}
 .exact-sheet-toolbar button:last-child{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;color:transparent;font-size:0}
-.exact-sheet-screen{position:relative;width:100%;height:100%;overflow:hidden;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.exact-sheet-screen{position:relative;width:100%;height:100%;overflow:hidden;background-repeat:no-repeat;background-position:top center;background-size:100% auto}
 .exact-profile{background-image:url('../assets/ui/character-sheet/profile-reference.jpeg')}
 .exact-rules,.exact-entries,.exact-notes{background-image:url('../assets/ui/character-sheet/entries-reference.jpeg')}
 .exact-equipment{background-image:url('../assets/ui/character-sheet/equipment-reference.jpeg')}
@@ -47,7 +47,9 @@
 .exact-sheet-screen input,.exact-sheet-screen textarea,.exact-sheet-screen button{box-sizing:border-box;border:0;background:transparent;color:#76684e;outline:0}
 .exact-portrait{position:absolute!important;left:23.4%!important;top:1.4%!important;width:53.2%!important;min-width:0!important;height:auto!important;aspect-ratio:1!important;border:0!important;border-radius:50%!important;background:transparent!important;overflow:hidden!important}
 .exact-portrait>img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
-.exact-portrait .portrait-upload{position:absolute;inset:auto 18% 7%;padding:2%;border-radius:999px;background:#fff9;font-size:clamp(7px,1.5vh,11px);text-align:center}
+.exact-portrait .portrait-upload{position:absolute!important;right:4%!important;bottom:4%!important;left:auto!important;width:18%!important;height:18%!important;padding:0!important;border:0!important;background:transparent!important;cursor:pointer}
+.exact-portrait .portrait-upload>img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 2px #6d593e66)}
+.exact-portrait .portrait-upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .exact-name{position:absolute;left:22.7%;top:24.4%;width:54.8%;height:4.8%;padding:0 5%;font:700 clamp(13px,2.3vh,23px) Georgia,serif;text-align:center}
 .exact-profile-values{position:absolute;left:3.8%;top:36.6%;width:92.4%;height:35.2%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4.1% 4.4%}
 .exact-value-card{position:relative;display:grid!important;grid-template-rows:25% 1fr;align-items:center;justify-items:center;padding:0 8%!important;text-align:center}
@@ -77,7 +79,8 @@
 .exact-location-grid{position:absolute;left:5.5%;top:34.5%;width:89%;height:24.8%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:13% 7%}
 .exact-location-grid button{display:grid;place-items:center;padding:4%}.exact-location-grid strong{font-size:clamp(7px,1.4vh,13px)}.exact-location-grid output{font-size:clamp(10px,2vh,18px)}
 .exact-notes-page{position:absolute;left:8%;top:20%;width:84%;height:55%;padding:5%;resize:none;font-size:clamp(9px,1.65vh,15px)}
-.exact-hotspots{position:absolute;left:4%;bottom:1.1%;width:92%;height:8.8%;display:grid;grid-template-columns:repeat(5,1fr);gap:2.5%}
-.exact-hotspots button{width:100%;height:100%;color:transparent!important;font-size:0!important}
-.exact-hotspots .notes{display:none}.exact-hotspots .profile{grid-column:1}.exact-hotspots .rules{grid-column:2}.exact-hotspots .entries{grid-column:3}.exact-hotspots .equipment{grid-column:4}.exact-hotspots .linked{grid-column:5}
+.exact-page-arrows{position:absolute;z-index:30;left:3%;right:3%;bottom:1.2%;display:flex;justify-content:space-between;pointer-events:none}
+.exact-page-arrows button{width:12%;max-width:58px;aspect-ratio:1;padding:0!important;pointer-events:auto;filter:drop-shadow(0 2px 4px #7b694d55)}
+.exact-page-arrows img{display:block;width:100%;height:100%;object-fit:contain}
+.exact-page-arrows .next img{transform:scaleX(-1)}
 @media(min-width:850px){.exact-sheet-toolbar button:last-child{cursor:pointer}}

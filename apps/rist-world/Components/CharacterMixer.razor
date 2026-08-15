@@ -11,7 +11,7 @@
  <div class="exact-sheet-screen exact-@_sheetView.ToLowerInvariant()">
  @if(_sheetView=="Profile")
  {
-  <div class="exact-portrait character-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait"/>}else{<span></span>}@if(Session.CharacterEditMode){<label class="portrait-upload">Edit portrait<InputFile OnChange="LoadPortraitEditor" accept="image/*"/></label>}</div>
+  <div class="exact-portrait character-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait"/>}else{<span></span>}@if(Session.CharacterEditMode){<label class="portrait-upload" aria-label="Edit portrait"><img src="assets/ui/character-sheet/portrait-edit-pencil.png" alt=""/><InputFile OnChange="LoadPortraitEditor" accept="image/*"/></label>}</div>
   <input class="exact-name" aria-label="Character name" @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)"/>
   <div class="exact-profile-values">@foreach(var field in Session.CharacterFields.Where(WorldSession.IsAttributeField).Take(6)){<button class="exact-value-card" @onclick="()=>OpenCardEditor(field)"><strong>@field.Name</strong><output>@field.Current</output></button>}</div>
   <div class="exact-profile-trackers">@foreach(var field in Session.CharacterFields.Where(WorldSession.IsTrackerField).Take(2)){<div><button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.SetTrackerCurrent(field,field.Current-1)">Decrease</button><input aria-label="@field.Name" value="@field.Current" @onchange="e=>SetTrackerCurrent(field,e)"/><button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.SetTrackerCurrent(field,field.Current+1)">Increase</button></div>}</div>
@@ -40,7 +40,7 @@
  {
   <textarea class="exact-notes-page" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" aria-label="Character notes"></textarea>
  }
- <nav class="exact-hotspots" aria-label="Character sheet navigation"><button class="profile" @onclick="GoProfile">Profile</button><button class="rules" @onclick="GoRules">Rules</button><button class="entries" @onclick="GoEntries">Entries</button><button class="equipment" @onclick="GoEquipment">Equipment</button><button class="linked" @onclick="GoLinked">Linked</button><button class="notes" @onclick="GoNotes">Notes</button></nav>
+ <nav class="exact-page-arrows" aria-label="Character sheet pages"><button class="back" @onclick="PreviousSheet" aria-label="Previous character sheet page"><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button><button class="next" @onclick="NextSheet" aria-label="Next character sheet page"><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></nav>
  </div>
 </section></div>
 
@@ -67,12 +67,15 @@
 }
 @code{
  static readonly (string Name,string Hex)[] Colors=[("red","#c7493a"),("orange","#e9852c"),("gold","#d9a82f"),("yellow","#f0d85c"),("lime","#9bc84a"),("green","#58a765"),("teal","#41aaa4"),("cyan","#55c7dc"),("blue","#4c82d5"),("indigo","#6559c7"),("purple","#9653c9"),("magenta","#cf59ad"),("rose","#d16d7f"),("silver","#b8bdc4"),("white","#eee6d2")];
+ static readonly string[] SheetViews=["Profile","Entries","Equipment","Linked"];
  string _portraitSource=""; bool _portraitEditing; double _portraitZoom=1; int _portraitX=50; int _portraitY=50; string _sheetView="Profile";
  CharacterField? _nameplateField; CharacterField? _cardField; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
  protected override void OnInitialized()=>Session.Changed+=SessionChanged; void SessionChanged()=>_ = InvokeAsync(StateHasChanged); public void Dispose()=>Session.Changed-=SessionChanged;
  void CloseSheet(){Session.CloseFieldDiceBag();_nameplateField=null;_cardField=null;Session.CloseMixer();} bool InHand(CharacterField f)=>Session.IsFieldInHand(f);
  void SetView(string view)=>_sheetView=view; string ViewClass(string view)=>_sheetView==view?"active":"";
  void GoProfile()=>SetView("Profile"); void GoRules()=>SetView("Rules"); void GoEntries()=>SetView("Entries"); void GoEquipment()=>SetView("Equipment"); void GoLinked()=>SetView("Linked"); void GoNotes()=>SetView("Notes");
+ void StepSheet(int delta){var index=Array.IndexOf(SheetViews,_sheetView);if(index<0)index=0;_sheetView=SheetViews[(index+delta+SheetViews.Length)%SheetViews.Length];}
+ void PreviousSheet()=>StepSheet(-1); void NextSheet()=>StepSheet(1);
  void AddAttribute()=>Session.AddCharacterControl("Attributes"); void AddTracker()=>Session.AddCharacterControl("Trackers"); void AddLimit()=>Session.AddCharacterControl("Limits"); void AddSkill()=>Session.AddCharacterControl("Skills"); void AddFlare()=>Session.AddCharacterControl("Flare"); void ToggleSkillDescriptions()=>Session.ToggleSectionDescriptions("Skills"); void ShowDescription()=>Session.SetCharacterTab("Description"); void ShowBackground()=>Session.SetCharacterTab("Background"); void ShowFeats()=>Session.SetCharacterTab("Feats");
  void OpenNameplate(CharacterField f){_nameplateField=f;_nameplateName=f.Name;_nameplateCode=string.IsNullOrWhiteSpace(f.ShortName)?CharacterField.AutoShortName(f.Name):f.ShortName;_nameplateDescription=f.NameplateDescription;}
  void CancelNameplate()=>_nameplateField=null;
