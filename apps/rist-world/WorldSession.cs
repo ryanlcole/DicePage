@@ -21,7 +21,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string WorldMapUrl { get; } = "assets/world/naeja.png";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
-        new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 6, VisualAspect:1.06),
+        new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 4, VisualAspect:1.06),
         new("d5-bonus", "+D5", "assets/dice/d5-bonus.png", 5, 10, 1, 10, 8, VisualAspect:.77),
         new("d5-penalty", "-D5", "assets/dice/d5-penalty.png", 5, 10, 1, 10, 8, 1, -1, .73),
         new("d6", "D6", "assets/dice/d6.png", 6, 12, 1, 12, 10, VisualAspect:.83),
