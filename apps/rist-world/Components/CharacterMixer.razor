@@ -6,12 +6,32 @@
 @if(Session.MixerOpen)
 {
 <div class="mixer-modal" @onclick="CloseSheet">
-<section class="character-mixer character-console character-console-v2" data-board-static="true" @onclick:stopPropagation="true">
+<section class="character-mixer universal-sheet" data-board-static="true" @onclick:stopPropagation="true">
  <div class="character-console-tools"><span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>@if(Session.CharacterEditMode){<button @onclick="Session.NewCharacter">+ Character</button><button @onclick="Session.SaveCharacter">Save</button>}else{<button @onclick="Session.EditCharacter">Edit</button>}<button @onclick="CloseSheet">×</button></div>
- <header class="console-identity">
+ <header class="universal-profile-head">
   <div class="character-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait"/>}else{<span>PORTRAIT</span>}@if(Session.CharacterEditMode){<label class="portrait-upload">Edit portrait<InputFile OnChange="LoadPortraitEditor" accept="image/*"/></label>}</div>
   <label>NAME<input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)"/></label><label>SPECIES<input @bind="Session.CharacterSpecies" readonly="@(!Session.CharacterEditMode)"/></label><label>AGE<input @bind="Session.CharacterAge" readonly="@(!Session.CharacterEditMode)"/></label><label>ALIGNMENT<input @bind="Session.CharacterAlignment" readonly="@(!Session.CharacterEditMode)"/></label>
  </header>
+
+ <nav class="universal-sheet-tabs" aria-label="Character sheet sections">
+  <button class="@(ViewClass("Profile"))" @onclick="()=>SetView("Profile")">Profile</button>
+  <button class="@(ViewClass("Rules"))" @onclick="()=>SetView("Rules")">Values</button>
+  <button class="@(ViewClass("Entries"))" @onclick="()=>SetView("Entries")">Entries</button>
+  <button class="@(ViewClass("Equipment"))" @onclick="()=>SetView("Equipment")">Equipment</button>
+  <button class="@(ViewClass("Linked"))" @onclick="()=>SetView("Linked")">Linked</button>
+ </nav>
+
+ <div class="universal-sheet-page view-@_sheetView.ToLowerInvariant()">
+ @if(_sheetView=="Profile")
+ {
+  <section class="profile-overview-panel">
+   <div class="profile-summary-card"><strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"Unnamed character":Session.CharacterName)</strong><span>@Session.CharacterSpecies</span><p>@(string.IsNullOrWhiteSpace(Session.CharacterDescription)?"Add a short public description in Notes.":Session.CharacterDescription)</p></div>
+   <div class="representation-row"><button title="World representation">World</button><button title="Region representation">Region</button><button title="Local representation">Local</button><button title="Encounter representation">Encounter</button></div>
+  </section>
+ }
+
+ @if(_sheetView is "Profile" or "Rules")
+ {
 
  <section class="console-bank attributes-bank console-fader-bank"><div class="bank-title"><strong>ATTRIBUTES</strong><span>Adjustable character values</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
  @foreach(var field in Session.CharacterFields.Where(WorldSession.IsAttributeField))
@@ -60,7 +80,31 @@
  @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
  </div></div></section>
 
- <section class="console-notebook"><nav class="notebook-tabs"><button class="@(Session.CharacterTab=="Description"?"active":"")" @onclick="ShowDescription">Description</button><button class="@(Session.CharacterTab=="Background"?"active":"")" @onclick="ShowBackground">Background</button><button class="@(Session.CharacterTab=="Feats"?"active":"")" @onclick="ShowFeats">Feats</button></nav>@if(Session.CharacterTab=="Feats"){<div class="notebook-feats finite-set character-control-set feat-card-set">@foreach(var field in Session.CharacterFields.Where(WorldSession.IsFlareField)){<article class="flare-control-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}@Plate(field,false)@ColorControls(field)</article>}@if(Session.CharacterEditMode){<button class="console-add physical-add feat-add" @onclick="AddFlare">+</button>}</div>}else if(Session.CharacterTab=="Background"){<textarea class="keyboard-input" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}else{<textarea class="keyboard-input" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}</section>
+ }
+
+ @if(_sheetView=="Entries")
+ {
+  <section class="universal-collection"><header><div><strong>Entries</strong><span>User-created abilities, rules, attacks, traits, spells, or lore</span></div>@if(Session.CharacterEditMode){<button @onclick="AddSkill">+</button>}</header><div class="universal-entry-list">@foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills")){<article class="universal-entry-card" style="@AccentStyle(field)"><button class="entry-icon" @onclick="()=>OpenCardEditor(field)">✦</button><div><strong>@field.Name</strong><p>@(string.IsNullOrWhiteSpace(field.Description)?"Text, bonus, roll, or full mechanical entry":field.Description)</p></div><output>@field.Current</output></article>}</div></section>
+  <section class="universal-collection compact"><header><div><strong>Conditions & modifiers</strong><span>Temporary or persistent changes</span></div>@if(Session.CharacterEditMode){<button @onclick="AddFlare">+</button>}</header><div class="condition-chips">@foreach(var field in Session.CharacterFields.Where(WorldSession.IsFlareField)){<button style="@AccentStyle(field)" @onclick="()=>OpenCardEditor(field)">@field.Name</button>}</div></section>
+ }
+
+ @if(_sheetView=="Equipment")
+ {
+  <section class="equipment-board"><header><strong>Equipment & containers</strong>@if(Session.CharacterEditMode){<button @onclick="AddFlare">+</button>}</header><div class="equipment-slots">@foreach(var field in Session.CharacterFields.Where(x=>x.Group is "Flare" or "Skills")){<article @onclick="()=>OpenCardEditor(field)"><div class="equipment-image">@if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt=""/>}else{<span>◇</span>}</div><strong>@field.Name</strong><small>@(string.IsNullOrWhiteSpace(field.Subtitle)?"Carried":field.Subtitle)</small></article>}</div><div class="container-list"><div><strong>Carried</strong><span>Owned by @Session.CharacterName</span></div><div><strong>Stored</strong><span>Nested containers supported</span></div><div><strong>Map placement</strong><span>Trade, transfer, or place</span></div></div></section>
+ }
+
+ @if(_sheetView=="Linked")
+ {
+  <section class="linked-asset-board"><header><button>‹</button><strong>Linked assets & location groups</strong>@if(Session.CharacterEditMode){<button>+</button>}</header><div class="linked-hero"><div class="asset-node main"><strong>Linked asset</strong><span>Vehicle, ship, mech, base, or creature</span></div><div class="asset-node"><span>Armor</span></div><div class="asset-node"><span>Structure</span></div><div class="asset-node"><span>Systems</span></div><div class="asset-node"><span>Crew</span></div></div><div class="location-ring"><button>Head</button><button>Left</button><button class="core">Core</button><button>Right</button><button>Rear</button><button>Base</button></div><div class="location-trackers"><label>Armor <progress value="72" max="100"></progress></label><label>Structure <progress value="48" max="100"></progress></label></div></section>
+ }
+
+ @if(_sheetView=="Notes")
+ {
+  <section class="console-notebook universal-notes"><nav class="notebook-tabs"><button class="@(Session.CharacterTab=="Description"?"active":"")" @onclick="ShowDescription">Description</button><button class="@(Session.CharacterTab=="Background"?"active":"")" @onclick="ShowBackground">Background</button><button class="@(Session.CharacterTab=="Feats"?"active":"")" @onclick="ShowFeats">Records</button></nav>@if(Session.CharacterTab=="Background"){<textarea class="keyboard-input" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Biography, journal, objectives, locations, and private notes…"></textarea>}else{<textarea class="keyboard-input" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Description, reminders, and public notes…"></textarea>}</section>
+ }
+ </div>
+
+ <nav class="universal-bottom-nav" aria-label="Character sheet navigation"><button class="@(ViewClass("Profile"))" @onclick="()=>SetView("Profile")">Profile</button><button class="@(ViewClass("Rules"))" @onclick="()=>SetView("Rules")">Rules</button><button class="@(ViewClass("Entries"))" @onclick="()=>SetView("Entries")">Entries</button><button class="@(ViewClass("Equipment"))" @onclick="()=>SetView("Equipment")">Gear</button><button class="@(ViewClass("Linked"))" @onclick="()=>SetView("Linked")">Linked</button><button class="@(ViewClass("Notes"))" @onclick="()=>SetView("Notes")">Notes</button></nav>
 </section></div>
 
 @if(_nameplateField is not null)
@@ -86,10 +130,11 @@
 }
 @code{
  static readonly (string Name,string Hex)[] Colors=[("red","#c7493a"),("orange","#e9852c"),("gold","#d9a82f"),("yellow","#f0d85c"),("lime","#9bc84a"),("green","#58a765"),("teal","#41aaa4"),("cyan","#55c7dc"),("blue","#4c82d5"),("indigo","#6559c7"),("purple","#9653c9"),("magenta","#cf59ad"),("rose","#d16d7f"),("silver","#b8bdc4"),("white","#eee6d2")];
- string _portraitSource=""; bool _portraitEditing; double _portraitZoom=1; int _portraitX=50; int _portraitY=50;
+ string _portraitSource=""; bool _portraitEditing; double _portraitZoom=1; int _portraitX=50; int _portraitY=50; string _sheetView="Profile";
  CharacterField? _nameplateField; CharacterField? _cardField; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
  protected override void OnInitialized()=>Session.Changed+=SessionChanged; void SessionChanged()=>_ = InvokeAsync(StateHasChanged); public void Dispose()=>Session.Changed-=SessionChanged;
  void CloseSheet(){Session.CloseFieldDiceBag();_nameplateField=null;_cardField=null;Session.CloseMixer();} bool InHand(CharacterField f)=>Session.IsFieldInHand(f);
+ void SetView(string view)=>_sheetView=view; string ViewClass(string view)=>_sheetView==view?"active":"";
  void AddAttribute()=>Session.AddCharacterControl("Attributes"); void AddTracker()=>Session.AddCharacterControl("Trackers"); void AddLimit()=>Session.AddCharacterControl("Limits"); void AddSkill()=>Session.AddCharacterControl("Skills"); void AddFlare()=>Session.AddCharacterControl("Flare"); void ToggleSkillDescriptions()=>Session.ToggleSectionDescriptions("Skills"); void ShowDescription()=>Session.SetCharacterTab("Description"); void ShowBackground()=>Session.SetCharacterTab("Background"); void ShowFeats()=>Session.SetCharacterTab("Feats");
  void OpenNameplate(CharacterField f){_nameplateField=f;_nameplateName=f.Name;_nameplateCode=string.IsNullOrWhiteSpace(f.ShortName)?CharacterField.AutoShortName(f.Name):f.ShortName;_nameplateDescription=f.NameplateDescription;}
  void CancelNameplate()=>_nameplateField=null;
