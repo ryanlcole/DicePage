@@ -1,31 +1,4 @@
 <main class="table-workspace" @onpointermove="DragMove" @onpointerup="DragEnd" @onpointercancel="DragCancel">
- <aside class="staging-tray" aria-label="Tabletop staging tray">
-  @if(Session.StagedAssets.Count==0)
-  {
-   <div class="tray-hint">Choose a pin, token, or tile above to place it here.</div>
-  }
-  @foreach(var staged in Session.StagedAssets)
-  {
-   <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray."
-           @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true"
-           @ondblclick="()=>Session.RemoveStaged(staged.Key)">
-    @if(staged.Kind=="tile")
-    {
-     <img src="@staged.Image" alt="@staged.Name" />
-    }
-    else if(staged.Kind=="pin")
-    {
-     <span class="gps-pin" aria-hidden="true"></span>
-    }
-    else
-    {
-     <span class="token-preview">token</span>
-    }
-    <small>@staged.Name</small>
-   </button>
-  }
- </aside>
-
  <section class="map-shell">
   <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel">
    <div class="world-stage" style="transform:@StageTransform">
