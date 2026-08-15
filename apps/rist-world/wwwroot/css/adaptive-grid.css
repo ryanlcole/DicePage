@@ -40,13 +40,6 @@
  .staging-tray{min-height:66px;padding:5px 7px}.tray-item{height:52px;flex-basis:56px}.map-shell{padding:3px}.map{width:100%;max-height:none}
 }
 
-/* Board-only layout: the removed staging row no longer reserves empty space. */
-.table-workspace{grid-template-rows:minmax(0,1fr)!important}
-.table-workspace>.map-shell{width:100%!important;height:100%!important;display:grid!important;place-items:center!important}
-.table-workspace .map{align-self:center!important;justify-self:center!important}
-.table-workspace .world-stage{top:0!important;right:auto!important;bottom:auto!important;left:0!important;width:100%!important;height:100%!important}
-.table-workspace .world-stage>img.base{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:fill!important}
-
 /* Landscape: staging surface moves to the left and the map is centered in the
    remaining viewport. This prevents the wide toolbar from widening the page. */
 @media(orientation:landscape) and (max-height:600px){
