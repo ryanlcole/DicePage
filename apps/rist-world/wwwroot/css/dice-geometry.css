@@ -1,5 +1,5 @@
 /* Footer dice use optimized 256x256 source frames.
-   Keep the source frame square and scale both axes together. */
+   Keep every source frame square and scale both axes together. */
 .dice-footer .die-button{
  display:grid!important;
  grid-template-rows:1fr!important;
@@ -22,7 +22,7 @@
  transform:none!important;
 }
 
-/* Footer controls share the card height. Standard dice remain square. */
+/* Ordinary dice are square and exactly as tall as a footer card. */
 .dice-footer .circular-set>.die-button{
  flex:0 0 var(--footer-slot-h)!important;
  width:var(--footer-slot-h)!important;
@@ -32,59 +32,75 @@
  max-height:var(--footer-slot-h)!important;
  padding:6px!important;
 }
+
+/* Clear Dice shares the card height but is intentionally rectangular. */
 .dice-footer .clear-dice{
- flex:0 0 var(--footer-slot-h)!important;
- width:var(--footer-slot-h)!important;
- min-width:var(--footer-slot-h)!important;
+ flex:0 0 calc(var(--footer-slot-h) + 18px)!important;
+ width:calc(var(--footer-slot-h) + 18px)!important;
+ min-width:calc(var(--footer-slot-h) + 18px)!important;
  height:var(--footer-slot-h)!important;
  min-height:var(--footer-slot-h)!important;
  max-height:var(--footer-slot-h)!important;
  align-self:stretch!important;
  white-space:normal!important;
- overflow-wrap:normal;
  line-height:1.1!important;
  text-align:center;
- padding:8px!important;
+ padding:8px 12px!important;
 }
 
-/* D5 value selectors sit horizontally above smaller, uniformly scaled gems. */
+/* Each D5 is a square die with a short horizontal value bar below it.
+   The square plus the bar equals the card height. */
 .dice-footer .d5-control{
+ --d5-value-h:24px;
+ --d5-square:calc(var(--footer-slot-h) - var(--d5-value-h));
  position:relative!important;
- flex:0 0 var(--footer-slot-h)!important;
- width:var(--footer-slot-h)!important;
- min-width:var(--footer-slot-h)!important;
+ flex:0 0 var(--d5-square)!important;
+ width:var(--d5-square)!important;
+ min-width:var(--d5-square)!important;
  height:var(--footer-slot-h)!important;
  min-height:var(--footer-slot-h)!important;
  max-height:var(--footer-slot-h)!important;
- display:block!important;
+ display:grid!important;
+ grid-template-columns:var(--d5-square)!important;
+ grid-template-rows:var(--d5-square) var(--d5-value-h)!important;
+ gap:0!important;
+ align-items:stretch!important;
 }
 .dice-footer .d5-control .die-button{
- width:100%!important;
- min-width:100%!important;
- height:100%!important;
- min-height:100%!important;
- max-height:100%!important;
- padding:27px 6px 5px!important;
+ grid-column:1!important;
+ grid-row:1!important;
+ width:var(--d5-square)!important;
+ min-width:var(--d5-square)!important;
+ max-width:var(--d5-square)!important;
+ height:var(--d5-square)!important;
+ min-height:var(--d5-square)!important;
+ max-height:var(--d5-square)!important;
+ padding:4px!important;
+ border-radius:10px 10px 0 0!important;
 }
 .dice-footer .d5-control select{
- position:absolute!important;
+ position:static!important;
+ grid-column:1!important;
+ grid-row:2!important;
  z-index:2;
- top:5px;
- left:7px;
- right:7px;
- width:calc(100% - 14px)!important;
- height:24px!important;
- min-height:24px!important;
+ display:block!important;
+ width:var(--d5-square)!important;
+ min-width:var(--d5-square)!important;
+ max-width:var(--d5-square)!important;
+ height:var(--d5-value-h)!important;
+ min-height:var(--d5-value-h)!important;
+ max-height:var(--d5-value-h)!important;
  padding:1px 18px 1px 6px!important;
- border-radius:6px!important;
+ margin:0!important;
+ border-radius:0 0 7px 7px!important;
  text-align:center;
  text-align-last:center;
 }
 .dice-footer .d5-control .die-sprite{
- width:36px!important;
- height:36px!important;
- min-width:36px!important;
- min-height:36px!important;
+ width:34px!important;
+ height:34px!important;
+ min-width:34px!important;
+ min-height:34px!important;
 }
 
 .rolled-die{
@@ -104,9 +120,8 @@
 
 @media(max-width:800px){
  .dice-footer .die-sprite{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
- .dice-footer .d5-control .die-sprite{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
- .dice-footer .d5-control .die-button{padding-top:26px!important}
- .dice-footer .d5-control select{top:4px;height:23px!important;min-height:23px!important}
+ .dice-footer .d5-control{--d5-value-h:23px}
+ .dice-footer .d5-control .die-sprite{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
  .rolled-die{width:44px!important}
  .character-footer-button{flex-basis:50px!important;width:50px!important;height:48px!important;padding:6px!important}
  .character-footer-button svg{width:29px;height:29px}
