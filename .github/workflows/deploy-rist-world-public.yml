@@ -1,4 +1,4 @@
-# universal-character-sheet-deploy-2026-08-15-2
+# exact-character-layout-deploy-2026-08-15
 name: Deploy RIST WORLD Public
 # restore-card-character-layout-17
 on: [workflow_dispatch, push]
