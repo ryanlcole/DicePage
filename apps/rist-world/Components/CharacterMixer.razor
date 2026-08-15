@@ -14,11 +14,11 @@
  </header>
 
  <nav class="universal-sheet-tabs" aria-label="Character sheet sections">
-  <button class="@(ViewClass("Profile"))" @onclick="()=>SetView("Profile")">Profile</button>
-  <button class="@(ViewClass("Rules"))" @onclick="()=>SetView("Rules")">Values</button>
-  <button class="@(ViewClass("Entries"))" @onclick="()=>SetView("Entries")">Entries</button>
-  <button class="@(ViewClass("Equipment"))" @onclick="()=>SetView("Equipment")">Equipment</button>
-  <button class="@(ViewClass("Linked"))" @onclick="()=>SetView("Linked")">Linked</button>
+  <button class="@(ViewClass("Profile"))" @onclick="GoProfile">Profile</button>
+  <button class="@(ViewClass("Rules"))" @onclick="GoRules">Values</button>
+  <button class="@(ViewClass("Entries"))" @onclick="GoEntries">Entries</button>
+  <button class="@(ViewClass("Equipment"))" @onclick="GoEquipment">Equipment</button>
+  <button class="@(ViewClass("Linked"))" @onclick="GoLinked">Linked</button>
  </nav>
 
  <div class="universal-sheet-page view-@_sheetView.ToLowerInvariant()">
@@ -104,7 +104,7 @@
  }
  </div>
 
- <nav class="universal-bottom-nav" aria-label="Character sheet navigation"><button class="@(ViewClass("Profile"))" @onclick="()=>SetView("Profile")">Profile</button><button class="@(ViewClass("Rules"))" @onclick="()=>SetView("Rules")">Rules</button><button class="@(ViewClass("Entries"))" @onclick="()=>SetView("Entries")">Entries</button><button class="@(ViewClass("Equipment"))" @onclick="()=>SetView("Equipment")">Gear</button><button class="@(ViewClass("Linked"))" @onclick="()=>SetView("Linked")">Linked</button><button class="@(ViewClass("Notes"))" @onclick="()=>SetView("Notes")">Notes</button></nav>
+ <nav class="universal-bottom-nav" aria-label="Character sheet navigation"><button class="@(ViewClass("Profile"))" @onclick="GoProfile">Profile</button><button class="@(ViewClass("Rules"))" @onclick="GoRules">Rules</button><button class="@(ViewClass("Entries"))" @onclick="GoEntries">Entries</button><button class="@(ViewClass("Equipment"))" @onclick="GoEquipment">Gear</button><button class="@(ViewClass("Linked"))" @onclick="GoLinked">Linked</button><button class="@(ViewClass("Notes"))" @onclick="GoNotes">Notes</button></nav>
 </section></div>
 
 @if(_nameplateField is not null)
@@ -135,6 +135,7 @@
  protected override void OnInitialized()=>Session.Changed+=SessionChanged; void SessionChanged()=>_ = InvokeAsync(StateHasChanged); public void Dispose()=>Session.Changed-=SessionChanged;
  void CloseSheet(){Session.CloseFieldDiceBag();_nameplateField=null;_cardField=null;Session.CloseMixer();} bool InHand(CharacterField f)=>Session.IsFieldInHand(f);
  void SetView(string view)=>_sheetView=view; string ViewClass(string view)=>_sheetView==view?"active":"";
+ void GoProfile()=>SetView("Profile"); void GoRules()=>SetView("Rules"); void GoEntries()=>SetView("Entries"); void GoEquipment()=>SetView("Equipment"); void GoLinked()=>SetView("Linked"); void GoNotes()=>SetView("Notes");
  void AddAttribute()=>Session.AddCharacterControl("Attributes"); void AddTracker()=>Session.AddCharacterControl("Trackers"); void AddLimit()=>Session.AddCharacterControl("Limits"); void AddSkill()=>Session.AddCharacterControl("Skills"); void AddFlare()=>Session.AddCharacterControl("Flare"); void ToggleSkillDescriptions()=>Session.ToggleSectionDescriptions("Skills"); void ShowDescription()=>Session.SetCharacterTab("Description"); void ShowBackground()=>Session.SetCharacterTab("Background"); void ShowFeats()=>Session.SetCharacterTab("Feats");
  void OpenNameplate(CharacterField f){_nameplateField=f;_nameplateName=f.Name;_nameplateCode=string.IsNullOrWhiteSpace(f.ShortName)?CharacterField.AutoShortName(f.Name):f.ShortName;_nameplateDescription=f.NameplateDescription;}
  void CancelNameplate()=>_nameplateField=null;
