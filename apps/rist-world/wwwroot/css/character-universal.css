@@ -115,3 +115,36 @@
 .exact-value-card{background-image:var(--tile-value)!important}
 .exact-profile-trackers>div{background-image:var(--tile-tracker)!important}
 .exact-equipment-grid button,.exact-linked-nodes button,.exact-location-grid button{background-image:var(--tile-square)!important}
+
+/* Persistent character badge and collapsible universal sections. */
+.exact-sheet-screen{grid-template-rows:auto!important;align-content:start}
+.identity-badge{grid-column:1/-1;display:grid;grid-template-columns:clamp(92px,22vw,142px) minmax(0,1fr);align-items:center;min-height:122px;padding:6px 16px 6px 8px;box-sizing:border-box;background:#f7f0e5;border:1px solid #c8b48c;border-radius:22px;box-shadow:0 3px 10px #55452d38;position:relative;z-index:30}
+.identity-badge .exact-portrait{width:112px;height:112px;max-width:100%;aspect-ratio:1;grid-row:auto;border-radius:50%;position:relative;z-index:2}
+.identity-badge-fields{min-width:0;margin-left:-24px;padding:8px 6px 8px 30px;display:grid;gap:7px;background:var(--tile-title) center/100% 100% no-repeat}
+.identity-badge .exact-name{width:100%;min-height:44px;padding:5px 14px!important;text-align:center;font-size:clamp(19px,4vw,30px)!important;background:none!important;border:0!important}
+.identity-fields{display:grid;grid-template-columns:1.5fr .65fr 1.15fr;gap:7px}
+.identity-fields input{width:100%;min-width:0;min-height:38px;padding:7px 10px;text-align:center;background:#fffaf0d9;border:1px solid #b9a16e;border-radius:10px;color:#5d503d}
+.sheet-pane{display:flex!important;flex-direction:column;min-height:260px;transition:min-height .18s ease}
+.sheet-pane>header{display:flex!important;flex:none;align-items:center;padding:0!important;overflow:hidden}
+.sheet-pane>header>.pane-toggle{display:flex!important;align-items:center;flex:1;min-width:0;height:100%;padding:0 12px!important;border:0!important;background:transparent!important;color:inherit!important}
+.pane-toggle h2{flex:1;margin:0;text-align:left;font:inherit;font-size:clamp(18px,3vw,26px)}
+.pane-toggle img{width:28px;height:28px;object-fit:contain;transform:rotate(90deg);transition:transform .18s ease}
+.pane-content{min-height:0;flex:1}
+.sheet-pane textarea.pane-content{width:100%;min-height:230px;resize:vertical;padding:18px!important;box-sizing:border-box;line-height:1.45}
+.sheet-pane.is-collapsed{min-height:58px!important;height:58px!important;overflow:hidden}
+.sheet-pane.is-collapsed .pane-content{display:none!important}
+.sheet-pane.is-collapsed .pane-toggle img{transform:rotate(-90deg)}
+
+@media (orientation:portrait){
+ .exact-sheet-screen{grid-template-rows:auto!important;padding-top:8px!important}
+ .identity-badge{position:sticky;top:0;min-height:126px}
+ .profile-notes-pane,.notes-pane,.growth-pane,.equipment-notes-pane,.asset-notes-pane{min-height:330px}
+}
+@media (orientation:landscape){
+ .exact-sheet-screen,.exact-profile,.exact-entries,.exact-rules,.exact-notes,.exact-equipment,.exact-linked{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:116px minmax(0,1fr)!important;align-content:stretch!important;overflow:hidden!important}
+ .identity-badge{grid-column:1/-1;grid-row:1;min-height:0;height:116px;grid-template-columns:104px minmax(0,650px);justify-content:center}
+ .identity-badge .exact-portrait{width:102px;height:102px}
+ .sheet-pane{grid-row:2;height:100%;min-height:0}
+ .sheet-pane.is-collapsed{align-self:start;height:58px!important}
+ .sheet-pane textarea.pane-content{min-height:0;resize:none}
+}
