@@ -24,29 +24,33 @@
     <label>ALIGNMENT<input @bind="Session.CharacterAlignment" readonly="@(!Session.CharacterEditMode)" /></label>
    </header>
 
-   @foreach(var group in EqualizerGroups)
-   {
-    <section class="console-bank equalizer-bank">
-     <div class="bank-title"><strong>@group.ToUpperInvariant()</strong><span>0–100</span></div>
-     <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
-      @foreach(var field in Session.CharacterFields.Where(x=>x.Group==group))
-      {
-       <article class="pool-channel physical-channel color-@field.Color" style="@PoolWidth(field.Name)">
-        @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-        <div class="pool-scale"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
-        <input class="pool-slider scarab-slider" type="range" min="0" max="100" value="@field.Current" disabled="@(!Session.CharacterEditMode)" @oninput="e=>SetCurrent(field,e)" />
-        <div class="field-value-box">@field.Current</div>
-        <div class="plate-with-bag">
-         <div class="name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
-         <button class="mini-bag" title="Dice bag" @onclick="()=>Session.EditFieldDiceBag(field)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><b>@field.DiceBag.Sum(x=>x.Count)</b></button>
-        </div>
-        @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" title="@c" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
-       </article>
-      }
-      @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="()=>Session.AddCharacterControl(group)">+</button>}
-     </div></div>
-    </section>
-   }
+   <section class="console-bank equalizer-bank tracks-bank">
+    <div class="bank-title tracks-title"><strong>TRACKS</strong><span>Anything measured from Current to Maximum • health • attributes • XP • saves • resistances • durability • resources</span></div>
+    <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+     @foreach(var field in Session.CharacterFields.Where(WorldSession.IsTrackField))
+     {
+      <article class="pool-channel physical-channel track-channel color-@field.Color" style="@PoolWidth(field.Name)">
+       @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
+       <div class="pool-scale">
+        @foreach(var mark in ScaleLabels(field.Max)){<span>@mark</span>}
+       </div>
+       <input class="pool-slider scarab-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" @oninput="e=>SetTrackCurrent(field,e)" />
+       <div class="track-values">
+        <label class="track-current"><small>CURRENT</small><strong>@field.Current</strong></label>
+        <label class="track-max"><small>MAX</small>@if(Session.CharacterEditMode){<input type="number" min="1" max="999999" value="@field.Max" @onchange="e=>SetTrackMax(field,e)"/>}else{<strong>@field.Max</strong>}</label>
+       </div>
+       <div class="plate-with-bag">
+        <div class="name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
+        <button class="mini-bag" title="Dice bag" @onclick="()=>Session.EditFieldDiceBag(field)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><b>@field.DiceBag.Sum(x=>x.Count)</b></button>
+       </div>
+       @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" title="@c" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
+       @{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}
+       <button class="show-hand track-card-button" disabled="@inHand" @onclick="()=>Session.ShowTrackHand(field)">@(inHand?"In Hand":"Card")</button>
+      </article>
+     }
+     @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="()=>Session.AddCharacterControl("Tracks")">+</button>}
+    </div></div>
+   </section>
 
    <section class="console-bank skills-bank">
     <div class="bank-title"><strong>SKILLS</strong><button class="description-toggle" @onclick="ToggleSkillsDescriptions">Descriptions @(Session.ShowSkillDescriptions?"On":"Off")</button></div>
@@ -155,7 +159,6 @@
 }
 @code{
  static readonly string[] Colors=["red","orange","gold","green","teal","blue","purple"];
- static readonly string[] EqualizerGroups=["Vitals","Attributes","Accent","Pools"];
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
@@ -165,14 +168,17 @@
  void AddSkill()=>Session.AddCharacterControl("Skills");
  void AddFeat()=>Session.AddCharacterControl("Feats");
  void SetCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
+ void SetTrackCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackCurrent(field,v);}
+ void SetTrackMax(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackMaximum(field,v);}
  void Rename(CharacterField field,ChangeEventArgs e)=>Session.RenameCharacterField(field,e.Value?.ToString()??field.Name);
  void SetDescription(CharacterField field,ChangeEventArgs e)=>Session.SetFieldDescription(field,e.Value?.ToString()??"");
  void SetDescriptionEnabled(CharacterField field,ChangeEventArgs e)=>Session.SetFieldDescriptionEnabled(field,e.Value is bool b?b:string.Equals(e.Value?.ToString(),"true",StringComparison.OrdinalIgnoreCase));
  void SetBagMagnitude(CharacterField field,string key,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetFieldDiceMagnitude(field,key,v);}
  int InputSize(string name)=>Math.Clamp((name?.Length??0)+2,6,28);
- string PoolWidth(string name)=>$"--control-width:{Math.Clamp(88+(name?.Length??0)*6,96,220)}px";
+ string PoolWidth(string name)=>$"--control-width:{Math.Clamp(130+(name?.Length??0)*6,150,260)}px";
  string DialWidth(string name)=>$"--control-width:{Math.Clamp(165+(name?.Length??0)*7,180,330)}px";
  string CardWidth(string name)=>$"--card-width:{Math.Clamp(220+(name?.Length??0)*6,240,390)}px";
+ IEnumerable<int> ScaleLabels(int max){max=Math.Max(max,1);yield return max;yield return (int)Math.Round(max*.8);yield return (int)Math.Round(max*.6);yield return (int)Math.Round(max*.4);yield return (int)Math.Round(max*.2);yield return 0;}
  async Task UploadPortrait(InputFileChangeEventArgs e)
  {
   var file=e.File;if(file is null)return;await using var stream=file.OpenReadStream(5*1024*1024);using var ms=new MemoryStream();await stream.CopyToAsync(ms);var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;Session.SetCharacterPortrait($"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");
