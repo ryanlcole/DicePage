@@ -23,7 +23,34 @@ public sealed class CharacterField(string name,string kind,string group)
     public string Description { get; set; } = "";
     public bool DescriptionEnabled { get; set; } = true;
     public string ImageDataUrl { get; set; } = "";
+    public string ShortName { get; set; } = AutoShortName(name);
+    public bool ShortNameOverridden { get; set; }
     public List<DiceBagEntry> DiceBag { get; } = [];
+
+    public static string AutoShortName(string? value)
+    {
+        var cleaned = new string((value ?? "").Trim().Where(char.IsLetterOrDigit).Take(3).ToArray());
+        return cleaned.ToUpperInvariant();
+    }
+
+    public void Rename(string? value)
+    {
+        Name = value?.Trim() ?? "";
+        if (!ShortNameOverridden) ShortName = AutoShortName(Name);
+    }
+
+    public void SetShortName(string? value)
+    {
+        var cleaned = new string((value ?? "").Trim().Where(char.IsLetterOrDigit).Take(3).ToArray()).ToUpperInvariant();
+        ShortName = cleaned;
+        ShortNameOverridden = !string.Equals(cleaned, AutoShortName(Name), StringComparison.Ordinal);
+    }
+
+    public void ResetShortName()
+    {
+        ShortNameOverridden = false;
+        ShortName = AutoShortName(Name);
+    }
 }
 
 public sealed class DiceBagEntry(string dieKey,int count=1,int selectedMagnitude=1)
@@ -39,6 +66,7 @@ public sealed class HandCard(CharacterField field)
     public CharacterField Field { get; } = field;
     public List<DiceBagEntry> DiceBag => Field.DiceBag;
     public string Name => Field.Name;
+    public string ShortName => string.IsNullOrWhiteSpace(Field.ShortName) ? CharacterField.AutoShortName(Field.Name) : Field.ShortName;
     public string Type => WorldSession.IsTrackerField(Field) ? "Tracker" : WorldSession.IsAttributeField(Field) ? "Attribute" : WorldSession.IsLimitField(Field) ? "Limit" : Field.Group == "Skills" ? "Skill" : WorldSession.IsFlareField(Field) ? "Flare" : Field.Group;
     public int Value => Field.Current;
     public int BaseValue => Field.BaseValue;
