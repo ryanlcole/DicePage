@@ -57,6 +57,6 @@
   var col=frame%die.Columns;var row=frame/die.Columns;
   var x=die.Columns<=1?0:col*100.0/(die.Columns-1);
   var y=die.Rows<=1?0:row*100.0/(die.Rows-1);
-  return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
+  return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-1');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
  }
 }
