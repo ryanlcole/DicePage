@@ -22,8 +22,8 @@
     {
      <div class="die-control d5-control bonus-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
-      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
-       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" aria-label="Roll selected bonus die" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
+       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
       </button>
      </div>
     }
@@ -31,16 +31,15 @@
     {
      <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
-      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
-       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" aria-label="Roll selected penalty die" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
+       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
       </button>
      </div>
     }
     else
     {
-     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" @onclick="()=>DieClick(die.Key,null)">
+     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" aria-label="Roll @die.Label" @onclick="()=>DieClick(die.Key,null)">
       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-      <small>@die.Label</small>
      </button>
     }
    }
