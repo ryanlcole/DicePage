@@ -43,8 +43,9 @@
 }
 @code{
  HandCard? _pointerCard; double _pointerX; double _pointerY;
- string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}')";
+ string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}');--field-accent:{AccentHex(card.Field.Color)}";
  string CardFront(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"assets/cards/fronts/card_front_01_three_roses.png":WorldSession.IsTrackerField(card.Field)?"assets/cards/fronts/card_front_02_two_roses.png":WorldSession.IsLimitField(card.Field)?"assets/cards/fronts/card_front_03_four_roses.png":card.Field.Group=="Skills"?"assets/cards/fronts/card_front_04_single_rose.png":WorldSession.IsFlareField(card.Field)?"assets/cards/fronts/card_front_05_two_low_roses.png":"assets/cards/fronts/card_front_06_minimal.png";
+ string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","yellow"=>"#f0d85c","lime"=>"#9bc84a","green"=>"#58a765","teal"=>"#41aaa4","cyan"=>"#55c7dc","blue"=>"#4c82d5","indigo"=>"#6559c7","purple"=>"#9653c9","magenta"=>"#cf59ad","rose"=>"#d16d7f","silver"=>"#b8bdc4","white"=>"#eee6d2",_=>"#d9a82f"};
  string Glyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
  string CardValue(HandCard card)=>WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsFlareField(card.Field)?"✦":card.Value.ToString();
  void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
