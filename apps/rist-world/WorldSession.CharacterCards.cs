@@ -19,8 +19,10 @@ public sealed partial class WorldSession
     public static bool IsFlareField(CharacterField field)
         => field.Kind is "FLARE" or "ABILITY" || field.Group is "Flare" or "Feats";
 
-    // Compatibility name retained for older components/data.
     public static bool IsTrackField(CharacterField field) => IsTrackerField(field);
+
+    public bool IsFieldInHand(CharacterField field)
+        => HandCards.Any(x => x.Field.Id == field.Id);
 
     public void AddCharacterControl(string group)
     {
@@ -37,7 +39,7 @@ public sealed partial class WorldSession
         var n=1; var name=$"{prefix} {n}";
         while(CharacterFields.Any(x=>x.Name.Equals(name,StringComparison.OrdinalIgnoreCase))) name=$"{prefix} {++n}";
         var field=new CharacterField(name,kind,group);
-        if(kind=="ATTRIBUTE"){field.Current=0;field.Max=10;}
+        if(kind=="ATTRIBUTE"){field.BaseValue=10;field.Current=0;field.Max=10;}
         else if(kind=="TRACKER"){field.Current=0;field.Max=100;}
         else if(kind=="LIMIT"){field.Current=0;field.Max=10;}
         else if(kind=="FLARE"){field.Current=0;field.Max=0;}
@@ -45,11 +47,17 @@ public sealed partial class WorldSession
         Notify();
     }
 
-    public void SetAttribute(CharacterField field,int value)
+    public void SetAttribute(CharacterField field,int modifier)
     {
         if(!CharacterEditMode || !IsAttributeField(field)) return;
         field.Kind="ATTRIBUTE"; field.Group="Attributes"; field.Max=10;
-        field.Current=Math.Clamp(value,-10,10); Notify();
+        field.Current=Math.Clamp(modifier,-10,10); Notify();
+    }
+
+    public void SetAttributeBase(CharacterField field,int value)
+    {
+        if(!CharacterEditMode || !IsAttributeField(field)) return;
+        field.BaseValue=Math.Clamp(value,-999999,999999); Notify();
     }
 
     public void SetTrackerMaximum(CharacterField field,int max)
@@ -84,12 +92,13 @@ public sealed partial class WorldSession
 
     public void ShowFieldHand(CharacterField field)
     {
-        if(HandCards.Any(x=>ReferenceEquals(x.Field,field))) return;
+        if(IsFieldInHand(field)) return;
         if(IsTrackerField(field)){field.Kind="TRACKER";field.Group="Trackers";}
         else if(IsAttributeField(field)){field.Kind="ATTRIBUTE";field.Group="Attributes";}
         else if(IsLimitField(field)){field.Kind="LIMIT";field.Group="Limits";}
         else if(IsFlareField(field)){field.Kind="FLARE";field.Group="Flare";}
-        HandCards.Add(new(field)); Notify();
+        HandCards.Add(new(field));
+        Notify();
     }
 
     public void ShowTrackHand(CharacterField field)=>ShowFieldHand(field);
@@ -105,23 +114,38 @@ public sealed partial class WorldSession
     public void CloseFieldDiceBag(){EditingDiceField=null;DiceBagExampleTotal=null;Notify();}
     public int DiceBagCount(CharacterField field,string dieKey)=>field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey)?.Count??0;
     public int DiceBagMagnitude(CharacterField field,string dieKey)=>field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey)?.SelectedMagnitude??1;
-    public void AdjustDiceBag(CharacterField field,string dieKey,int delta)
+
+    public void SetDiceBagCount(CharacterField field,string dieKey,int count)
     {
-        if(!CharacterEditMode||Dice(dieKey)is null)return;
+        if(!MixerOpen || Dice(dieKey) is null) return;
+        count=Math.Clamp(count,0,20);
         var entry=field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey);
-        if(entry is null){if(delta<=0)return;field.DiceBag.Add(new(dieKey,Math.Clamp(delta,1,20)));}
-        else{var next=entry.Count+delta;if(next<=0)field.DiceBag.Remove(entry);else entry.Count=Math.Clamp(next,1,20);}
-        DiceBagExampleTotal=null;Notify();
+        if(count==0){if(entry is not null)field.DiceBag.Remove(entry);}
+        else if(entry is null)field.DiceBag.Add(new(dieKey,count));
+        else entry.Count=count;
+        DiceBagExampleTotal=null; Notify();
     }
+
+    public void AdjustDiceBag(CharacterField field,string dieKey,int delta)
+        => SetDiceBagCount(field,dieKey,DiceBagCount(field,dieKey)+delta);
+
     public void SetFieldDiceMagnitude(CharacterField field,string dieKey,int magnitude)
     {
-        if(!CharacterEditMode)return;var entry=field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey);
+        if(!MixerOpen || Dice(dieKey) is null) return;
+        var entry=field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey);
         if(entry is null){entry=new(dieKey,1,magnitude);field.DiceBag.Add(entry);}else entry.SelectedMagnitude=Math.Clamp(magnitude,1,5);
         DiceBagExampleTotal=null;Notify();
     }
+
     public void ExampleDiceBagRoll(CharacterField field)
     {
-        var total=0;foreach(var entry in field.DiceBag){var die=Dice(entry.DieKey);if(die is null)continue;for(var i=0;i<entry.Count;i++)total+=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude*die.Sign:(Random.Shared.Next(die.Sides)+die.ValueOffset)*die.Sign;}
+        var total=0;
+        foreach(var entry in field.DiceBag)
+        {
+            var die=Dice(entry.DieKey); if(die is null)continue;
+            for(var i=0;i<entry.Count;i++)
+                total+=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude*die.Sign:(Random.Shared.Next(die.Sides)+die.ValueOffset)*die.Sign;
+        }
         DiceBagExampleTotal=total;Notify();
     }
 }
