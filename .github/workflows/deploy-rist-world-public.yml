@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# footer-source-frame-2
+# footer-square-controls-3
 on: [workflow_dispatch, push]
 permissions:
   contents: read
