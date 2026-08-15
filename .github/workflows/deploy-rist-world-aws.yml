@@ -51,8 +51,8 @@ jobs:
 
       - name: Verify Naeja through CloudFront
         run: |
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/naeja.jpg "${ASSET_BASE_URL}worlds/naeja/world.jpg"
-          test $(stat -c%s /tmp/naeja.jpg) -gt 100000
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/naeja.png "${ASSET_BASE_URL}worlds/naeja/world.png"
+          test $(stat -c%s /tmp/naeja.png) -gt 100000
 
       - name: Generate Blazor CDN manifests
         shell: bash
@@ -67,7 +67,7 @@ jobs:
           manifest=json.loads((root/'build/aws-assets/atlas-manifest.json').read_text())
           atlas=[{'id':x['id'],'name':x['name'],'image':base+x['path']} for x in manifest]
           (www/'data/atlas-public.json').write_text(json.dumps(atlas),encoding='utf-8')
-          (www/'data/asset-config.json').write_text(json.dumps({'worldMapUrl':base+'worlds/naeja/world.jpg'}),encoding='utf-8')
+          (www/'data/asset-config.json').write_text(json.dumps({'worldMapUrl':base+'worlds/naeja/world.png'}),encoding='utf-8')
           cards=json.loads((root/'apps/tactical/data/tabletop/card_definitions.json').read_text()).get('cards',[])
           public=[{'id':c['cardId'],'name':c.get('name','Card'),'type':c.get('cardType','card'),'text':c.get('text','')} for c in cards]
           (www/'data/cards-public.json').write_text(json.dumps(public),encoding='utf-8')
