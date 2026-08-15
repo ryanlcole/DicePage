@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# normalized-sprites-9
+# non-overlapping-rolls-10
 on: [workflow_dispatch, push]
 permissions:
   contents: read
