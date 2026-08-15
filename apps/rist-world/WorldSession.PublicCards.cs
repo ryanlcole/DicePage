@@ -4,6 +4,27 @@ public sealed partial class WorldSession
 {
     public List<HandCard> PublicCards { get; } = [];
     public string? DraggedHandCardId { get; private set; }
+    public bool HandOpen { get; private set; }
+
+    public void ToggleHand()
+    {
+        HandOpen = !HandOpen;
+        Notify();
+    }
+
+    public void OpenHand()
+    {
+        if (HandOpen) return;
+        HandOpen = true;
+        Notify();
+    }
+
+    public void CloseHand()
+    {
+        if (!HandOpen) return;
+        HandOpen = false;
+        Notify();
+    }
 
     public void BeginHandCardDrag(HandCard card)
     {
