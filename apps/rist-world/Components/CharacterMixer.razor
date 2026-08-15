@@ -60,15 +60,7 @@
  @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
  </div></div></section>
 
- <section class="console-bank flare-bank"><div class="bank-title"><strong>FEATS</strong><span>Abilities, boons, traits, powers, features</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set feat-card-set">
- @foreach(var field in Session.CharacterFields.Where(WorldSession.IsFlareField))
- {
-  <article class="flare-control-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}@Plate(field,false)@ColorControls(field)</article>
- }
- @if(Session.CharacterEditMode){<button class="console-add physical-add feat-add" @onclick="AddFlare">+</button>}
- </div></div></section>
-
- <section class="console-notebook"><nav class="notebook-tabs"><button class="@(Session.CharacterTab=="Description"?"active":"")" @onclick="ShowDescription">Description</button><button class="@(Session.CharacterTab=="Background"?"active":"")" @onclick="ShowBackground">Background</button></nav>@if(Session.CharacterTab=="Background"){<textarea class="keyboard-input" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}else{<textarea class="keyboard-input" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}</section>
+ <section class="console-notebook"><nav class="notebook-tabs"><button class="@(Session.CharacterTab=="Description"?"active":"")" @onclick="ShowDescription">Description</button><button class="@(Session.CharacterTab=="Background"?"active":"")" @onclick="ShowBackground">Background</button><button class="@(Session.CharacterTab=="Feats"?"active":"")" @onclick="ShowFeats">Feats</button></nav>@if(Session.CharacterTab=="Feats"){<div class="notebook-feats finite-set character-control-set feat-card-set">@foreach(var field in Session.CharacterFields.Where(WorldSession.IsFlareField)){<article class="flare-control-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}@Plate(field,false)@ColorControls(field)</article>}@if(Session.CharacterEditMode){<button class="console-add physical-add feat-add" @onclick="AddFlare">+</button>}</div>}else if(Session.CharacterTab=="Background"){<textarea class="keyboard-input" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}else{<textarea class="keyboard-input" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}</section>
 </section></div>
 
 @if(_nameplateField is not null)
@@ -98,7 +90,7 @@
  CharacterField? _nameplateField; CharacterField? _cardField; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
  protected override void OnInitialized()=>Session.Changed+=SessionChanged; void SessionChanged()=>_ = InvokeAsync(StateHasChanged); public void Dispose()=>Session.Changed-=SessionChanged;
  void CloseSheet(){Session.CloseFieldDiceBag();_nameplateField=null;_cardField=null;Session.CloseMixer();} bool InHand(CharacterField f)=>Session.IsFieldInHand(f);
- void AddAttribute()=>Session.AddCharacterControl("Attributes"); void AddTracker()=>Session.AddCharacterControl("Trackers"); void AddLimit()=>Session.AddCharacterControl("Limits"); void AddSkill()=>Session.AddCharacterControl("Skills"); void AddFlare()=>Session.AddCharacterControl("Flare"); void ToggleSkillDescriptions()=>Session.ToggleSectionDescriptions("Skills"); void ShowDescription()=>Session.SetCharacterTab("Description"); void ShowBackground()=>Session.SetCharacterTab("Background");
+ void AddAttribute()=>Session.AddCharacterControl("Attributes"); void AddTracker()=>Session.AddCharacterControl("Trackers"); void AddLimit()=>Session.AddCharacterControl("Limits"); void AddSkill()=>Session.AddCharacterControl("Skills"); void AddFlare()=>Session.AddCharacterControl("Flare"); void ToggleSkillDescriptions()=>Session.ToggleSectionDescriptions("Skills"); void ShowDescription()=>Session.SetCharacterTab("Description"); void ShowBackground()=>Session.SetCharacterTab("Background"); void ShowFeats()=>Session.SetCharacterTab("Feats");
  void OpenNameplate(CharacterField f){_nameplateField=f;_nameplateName=f.Name;_nameplateCode=string.IsNullOrWhiteSpace(f.ShortName)?CharacterField.AutoShortName(f.Name):f.ShortName;_nameplateDescription=f.NameplateDescription;}
  void CancelNameplate()=>_nameplateField=null;
  void ResetNameplateCode(){if(_nameplateField is null)return;_nameplateCode=CharacterField.AutoShortName(_nameplateName);}
