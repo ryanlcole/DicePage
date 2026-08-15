@@ -97,8 +97,12 @@ public sealed partial class WorldSession
             Max = source.Max,
             Color = source.Color,
             Description = source.Description,
+            NameplateDescription = source.NameplateDescription,
+            Subtitle = source.Subtitle,
             DescriptionEnabled = source.DescriptionEnabled,
-            ImageDataUrl = source.ImageDataUrl
+            ImageDataUrl = source.ImageDataUrl,
+            ShortName = source.ShortName,
+            ShortNameOverridden = source.ShortNameOverridden
         };
         foreach (var die in source.DiceBag)
             clone.DiceBag.Add(new(die.DieKey,die.Count,die.SelectedMagnitude));
