@@ -10,9 +10,9 @@
    if(!nav){
      nav=document.createElement('div');
      nav.className='board-focus-nav';
-     nav.innerHTML='<button type="button" data-board-back aria-label="Back" title="Back">⟲</button>';
+     nav.innerHTML='<button type="button" data-board-close aria-label="Close section" title="Close section">×</button>';
      root.insertAdjacentElement('afterend',nav);
-     nav.querySelector('[data-board-back]').addEventListener('click',e=>{e.stopPropagation();back(root);});
+     nav.querySelector('[data-board-close]').addEventListener('click',e=>{e.stopPropagation();clearSection(root);});
    }
    return nav;
  }
@@ -22,14 +22,21 @@
  function back(root){if(root.classList.contains('board-card-focus')){clearCards(root);return;}clearSection(root);}
  function fit(root){root.classList.add('board-fit');if(!root.classList.contains('board-section-focus')){root.style.transform='';root.style.width='';}}
  function isArticle(el){return el.matches('.character-control-set>article,.feat-card-set>article');}
- function globalEdit(root){const tools=[...root.querySelectorAll('.character-console-tools button')];const edit=tools.find(b=>b.textContent.trim()==='Edit');if(edit){edit.click();return true;}return false;}
+ function saveCharacter(root){
+   const tools=[...root.querySelectorAll('.character-console-tools button')];
+   const save=tools.find(b=>b.textContent.trim()==='Save');
+   if(save){save.click();return true;}
+   return false;
+ }
  function addCardActions(root,article){
    removeCardActions(root);
+   const tools=article.querySelector('.control-tools-row')||article;
    const bar=document.createElement('div');
    bar.className='board-card-actions';
-   bar.innerHTML='<button type="button" data-card-edit aria-label="Edit" title="Edit">✎</button>';
-   bar.querySelector('[data-card-edit]').addEventListener('click',e=>{e.stopPropagation();globalEdit(root);});
-   article.prepend(bar);
+   bar.innerHTML='<button type="button" data-card-close aria-label="Cancel" title="Cancel">×</button><button type="button" data-card-save aria-label="Save" title="Save">✓</button>';
+   bar.querySelector('[data-card-close]').addEventListener('click',e=>{e.stopPropagation();clearCards(root);});
+   bar.querySelector('[data-card-save]').addEventListener('click',e=>{e.stopPropagation();saveCharacter(root);clearCards(root);});
+   tools.append(bar);
  }
 
  function updateSliderVisual(shell,input){
@@ -71,14 +78,14 @@
  function wireSlider(shell){
    const input=shell.querySelector('input[type="range"]');
    if(input)updateSliderVisual(shell,input);
-   if(shell.dataset.directSlider==='3')return;
-   shell.dataset.directSlider='3';
+   if(shell.dataset.directSlider==='4')return;
+   shell.dataset.directSlider='4';
    if(input){input.addEventListener('input',()=>updateSliderVisual(shell,input));input.addEventListener('change',()=>updateSliderVisual(shell,input));}
    shell.addEventListener('pointerdown',e=>{if(startSlider(shell,e.clientY,e.pointerId)){e.preventDefault();e.stopPropagation();}}, {passive:false});
    shell.addEventListener('touchstart',e=>{const t=e.touches[0];if(t&&startSlider(shell,t.clientY,'touch')){e.preventDefault();e.stopPropagation();}}, {passive:false});
  }
- if(!window.__ristBoardSliderGlobal3){
-   window.__ristBoardSliderGlobal3=true;
+ if(!window.__ristBoardSliderGlobal4){
+   window.__ristBoardSliderGlobal4=true;
    window.addEventListener('pointermove',e=>{if(!activeSlider||activePointer!==e.pointerId)return;e.preventDefault();setSliderFromY(activeSlider,e.clientY);},{passive:false});
    window.addEventListener('pointerup',e=>{if(activeSlider&&activePointer===e.pointerId)stopSlider();},{passive:true});
    window.addEventListener('pointercancel',stopSlider,{passive:true});
@@ -87,28 +94,27 @@
    window.addEventListener('touchcancel',()=>{if(activePointer==='touch')stopSlider();},{passive:true});
  }
 
+ function numberAttributeCodes(root){
+   root.querySelectorAll('.attributes-bank .character-control-set>article').forEach((article,index)=>{
+     const code=article.querySelector('.nameplate-code-button');
+     if(code){code.textContent=`AT${index+1}`;code.dataset.generatedCode=`AT${index+1}`;}
+   });
+ }
  function measureArticle(article){
-   const plate=article.querySelector('.plate-with-bag');
-   if(!plate)return;
-   const name=plate.querySelector('.name-plate');
-   const actions=plate.querySelector('.card-bag-actions');
-   const nameWidth=Math.ceil(name?.scrollWidth||name?.getBoundingClientRect().width||120);
-   const actionWidth=Math.ceil(actions?.scrollWidth||actions?.getBoundingClientRect().width||92);
-   const chrome=44;
-   const required=Math.max(230,nameWidth+actionWidth+chrome);
-   article.style.setProperty('--focus-card-width',`${required}px`);
+   const compact=article.querySelector('.compact-field-control');
+   if(!compact)return;
+   const identity=compact.querySelector('.control-identity-row');
+   const tools=compact.querySelector('.control-tools-row');
+   const identityWidth=Math.ceil(identity?.scrollWidth||220);
+   const toolsWidth=Math.ceil(tools?.scrollWidth||180);
+   const required=Math.max(250,identityWidth,toolsWidth)+24;
+   article.style.setProperty('--focus-card-width',`${Math.min(required,520)}px`);
  }
  function decorateArticle(article){
    article.querySelectorAll('.vertical-slider-shell').forEach(wireSlider);
-   const hand=article.querySelector('.show-hand');
-   const bag=article.querySelector('.mini-bag,.card-bag');
-   if(hand){hand.classList.add('card-back-action');hand.setAttribute('aria-label','Card');hand.setAttribute('title','Card');}
-   if(hand&&bag&&!article.querySelector('.card-bag-actions')){
-     const holder=document.createElement('div');holder.className='card-bag-actions';bag.parentNode.insertBefore(holder,bag);holder.append(bag,hand);
-   }
    requestAnimationFrame(()=>measureArticle(article));
  }
- function decorate(root){root.querySelectorAll('.character-control-set>article,.feat-card-set>article').forEach(decorateArticle);}
+ function decorate(root){numberAttributeCodes(root);root.querySelectorAll('.character-control-set>article,.feat-card-set>article').forEach(decorateArticle);}
 
  function wirePortraitEditor(editor){
    if(editor.dataset.dragPan==='1')return;
@@ -139,8 +145,8 @@
  }
 
  function wire(root){
-   if(root.dataset.boardFocus==='1'){decorate(root);return;}
-   root.dataset.boardFocus='1';fit(root);navFor(root);decorate(root);
+   if(root.dataset.boardFocus==='2'){decorate(root);return;}
+   root.dataset.boardFocus='2';fit(root);navFor(root);decorate(root);
    root.addEventListener('click',e=>{
      if(e.target.closest(interactive))return;
      const section=e.target.closest('.console-bank');if(!section)return;
