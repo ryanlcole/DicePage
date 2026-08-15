@@ -7,17 +7,23 @@ window.ristWorld={
  dropPoint:(el,x,y,panX,panY,zoom)=>{
   const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [1,((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
+ },
+ overPublicCardDrop:(x,y)=>{
+  const el=document.querySelector('.public-card-drop');if(!el)return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
  }
 };
 
 window.ristCropPortrait=(dataUrl,zoom,xPct,yPct,size)=>new Promise((resolve,reject)=>{
  const img=new Image();
  img.onload=()=>{
-  const s=Math.max(128,Number(size)||512),z=Math.max(1,Number(zoom)||1),xp=Math.max(0,Math.min(100,Number(xPct)||50))/100,yp=Math.max(0,Math.min(100,Number(yPct)||50))/100;
+  const s=Math.max(128,Number(size)||512),z=Math.max(1,Number(zoom)||1),xp=Math.max(0,Math.min(100,Number(xPct)||50)),yp=Math.max(0,Math.min(100,Number(yPct)||50));
   const canvas=document.createElement('canvas');canvas.width=s;canvas.height=s;const ctx=canvas.getContext('2d');
-  const cover=Math.max(s/img.naturalWidth,s/img.naturalHeight)*z;const dw=img.naturalWidth*cover,dh=img.naturalHeight*cover;
-  const overflowX=Math.max(0,dw-s),overflowY=Math.max(0,dh-s);const dx=-overflowX*xp,dy=-overflowY*yp;
-  ctx.drawImage(img,dx,dy,dw,dh);resolve(canvas.toDataURL('image/jpeg',.9));
+  const cover=Math.max(s/img.naturalWidth,s/img.naturalHeight);const baseW=img.naturalWidth*cover,baseH=img.naturalHeight*cover;
+  const dw=baseW*z,dh=baseH*z;
+  const centeredX=(s-dw)/2,centeredY=(s-dh)/2;
+  const shiftX=((xp-50)/100)*s,shiftY=((yp-50)/100)*s;
+  ctx.drawImage(img,centeredX+shiftX,centeredY+shiftY,dw,dh);
+  resolve(canvas.toDataURL('image/jpeg',.9));
  };
  img.onerror=reject;img.src=dataUrl;
 });
