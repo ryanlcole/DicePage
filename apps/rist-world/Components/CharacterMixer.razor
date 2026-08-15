@@ -3,13 +3,13 @@
 @inject WorldSession Session
 @if(Session.MixerOpen)
 {
- <div class="mixer-modal" @onclick="Session.CloseMixer">
+ <div class="mixer-modal" @onclick="CloseSheet">
   <section class="character-mixer character-console" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @ontouchstart:stopPropagation="true">
    <div class="character-console-tools">
     <span class="character-number">CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>
     @if(Session.CharacterEditMode){<button class="new-character" @onclick="Session.NewCharacter">+ Character</button><button class="save-character" @onclick="Session.SaveCharacter">Save</button>}
     else{<button class="edit-character" @onclick="Session.EditCharacter">Edit</button>}
-    <button class="console-close" @onclick="Session.CloseMixer" aria-label="Close character sheet">×</button>
+    <button class="console-close" @onclick="CloseSheet" aria-label="Close character sheet">×</button>
    </div>
 
    <header class="console-identity">
@@ -66,8 +66,14 @@
        </div>
        @if(Session.ShowSkillDescriptions && field.DescriptionEnabled)
        {
-        @if(Session.CharacterEditMode){<textarea class="field-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}
-        else if(!string.IsNullOrWhiteSpace(field.Description)){<p class="field-description-read">@field.Description</p>}
+        <div class="skill-card-media">
+         <div class="skill-card-image">
+          @if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="@field.Name"/>}else{<span>+</span>}
+          @if(Session.CharacterEditMode){<label title="Upload card image"><InputFile OnChange="e=>UploadFieldImage(field,e)" accept="image/*" /></label>}
+         </div>
+         @if(Session.CharacterEditMode){<textarea class="field-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}
+         else if(!string.IsNullOrWhiteSpace(field.Description)){<p class="field-description-read">@field.Description</p>}
+        </div>
        }
        @if(Session.CharacterEditMode)
        {
@@ -153,6 +159,7 @@
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
+ void CloseSheet(){Session.CloseFieldDiceBag();Session.CloseMixer();}
  void ToggleSkillsDescriptions()=>Session.ToggleSectionDescriptions("Skills");
  void ToggleFeatDescriptions()=>Session.ToggleSectionDescriptions("Feats");
  void AddSkill()=>Session.AddCharacterControl("Skills");
@@ -164,7 +171,7 @@
  void SetBagMagnitude(CharacterField field,string key,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetFieldDiceMagnitude(field,key,v);}
  int InputSize(string name)=>Math.Clamp((name?.Length??0)+2,6,28);
  string PoolWidth(string name)=>$"--control-width:{Math.Clamp(88+(name?.Length??0)*6,96,220)}px";
- string DialWidth(string name)=>$"--control-width:{Math.Clamp(145+(name?.Length??0)*7,155,300)}px";
+ string DialWidth(string name)=>$"--control-width:{Math.Clamp(165+(name?.Length??0)*7,180,330)}px";
  string CardWidth(string name)=>$"--card-width:{Math.Clamp(220+(name?.Length??0)*6,240,390)}px";
  async Task UploadPortrait(InputFileChangeEventArgs e)
  {
