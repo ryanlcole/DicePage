@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# non-overlapping-rolls-10
+# fixed-board-footer-11
 on: [workflow_dispatch, push]
 permissions:
   contents: read
