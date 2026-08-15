@@ -7,25 +7,35 @@ public sealed partial class WorldSession
     public bool ShowSkillDescriptions { get; private set; } = true;
     public bool ShowFeatDescriptions { get; private set; } = true;
 
+    public static bool IsTrackField(CharacterField field)
+        => field.Kind is "TRACK" or "POOL" || field.Group is "Tracks" or "Vitals" or "Attributes" or "Accent" or "Pools";
+
     public void AddCharacterControl(string group)
     {
         if (!CharacterEditMode) return;
-        var equalizer = group is "Vitals" or "Attributes" or "Accent" or "Pools";
-        var kind = equalizer ? "POOL" : group == "Skills" ? "VALUE" : "ABILITY";
-        var prefix = group switch
-        {
-            "Vitals" => "Vital",
-            "Attributes" => "Attribute",
-            "Accent" => "Accent",
-            "Pools" => "Pool",
-            "Skills" => "Skill",
-            _ => "Feat"
-        };
+        var track = group == "Tracks";
+        var kind = track ? "TRACK" : group == "Skills" ? "VALUE" : "ABILITY";
+        var prefix = track ? "Track" : group == "Skills" ? "Skill" : "Feat";
         var n = 1;
         var name = $"{prefix} {n}";
         while (CharacterFields.Any(x => x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))
             name = $"{prefix} {++n}";
         CharacterFields.Add(new(name,kind,group));
+        Notify();
+    }
+
+    public void SetTrackMaximum(CharacterField field,int max)
+    {
+        if (!CharacterEditMode || !IsTrackField(field)) return;
+        field.Max = Math.Clamp(max,1,999999);
+        field.Current = Math.Clamp(field.Current,0,field.Max);
+        Notify();
+    }
+
+    public void SetTrackCurrent(CharacterField field,int current)
+    {
+        if (!IsTrackField(field)) return;
+        field.Current = Math.Clamp(current,0,Math.Max(field.Max,1));
         Notify();
     }
 
