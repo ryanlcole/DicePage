@@ -27,6 +27,8 @@ public sealed partial class WorldSession
     public void SetTrackMaximum(CharacterField field,int max)
     {
         if (!CharacterEditMode || !IsTrackField(field)) return;
+        field.Kind = "TRACK";
+        field.Group = "Tracks";
         field.Max = Math.Clamp(max,1,999999);
         field.Current = Math.Clamp(field.Current,0,field.Max);
         Notify();
@@ -36,6 +38,15 @@ public sealed partial class WorldSession
     {
         if (!IsTrackField(field)) return;
         field.Current = Math.Clamp(current,0,Math.Max(field.Max,1));
+        Notify();
+    }
+
+    public void ShowTrackHand(CharacterField field)
+    {
+        if (!IsTrackField(field) || HandCards.Any(x=>ReferenceEquals(x.Field,field))) return;
+        field.Kind = "TRACK";
+        field.Group = "Tracks";
+        HandCards.Add(new(field));
         Notify();
     }
 
