@@ -110,6 +110,9 @@
 .character-console-v2 .notebook-tabs{gap:4px!important}
 .character-console-v2 .notebook-tabs button{height:27px!important;padding:3px!important;border-radius:7px 7px 2px 2px!important;font-size:10px!important}
 .character-console-v2 .console-notebook textarea{min-height:90px!important;height:90px!important;margin-top:4px!important;padding:7px!important;resize:none!important;font-size:12px!important}
+.character-console-v2 .notebook-feats{display:flex!important;gap:5px!important;min-height:90px!important;height:90px!important;margin-top:4px!important;padding:5px!important;overflow-x:auto!important;overflow-y:hidden!important;background:#241a12!important;border:1px solid #775722!important}
+.character-console-v2 .notebook-feats .flare-control-card{box-sizing:border-box!important;position:relative!important;flex:0 0 120px!important;min-width:120px!important;height:76px!important;padding:4px!important;border:1px solid #7b5b26!important;border-radius:6px!important;background:#121617!important}
+.character-console-v2 .notebook-feats .console-add{min-height:76px!important;height:76px!important}
 .character-console-v2.board-section-focus .console-identity,
 .character-console-v2.board-section-focus .console-notebook{display:grid!important}
 .character-console-v2.board-section-focus .console-bank:not(.board-section-active){opacity:1!important;pointer-events:auto!important}
