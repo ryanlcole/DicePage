@@ -1,35 +1,51 @@
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
 @inject WorldSession Session
-<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand"><div class="finite-set hand-card-set">
-@if(Session.HandCards.Count==0){<div class="hand-rail-empty">HAND • Show an Attribute, Tracker, Limit, Skill, or Flare card here.</div>}
-else{@foreach(var card in Session.HandCards){
- var faceDown=FaceDown(card);
-<article class="shaelvien-hand-card color-@card.Field.Color @(faceDown?"face-down":"face-up") @(WorldSession.IsTrackerField(card.Field)?"map-tracker-card":"")" style="@CardStyle(card)" @key="card.Field.Id">
- @if(faceDown){
-  <button class="card-back-button" title="Turn card face up" @onclick="()=>ToggleFace(card)"><span class="sr-only">Turn @card.Name face up</span></button>
- }else{
-  <div class="card-face-content">
-   <div class="map-card-name">@card.Name</div>
-   @if(WorldSession.IsTrackerField(card.Field)){
-    <div class="map-track-live"><div class="map-track-readout"><strong>@card.Value</strong><span>/ @card.Max</span></div><input class="card-live-slider" type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)"/></div>
-   }else{
-    <div class="map-card-body"><div class="map-card-image">@if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="@card.Name"/>}else{<span>@CardGlyph(card)</span>}</div>@if(CardDescriptionVisible(card)&&!string.IsNullOrWhiteSpace(card.Field.Description)){<div class="map-card-description">@card.Field.Description</div>}</div>
-   }
-   <div class="map-card-footer"><button class="dicebag-button map-card-bag" title="@(Session.MixerOpen?"Open dice bag":"Roll dice bag")" @onclick="()=>BagClick(card)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button><strong class="map-card-value">@CardValue(card)</strong></div>
-  </div>
+@inject IJSRuntime JS
+<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand">
+ <div class="finite-set hand-card-set">
+ @if(Session.HandCards.Count==0)
+ {
+  <div class="hand-rail-empty">HAND • Add a card from the character sheet.</div>
  }
- <div class="hand-card-tools"><button class="tap-safe" title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button><button class="tap-safe flip-card" title="Flip card" @onclick="()=>ToggleFace(card)">↻</button><button class="tap-safe" title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button><button class="tap-safe" title="Return to sheet" @onclick="()=>Session.HideHand(card)">×</button></div>
-</article>}}
-</div></section>
+ else
+ {
+  @foreach(var card in Session.HandCards)
+  {
+   <article class="hand-card-mini color-@card.Field.Color" style="@CardStyle(card)" draggable="true" @ondragstart="()=>Session.BeginHandCardDrag(card)" @ondragend="Session.CancelHandCardDrag" @onpointerdown="e=>PointerStart(card,e)" @onpointerup="e=>PointerEnd(card,e)" @key="card.Field.Id">
+    <div class="hand-mini-name">@card.Name</div>
+    @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl))
+    {
+     <img class="hand-mini-image" src="@card.Field.ImageDataUrl" alt="@card.Name" />
+    }
+    else
+    {
+     <div class="hand-mini-image hand-mini-glyph">@Glyph(card)</div>
+    }
+    @if(WorldSession.IsTrackerField(card.Field))
+    {
+     <input class="hand-mini-tracker" type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true" />
+     <strong class="hand-mini-value">@card.Value/@card.Max</strong>
+    }
+    else
+    {
+     <strong class="hand-mini-value">@CardValue(card)</strong>
+    }
+    <button class="dicebag-button hand-mini-bag" title="Roll dice bag" @onclick="()=>BagClick(card)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button>
+    <button class="hand-mini-close tap-safe" title="Return to sheet" @onclick="()=>Session.HideHand(card)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true">×</button>
+   </article>
+  }
+ }
+ </div>
+</section>
 @code{
- readonly HashSet<string> _faceDown=[];
- bool FaceDown(HandCard card)=>_faceDown.Contains(card.Field.Id);
- void ToggleFace(HandCard card){if(!_faceDown.Add(card.Field.Id))_faceDown.Remove(card.Field.Id);}
- string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}');--hand-card-width:{CardWidth(card.Name)}px";
- int CardWidth(string name)=>Math.Clamp(160+(name?.Length??0)*3,170,205);
+ HandCard? _pointerCard; double _pointerX; double _pointerY;
+ string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}')";
  string CardFront(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"assets/cards/fronts/card_front_01_three_roses.png":WorldSession.IsTrackerField(card.Field)?"assets/cards/fronts/card_front_02_two_roses.png":WorldSession.IsLimitField(card.Field)?"assets/cards/fronts/card_front_03_four_roses.png":card.Field.Group=="Skills"?"assets/cards/fronts/card_front_04_single_rose.png":WorldSession.IsFlareField(card.Field)?"assets/cards/fronts/card_front_05_two_low_roses.png":"assets/cards/fronts/card_front_06_minimal.png";
- string CardGlyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
- string CardValue(HandCard card)=>WorldSession.IsTrackerField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value} / {card.Max}":WorldSession.IsFlareField(card.Field)?"FLARE":card.Value.ToString();
- bool CardDescriptionVisible(HandCard card)=>card.Field.DescriptionEnabled&&(card.Field.Group=="Skills"?Session.ShowSkillDescriptions:WorldSession.IsFlareField(card.Field)&&Session.ShowFeatDescriptions);
+ string Glyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
+ string CardValue(HandCard card)=>WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsFlareField(card.Field)?"✦":card.Value.ToString();
  void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
  async Task BagClick(HandCard card){if(Session.MixerOpen)Session.EditFieldDiceBag(card.Field);else await Session.RollHandCardAsync(card);}
+ void PointerStart(HandCard card,PointerEventArgs e){_pointerCard=card;_pointerX=e.ClientX;_pointerY=e.ClientY;Session.BeginHandCardDrag(card);}
+ async Task PointerEnd(HandCard card,PointerEventArgs e){var moved=Math.Abs(e.ClientX-_pointerX)+Math.Abs(e.ClientY-_pointerY);if(_pointerCard==card&&moved>28&&await JS.InvokeAsync<bool>("ristWorld.overPublicCardDrop",e.ClientX,e.ClientY))Session.PublishHandCard(card);else Session.CancelHandCardDrag();_pointerCard=null;}
 }
