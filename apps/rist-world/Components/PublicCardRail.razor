@@ -1,0 +1,45 @@
+@inject WorldSession Session
+<section class="public-card-drop" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
+ <div class="public-card-strip">
+  @if(Session.PublicCards.Count==0)
+  {
+   <div class="public-card-empty">Drag a card here to show it publicly.</div>
+  }
+  else
+  {
+   @foreach(var card in Session.PublicCards)
+   {
+    <article class="public-table-card" style="@CardStyle(card)" @key="card.Field.Id">
+     <button class="public-card-remove tap-safe" title="Return card to hand" @onclick="()=>Session.RemovePublicCard(card)">×</button>
+     <div class="public-card-name">@card.Name</div>
+     @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl))
+     {
+      <img class="public-card-image" src="@card.Field.ImageDataUrl" alt="@card.Name" />
+     }
+     else
+     {
+      <div class="public-card-image public-card-glyph">@Glyph(card)</div>
+     }
+     @if(WorldSession.IsTrackerField(card.Field))
+     {
+      <div class="public-tracker-value"><strong>@card.Value</strong><span>/ @card.Max</span></div>
+      <input class="public-tracker-slider" type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)" />
+     }
+     else
+     {
+      <div class="public-card-value">@CardValue(card)</div>
+     }
+     <button class="dicebag-button public-card-bag" title="Roll dice bag" @onclick="()=>Roll(card)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button>
+    </article>
+   }
+  }
+ </div>
+</section>
+@code{
+ string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}')";
+ string CardFront(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"assets/cards/fronts/card_front_01_three_roses.png":WorldSession.IsTrackerField(card.Field)?"assets/cards/fronts/card_front_02_two_roses.png":WorldSession.IsLimitField(card.Field)?"assets/cards/fronts/card_front_03_four_roses.png":card.Field.Group=="Skills"?"assets/cards/fronts/card_front_04_single_rose.png":WorldSession.IsFlareField(card.Field)?"assets/cards/fronts/card_front_05_two_low_roses.png":"assets/cards/fronts/card_front_06_minimal.png";
+ string Glyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
+ string CardValue(HandCard card)=>WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsFlareField(card.Field)?"FLARE":card.Value.ToString();
+ void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
+ async Task Roll(HandCard card)=>await Session.RollHandCardAsync(card);
+}
