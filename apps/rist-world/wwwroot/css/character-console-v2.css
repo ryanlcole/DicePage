@@ -1,0 +1,134 @@
+/* Character console v2 — fixed, atlas-backed tabletop sheet. */
+.mixer-modal:has(.character-console-v2){
+  position:fixed!important;inset:0 0 178px!important;z-index:88!important;
+  display:grid!important;place-items:start center!important;padding:4px!important;
+  overflow:hidden!important;background:rgba(4,7,8,.96)!important;
+}
+.character-console-v2{
+  --atlas:url('../assets/ui/mixer_sprite_atlas.png');
+  box-sizing:border-box!important;width:min(100%,720px)!important;height:100%!important;
+  max-width:720px!important;max-height:none!important;margin:0 auto!important;padding:10px 9px 16px!important;
+  overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;
+  transform:none!important;border:3px solid #9d7429!important;border-radius:24px 24px 8px 8px!important;
+  color:#f2dfb3!important;background:
+    linear-gradient(90deg,#20170f 0 13px,transparent 13px calc(100% - 13px),#20170f calc(100% - 13px)),
+    radial-gradient(circle at 50% 0,#283033 0,#111517 44%,#090c0d 100%)!important;
+  box-shadow:inset 0 0 0 3px #171008,inset 0 0 0 7px #493417,0 14px 50px #000!important;
+  scrollbar-width:thin;scrollbar-color:#9e6c22 #101415;
+}
+.character-console-v2::before,.character-console-v2::after{
+  content:"";position:absolute;top:5px;bottom:5px;width:18px;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,#3c2a18,#0f1112 25%,#a1742e 40%,#17191a 54%,#5e4422 74%,#17110b);
+  border:1px solid #9a7132;box-shadow:inset 0 0 6px #000;
+}
+.character-console-v2::before{left:4px}.character-console-v2::after{right:4px;transform:scaleX(-1)}
+.character-console-v2>*{position:relative;z-index:1}
+.character-console-v2 .character-console-tools{
+  position:sticky!important;top:0!important;z-index:50!important;height:34px!important;margin:0 14px 5px!important;
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:5px!important;
+  background:linear-gradient(#161a1c,#090b0c)!important;border:1px solid #735521!important;border-radius:8px!important;
+  box-shadow:inset 0 0 8px #000!important;
+}
+.character-console-v2 .character-console-tools span{margin-right:auto;padding-left:9px;font:700 12px Georgia,serif;letter-spacing:.05em}
+.character-console-v2 .character-console-tools button{min-height:28px!important;padding:3px 9px!important;border-radius:7px!important;font-size:13px!important}
+.character-console-v2 .console-identity{
+  display:grid!important;grid-template-columns:86px 1.2fr 1fr .62fr 1fr!important;gap:7px!important;
+  min-height:92px!important;margin:0 14px 7px!important;padding:7px!important;
+  border:2px solid #7d5d27!important;border-radius:12px!important;background:linear-gradient(#171b1d,#0b0e0f)!important;
+  box-shadow:inset 0 0 0 2px #080a0b,inset 0 0 16px #000!important;
+}
+.character-console-v2 .console-identity .character-portrait{
+  position:relative!important;width:82px!important;height:82px!important;min-height:82px!important;align-self:center!important;
+  overflow:hidden!important;border:5px double #b28a44!important;border-radius:50%!important;background:#15191a!important;
+  box-shadow:inset 0 0 12px #000,0 0 0 2px #3c2912!important;
+}
+.character-console-v2 .character-portrait img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+.character-console-v2 .character-portrait>span{font-size:9px!important}
+.character-console-v2 .portrait-upload{position:absolute!important;inset:auto 4px 5px!important;padding:3px!important;border-radius:10px!important;background:#15110ddd!important;font-size:8px!important}
+.character-console-v2 .console-identity>label{min-width:0!important;display:grid!important;grid-template-rows:21px 1fr!important;align-items:center!important;
+  padding:2px!important;border:1px solid #9c7634!important;border-radius:6px!important;background:#d9c08d var(--atlas) -174px -40px/653px 523px no-repeat!important;color:#22180e!important;
+  font:700 clamp(7px,1.65vw,11px) Georgia,serif!important;letter-spacing:.06em!important;
+}
+.character-console-v2 .console-identity input{height:100%!important;padding:3px!important;border:1px solid #6f5125!important;border-radius:3px!important;background:#121719!important;color:#f2e4c4!important;font-size:clamp(10px,2.2vw,14px)!important}
+.character-console-v2 .console-bank{
+  cursor:default!important;margin:0 14px 7px!important;padding:6px!important;min-height:0!important;
+  border:2px solid #715221!important;border-radius:10px!important;background:linear-gradient(145deg,#1b2022,#0d1011)!important;
+  box-shadow:inset 0 0 0 2px #080a0a,inset 0 0 15px #000!important;
+}
+.character-console-v2 .bank-title{height:22px!important;padding:0 4px 4px!important}
+.character-console-v2 .bank-title strong{font:700 13px Georgia,serif!important;letter-spacing:.08em!important;color:#e8d5a6!important}
+.character-console-v2 .bank-title span,.character-console-v2 .description-toggle{font-size:8px!important}
+.character-console-v2 .character-finite-rail{overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin!important;scroll-snap-type:x proximity}
+.character-console-v2 .character-control-set{display:flex!important;align-items:stretch!important;gap:5px!important;min-width:max-content!important;padding:1px!important}
+.character-console-v2 .attributes-bank .character-control-set>article,
+.character-console-v2 .trackers-bank .character-control-set>article{
+  scroll-snap-align:start;box-sizing:border-box!important;position:relative!important;flex:0 0 76px!important;width:76px!important;
+  min-width:76px!important;max-width:76px!important;height:260px!important;padding:5px 3px!important;border:1px solid #775922!important;
+  border-radius:8px!important;background:linear-gradient(90deg,#161a1b,#262829 48%,#111415)!important;overflow:hidden!important;
+}
+.character-console-v2 .attributes-bank .attribute-scale,
+.character-console-v2 .trackers-bank .pool-scale{left:3px!important;width:23px!important;font-size:7px!important;color:#d6c18b!important}
+.character-console-v2 .vertical-slider-shell{height:150px!important;min-height:150px!important;max-height:150px!important;width:37px!important;margin:0 auto!important}
+.character-console-v2 .vertical-slider-shell{border-radius:5px!important;background:var(--atlas) -355px -8px/632px 506px no-repeat!important}
+.character-console-v2 .slider-rail{width:9px!important;border:1px solid #8c6d32!important;background:#070909!important;box-shadow:inset 0 0 5px #000!important}
+.character-console-v2 .scarab-handle{width:31px!important;height:39px!important;font-size:0!important;border:0!important;border-radius:0!important;
+  background-image:var(--atlas)!important;background-size:560.8px 448.8px!important;background-position:-467px -25px!important;background-color:transparent!important;box-shadow:none!important;
+}
+.character-console-v2 .attribute-readouts,.character-console-v2 .track-values{gap:2px!important;margin-top:2px!important}
+.character-console-v2 .attribute-readouts label,.character-console-v2 .track-values label{min-height:25px!important;padding:1px!important;border-radius:3px!important;background:#090c0d!important}
+.character-console-v2 .attribute-readouts small,.character-console-v2 .track-values small{display:none!important}
+.character-console-v2 .attribute-readouts input,.character-console-v2 .track-values input,
+.character-console-v2 .attribute-readouts strong,.character-console-v2 .track-values strong{height:23px!important;min-height:0!important;padding:0!important;font-size:13px!important}
+.character-console-v2 .compact-field-control{margin-top:2px!important;gap:2px!important}
+.character-console-v2 .control-identity-row{min-height:25px!important}
+.character-console-v2 .nameplate-code-button{width:100%!important;min-height:24px!important;padding:2px!important;border-radius:3px!important;background:#d9c08d!important;color:#24190e!important;font:700 9px Georgia,serif!important}
+.character-console-v2 .score-box,.character-console-v2 .mod-dice-set,.character-console-v2 .control-tools-row,.character-console-v2 .color-swatches{display:none!important}
+.character-console-v2 .console-add{flex:0 0 64px!important;width:64px!important;min-height:72px!important;border-radius:9px!important;background:#1d2122!important;color:#d7b671!important}
+.character-console-v2 .console-fader-bank{max-height:300px!important}
+.character-console-v2 .console-dial-bank .character-control-set{justify-content:flex-start!important}
+.character-console-v2 .console-dial-bank .character-control-set>article{
+  box-sizing:border-box!important;flex:0 0 155px!important;width:155px!important;min-width:155px!important;min-height:145px!important;
+  padding:4px!important;border:1px solid #71521f!important;border-radius:9px!important;background:#111516!important;
+}
+.character-console-v2 .rotary-dial{
+  width:95px!important;height:95px!important;border:0!important;background:
+    radial-gradient(circle,transparent 0 31%,#111 32% 38%,transparent 39%),
+    var(--atlas) -436px -132px/561px 449px no-repeat!important;
+  box-shadow:0 0 0 2px #725321,inset 0 0 12px #000!important;
+}
+.character-console-v2 .dial-center{width:52px!important;height:52px!important;color:var(--field-accent,#d9a82f)!important;font-size:21px!important}
+.character-console-v2 .dial-step{width:27px!important;height:27px!important;font-size:16px!important}
+.character-console-v2 .limit-max{font-size:8px!important}
+.character-console-v2 .limit-max input,.character-console-v2 .limit-max strong{font-size:11px!important}
+.character-console-v2 .console-dial-bank .compact-field-control{width:100%!important}
+.character-console-v2 .flare-bank{max-height:112px!important}
+.character-console-v2 .flare-control-card{flex:0 0 120px!important;min-width:120px!important;min-height:66px!important;padding:4px!important}
+.character-console-v2 .console-notebook{
+  margin:0 14px 4px!important;padding:7px!important;border:2px solid #745422!important;border-radius:10px!important;
+  background:#171411!important;box-shadow:inset 0 0 14px #000!important;
+}
+.character-console-v2 .notebook-tabs{gap:4px!important}
+.character-console-v2 .notebook-tabs button{height:27px!important;padding:3px!important;border-radius:7px 7px 2px 2px!important;font-size:10px!important}
+.character-console-v2 .console-notebook textarea{min-height:90px!important;height:90px!important;margin-top:4px!important;padding:7px!important;resize:none!important;font-size:12px!important}
+.character-console-v2.board-section-focus .console-identity,
+.character-console-v2.board-section-focus .console-notebook{display:grid!important}
+.character-console-v2.board-section-focus .console-bank:not(.board-section-active){opacity:1!important;pointer-events:auto!important}
+.character-console-v2 .board-focus-nav,.character-console-v2~.board-focus-nav{display:none!important}
+body:has(.character-console-v2) .hand-rail{display:flex!important;position:fixed!important;bottom:72px!important}
+body:has(.character-console-v2) .dice-footer{position:fixed!important;bottom:0!important;height:72px!important}
+
+@media(max-width:520px){
+  .mixer-modal:has(.character-console-v2){inset:0 0 160px!important;padding:2px!important}
+  .character-console-v2{padding:7px 4px 10px!important;border-radius:17px 17px 5px 5px!important}
+  .character-console-v2 .character-console-tools{margin-inline:10px!important}
+  .character-console-v2 .console-identity{grid-template-columns:70px 1.15fr 1fr .58fr 1fr!important;gap:3px!important;margin-inline:10px!important;padding:4px!important;min-height:74px!important}
+  .character-console-v2 .console-identity .character-portrait{width:66px!important;height:66px!important;min-height:66px!important;border-width:3px!important}
+  .character-console-v2 .console-bank,.character-console-v2 .console-notebook{margin-inline:10px!important}
+  .character-console-v2 .attributes-bank .character-control-set>article,.character-console-v2 .trackers-bank .character-control-set>article{flex-basis:70px!important;width:70px!important;min-width:70px!important;max-width:70px!important;height:238px!important}
+  .character-console-v2 .vertical-slider-shell{height:134px!important;min-height:134px!important;max-height:134px!important}
+  .character-console-v2 .console-dial-bank .character-control-set>article{flex-basis:132px!important;width:132px!important;min-width:132px!important;min-height:131px!important}
+  .character-console-v2 .rotary-dial{width:82px!important;height:82px!important}
+  .character-console-v2 .dial-center{width:45px!important;height:45px!important;font-size:18px!important}
+  body:has(.character-console-v2) .hand-rail{bottom:68px!important}
+  body:has(.character-console-v2) .dice-footer{height:68px!important}
+}
