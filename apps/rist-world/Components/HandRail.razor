@@ -1,53 +1,23 @@
 @inject WorldSession Session
-<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand">
- <div class="finite-set hand-card-set">
-  @if(Session.HandCards.Count==0)
-  {
-   <div class="hand-rail-empty" aria-live="polite">HAND • Show a track, skill, feat, or ability to place its card here.</div>
-  }
-  else
-  {
-   @foreach(var card in Session.HandCards)
-   {
-    <article class="map-hand-card color-@card.Field.Color @(WorldSession.IsTrackField(card.Field)?"map-track-card":"")" style="@CardWidth(card.Name)">
-     <div class="map-card-name">@card.Name</div>
-     @if(WorldSession.IsTrackField(card.Field))
-     {
-      <div class="map-track-live">
-       <div class="map-track-readout"><strong>@card.Value</strong><span>/ @card.Max</span></div>
-       <input type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTrack(card.Field,e)" aria-label="@card.Name current value" />
-      </div>
-     }
-     else
-     {
-      <div class="map-card-body">
-       <div class="map-card-image">
-        @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="@card.Name"/>}
-        else{<span>+</span>}
-       </div>
-       @if(CardDescriptionVisible(card) && !string.IsNullOrWhiteSpace(card.Field.Description))
-       {<div class="map-card-description">@card.Field.Description</div>}
-      </div>
-     }
-     <div class="map-card-footer">
-      <button class="dicebag-button map-card-bag" title="@(Session.MixerOpen?"Open dice bag":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
-       <img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
-      </button>
-      <strong class="map-card-value">@(WorldSession.IsTrackField(card.Field)?$"{card.Value}/{card.Max}":card.Value.ToString())</strong>
-     </div>
-     <div class="hand-card-tools">
-      <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
-      <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
-      <button title="Remove from hand" @onclick="()=>Session.HideHand(card)">×</button>
-     </div>
-    </article>
-   }
-  }
- </div>
-</section>
+<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand"><div class="finite-set hand-card-set">
+@if(Session.HandCards.Count==0){<div class="hand-rail-empty">HAND • Show an Attribute, Tracker, Limit, Skill, or Flare card here.</div>}
+else{@foreach(var card in Session.HandCards){
+<article class="map-hand-card color-@card.Field.Color @(WorldSession.IsTrackerField(card.Field)?"map-tracker-card":"")" style="@CardWidth(card.Name)">
+ <div class="map-card-name">@card.Name</div>
+ @if(WorldSession.IsTrackerField(card.Field)){
+  <div class="map-track-live"><div class="map-track-readout"><strong>@card.Value</strong><span>/ @card.Max</span></div><input type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)"/></div>
+ }else{
+  <div class="map-card-body"><div class="map-card-image">@if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="@card.Name"/>}else{<span>@CardGlyph(card)</span>}</div>@if(CardDescriptionVisible(card)&&!string.IsNullOrWhiteSpace(card.Field.Description)){<div class="map-card-description">@card.Field.Description</div>}</div>
+ }
+ <div class="map-card-footer"><button class="dicebag-button map-card-bag" title="@(Session.MixerOpen?"Open dice bag":"Roll dice bag")" @onclick="()=>BagClick(card)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button><strong class="map-card-value">@CardValue(card)</strong></div>
+ <div class="hand-card-tools"><button @onclick="()=>Session.MoveHandCard(card,-1)">◀</button><button @onclick="()=>Session.MoveHandCard(card,1)">▶</button><button @onclick="()=>Session.HideHand(card)">×</button></div>
+</article>}}
+</div></section>
 @code{
  string CardWidth(string name)=>$"--hand-card-width:{Math.Clamp(190+(name?.Length??0)*7,220,390)}px";
- bool CardDescriptionVisible(HandCard card)=>card.Field.DescriptionEnabled&&(card.Field.Group=="Skills"?Session.ShowSkillDescriptions:Session.ShowFeatDescriptions);
- void SetTrack(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackCurrent(field,value);}
+ string CardGlyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
+ string CardValue(HandCard card)=>WorldSession.IsTrackerField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsAttributeField(card.Field)?$"{(card.Value>0?"+":"")}{card.Value}":WorldSession.IsLimitField(card.Field)?$"{card.Value} / {card.Max}":WorldSession.IsFlareField(card.Field)?"FLARE":card.Value.ToString();
+ bool CardDescriptionVisible(HandCard card)=>card.Field.DescriptionEnabled&&(card.Field.Group=="Skills"?Session.ShowSkillDescriptions:WorldSession.IsFlareField(card.Field)&&Session.ShowFeatDescriptions);
+ void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
  async Task BagClick(HandCard card){if(Session.MixerOpen)Session.EditFieldDiceBag(card.Field);else await Session.RollHandCardAsync(card);}
 }
