@@ -106,6 +106,10 @@ public sealed partial class WorldSession
     public void SetTrackCurrent(CharacterField field,int current)=>SetTrackerCurrent(field,current);
 
     public void SetFieldDescription(CharacterField field,string value){if(!CharacterEditMode)return;field.Description=value??"";Notify();}
+    public void SetFieldNameplateDescription(CharacterField field,string value){if(!CharacterEditMode)return;field.NameplateDescription=value??"";Notify();}
+    public void SetFieldSubtitle(CharacterField field,string value){if(!CharacterEditMode)return;field.Subtitle=value??"";Notify();}
+    public void SetFieldShortName(CharacterField field,string value){if(!CharacterEditMode)return;field.SetShortName(value);Notify();}
+    public void ResetFieldShortName(CharacterField field){if(!CharacterEditMode)return;field.ResetShortName();Notify();}
     public void SetFieldDescriptionEnabled(CharacterField field,bool enabled){if(!CharacterEditMode)return;field.DescriptionEnabled=enabled;Notify();}
     public void ToggleSectionDescriptions(string group){if(group=="Skills")ShowSkillDescriptions=!ShowSkillDescriptions;else if(group is "Flare" or "Feats")ShowFeatDescriptions=!ShowFeatDescriptions;Notify();}
     public void SetCharacterFieldImage(CharacterField field,string dataUrl){if(!CharacterEditMode)return;field.ImageDataUrl=dataUrl??"";Notify();}
