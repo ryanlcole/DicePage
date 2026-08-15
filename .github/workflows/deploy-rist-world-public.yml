@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# refresh-dice-sprites-16
+# restore-card-character-layout-17
 on: [workflow_dispatch, push]
 permissions:
   contents: read
