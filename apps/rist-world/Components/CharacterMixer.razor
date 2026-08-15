@@ -31,9 +31,7 @@
      {
       <article class="pool-channel physical-channel track-channel color-@field.Color" style="@PoolWidth(field.Name)">
        @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
-       <div class="pool-scale">
-        @foreach(var mark in ScaleLabels(field.Max)){<span>@mark</span>}
-       </div>
+       <div class="pool-scale">@foreach(var mark in ScaleLabels(field.Max)){<span>@mark</span>}</div>
        <input class="pool-slider scarab-slider" type="range" min="0" max="@Math.Max(field.Max,1)" value="@field.Current" @oninput="e=>SetTrackCurrent(field,e)" />
        <div class="track-values">
         <label class="track-current"><small>CURRENT</small><strong>@field.Current</strong></label>
@@ -48,7 +46,7 @@
        <button class="show-hand track-card-button" disabled="@inHand" @onclick="()=>Session.ShowTrackHand(field)">@(inHand?"In Hand":"Card")</button>
       </article>
      }
-     @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="()=>Session.AddCharacterControl("Tracks")">+</button>}
+     @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="AddTrack">+</button>}
     </div></div>
    </section>
 
@@ -71,19 +69,11 @@
        @if(Session.ShowSkillDescriptions && field.DescriptionEnabled)
        {
         <div class="skill-card-media">
-         <div class="skill-card-image">
-          @if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="@field.Name"/>}else{<span>+</span>}
-          @if(Session.CharacterEditMode){<label title="Upload card image"><InputFile OnChange="e=>UploadFieldImage(field,e)" accept="image/*" /></label>}
-         </div>
-         @if(Session.CharacterEditMode){<textarea class="field-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}
-         else if(!string.IsNullOrWhiteSpace(field.Description)){<p class="field-description-read">@field.Description</p>}
+         <div class="skill-card-image">@if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="@field.Name"/>}else{<span>+</span>}@if(Session.CharacterEditMode){<label title="Upload card image"><InputFile OnChange="e=>UploadFieldImage(field,e)" accept="image/*" /></label>}</div>
+         @if(Session.CharacterEditMode){<textarea class="field-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}else if(!string.IsNullOrWhiteSpace(field.Description)){<p class="field-description-read">@field.Description</p>}
         </div>
        }
-       @if(Session.CharacterEditMode)
-       {
-        <label class="field-desc-toggle"><input type="checkbox" checked="@field.DescriptionEnabled" @onchange="e=>SetDescriptionEnabled(field,e)"/> Description</label>
-        <div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>
-       }
+       @if(Session.CharacterEditMode){<label class="field-desc-toggle"><input type="checkbox" checked="@field.DescriptionEnabled" @onchange="e=>SetDescriptionEnabled(field,e)"/> Description</label><div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
        @{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}
        <button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button>
       </article>
@@ -100,25 +90,9 @@
       <article class="sheet-card-frame color-@field.Color" style="@CardWidth(field.Name)">
        @if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
        <div class="sheet-card-name name-plate">@if(Session.CharacterEditMode){<input size="@InputSize(field.Name)" value="@field.Name" @onchange="e=>Rename(field,e)" />}else{<span>@field.Name</span>}</div>
-       <div class="sheet-card-body">
-        <div class="sheet-card-image">
-         @if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="@field.Name"/>}
-         else{<span>+</span>}
-         @if(Session.CharacterEditMode){<label title="Upload card image"><InputFile OnChange="e=>UploadFieldImage(field,e)" accept="image/*" /></label>}
-        </div>
-        @if(Session.ShowFeatDescriptions && field.DescriptionEnabled)
-        {
-         @if(Session.CharacterEditMode){<textarea class="sheet-card-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}
-         else{<div class="sheet-card-description read-only">@field.Description</div>}
-        }
-       </div>
+       <div class="sheet-card-body"><div class="sheet-card-image">@if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="@field.Name"/>}else{<span>+</span>}@if(Session.CharacterEditMode){<label title="Upload card image"><InputFile OnChange="e=>UploadFieldImage(field,e)" accept="image/*" /></label>}</div>@if(Session.ShowFeatDescriptions && field.DescriptionEnabled){@if(Session.CharacterEditMode){<textarea class="sheet-card-description" value="@field.Description" @onchange="e=>SetDescription(field,e)" placeholder="Description…"></textarea>}else{<div class="sheet-card-description read-only">@field.Description</div>}}</div>
        @if(Session.CharacterEditMode){<label class="field-desc-toggle"><input type="checkbox" checked="@field.DescriptionEnabled" @onchange="e=>SetDescriptionEnabled(field,e)"/> Description</label>}
-       <div class="sheet-card-footer">
-        <button class="mini-bag card-bag" title="Dice bag" @onclick="()=>Session.EditFieldDiceBag(field)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><b>@field.DiceBag.Sum(x=>x.Count)</b></button>
-        @{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}
-        <button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button>
-        <label class="card-value">VALUE @if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)"/>}else{<strong>@field.Current</strong>}</label>
-       </div>
+       <div class="sheet-card-footer"><button class="mini-bag card-bag" title="Dice bag" @onclick="()=>Session.EditFieldDiceBag(field)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><b>@field.DiceBag.Sum(x=>x.Count)</b></button>@{var inHand=Session.HandCards.Any(x=>ReferenceEquals(x.Field,field));}<button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button><label class="card-value">VALUE @if(Session.CharacterEditMode){<input type="number" min="0" max="999" value="@field.Current" @onchange="e=>SetCurrent(field,e)"/>}else{<strong>@field.Current</strong>}</label></div>
        @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
       </article>
      }
@@ -126,35 +100,14 @@
     </div></div>
    </section>
 
-   <section class="console-notebook"><nav class="notebook-tabs">@foreach(var tab in new[]{"Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}</nav>
-    @if(Session.CharacterTab=="Background"){<textarea aria-label="Background" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}
-    else{<textarea aria-label="Public Description" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}
-   </section>
+   <section class="console-notebook"><nav class="notebook-tabs">@foreach(var tab in new[]{"Description","Background"}){<button class="@(Session.CharacterTab==tab?"active":"")" @onclick="()=>Session.SetCharacterTab(tab)">@tab</button>}</nav>@if(Session.CharacterTab=="Background"){<textarea aria-label="Background" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Background…"></textarea>}else{<textarea aria-label="Public Description" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Public description…"></textarea>}</section>
   </section>
  </div>
 
  @if(Session.EditingDiceField is not null)
  {
   var bagField=Session.EditingDiceField;
-  <div class="dicebag-modal sheet-bag-modal" @onclick="Session.CloseFieldDiceBag">
-   <section class="dicebag-workspace dicebag-form" @onclick:stopPropagation="true">
-    <header class="dicebag-title"><div><strong>@bagField.Name</strong><span>Dice bag</span></div><button @onclick="Session.CloseFieldDiceBag">Close</button></header>
-    <div class="dicebag-form-grid">
-     @foreach(var die in Session.DiceSet)
-     {
-      <div class="dicebag-form-row">
-       <strong>@die.Label</strong>
-       <button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.AdjustDiceBag(bagField,die.Key,-1)">−</button>
-       <span>@Session.DiceBagCount(bagField,die.Key)</span>
-       <button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.AdjustDiceBag(bagField,die.Key,1)">+</button>
-       @if(die.Key is "d5-bonus" or "d5-penalty")
-       {<select disabled="@(!Session.CharacterEditMode)" value="@Session.DiceBagMagnitude(bagField,die.Key)" @onchange="e=>SetBagMagnitude(bagField,die.Key,e)">@for(var i=1;i<=5;i++){<option value="@i">@(die.Key=="d5-bonus"?"+":"-")@i</option>}</select>}
-      </div>
-     }
-    </div>
-    <footer class="dicebag-example"><button @onclick="()=>Session.ExampleDiceBagRoll(bagField)">Example Roll</button><output>@(Session.DiceBagExampleTotal?.ToString()??"—")</output></footer>
-   </section>
-  </div>
+  <div class="dicebag-modal sheet-bag-modal" @onclick="Session.CloseFieldDiceBag"><section class="dicebag-workspace dicebag-form" @onclick:stopPropagation="true"><header class="dicebag-title"><div><strong>@bagField.Name</strong><span>Dice bag</span></div><button @onclick="Session.CloseFieldDiceBag">Close</button></header><div class="dicebag-form-grid">@foreach(var die in Session.DiceSet){<div class="dicebag-form-row"><strong>@die.Label</strong><button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.AdjustDiceBag(bagField,die.Key,-1)">−</button><span>@Session.DiceBagCount(bagField,die.Key)</span><button disabled="@(!Session.CharacterEditMode)" @onclick="()=>Session.AdjustDiceBag(bagField,die.Key,1)">+</button>@if(die.Key is "d5-bonus" or "d5-penalty"){<select disabled="@(!Session.CharacterEditMode)" value="@Session.DiceBagMagnitude(bagField,die.Key)" @onchange="e=>SetBagMagnitude(bagField,die.Key,e)">@for(var i=1;i<=5;i++){<option value="@i">@(die.Key=="d5-bonus"?"+":"-")@i</option>}</select>}</div>}</div><footer class="dicebag-example"><button @onclick="()=>Session.ExampleDiceBagRoll(bagField)">Example Roll</button><output>@(Session.DiceBagExampleTotal?.ToString()??"—")</output></footer></section></div>
  }
 }
 @code{
@@ -165,6 +118,7 @@
  void CloseSheet(){Session.CloseFieldDiceBag();Session.CloseMixer();}
  void ToggleSkillsDescriptions()=>Session.ToggleSectionDescriptions("Skills");
  void ToggleFeatDescriptions()=>Session.ToggleSectionDescriptions("Feats");
+ void AddTrack()=>Session.AddCharacterControl("Tracks");
  void AddSkill()=>Session.AddCharacterControl("Skills");
  void AddFeat()=>Session.AddCharacterControl("Feats");
  void SetCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
@@ -179,12 +133,6 @@
  string DialWidth(string name)=>$"--control-width:{Math.Clamp(165+(name?.Length??0)*7,180,330)}px";
  string CardWidth(string name)=>$"--card-width:{Math.Clamp(220+(name?.Length??0)*6,240,390)}px";
  IEnumerable<int> ScaleLabels(int max){max=Math.Max(max,1);yield return max;yield return (int)Math.Round(max*.8);yield return (int)Math.Round(max*.6);yield return (int)Math.Round(max*.4);yield return (int)Math.Round(max*.2);yield return 0;}
- async Task UploadPortrait(InputFileChangeEventArgs e)
- {
-  var file=e.File;if(file is null)return;await using var stream=file.OpenReadStream(5*1024*1024);using var ms=new MemoryStream();await stream.CopyToAsync(ms);var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;Session.SetCharacterPortrait($"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");
- }
- async Task UploadFieldImage(CharacterField field,InputFileChangeEventArgs e)
- {
-  var file=e.File;if(file is null)return;await using var stream=file.OpenReadStream(3*1024*1024);using var ms=new MemoryStream();await stream.CopyToAsync(ms);var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;Session.SetCharacterFieldImage(field,$"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");
- }
+ async Task UploadPortrait(InputFileChangeEventArgs e){var file=e.File;if(file is null)return;await using var stream=file.OpenReadStream(5*1024*1024);using var ms=new MemoryStream();await stream.CopyToAsync(ms);var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;Session.SetCharacterPortrait($"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");}
+ async Task UploadFieldImage(CharacterField field,InputFileChangeEventArgs e){var file=e.File;if(file is null)return;await using var stream=file.OpenReadStream(3*1024*1024);using var ms=new MemoryStream();await stream.CopyToAsync(ms);var mime=string.IsNullOrWhiteSpace(file.ContentType)?"image/png":file.ContentType;Session.SetCharacterFieldImage(field,$"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}");}
 }
