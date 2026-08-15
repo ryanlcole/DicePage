@@ -43,7 +43,7 @@
      </button>
     }
    }
-   <div class="sum">SUM @Session.Total</div>
+   <div class="sum" aria-label="Dice total"><span>SUM</span><span>@Session.Total</span></div>
    <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
    @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
   </div>
