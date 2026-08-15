@@ -49,7 +49,7 @@
    }
 
    <section class="console-bank skills-bank">
-    <div class="bank-title"><strong>SKILLS</strong><button class="description-toggle" @onclick="()=>Session.ToggleSectionDescriptions("Skills")">Descriptions @(Session.ShowSkillDescriptions?"On":"Off")</button></div>
+    <div class="bank-title"><strong>SKILLS</strong><button class="description-toggle" @onclick="ToggleSkillsDescriptions">Descriptions @(Session.ShowSkillDescriptions?"On":"Off")</button></div>
     <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
      @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills"))
      {
@@ -78,12 +78,12 @@
        <button class="show-hand" disabled="@inHand" @onclick="()=>Session.ShowHand(field)">@(inHand?"In Hand":"Card")</button>
       </article>
      }
-     @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="()=>Session.AddCharacterControl("Skills")">+</button>}
+     @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
     </div></div>
    </section>
 
    <section class="console-bank feats-bank">
-    <div class="bank-title"><strong>FEATS / BOONS / ETC.</strong><button class="description-toggle" @onclick="()=>Session.ToggleSectionDescriptions("Feats")">Descriptions @(Session.ShowFeatDescriptions?"On":"Off")</button></div>
+    <div class="bank-title"><strong>FEATS / BOONS / ETC.</strong><button class="description-toggle" @onclick="ToggleFeatDescriptions">Descriptions @(Session.ShowFeatDescriptions?"On":"Off")</button></div>
     <div class="character-finite-rail finite-rail"><div class="finite-set character-control-set feat-card-set">
      @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Feats"))
      {
@@ -112,7 +112,7 @@
        @if(Session.CharacterEditMode){<div class="color-swatches">@foreach(var c in Colors){<button class="swatch swatch-@c @(field.Color==c?"active":"")" @onclick="()=>Session.SetCharacterFieldColor(field,c)"></button>}</div>}
       </article>
      }
-     @if(Session.CharacterEditMode){<button class="console-add physical-add feat-add" @onclick="()=>Session.AddCharacterControl("Feats")">+</button>}
+     @if(Session.CharacterEditMode){<button class="console-add physical-add feat-add" @onclick="AddFeat">+</button>}
     </div></div>
    </section>
 
@@ -153,10 +153,14 @@
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
+ void ToggleSkillsDescriptions()=>Session.ToggleSectionDescriptions("Skills");
+ void ToggleFeatDescriptions()=>Session.ToggleSectionDescriptions("Feats");
+ void AddSkill()=>Session.AddCharacterControl("Skills");
+ void AddFeat()=>Session.AddCharacterControl("Feats");
  void SetCurrent(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetCharacterField(field,v);}
  void Rename(CharacterField field,ChangeEventArgs e)=>Session.RenameCharacterField(field,e.Value?.ToString()??field.Name);
  void SetDescription(CharacterField field,ChangeEventArgs e)=>Session.SetFieldDescription(field,e.Value?.ToString()??"");
- void SetDescriptionEnabled(CharacterField field,ChangeEventArgs e)=>Session.SetFieldDescriptionEnabled(field,e.Value is bool b&&b);
+ void SetDescriptionEnabled(CharacterField field,ChangeEventArgs e)=>Session.SetFieldDescriptionEnabled(field,e.Value is bool b?b:string.Equals(e.Value?.ToString(),"true",StringComparison.OrdinalIgnoreCase));
  void SetBagMagnitude(CharacterField field,string key,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetFieldDiceMagnitude(field,key,v);}
  int InputSize(string name)=>Math.Clamp((name?.Length??0)+2,6,28);
  string PoolWidth(string name)=>$"--control-width:{Math.Clamp(88+(name?.Length??0)*6,96,220)}px";
