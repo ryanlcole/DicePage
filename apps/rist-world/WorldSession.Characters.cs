@@ -63,7 +63,7 @@ public sealed partial class WorldSession
         slot.Background = CharacterBackground;
         slot.Portrait = _characterPortraitDataUrl;
         slot.Fields = CharacterFields.Select(CloneField).ToList();
-        slot.HandFieldIds = HandCards.Select(card => card.Field.Id).ToList();
+        slot.HandFieldIds = HandCards.Select(card => card.Field.Id).Distinct().ToList();
     }
 
     private void LoadCharacterSlot(CharacterSlot slot)
@@ -90,6 +90,7 @@ public sealed partial class WorldSession
         var clone = new CharacterField(source.Name,source.Kind,source.Group)
         {
             Id = source.Id,
+            BaseValue = source.BaseValue,
             Current = source.Current,
             Max = source.Max,
             Color = source.Color,
