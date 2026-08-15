@@ -1,51 +1,54 @@
 @inject WorldSession Session
-<footer class="footer dice-footer finite-rail" aria-label="Dice tray">
- <div class="finite-set">
-  <div class="character-switch-cluster">
-   <button type="button" class="character-footer-button" title="Open character" aria-label="Open character" @onclick="()=>Session.OpenMixer()">
-    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
-    {<img class="footer-portrait" src="@Session.CharacterPortraitDataUrl" alt="Active character" />}
-    else
-    {<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="18" r="11"></circle><path d="M12 55c1-14 8-22 20-22s19 8 20 22z"></path></svg>}
-   </button>
-   <button type="button" class="character-cycle-button" title="Switch character" aria-label="Switch character" @onclick="()=>Session.SwitchCharacter(1)">⌃</button>
-  </div>
-  <button type="button" class="hand-drawer-toggle @(Session.HandOpen?"open":"")" title="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-label="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-expanded="@Session.HandOpen" @onclick="Session.ToggleHand">
-   <span class="hand-toggle-card-back" aria-hidden="true"></span>
-   <span class="hand-toggle-chevron" aria-hidden="true">@(Session.HandOpen?"⌄":"⌃")</span>
-  </button>
-  @foreach(var die in Session.DiceSet)
-  {
-   if(die.Key=="d5-bonus")
-   {
-    <div class="die-control d5-control bonus-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
-     <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
-     <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
-      <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
-     </button>
-    </div>
-   }
-   else if(die.Key=="d5-penalty")
-   {
-    <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
-     <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
-     <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
-      <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
-     </button>
-    </div>
-   }
-   else
-   {
-    <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" @onclick="()=>DieClick(die.Key,null)">
-     <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-     <small>@die.Label</small>
+<footer class="footer dice-footer circular-rail" data-circular-rail aria-label="Dice tray">
+ @for(var copy=0;copy<3;copy++)
+ {
+  <div class="circular-set dice-circular-set">
+   <div class="character-switch-cluster">
+    <button type="button" class="character-footer-button" title="Open character" aria-label="Open character" @onclick="()=>Session.OpenMixer()">
+     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+     {<img class="footer-portrait" src="@Session.CharacterPortraitDataUrl" alt="Active character" />}
+     else
+     {<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="18" r="11"></circle><path d="M12 55c1-14 8-22 20-22s19 8 20 22z"></path></svg>}
     </button>
+    <button type="button" class="character-cycle-button" title="Switch character" aria-label="Switch character" @onclick="()=>Session.SwitchCharacter(1)">⌃</button>
+   </div>
+   <button type="button" class="hand-drawer-toggle @(Session.HandOpen?"open":"")" title="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-label="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-expanded="@Session.HandOpen" @onclick="Session.ToggleHand">
+    <span class="hand-toggle-card-back" aria-hidden="true"></span>
+    <span class="hand-toggle-chevron" aria-hidden="true">@(Session.HandOpen?"⌄":"⌃")</span>
+   </button>
+   @foreach(var die in Session.DiceSet)
+   {
+    if(die.Key=="d5-bonus")
+    {
+     <div class="die-control d5-control bonus-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
+      <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
+       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+      </button>
+     </div>
+    }
+    else if(die.Key=="d5-penalty")
+    {
+     <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
+      <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
+       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span><small>@die.Label</small>
+      </button>
+     </div>
+    }
+    else
+    {
+     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" @onclick="()=>DieClick(die.Key,null)">
+      <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
+      <small>@die.Label</small>
+     </button>
+    }
    }
-  }
-  <div class="sum">SUM @Session.Total</div>
-  <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
-  @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
- </div>
+   <div class="sum">SUM @Session.Total</div>
+   <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
+   @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
+  </div>
+ }
 </footer>
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
