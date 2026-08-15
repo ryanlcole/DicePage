@@ -22,7 +22,6 @@
  function back(root){if(root.classList.contains('board-card-focus')){clearCards(root);return;}clearSection(root);}
  function fit(root){root.classList.add('board-fit');if(!root.classList.contains('board-section-focus')){root.style.transform='';root.style.width='';}}
  function isArticle(el){return el.matches('.character-control-set>article,.feat-card-set>article');}
- function clickExisting(article,selector){const el=article.querySelector(selector);if(el&&!el.disabled){el.click();return true;}return false;}
  function globalEdit(root){const tools=[...root.querySelectorAll('.character-console-tools button')];const edit=tools.find(b=>b.textContent.trim()==='Edit');if(edit){edit.click();return true;}return false;}
  function addCardActions(root,article){
    removeCardActions(root);
@@ -36,8 +35,15 @@
  function updateSliderVisual(shell,input){
    if(!shell||!input)return;
    const min=Number(input.min||0),max=Number(input.max||100),v=Number(input.value||0);
-   const pct=max===min?0:((v-min)/(max-min))*100;
-   shell.style.setProperty('--pct',`${clamp(pct,0,100)}%`);
+   const pct=max===min?0:clamp(((v-min)/(max-min))*100,0,100);
+   shell.style.setProperty('--pct',`${pct}%`);
+   const handle=shell.querySelector('.scarab-handle');
+   if(handle){
+     handle.style.top='auto';
+     handle.style.bottom=`${pct}%`;
+     handle.style.left='50%';
+     handle.style.transform='translate(-50%,50%)';
+   }
  }
  function setSliderFromY(shell,clientY){
    const input=shell?.querySelector('input[type="range"]');
@@ -63,15 +69,16 @@
  }
  function stopSlider(){if(activeSlider)activeSlider.classList.remove('slider-dragging');activeSlider=null;activePointer=null;}
  function wireSlider(shell){
-   if(shell.dataset.directSlider==='2')return;
-   shell.dataset.directSlider='2';
    const input=shell.querySelector('input[type="range"]');
-   if(input){input.addEventListener('input',()=>updateSliderVisual(shell,input));updateSliderVisual(shell,input);}
+   if(input)updateSliderVisual(shell,input);
+   if(shell.dataset.directSlider==='3')return;
+   shell.dataset.directSlider='3';
+   if(input){input.addEventListener('input',()=>updateSliderVisual(shell,input));input.addEventListener('change',()=>updateSliderVisual(shell,input));}
    shell.addEventListener('pointerdown',e=>{if(startSlider(shell,e.clientY,e.pointerId)){e.preventDefault();e.stopPropagation();}}, {passive:false});
    shell.addEventListener('touchstart',e=>{const t=e.touches[0];if(t&&startSlider(shell,t.clientY,'touch')){e.preventDefault();e.stopPropagation();}}, {passive:false});
  }
- if(!window.__ristBoardSliderGlobal){
-   window.__ristBoardSliderGlobal=true;
+ if(!window.__ristBoardSliderGlobal3){
+   window.__ristBoardSliderGlobal3=true;
    window.addEventListener('pointermove',e=>{if(!activeSlider||activePointer!==e.pointerId)return;e.preventDefault();setSliderFromY(activeSlider,e.clientY);},{passive:false});
    window.addEventListener('pointerup',e=>{if(activeSlider&&activePointer===e.pointerId)stopSlider();},{passive:true});
    window.addEventListener('pointercancel',stopSlider,{passive:true});
