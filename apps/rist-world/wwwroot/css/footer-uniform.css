@@ -197,3 +197,14 @@
   --footer-sum-w:52px;
  }
 }
+
+/* Final fixed-footer fit: all controls remain visible and every sprite stays square. */
+.dice-footer.fixed-dice-footer{--footer-fit-slot:clamp(26px,calc((100vw - 34px)/11.25),64px);--footer-slot-h:var(--footer-fit-slot);overflow:hidden!important}
+.fixed-dice-footer .dice-circular-set{width:100%!important;min-width:0!important;gap:2px!important;justify-content:center!important;transform:none!important}
+.fixed-dice-footer .dice-circular-set>.die-button,.fixed-dice-footer .d5-control,.fixed-dice-footer .sum{flex:0 0 var(--footer-fit-slot)!important;width:var(--footer-fit-slot)!important;min-width:var(--footer-fit-slot)!important;max-width:var(--footer-fit-slot)!important;height:var(--footer-fit-slot)!important;min-height:var(--footer-fit-slot)!important;max-height:var(--footer-fit-slot)!important}
+.fixed-dice-footer .clear-dice{flex:0 0 calc(var(--footer-fit-slot)*1.25)!important;width:calc(var(--footer-fit-slot)*1.25)!important;min-width:calc(var(--footer-fit-slot)*1.25)!important;max-width:calc(var(--footer-fit-slot)*1.25)!important;height:var(--footer-fit-slot)!important;min-height:var(--footer-fit-slot)!important;max-height:var(--footer-fit-slot)!important;padding:3px!important}
+.fixed-dice-footer .dice-circular-set>.die-button .die-sprite{width:calc(100% - 8px)!important;height:calc(100% - 8px)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;aspect-ratio:1/1!important}
+.fixed-dice-footer .d5-control{--d5-value-h:clamp(13px,25%,18px);--d5-square:calc(var(--footer-fit-slot) - var(--d5-value-h));grid-template-columns:1fr!important;grid-template-rows:var(--d5-square) var(--d5-value-h)!important}
+.fixed-dice-footer .d5-control .die-button{width:var(--d5-square)!important;min-width:var(--d5-square)!important;max-width:var(--d5-square)!important;height:var(--d5-square)!important;min-height:var(--d5-square)!important;max-height:var(--d5-square)!important;justify-self:center!important}
+.fixed-dice-footer .d5-control .die-button .die-sprite{width:calc(100% - 6px)!important;height:calc(100% - 6px)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;aspect-ratio:1/1!important}
+.fixed-dice-footer .d5-control select{width:100%!important;min-width:0!important;max-width:100%!important;height:var(--d5-value-h)!important;min-height:var(--d5-value-h)!important;max-height:var(--d5-value-h)!important;padding:0 12px 0 2px!important}
