@@ -2,7 +2,9 @@
 @using Microsoft.JSInterop
 @inject WorldSession Session
 @inject IJSRuntime JS
-<section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand">
+@if(Session.HandOpen)
+{
+<section class="hand-rail tabletop-dial-rail finite-rail hand-drawer-open" aria-label="Player hand">
  <div class="finite-set hand-card-set">
  @if(Session.HandCards.Count==0)
  {
@@ -38,6 +40,7 @@
  }
  </div>
 </section>
+}
 @code{
  HandCard? _pointerCard; double _pointerX; double _pointerY;
  string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}')";
