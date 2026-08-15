@@ -6,14 +6,14 @@
 @if(Session.MixerOpen)
 {
 <div class="mixer-modal" @onclick="CloseSheet">
-<section class="character-mixer character-console" @onclick:stopPropagation="true">
+<section class="character-mixer character-console character-console-v2" data-board-static="true" @onclick:stopPropagation="true">
  <div class="character-console-tools"><span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>@if(Session.CharacterEditMode){<button @onclick="Session.NewCharacter">+ Character</button><button @onclick="Session.SaveCharacter">Save</button>}else{<button @onclick="Session.EditCharacter">Edit</button>}<button @onclick="CloseSheet">×</button></div>
  <header class="console-identity">
   <div class="character-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait"/>}else{<span>PORTRAIT</span>}@if(Session.CharacterEditMode){<label class="portrait-upload">Edit portrait<InputFile OnChange="LoadPortraitEditor" accept="image/*"/></label>}</div>
   <label>NAME<input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)"/></label><label>SPECIES<input @bind="Session.CharacterSpecies" readonly="@(!Session.CharacterEditMode)"/></label><label>AGE<input @bind="Session.CharacterAge" readonly="@(!Session.CharacterEditMode)"/></label><label>ALIGNMENT<input @bind="Session.CharacterAlignment" readonly="@(!Session.CharacterEditMode)"/></label>
  </header>
 
- <section class="console-bank attributes-bank"><div class="bank-title"><strong>ATTRIBUTES</strong><span>Base score + independent modifier from −10 to +10</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+ <section class="console-bank attributes-bank console-fader-bank"><div class="bank-title"><strong>ATTRIBUTES</strong><span>Adjustable character values</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
  @foreach(var field in Session.CharacterFields.Where(WorldSession.IsAttributeField))
  {
   <article class="attribute-channel color-@field.Color" style="@ControlStyle(field)">
@@ -27,7 +27,7 @@
  @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="AddAttribute">+</button>}
  </div></div></section>
 
- <section class="console-bank trackers-bank"><div class="bank-title"><strong>TRACKERS</strong><span>Current / Maximum • health • XP • durability • resources • saves • resistances</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+ <section class="console-bank trackers-bank console-fader-bank"><div class="bank-title"><strong>TRACKERS</strong><span>Current / maximum resources</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
  @foreach(var field in Session.CharacterFields.Where(WorldSession.IsTrackerField))
  {
   <article class="tracker-channel physical-channel color-@field.Color" style="@ControlStyle(field)">
@@ -41,7 +41,7 @@
  @if(Session.CharacterEditMode){<button class="console-add physical-add" @onclick="AddTracker">+</button>}
  </div></div></section>
 
- <section class="console-bank limits-bank"><div class="bank-title"><strong>LIMITS</strong><span>Maximum bonus / cap knobs</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+ <section class="console-bank limits-bank console-dial-bank"><div class="bank-title"><strong>LIMITS</strong><span>Maximum bonus / cap knobs</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
  @foreach(var field in Session.CharacterFields.Where(WorldSession.IsLimitField))
  {
   <article class="limit-channel physical-dial-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}
@@ -52,7 +52,7 @@
  @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddLimit">+</button>}
  </div></div></section>
 
- <section class="console-bank skills-bank"><div class="bank-title"><strong>SKILLS</strong><button class="description-toggle" @onclick="ToggleSkillDescriptions">Descriptions @(Session.ShowSkillDescriptions?"On":"Off")</button></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
+ <section class="console-bank skills-bank console-dial-bank"><div class="bank-title"><strong>SKILLS</strong><button class="description-toggle" @onclick="ToggleSkillDescriptions">Descriptions @(Session.ShowSkillDescriptions?"On":"Off")</button></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set">
  @foreach(var field in Session.CharacterFields.Where(x=>x.Group=="Skills"))
  {
   <article class="dial-channel physical-dial-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}<div class="rotary-dial clean-dial">@if(Session.CharacterEditMode){<button class="dial-step dial-minus tap-safe" @onclick="()=>Session.TurnCharacterDial(field,-1)">−</button>}<div class="dial-center">@if(Session.CharacterEditMode){<input type="number" value="@field.Current" @onchange="e=>SetCurrent(field,e)"/>}else{<span>@field.Current</span>}</div>@if(Session.CharacterEditMode){<button class="dial-step dial-plus tap-safe" @onclick="()=>Session.TurnCharacterDial(field,1)">+</button>}</div>@Plate(field,false)@ColorControls(field)</article>
@@ -60,7 +60,7 @@
  @if(Session.CharacterEditMode){<button class="console-add round-add physical-add" @onclick="AddSkill">+</button>}
  </div></div></section>
 
- <section class="console-bank flare-bank"><div class="bank-title"><strong>FLARE</strong><span>Descriptive abilities, feats, boons, traits, powers, features</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set feat-card-set">
+ <section class="console-bank flare-bank"><div class="bank-title"><strong>FEATS</strong><span>Abilities, boons, traits, powers, features</span></div><div class="character-finite-rail finite-rail"><div class="finite-set character-control-set feat-card-set">
  @foreach(var field in Session.CharacterFields.Where(WorldSession.IsFlareField))
  {
   <article class="flare-control-card color-@field.Color" style="@ControlStyle(field)">@if(Session.CharacterEditMode){<button class="remove-field" @onclick="()=>Session.RemoveCharacterField(field)">×</button>}@Plate(field,false)@ColorControls(field)</article>
