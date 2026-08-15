@@ -12,7 +12,7 @@ public sealed partial class WorldSession
         public string Background { get; set; } = "";
         public string Portrait { get; set; } = "";
         public List<CharacterField> Fields { get; set; } = [];
-        public List<(string FieldId,List<DiceBagEntry> Dice)> Hand { get; set; } = [];
+        public List<string> HandFieldIds { get; set; } = [];
     }
 
     private readonly List<CharacterSlot> _characterSlots = [new()];
@@ -47,6 +47,7 @@ public sealed partial class WorldSession
         if (_activeCharacterIndex < 0) _activeCharacterIndex += _characterSlots.Count;
         LoadCharacterSlot(_characterSlots[_activeCharacterIndex]);
         EditingHandCard = null;
+        EditingDiceField = null;
         DraggedDieKey = null;
         Notify();
     }
@@ -62,12 +63,7 @@ public sealed partial class WorldSession
         slot.Background = CharacterBackground;
         slot.Portrait = _characterPortraitDataUrl;
         slot.Fields = CharacterFields.Select(CloneField).ToList();
-        slot.Hand = HandCards.Select(card =>
-        {
-            var fieldId = card.Field.Id;
-            var dice = card.DiceBag.Select(x => new DiceBagEntry(x.DieKey,x.Count,x.SelectedMagnitude)).ToList();
-            return (fieldId,dice);
-        }).ToList();
+        slot.HandFieldIds = HandCards.Select(card => card.Field.Id).ToList();
     }
 
     private void LoadCharacterSlot(CharacterSlot slot)
@@ -82,13 +78,10 @@ public sealed partial class WorldSession
         CharacterFields.Clear();
         CharacterFields.AddRange(slot.Fields.Select(CloneField));
         HandCards.Clear();
-        foreach (var saved in slot.Hand)
+        foreach (var fieldId in slot.HandFieldIds)
         {
-            var field = CharacterFields.FirstOrDefault(x => x.Id == saved.FieldId) ?? CharacterFields.FirstOrDefault();
-            if (field is null) continue;
-            var card = new HandCard(field);
-            foreach (var die in saved.Dice) card.DiceBag.Add(new(die.DieKey,die.Count,die.SelectedMagnitude));
-            HandCards.Add(card);
+            var field = CharacterFields.FirstOrDefault(x => x.Id == fieldId);
+            if (field is not null) HandCards.Add(new(field));
         }
     }
 
@@ -96,11 +89,16 @@ public sealed partial class WorldSession
     {
         var clone = new CharacterField(source.Name,source.Kind,source.Group)
         {
+            Id = source.Id,
             Current = source.Current,
             Max = source.Max,
-            Color = source.Color
+            Color = source.Color,
+            Description = source.Description,
+            DescriptionEnabled = source.DescriptionEnabled,
+            ImageDataUrl = source.ImageDataUrl
         };
-        clone.Id = source.Id;
+        foreach (var die in source.DiceBag)
+            clone.DiceBag.Add(new(die.DieKey,die.Count,die.SelectedMagnitude));
         return clone;
     }
 }
