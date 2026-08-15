@@ -21,6 +21,8 @@ public sealed class CharacterField(string name,string kind,string group)
     public int Max { get; set; } = kind switch { "TRACKER" or "TRACK" or "POOL" => 100, "ATTRIBUTE" or "LIMIT" => 10, "FLARE" => 0, _ => 999 };
     public string Color { get; set; } = "gold";
     public string Description { get; set; } = "";
+    public string NameplateDescription { get; set; } = "";
+    public string Subtitle { get; set; } = "";
     public bool DescriptionEnabled { get; set; } = true;
     public string ImageDataUrl { get; set; } = "";
     public string ShortName { get; set; } = AutoShortName(name);
@@ -67,6 +69,7 @@ public sealed class HandCard(CharacterField field)
     public List<DiceBagEntry> DiceBag => Field.DiceBag;
     public string Name => Field.Name;
     public string ShortName => string.IsNullOrWhiteSpace(Field.ShortName) ? CharacterField.AutoShortName(Field.Name) : Field.ShortName;
+    public string Subtitle => Field.Subtitle;
     public string Type => WorldSession.IsTrackerField(Field) ? "Tracker" : WorldSession.IsAttributeField(Field) ? "Attribute" : WorldSession.IsLimitField(Field) ? "Limit" : Field.Group == "Skills" ? "Skill" : WorldSession.IsFlareField(Field) ? "Flare" : Field.Group;
     public int Value => Field.Current;
     public int BaseValue => Field.BaseValue;
