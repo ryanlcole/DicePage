@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# corrected-dice-size-15
+# refresh-dice-sprites-16
 on: [workflow_dispatch, push]
 permissions:
   contents: read
