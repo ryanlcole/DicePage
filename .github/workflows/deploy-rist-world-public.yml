@@ -1,5 +1,5 @@
 name: Deploy RIST WORLD Public
-# footer-approved-geometry-5
+# footer-cache-bust-6
 on: [workflow_dispatch, push]
 permissions:
   contents: read
