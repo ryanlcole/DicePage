@@ -49,6 +49,8 @@ public sealed partial class WorldSession
         EditingHandCard = null;
         EditingDiceField = null;
         DraggedDieKey = null;
+        DraggedHandCardId = null;
+        PublicCards.Clear();
         Notify();
     }
 
