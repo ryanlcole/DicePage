@@ -1,6 +1,6 @@
 @inject WorldSession Session
 <section class="hand-rail tabletop-dial-rail finite-rail" aria-label="Player hand">
- <div class="finite-set hand-circular-set">
+ <div class="finite-set hand-card-set">
   @if(Session.HandCards.Count==0)
   {
    <div class="hand-rail-empty" aria-live="polite">HAND • Show a skill or feat to place its card here.</div>
@@ -9,13 +9,22 @@
   {
    @foreach(var card in Session.HandCards)
    {
-    <article class="hand-card dial-hand-card color-@card.Field.Color" style="@CardWidth(card.Name)">
-     <div class="hand-card-dial"><span>@card.Value</span></div>
-     <div class="hand-card-plate"><strong>@card.Name</strong><small>@card.Type</small></div>
-     <button class="dicebag-button" title="@(Session.MixerOpen&&Session.CharacterEditMode?"Open dice bag editor":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
-      <img src="assets/ui/custom_dicebag.png" alt="Dice bag" />
-      <span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
-     </button>
+    <article class="map-hand-card color-@card.Field.Color" style="@CardWidth(card.Name)">
+     <div class="map-card-name">@card.Name</div>
+     <div class="map-card-body">
+      <div class="map-card-image">
+       @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="@card.Name"/>}
+       else{<span>+</span>}
+      </div>
+      @if(CardDescriptionVisible(card) && !string.IsNullOrWhiteSpace(card.Field.Description))
+      {<div class="map-card-description">@card.Field.Description</div>}
+     </div>
+     <div class="map-card-footer">
+      <button class="dicebag-button map-card-bag" title="@(Session.MixerOpen?"Open dice bag":"Roll dice bag")" aria-label="@card.Name dice bag" @onclick="()=>BagClick(card)">
+       <img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span>
+      </button>
+      <strong class="map-card-value">@card.Value</strong>
+     </div>
      <div class="hand-card-tools">
       <button title="Move left" @onclick="()=>Session.MoveHandCard(card,-1)">◀</button>
       <button title="Move right" @onclick="()=>Session.MoveHandCard(card,1)">▶</button>
@@ -26,41 +35,8 @@
   }
  </div>
 </section>
-
-@if(Session.EditingHandCard is not null)
-{
- var card=Session.EditingHandCard;
- <div class="dicebag-modal @(Session.MixerOpen?"sheet-bag-modal":"")" @onclick="Session.CloseDiceBag">
-  <section class="dicebag-workspace" @onclick:stopPropagation="true" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag" aria-label="Custom fillable dice bag">
-   <header class="dicebag-title"><div><strong>@card.Name</strong><span>Drag or tap dice from the bottom rail to add them.</span></div><button @onclick="Session.CloseDiceBag">Close</button></header>
-   <div class="physical-bag bag-drop-zone" @ondragover:preventDefault="true" @ondrop="Session.DropDraggedDieIntoBag">
-    <img src="assets/ui/custom_dicebag.png" alt="Custom fillable dice bag" />
-    <div class="bag-summary">@card.DiceBag.Sum(x=>x.Count) dice</div>
-   </div>
-   <div class="dicebag-entries">
-    @if(card.DiceBag.Count==0){<div class="empty-bag">Empty bag — drag or tap dice from the footer below.</div>}
-    @foreach(var entry in card.DiceBag.ToArray())
-    {
-     var die=Session.Dice(entry.DieKey);
-     if(die is not null)
-     {
-      <div class="dicebag-entry bag-die-chip" draggable="true" @ondragstart="()=>Session.RemoveDiceBagEntry(entry)" title="Drag out or tap remove">
-       <strong>@die.Label</strong>
-       <label>×<input type="number" min="1" max="20" value="@entry.Count" @onchange="e=>SetCount(entry,e)" /></label>
-       @if(entry.DieKey is "d5-bonus" or "d5-penalty")
-       {<label>Value<select value="@entry.SelectedMagnitude" @onchange="e=>SetMagnitude(entry,e)">@for(var i=1;i<=5;i++){<option value="@i">@(entry.DieKey=="d5-bonus"?"+":"-")@i</option>}</select></label>}
-       <button class="remove-bag-die" @onclick="()=>Session.RemoveDiceBagEntry(entry)">Remove</button>
-      </div>
-     }
-    }
-   </div>
-  </section>
- </div>
-}
-
 @code{
- string CardWidth(string name)=>$"--hand-card-width:{Math.Clamp(150+(name?.Length??0)*6,160,300)}px";
- async Task BagClick(HandCard card){if(Session.MixerOpen&&Session.CharacterEditMode)Session.EditDiceBag(card);else await Session.RollHandCardAsync(card);}
- void SetCount(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagCount(entry,v);}
- void SetMagnitude(DiceBagEntry entry,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetDiceBagMagnitude(entry,v);}
+ string CardWidth(string name)=>$"--hand-card-width:{Math.Clamp(190+(name?.Length??0)*7,220,390)}px";
+ bool CardDescriptionVisible(HandCard card)=>card.Field.DescriptionEnabled&&(card.Field.Group=="Skills"?Session.ShowSkillDescriptions:Session.ShowFeatDescriptions);
+ async Task BagClick(HandCard card){if(Session.MixerOpen)Session.EditFieldDiceBag(card.Field);else await Session.RollHandCardAsync(card);}
 }
