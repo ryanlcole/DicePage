@@ -16,6 +16,7 @@ public sealed class CharacterField(string name,string kind,string group)
     public string Name { get; set; } = name;
     public string Kind { get; set; } = kind;
     public string Group { get; set; } = group;
+    public int BaseValue { get; set; }
     public int Current { get; set; }
     public int Max { get; set; } = kind switch { "TRACKER" or "TRACK" or "POOL" => 100, "ATTRIBUTE" or "LIMIT" => 10, "FLARE" => 0, _ => 999 };
     public string Color { get; set; } = "gold";
@@ -40,6 +41,7 @@ public sealed class HandCard(CharacterField field)
     public string Name => Field.Name;
     public string Type => WorldSession.IsTrackerField(Field) ? "Tracker" : WorldSession.IsAttributeField(Field) ? "Attribute" : WorldSession.IsLimitField(Field) ? "Limit" : Field.Group == "Skills" ? "Skill" : WorldSession.IsFlareField(Field) ? "Flare" : Field.Group;
     public int Value => Field.Current;
+    public int BaseValue => Field.BaseValue;
     public int Max => Field.Max;
 }
 
