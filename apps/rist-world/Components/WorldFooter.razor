@@ -1,6 +1,21 @@
 @inject WorldSession Session
-<footer class="footer dice-footer fixed-dice-footer" aria-label="Dice tray">
+<footer class="footer dice-footer circular-rail" data-circular-rail aria-label="Dice tray">
+ @for(var copy=0;copy<3;copy++)
+ {
   <div class="circular-set dice-circular-set">
+   <div class="character-switch-cluster">
+    <button type="button" class="character-footer-button" title="Open character" aria-label="Open character" @onclick="()=>Session.OpenMixer()">
+     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+     {<img class="footer-portrait" src="@Session.CharacterPortraitDataUrl" alt="Active character" />}
+     else
+     {<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="18" r="11"></circle><path d="M12 55c1-14 8-22 20-22s19 8 20 22z"></path></svg>}
+    </button>
+    <button type="button" class="character-cycle-button" title="Switch character" aria-label="Switch character" @onclick="()=>Session.SwitchCharacter(1)">⌃</button>
+   </div>
+   <button type="button" class="hand-drawer-toggle @(Session.HandOpen?"open":"")" title="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-label="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-expanded="@Session.HandOpen" @onclick="Session.ToggleHand">
+    <span class="hand-toggle-card-back" aria-hidden="true"></span>
+    <span class="hand-toggle-chevron" aria-hidden="true">@(Session.HandOpen?"⌄":"⌃")</span>
+   </button>
    @foreach(var die in Session.DiceSet)
    {
     if(die.Key=="d5-bonus")
@@ -30,8 +45,11 @@
    }
    <div class="sum" aria-label="Dice total"><span>SUM</span><span>@Session.Total</span></div>
    <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
+   @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
   </div>
+ }
 </footer>
+@if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollAsync(key,magnitude);}
  static string DieSpriteStyle(DiceSpec die,int frame)
@@ -39,6 +57,6 @@
   var col=frame%die.Columns;var row=frame/die.Columns;
   var x=die.Columns<=1?0:col*100.0/(die.Columns-1);
   var y=die.Rows<=1?0:row*100.0/(die.Rows-1);
-  return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-2');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
+  return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-3');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
  }
 }
