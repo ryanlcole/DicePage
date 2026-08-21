@@ -60,8 +60,10 @@
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
-     <img class="tile" src="@t.Image" style="@TileStyle(t)" alt="@t.Name"
-          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true" />
+     <div class="tile-cell" style="@TileStyle(t)"
+          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true">
+      <img src="@t.Image" alt="@t.Name" draggable="false" />
+     </div>
     }
     @foreach(var roll in Session.Rolls)
     {
