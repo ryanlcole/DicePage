@@ -57,6 +57,15 @@ public partial class WorldMap:IDisposable
  static string PinStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)};--placement-zoom:{Math.Max(p.PlacementZoom,.01).ToString("0.###",CultureInfo.InvariantCulture)}";
  static string PieceStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)}";
  static string TileStyle(TileItem t)=>$"left:{Pct(t.X)};top:{Pct(t.Y)}";
+ static string CropStyle(int sourceWidth,int sourceHeight,int cropX,int cropY,int cropWidth,int cropHeight)
+ {
+  if(sourceWidth<=0||sourceHeight<=0||cropWidth<=0||cropHeight<=0)return "";
+  var inv=CultureInfo.InvariantCulture;
+  return $"width:{(sourceWidth*100.0/cropWidth).ToString("0.###",inv)}%;height:{(sourceHeight*100.0/cropHeight).ToString("0.###",inv)}%;left:{(-cropX*100.0/cropWidth).ToString("0.###",inv)}%;top:{(-cropY*100.0/cropHeight).ToString("0.###",inv)}%;max-width:none;max-height:none";
+ }
+ static string CropStyle(AtlasTile t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
+ static string CropStyle(StagedAsset t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
+ static string CropStyle(TileItem t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
  static string RollStyle(RollItem r,DiceSpec die)
  {
   var col=r.Frame%die.Columns;var row=r.Frame/die.Columns;
