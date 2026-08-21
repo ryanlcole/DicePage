@@ -115,7 +115,13 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
     public async Task InitializeAsync(){await LoadAtlasAsync();await LoadCardsAsync();Notify();}
-    async Task LoadAtlasAsync(){var rows=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");if(rows is not null)AtlasTiles.AddRange(rows);}
+    async Task LoadAtlasAsync()
+    {
+        var builtIn=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
+        if(builtIn is not null)AtlasTiles.AddRange(builtIn);
+        var drive=await http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json");
+        if(drive is not null)AtlasTiles.AddRange(drive.Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
+    }
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
     public DiceSpec? Dice(string key)=>DiceSet.FirstOrDefault(x=>x.Key==key);
     public Task RollAsync(string key)=>RollAsync(key,null);
