@@ -105,8 +105,8 @@
 
 .rolled-die{
  width:50px!important;
- height:auto!important;
- aspect-ratio:var(--die-aspect,1)!important;
+ height:50px!important;
+ aspect-ratio:1/1!important;
  background-repeat:no-repeat;
  background-color:transparent!important;
  background-origin:border-box;
@@ -122,7 +122,7 @@
  .dice-footer .die-sprite{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
  .dice-footer .d5-control{--d5-value-h:23px}
  .dice-footer .d5-control .die-sprite{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
- .rolled-die{width:44px!important}
+ .rolled-die{width:44px!important;height:44px!important}
  .character-footer-button{flex-basis:50px!important;width:50px!important;height:48px!important;padding:6px!important}
  .character-footer-button svg{width:29px;height:29px}
 }
