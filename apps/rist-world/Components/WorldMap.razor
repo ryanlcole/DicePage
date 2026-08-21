@@ -2,7 +2,13 @@
  @if(Session.TileBrowserOpen)
  {
   <section class="tile-browser" aria-label="Tile library">
-   <header><strong>Tile library</strong><small>Choose a directory, then drag a tile to the pallet.</small></header>
+   <header>
+    <div class="tile-browser-title"><strong>Tile library</strong><small>Choose a directory, then drag a tile to the pallet.</small></div>
+    <label class="tileset-upload" title="Upload and split a tileset" aria-label="Upload tileset">
+     <span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@ImportingTileset" />
+    </label>
+   </header>
+   @if(!string.IsNullOrWhiteSpace(ImportStatus)){<div class="tileset-import-status" role="status">@ImportStatus</div>}
    <div class="tile-browser-path">
     <label>Layer<select value="@BrowserLayer" @onchange="LayerChanged"><option value="*">All layers</option>@foreach(var layer in BrowserLayers){<option value="@layer">@Pretty(layer)</option>}</select></label>
     <span aria-hidden="true">›</span>
@@ -13,9 +19,8 @@
    <div class="tile-browser-grid">
     @foreach(var tile in BrowserTiles)
     {
-     <button class="library-tile" title="@tile.Name — @tile.Author. Drag to pallet."
-             @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true">
-      <img src="@tile.Image" alt="" draggable="false"/><span>@tile.Name</span>
+     <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
+      <span class="tile-drag-source" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" alt="" draggable="false"/></span><span>@tile.Name</span>
      </button>
     }
     @if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
@@ -51,8 +56,7 @@
 
  <section class="map-shell">
   <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel">
-   <div class="world-stage" style="transform:@StageTransform">
-    <img class="base" src="@Session.WorldMapUrl" alt="World map" />
+   <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
