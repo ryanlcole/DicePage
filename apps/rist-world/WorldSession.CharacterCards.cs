@@ -101,6 +101,12 @@ public sealed partial class WorldSession
         Notify();
     }
 
+    public void HideFieldHand(CharacterField field)
+    {
+        var card=HandCards.FirstOrDefault(x=>ReferenceEquals(x.Field,field)||x.Field.Id==field.Id);
+        if(card is not null)HideHand(card);
+    }
+
     public void ShowTrackHand(CharacterField field)=>ShowFieldHand(field);
     public void SetTrackMaximum(CharacterField field,int max)=>SetTrackerMaximum(field,max);
     public void SetTrackCurrent(CharacterField field,int current)=>SetTrackerCurrent(field,current);
