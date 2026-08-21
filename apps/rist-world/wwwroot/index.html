@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <base href="./">
   <title>ReLiCGameMaster RIST WORLD</title>
+  <script type="importmap"></script>
+  <link rel="preload" id="webassembly" />
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/adaptive-grid.css">
   <link rel="stylesheet" href="css/hand-rail.css">
@@ -28,6 +30,6 @@
   <script src="rist.js"></script>
   <script src="character-board-focus.js?v=board-focus-6"></script>
   <script src="card-defaults.js?v=card-defaults-1"></script>
-  <script src="_framework/blazor.webassembly.js"></script>
+  <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 </html>
