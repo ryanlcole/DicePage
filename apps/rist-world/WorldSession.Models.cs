@@ -1,6 +1,13 @@
 namespace RistWorld;
 
-public sealed record AtlasTile(string Id, string Name, string Image);
+public sealed record AtlasTile(
+    string Id,
+    string Name,
+    string Image,
+    string Layer = "UNIVERSAL",
+    string Directory = "Tiles",
+    string Folder = "General",
+    string Author = "Shaelvien");
 public sealed record PieceItem(string Kind, double X, double Y, double PlacementZoom = 1.0);
 public sealed record TileItem(string Id, string Name, string Image, double X, double Y);
 public sealed record StagedAsset(string Key, string Kind, string Name, string Image = "");
