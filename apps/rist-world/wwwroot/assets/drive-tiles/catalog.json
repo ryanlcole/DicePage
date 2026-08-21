@@ -1,0 +1,686 @@
+[
+  {
+    "id": "drive-6a733d9625d481918256629b9909456d",
+    "name": "Vent Fields 001",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNkOTYyNWQ0ODE5MTgyNTY2MjliOTkwOTQ1NmQ6c2VkaW1lbnQ6Ly83YzhlZWZkYTJjMmI0ODQjZmlsZV8wMDAwMDAwMGM0N2M4MWZiYWRhYjU5MGRhYzA4OGJmMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZjNjODNmYmMzNWVhYjQ2NGE5MGZmMjNkMzcwNjM0MmQ0YjM0ZWE4YTg5M2U2NTcxNGE3ODNhZWQ3OTAyYzZjZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a733ca108b881919a2f75c17e967282",
+    "name": "Vent Fields 002",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNjYTEwOGI4ODE5MTlhMmY3NWMxN2U5NjcyODI6c2VkaW1lbnQ6Ly8xMzI1ZjJiNDNkZWE3YzEjZmlsZV8wMDAwMDAwMDYxZDg4MjJmYTBmNGNkNGZkMjc2YmVjYiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNGNhNWI1MmZjOWIxNzcyMzA2N2RiM2E4ODliYTU5YzUzMzgxNDk4NDZhZWViYjIyZjhkMjVhZDVkZDNhMDA1MSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a733bebaee48191b2d2831f313434e7",
+    "name": "Vent Fields 003",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNiZWJhZWU0ODE5MWIyZDI4MzFmMzEzNDM0ZTc6c2VkaW1lbnQ6Ly9lMTNlOTZiYTA2ZDdmZDAjZmlsZV8wMDAwMDAwMDM4ZTA4MWY3OTg2ZDg4NTYzOTIwMThhYyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiN2I1NzVjODNiOTQ3NDNiZTMyNTFjNWZmMTk4OGQ3MzE3ODkwYWJjZjRkNWEwMmQzM2E3MTk3YWNjNjQxOTA3YiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a733ad4082c81918baae2ffaf228571",
+    "name": "Vent Fields 004",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNhZDQwODJjODE5MThiYWFlMmZmYWYyMjg1NzE6c2VkaW1lbnQ6Ly8wYzA5Njg1MDc3ZGQ1OTgjZmlsZV8wMDAwMDAwMDM5NDg4MjJmOGFkNjNmMDhhNzllZGRhZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOTFiZjgxOWZkMjY0MWExOTI5ZDQ3ZTFkMDM1NTExNWViMjZiNDY0N2FkYWRmZDc2OTUzZmRkMmIwZDRjNTZlNSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7339f9dec88191a75edf60d51338b1",
+    "name": "Vent Fields 005",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzM5ZjlkZWM4ODE5MWE3NWVkZjYwZDUxMzM4YjE6c2VkaW1lbnQ6Ly81N2VmZDhjOTQ1MGY3ZGYjZmlsZV8wMDAwMDAwMDI3NzA4MjBkYTJmM2M4MmJhMjY3ODczYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYzVlNjFjNmY5MmE4MGQ5MjRlZDllM2Q2ZGM3ZmFmNDYwYWZlMThmOWY4MzczOWQwMjA2NzQ0MmM0MGY2NzljYSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73394dd7a88191b441cd7e1b30c78d",
+    "name": "Vent Fields 006",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzM5NGRkN2E4ODE5MWI0NDFjZDdlMWIzMGM3OGQ6c2VkaW1lbnQ6Ly9mMmZjYTNkNGU5YzYyOGUjZmlsZV8wMDAwMDAwMDQ1OTg4MWZiYjYzMGNjMjAzOTgxMjY1NSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYjZmNDA4NjU5OTQwODU5NTE0NTFhYzYyYzNkODY0MzNiNzM1YmNlMzJlNWU4MmVlNGU3MTFlMzliZTA2ZmQ1MCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7338850db481919b675cd68f54aab8",
+    "name": "Vent Fields 007",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzM4ODUwZGI0ODE5MTliNjc1Y2Q2OGY1NGFhYjg6c2VkaW1lbnQ6Ly8yNWRkNDU0YmQ5NWE2MWIjZmlsZV8wMDAwMDAwMDcwNjA4MWZiYjY4MGFlYmY0ZjM5YjBiZCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZGE2MGFmNjFhODhlZGM5YTFkZjY4MzdmNGU2NTBjNjFiYzFjMWRjNWU5Mjc2NTBhYTIzNTM5NzdiNTMwOGFiYyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7337e32bfc8191954184bef83dcbd2",
+    "name": "Vent Fields 008",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzM3ZTMyYmZjODE5MTk1NDE4NGJlZjgzZGNiZDI6c2VkaW1lbnQ6Ly9kMzFmMDI0MjBhNzUwNTEjZmlsZV8wMDAwMDAwMGMzYzQ4MWY2YmU1Mjk0NGQwNGNkZjcwZiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMzUzYzVjZjE0OTE3MTU5Y2IxNGY4ODVhYTUwYTUyOTU3Njg2OGU2Y2MxOGJkNDIxZTdkNTExZjNjZDZlYjg1MSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a732c1f188c81919e9bc31f52866d0d",
+    "name": "Vent Fields 009",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzJjMWYxODhjODE5MTllOWJjMzFmNTI4NjZkMGQ6c2VkaW1lbnQ6Ly9iODgwMzc5ZjRiMGY0MmYjZmlsZV8wMDAwMDAwMGM3OTg4MWY3OWMzZTAzMjUwZWIzMTBhMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYzhjM2MyZjE2MjYxYWRiNjdiOWVlZmZkNGVjMDZiZWQ0MDNmYzI1NjA5MmI5MzY4M2ZlNjUzMzllMTQzOGY2YiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a732b9eb2588191b3c5a2d43330119a",
+    "name": "Vent Fields 010",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzJiOWViMjU4ODE5MWIzYzVhMmQ0MzMzMDExOWE6c2VkaW1lbnQ6Ly85M2EzNDFmOGU4N2MxY2QjZmlsZV8wMDAwMDAwMDdiYTQ4MWY0YjY4ZDNkZmI3YWE4MWZiNyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMzQ5N2JlZTQwZWNhYjBhN2ExODhlN2MxOTg1YWU3YzE0MTY3NTM3Y2VkYjllZGU2ZTBlNWQxMWEzZDcxN2E5YyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a732ac52e3081918767249d10c6f40a",
+    "name": "Vent Fields 011",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzJhYzUyZTMwODE5MTg3NjcyNDlkMTBjNmY0MGE6c2VkaW1lbnQ6Ly81NDE3YmNiMDMyOWRiMmUjZmlsZV8wMDAwMDAwMDFkMWM4MjMwYTM1ZTg4ZjMzODVkODY0YyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNzkzY2IwYTQ5NDBjZmUyOWMxZjc4NmYwYWVjNGIxYTdmY2VkMTZlZDc5YzUyY2Y4NDM5ODVhMTYwOTJhOWYzNSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Vent Fields",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731c8484988191ab8d5663754947be",
+    "name": "Canyons 012",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzFjODQ4NDk4ODE5MWFiOGQ1NjYzNzU0OTQ3YmU6c2VkaW1lbnQ6Ly8zNGYxM2FlZTllOGVhNDYjZmlsZV8wMDAwMDAwMGRiODg4MWY5YWRjMDU3NTk1ODJiODI5NCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMGRjYzUwMTdiMmI3MDI3ZWMyNDlkNmE1YjJiNTU1YzZiOTI2ZGQyMmFmMjZkNWYyYTdhOWMzODc3N2QxMTNlNCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Canyons",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a732da7d1a8819185440b5f33b97a64",
+    "name": "Lakes 015",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzJkYTdkMWE4ODE5MTg1NDQwYjVmMzNiOTdhNjQ6c2VkaW1lbnQ6Ly84YTUwMzBmYzRkODZhOWUjZmlsZV8wMDAwMDAwMDMwZmM4MjMwOTJiN2FjZDcxMDhlMDFlMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYjZkNjk3YjVhMDVkYzliZTBmOTkyYjkyOGJjZWI1ZmMyNGFjMDI1OGIzNDkyZmJlNjliMGMwZGFkMThjNzllZiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Lakes",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731321ae2081918331f6285a402e6e",
+    "name": "Lakes 016",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzEzMjFhZTIwODE5MTgzMzFmNjI4NWE0MDJlNmU6c2VkaW1lbnQ6Ly83M2JkMjQzOTQ5YmMwNTQjZmlsZV8wMDAwMDAwMDUzODg4MWY3OGQxMzViMDRmODJjYzUxNSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNWI4MWEwMzZlYmYwY2QxN2JlOTM2ZTJiMjQyODdhMTQ4NmRkN2VmNzg4ZWY1YjZiMDA1NGEzMGU5YmRhZjc0NCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Lakes",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73125e4c908191a4d024a430820be0",
+    "name": "Rivers 017",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzEyNWU0YzkwODE5MWE0ZDAyNGE0MzA4MjBiZTA6c2VkaW1lbnQ6Ly8wNjVkZjNjMDhkYjI5ZDIjZmlsZV8wMDAwMDAwMDZjZGM4MWZiYTJmNTg2YzU3MGI4NTUxMCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNWQyOGM0ZjA3MmMzYWNiMDY4YjhiOTgxMDcyYmYzNDE2ODllYmQzZTA2MjJiOTNmNWRmZjYyZGY5NzZhNThhNiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Rivers",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731a9ba1fc8191b1e8ab2a78d802b7",
+    "name": "Cliffs 018",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzFhOWJhMWZjODE5MWIxZThhYjJhNzhkODAyYjc6c2VkaW1lbnQ6Ly9hY2NiOThmNzM3ODBiYWQjZmlsZV8wMDAwMDAwMDRkN2M4MjBkYjQxM2FhYjhkOGM4M2EzNiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOGY0ZTQ0YmQxZDMzMmY1MGI4YTI0MGU1ZDVlYmFiMmNhNjA0YTg0YTg0YWNhMWI5YzU1MTIyZDdiOGJlODE3ZSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Cliffs",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731a7ba918819197e5e1acafbb4ca8",
+    "name": "Cliffs 019",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzFhN2JhOTE4ODE5MTk3ZTVlMWFjYWZiYjRjYTg6c2VkaW1lbnQ6Ly9iZGIyMGRhYWJjOGJlMGYjZmlsZV8wMDAwMDAwMDljNWM4MWY2YjM1YzE3MzgwNTE5OWRiMCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZGYyMWFkYmQ5YTA4YTg4ZWZjYjg1NDNlZDVlODdmNmQyZTg5MGEzOWE2YzI0ZDhiYjcyMTRhNTBiNGI4NGQ4MSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Cliffs",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731f2aef4c8191ba3c16f712864039",
+    "name": "Volcano 020",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzFmMmFlZjRjODE5MWJhM2MxNmY3MTI4NjQwMzk6c2VkaW1lbnQ6Ly9iNjIyNTIyOWU1ZjFjMWMjZmlsZV8wMDAwMDAwMDcwNGM4MjJmODQ3ODBmZjgyNmY1OGFiNiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYzNhYzM0YmI5ZTNkYzBmZTUwM2YxMDA0NTc3ZmRiM2ZlYTZhZTVjODhkZTgzYmU2NGU1MjM3YTk2NTk0NDA0OCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Volcano",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731e414f4081918009a89a3337f3a4",
+    "name": "Ice 021",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzFlNDE0ZjQwODE5MTgwMDlhODlhMzMzN2YzYTQ6c2VkaW1lbnQ6Ly82NjBkMzBmZTlhNDJjMzIjZmlsZV8wMDAwMDAwMGFhOTA4MWY3ODM3MWFlYjcxNmI1ZTcyOCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNDk0MTE0M2Q4MDM5MmFiOTc1NTc3ODE3ZDkyNDE3YzM5MWFlNjQ1ZDE4OGU4OTVkMzZkMTE5NmRhMzA1ZGYwMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ice",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73116f4ae88191a7374e62364907a4",
+    "name": "Mountains 022",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzExNmY0YWU4ODE5MWE3Mzc0ZTYyMzY0OTA3YTQ6c2VkaW1lbnQ6Ly9lYWIzMGQ0YTc5NTVhYTMjZmlsZV8wMDAwMDAwMDliMzg4MWY2ODY0YzBmMGQ5MjIxOGVkYiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYWNmNGFjZjljMWJiNzk3NjMxZmIxNDNkZTg1MDY0ZjQ5YmI3ZjkwNmU4MzgyZDVmMTEwZDBjOTgzY2QwYmNlNCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Mountains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7310e522508191820c331a0ab3d3d8",
+    "name": "Hills 023",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzEwZTUyMjUwODE5MTgyMGMzMzFhMGFiM2QzZDg6c2VkaW1lbnQ6Ly8xOGU3NmVlMjI1ZjIxNmQjZmlsZV8wMDAwMDAwMGNjNmM4MWY2OGQxODg3MDVjYmQyNzA2YSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZTM5NzI3MDU2YTNkN2Q2ZDk3YzUyMjViNjFiMWNiZDlkMWU4OGE4NzI1MDVjNGQ1NDk3MDNiODY5MWIwMzRlNyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Hills",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7318f7b8c48191bcc15758977ad243",
+    "name": "Desert 024",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzE4ZjdiOGM0ODE5MWJjYzE1NzU4OTc3YWQyNDM6c2VkaW1lbnQ6Ly8yMThiZGNmM2Y0NzU2ZjMjZmlsZV8wMDAwMDAwMDBlYjg4MjBkODY5NjU4OGJkMTg2ZjIyMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNzY1MmQwNzI1NTFjNWU2MDFjYzk5ZTU2MGRmNDdlMTE1NDFiYzZkNzk2MjY5ZmYwYTQ2ZmUxOTM0MmU0MmJlMiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Desert",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7313c07a508191885d206fbb035267",
+    "name": "Swamp 025",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzEzYzA3YTUwODE5MTg4NWQyMDZmYmIwMzUyNjc6c2VkaW1lbnQ6Ly8zNTJjMjg1MjZlNWFmYzAjZmlsZV8wMDAwMDAwMGNkOWM4MWY2YTNhOTMwNjAzOTVmZjIyMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZjk5MjcwNzg5OGNmYTMxM2IwZDc4OTNiNTg3NmJjZjdlZmQyMmRjMmNjOTdmZDllOWVhMjI4MzFmZGQxZjNiYyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Swamp",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73159315948191bd2c1b4714fb935b",
+    "name": "Jungle 026",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzE1OTMxNTk0ODE5MWJkMmMxYjQ3MTRmYjkzNWI6c2VkaW1lbnQ6Ly85ZDZhM2U1YmM2MjNhNWUjZmlsZV8wMDAwMDAwMDY1Mzg4MjJmODA4NGY5NTI3NzhlN2M1ZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMmI3NzIwYjZjOTdkNWM4MTBhNTFhM2UyZjYxOGE4NzUxNzVhOWJhM2FmM2Q3OTgzNTQ1MGJjMjdkMzM0ZmJjMiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Jungle",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731570560c8191927ebe04f5a7b852",
+    "name": "Jungle 027",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzE1NzA1NjBjODE5MTkyN2ViZTA0ZjVhN2I4NTI6c2VkaW1lbnQ6Ly84MjkwZmJiZDgzN2ZkNGEjZmlsZV8wMDAwMDAwMDVhNDA4MWZiYjY3ZWJkZWZjODZkMmEzZCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNjA2MGQ5YTRlN2UwZjJiMjkwNzkyODE5NzkwYzkxOTFkYzg4YzQ3MmRiYzJjNzhiNTczYzNmOTBjMWI4M2Y5MyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Jungle",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a731030310c81919be58736c8c63c8b",
+    "name": "Forest 028",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzEwMzAzMTBjODE5MTliZTU4NzM2YzhjNjNjOGI6c2VkaW1lbnQ6Ly9jNzcxMzAxMTE4N2EwNzYjZmlsZV8wMDAwMDAwMDk1MjQ4MWY3ODU2YWJiNWY2ZjU0OWUwYyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMDI3NzBiN2VlY2VhZmU4Y2M3NTA1NDNiMjcxZTRmZTJhYTM4OTA1YzZjMmI2N2FiNjdkNTE1ZjUwMTVlZTBhOSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Forest",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a739a197b848191b77eaac2010be9fe",
+    "name": "Plains 029",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzlhMTk3Yjg0ODE5MWI3N2VhYWMyMDEwYmU5ZmU6c2VkaW1lbnQ6Ly8wYjAwZmFiNjNmZjlmODQjZmlsZV8wMDAwMDAwMGU5NDQ4MjJmYWE5ZDFjYmE4OTEzNmIzMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZWYwYzMxNjVhYjY2M2Q5ODVhZGFhOTgxZTI3ZWY1M2M4ZTJmMDg1NDA2M2E2M2NjOWM1NGVmNTYzNTAyY2RhNiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73999ef81081919dcf8feed13ee85e",
+    "name": "Plains 030",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzk5OWVmODEwODE5MTlkY2Y4ZmVlZDEzZWU4NWU6c2VkaW1lbnQ6Ly8xNWY0MGMyZDg5ZWJlYmMjZmlsZV8wMDAwMDAwMDZiMzQ4MjJmYmQ1NGExN2JhYTQ1NzJhOCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZGU0YjkxMDVjOWRkNmEwMDVlYjBlNjU3ODMzMDk2YzI3ZTc4ZmNlZmFkMjlmZWQxMjNkOGNmZmVmNTY5YjVlNCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a739928000c8191ac514e2a1f8c9d23",
+    "name": "Plains 031",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzk5MjgwMDBjODE5MWFjNTE0ZTJhMWY4YzlkMjM6c2VkaW1lbnQ6Ly9mNzZlNzZmZTY1YTNhMzIjZmlsZV8wMDAwMDAwMDIyNjA4MWY3YTM3Y2ZlNWQ5Zjg4YWI4NyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZmZmYjVkMGExZjlhOWU1ODE3ZWZmZGU3MmI5ZjA4NzVjNmMzMGQ0YzQwMjFmOTJlNzE5NTdkNmMxOWI0ZTYyMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a737a3001d481919ea3dfe8ba15f89b",
+    "name": "Plains 032",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzdhMzAwMWQ0ODE5MTllYTNkZmU4YmExNWY4OWI6c2VkaW1lbnQ6Ly8wNzYwZmIwYjFkMGY5YWEjZmlsZV8wMDAwMDAwMGRmOTg4MjBkOTgwZWM5Nzk1MWM4NWI1OCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNDkzMDYyYzk1MDQyODcyMmM0NWZkYWM2MmJmOTYwNzU5NDg2ODg5YTc0MzU0MTk4ZTBlODUzYzc0ZGE1MmIxMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a737991105481919442afaf83fc47b9",
+    "name": "Plains 033",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzc5OTExMDU0ODE5MTk0NDJhZmFmODNmYzQ3Yjk6c2VkaW1lbnQ6Ly9lYzQ4YjFjMDU5NGY4YjcjZmlsZV8wMDAwMDAwMDZkNGM4MjJmYmM1YmM3MjA5NjJjM2U3NCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNTkzY2Q0YWQyNWU0ODI4Y2U1ZjViNTdhNGZmOWUxOGRlOTI3NDJiNGI1MDVkMTcxZGYzM2YwMTg4OTY3OWQzOSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73789e2ffc819185b6bd9f1776d202",
+    "name": "Plains 034",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzc4OWUyZmZjODE5MTg1YjZiZDlmMTc3NmQyMDI6c2VkaW1lbnQ6Ly9kZDBjZGUyMTUxMDkxMDcjZmlsZV8wMDAwMDAwMGExNWM4MWY3OTczZDRhNjM3MDVmMmE3MSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZTYzZjljYmY0MGYwNWI3NzQ0MWQwOGY0OGEzYTBmMWM5OTgzYzY2N2E0OTdkZjdmNzdjYTRlOGUzOWNlZDAzMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7377de439c8191ae612a0d41ce16e8",
+    "name": "Plains 035",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzc3ZGU0MzljODE5MWFlNjEyYTBkNDFjZTE2ZTg6c2VkaW1lbnQ6Ly9iODBkNjZkNDdmZThkMmIjZmlsZV8wMDAwMDAwMGE0Mjg4MWZiODM2NWE0YjlhZGQ0NGE5NSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMjRmZjNkY2E4ZmIxYmFhYTE2MjFkYzRkNjQxZTllZjFiZDBjMWVlYWY4Njk0MzIwOTk2N2FlM2I0ZTE3M2UxYSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73770d56788191aa2dfdbdb6044941",
+    "name": "Plains 036",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3Mzc3MGQ1Njc4ODE5MWFhMmRmZGJkYjYwNDQ5NDE6c2VkaW1lbnQ6Ly9jYTJjYTMxMWY4NTJkMzEjZmlsZV8wMDAwMDAwMGE2MzQ4MWZiODlhNDkxYzkyZjRhOGVkYiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMjFkNGFhYzE0Y2VjMzVlZTNmZWFjZDQ2M2U0NWVkODMyNDUxNzBiOGQyNmUyNmRjMmM2YmRjMTQ0OGM2MjRjMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a736959ab648191b35e320a8e34faa7",
+    "name": "Plains 037",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzY5NTlhYjY0ODE5MWIzNWUzMjBhOGUzNGZhYTc6c2VkaW1lbnQ6Ly82OWNhOWVhYzY3MDQ4NjEjZmlsZV8wMDAwMDAwMGEwYzg4MWZkODhlZWUzYjE4NGVmOWI4ZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiY2YzOTI4NWRjM2IwMTI1MTA2YjhjNTliYjBkYjA5Yzg3NzQwZThmMzMxYmJlNmE2NjkxMGQ2MTQ4MzMyNzJkYSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7350abc0a4819184daf1e563353f10",
+    "name": "Plains 038",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzUwYWJjMGE0ODE5MTg0ZGFmMWU1NjMzNTNmMTA6c2VkaW1lbnQ6Ly8wYmZjZGZkYzJjYjIyYWQjZmlsZV8wMDAwMDAwMDRhMDQ4MjJmYjdhY2I0OTI3M2E1ODkyMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOGE2ZjY0ZjA3ZjY1YmFlZmIyNDhmMzlkMThkOWJhZmEzNTU1YzJiMTViMjM5MWNhMDc2YjJmNzE4NjdjYjNiZiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734fe59adc81918795c7fe56d01b64",
+    "name": "Plains 039",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRmZTU5YWRjODE5MTg3OTVjN2ZlNTZkMDFiNjQ6c2VkaW1lbnQ6Ly9iZjVhZmZiMTg4NjRkMzUjZmlsZV8wMDAwMDAwMGM5OGM4MjJmYTg1MGY2OWIzMmY2OTBkMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiM2JjOGMxZmJkNzMzMThiZGI4ZTM3ZDAyODM0ZTg4ZGZmMTVjMDJkMTNkZjJkNzM4MTI2YjYwMTE5YzZjNzYwNyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734f2fc7088191aa341e335d3f4d3e",
+    "name": "Plains 040",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRmMmZjNzA4ODE5MWFhMzQxZTMzNWQzZjRkM2U6c2VkaW1lbnQ6Ly80OGFlMWVmZmQxOGIwODQjZmlsZV8wMDAwMDAwMDQ1Njg4MjBkYTQzNmVhN2IxODNlY2Y5YiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNDVmNDFjODQ1YmM1NTJjNDAwYTY4NmJhYTQ4NGVjMWQ4NWI1M2I0NzU3ZTU1ZjhkMDE2ODhlZjFhNzg4ZDg0NiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734eabe4308191a81af6a41a8d4729",
+    "name": "Plains 041",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRlYWJlNDMwODE5MWE4MWFmNmE0MWE4ZDQ3Mjk6c2VkaW1lbnQ6Ly8zMTlhOGI4ZjE3OGFjMjkjZmlsZV8wMDAwMDAwMGU3NDQ4MWY2OGZjNWFkNWUxZGY2YWYyYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZTY4YzdlNTQ0YzQ0MzhjYzJmYjgxM2YxMGU4NjU0ZjYzYzRlZGM0YmMzNmM0NWM4MWUxN2YyMTEzMDljOWM2MiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734d604b408191ad6a8cf6768450e0",
+    "name": "Plains 042",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRkNjA0YjQwODE5MWFkNmE4Y2Y2NzY4NDUwZTA6c2VkaW1lbnQ6Ly85NWFiYjk4NzY3ZDM1NzUjZmlsZV8wMDAwMDAwMDU0NWM4MjJmYjBmZmE1ZDkwZmFiYzU3ZiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNGNmZTNlYzQ5NmMyMzMxYjlhZDBjZDRhM2M1M2Q3MmNiNjFmNGM1ODE2NmRlMGM3MWYyYzE2ODBiNzY5ZDljNiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734ca2529c8191aea0189dfe655384",
+    "name": "Plains 043",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRjYTI1MjljODE5MWFlYTAxODlkZmU2NTUzODQ6c2VkaW1lbnQ6Ly9hM2ExOTBjODVkOWI2MjUjZmlsZV8wMDAwMDAwMDg1Mjg4MjJmOWQ2ZDYzZDVmZDczZmU5NyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMDZmOTA4NDYxOGEyNDI0MzJhMmJiYTNiMjhkNDgyNTgyY2RmM2JjMmE3N2Q0YWYwYmI1MTMxNTQ0ZTFiZDliOSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734beb63388191bf39874f1531cc85",
+    "name": "Plains 044",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzRiZWI2MzM4ODE5MWJmMzk4NzRmMTUzMWNjODU6c2VkaW1lbnQ6Ly84MjVlZTgxMzMzMzg3NzcjZmlsZV8wMDAwMDAwMDdkM2M4MjJmYjRkZWViYzFjOTRlYmZjYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMTk0N2IxZjgzMmU1YTZhNmExNjdiMTllNmM1Y2IxYzJmMGNkZjY3MWI3NDM0MGU0NTJjYjZkM2I5NTczZTlkNCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7349f84ecc8191a135f2a462af489c",
+    "name": "Plains 045",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ5Zjg0ZWNjODE5MWExMzVmMmE0NjJhZjQ4OWM6c2VkaW1lbnQ6Ly81YzY0NDJjMDNmZWE4M2UjZmlsZV8wMDAwMDAwMDMwMWM4MjBkOWY5MmYyMTdhNjMxZmJmYyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOTQ3YWZhMGQ2NTgwMzI5MTY0MTNiMjgxZjAzMmRmZWUwNjFhNWFiMTRjMzcwYWFmZmZlYTA5NDM3MzQ0ODJjMyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734967e638819180b1522ce516bdd3",
+    "name": "Plains 046",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ5NjdlNjM4ODE5MTgwYjE1MjJjZTUxNmJkZDM6c2VkaW1lbnQ6Ly84OTc5OTQ1NTU2ZGNkN2IjZmlsZV8wMDAwMDAwMGVhMGM4MWY3YmE3YjFhMTk5YTRkMTUzYiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMmFlYjg3MGFkOTAyOGNjNmUyZjA4ZGZkY2E5MzNjOTRkODU3OTg2NmI2ZTU2OGIzYjMxOTFkYTU3N2U4ZTk4OSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73488645b4819180c5cd90f2a2affd",
+    "name": "Plains 047",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ4ODY0NWI0ODE5MTgwYzVjZDkwZjJhMmFmZmQ6c2VkaW1lbnQ6Ly8wNzIwMmQyMmFlYzY0YjAjZmlsZV8wMDAwMDAwMDFkNDQ4MjJmOTNkNGM1NzNmN2U4ZmU0ZCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYWMzOThhNTRmZTgwZTM5NzUyMGFhMGIyZGVkMDJhYmNkZjZiMGUyZjk3ZTJlZjY2ODc5NjY2OGZkYjY5OTQwZiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7347d178488191aa2e996739e68336",
+    "name": "Plains 048",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ3ZDE3ODQ4ODE5MWFhMmU5OTY3MzllNjgzMzY6c2VkaW1lbnQ6Ly9hOGNjOWQxNGY1MTFjNzkjZmlsZV8wMDAwMDAwMGEzMGM4MjBkODk4YTQxZTk2ZTBhMmQ4MCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOTc4MDU3MzNhYTk2MjExMTgwY2EyMjc2ZDQ2MzMzNDAwMWRmNTVkZDg4OTVhMTE2NTM5Yjk1YmVlMjgwOGMzYyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73471c05248191b09bdeb47a5b161b",
+    "name": "Plains 049",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ3MWMwNTI0ODE5MWIwOWJkZWI0N2E1YjE2MWI6c2VkaW1lbnQ6Ly8yZGExYWEyM2JjNTE0ZGQjZmlsZV8wMDAwMDAwMGZlMGM4MjJmOTUxNzBkZGFmMDVlNDkyNyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNGYxNTA4MjUyZTBjNmUwN2RhZTc2NWJiOTA0YjQyMDIwZWZhZmFlNjE0NmRhNzQyZmUwYjU1YWRjZDk1YjQxOSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73465dabdc819195323acd2d0fbb59",
+    "name": "Plains 050",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ2NWRhYmRjODE5MTk1MzIzYWNkMmQwZmJiNTk6c2VkaW1lbnQ6Ly85ZjM2NTM5OGEyOTFmM2IjZmlsZV8wMDAwMDAwMGFkYjQ4MjJmYWI4MzM5ZWRlMWRhMDhjMiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMTZlZjk4ZjcyODg5MzZmMjgwNjY1ZmMyNTU1ZGIzZGI1ODdmZDMwYWU0MmNiODdmMDhhZjMyMDU5MWExNTQ5ZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7345cae2d08191ac5178e71c347bea",
+    "name": "Plains 051",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQ1Y2FlMmQwODE5MWFjNTE3OGU3MWMzNDdiZWE6c2VkaW1lbnQ6Ly81ZjIyNGE3MjkxNTIyM2MjZmlsZV8wMDAwMDAwMDBlMTg4MjBkYTRjNGI4ODg3OTIwMzNjMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMzNiMTgzZTdkNWEyMmZkNjgwNWUyZTk0MTRhMjJlOTJhZjZlOTVhYWI3OWViNjQ4NmFiNWU2Y2E1N2RkMmUyMCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7343e2099c8191845ada585e998b23",
+    "name": "Plains 052",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQzZTIwOTljODE5MTg0NWFkYTU4NWU5OThiMjM6c2VkaW1lbnQ6Ly9mNTdhZDNiNGUyZDM1ZGIjZmlsZV8wMDAwMDAwMGM4YTg4MjBkYTE0YTA4Y2Q5ZjBmYWY4NSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYmVkOWRmNzBjNWQ5Nzg5NzkxODQyYmQ5Y2JlMmY1MGIzY2Q3OTgzMmQ3MjcyYzZlZDRlNmZkMWZlZTE1OWY3MiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7342f9a4b881918fcf1245ad925f47",
+    "name": "Plains 053",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQyZjlhNGI4ODE5MThmY2YxMjQ1YWQ5MjVmNDc6c2VkaW1lbnQ6Ly8xYzBkNjcxYjFjMzIxODgjZmlsZV8wMDAwMDAwMGJkNzg4MjJmYThlZjMyODk3NDljMDVkYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOGE5ZGU5NDIwNmRjMTk4NzA3MjBkNzM2NmRkNzUzZjU2MmIwNjUwMmU1ZjI5NTYzODFiYWU5ZTI0NDZmNDM4MyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73424896ac8191b75d8ed17e0e7a84",
+    "name": "Plains 054",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQyNDg5NmFjODE5MWI3NWQ4ZWQxN2UwZTdhODQ6c2VkaW1lbnQ6Ly82NzZlMzhjMjJmYWU0ZjgjZmlsZV8wMDAwMDAwMGEwMDg4MjJmYWZkYzJjYjljOGMxMTVjMiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOTIzMTlmMzU2OGZhNjFkMzM4YTE0MDNlODhkOTdkOGVhMjc5OTJkY2RhN2Y3ODIwYWQyNmVkZmM1Y2U5NWM3YyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a734175ce4c81918f68acf2c3389ec4",
+    "name": "Plains 055",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQxNzVjZTRjODE5MThmNjhhY2YyYzMzODllYzQ6c2VkaW1lbnQ6Ly9jNWYxYjIxMzg1NDczOGMjZmlsZV8wMDAwMDAwMDY4OTA4MjJmYTQ2YmE1NzA3NzQ2OTg3MCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNzhjYTkxNWNmNTA0ZmU4MzQwNWM3YzU3NTZiNzExNDQ0YjJhMGEzNjIxMzdjYzAxNzk5YTE3NDViNTA0NWZlNyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73408f3704819197ceb7efa243dbd1",
+    "name": "Plains 056",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzQwOGYzNzA0ODE5MTk3Y2ViN2VmYTI0M2RiZDE6c2VkaW1lbnQ6Ly8yODRhNzFjZTAzZDJhMDAjZmlsZV8wMDAwMDAwMDVkYTQ4MjJmODQxZGJhZDI5YTFmM2I0OSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiM2NhODJhMTgyZjBlYTQ2N2RjNmM2YTE4YzcyOWJmYmZiMTRkYTQ5ZDVmMTVkNjgzZTEwOGZjMjBhNzA4Yjc0ZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a733fe6ecd88191927a2a3dd86b55b6",
+    "name": "Plains 057",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNmZTZlY2Q4ODE5MTkyN2EyYTNkZDg2YjU1YjY6c2VkaW1lbnQ6Ly8yNjY2YjQzODNkZDYzN2EjZmlsZV8wMDAwMDAwMDVjMDg4MjJmYWQwZWEzMDUzZjA2ZjUwYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYTE5NGI3NmUwMzc3OWZmNzE2YTQ2MTRhZjYzMjQ3MDViNWI2OGY4ZDRhZDViOWY5MjYyMWQ0ZmY5NDFlYzM2ZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a733ef362148191a93398fa0088b325",
+    "name": "Plains 058",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzNlZjM2MjE0ODE5MWE5MzM5OGZhMDA4OGIzMjU6c2VkaW1lbnQ6Ly83ZjMxZDE4NTljMWEyNzYjZmlsZV8wMDAwMDAwMDFiZjA4MjBkOGViNTFhNDRmYjk0MjU4ZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYmRmOWVjMGMzZGY2MjU3YTUwMDMwMzRiZjQ5ZjdiODk4ZDY2MzM1NzAxMzcxYTE1ZDY3NDZiZjE4ZDJmZWI3YiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7329921bb8819185c10151199733ce",
+    "name": "Plains 059",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI5OTIxYmI4ODE5MTg1YzEwMTUxMTk5NzMzY2U6c2VkaW1lbnQ6Ly84MWMxMDUxMjExZjU2MzUjZmlsZV8wMDAwMDAwMGU0MTQ4MjBlYjFmY2Q4NDg2NWQ5ODUwNyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYTg0Yzk5ODZjZDgwZWM3N2EyNTkwNDY2ODJhMmVkOTQ2OGZhMmE2YzllYzQ2YmM5NzViY2E3NDhlYzAyZmRlNSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a730f972aa4819181d970a49b2f703a",
+    "name": "Plains 060",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzBmOTcyYWE0ODE5MTgxZDk3MGE0OWIyZjcwM2E6c2VkaW1lbnQ6Ly84NDI1ZGUyYWNhYmRjOWIjZmlsZV8wMDAwMDAwMDAxYTA4MWY3YmM1Y2U5NWQ3NTY5MGRkMCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMmRjNjNmZDQ5ZGQzYzQwMDc1ZTYzZTM1MjI0MThkNDc1Y2VjMDY5ZDFjNTE5ZTA0MDRhYzQ1ZGQxY2IxMDA2YyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Plains",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73255016f88191b084aa65ae55c305",
+    "name": "Beach 061",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI1NTAxNmY4ODE5MWIwODRhYTY1YWU1NWMzMDU6c2VkaW1lbnQ6Ly9iYzliMTY4MDQyYWRhNGIjZmlsZV8wMDAwMDAwMDAwMDQ4MWY3OTlkMTNlMjRjZWQwNzhiMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMmFkYWQ5M2U2NmVmYjE3ODEyMDcxNThiZmMxYTNjOTgwYjMxYzcxN2MyMjkxZWI5ZGIyZGQ0MjM2ODU3MDFhNyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Beach",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7324c8a7bc8191b073a6e7fce34623",
+    "name": "Beach 062",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI0YzhhN2JjODE5MWIwNzNhNmU3ZmNlMzQ2MjM6c2VkaW1lbnQ6Ly9lOGQzODgyNTJjNjkwMjIjZmlsZV8wMDAwMDAwMDExMTQ4MjJmODc5YTE0MzdmOTdhZGNiMiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiN2Q2N2RjM2U0YjBhODFlYjI0N2I1MzNlMmI0YmY0MjI0YTkwNjY1NTQzZTAyOWM5YTcyMzE5NDg4YzExOGNjYyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Beach",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73239274d88191ad64dd91b51562de",
+    "name": "Beach 063",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzIzOTI3NGQ4ODE5MWFkNjRkZDkxYjUxNTYyZGU6c2VkaW1lbnQ6Ly80YWIzYTdlMzIzZTRhMTIjZmlsZV8wMDAwMDAwMDM3NTA4MjJmODViMGExOTRjYzgwNjU2NCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNmNjZmQ5ZWI3NzM2MGY2YTE5ZTZlMWM4ZjExNzE1NDMyNWMwMGE3M2NiYWQxZTg1YTBhNTc4ZDU5Zjk1ZDE4MiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Beach",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7323035b4c8191a44407664d0e4508",
+    "name": "Beach 064",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzIzMDM1YjRjODE5MWE0NDQwNzY2NGQwZTQ1MDg6c2VkaW1lbnQ6Ly8xODAxOGY5MzJiMjI5YzIjZmlsZV8wMDAwMDAwMDE0MjQ4MjJmODZjYjFiMTNlNWNjNWFhZiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYzJlNGQ3YTE5MzFiZTlhNzI4Y2FjMTNiNTdkOGJkZjY2ZjZlNDMwYTAzNzJlNzNjMGU1MTdkMmU4ZmMxOTEwNSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Beach",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a730f1afe508191956fcae60149b871",
+    "name": "Beach 065",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzBmMWFmZTUwODE5MTk1NmZjYWU2MDE0OWI4NzE6c2VkaW1lbnQ6Ly80OWY2NTI0YTIwMjU2MmUjZmlsZV8wMDAwMDAwMGYyNjA4MjJmODNhOGZmZmU1NGZhOGNiNiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZDgxZjkxMTJhYmQyMTgzZjZhMTAyZjdhNzg0OGY1YzMzNTI2MThkMWI2ZGEzYWQ0NjQ5Yjc3YWEzNTg2OTczOCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Beach",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a730c6a47c4819188a94a138c228b27",
+    "name": "Coast 066",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzBjNmE0N2M0ODE5MTg4YTk0YTEzOGMyMjhiMjc6c2VkaW1lbnQ6Ly84NjlmZGNlNzQzNDhiZTgjZmlsZV8wMDAwMDAwMDljOTQ4MWY4YWY0NDk5YTg0N2FlNmZhYSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiOTNhZGVlY2QzMjJmOTk2ZWFiNTk3OWY5NGExMzgzZjQzZTUzZGY5ZmY2ZDE2NzFkYzU4YWQ1YjIwY2JjNjNhYiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Coast",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7328e3a99481919c74f8a28ad9ccf4",
+    "name": "Ocean 067",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI4ZTNhOTk0ODE5MTljNzRmOGEyOGFkOWNjZjQ6c2VkaW1lbnQ6Ly9lNjFiZDU1ZjU2MTRhNGQjZmlsZV8wMDAwMDAwMDZhYmM4MjBlOTgyYzFhMjE5YjFmN2FhZiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiODUyNTJmNGI3Yjk4ZjIyNTM2ZTVhOGU0MjcyYTljNTE3NTQxZTgzN2ZkZjNhNjFkYWNhMjY1YTczOTI3MzgxYSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ocean",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73286aff1c8191841010385a38e66c",
+    "name": "Ocean 068",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI4NmFmZjFjODE5MTg0MTAxMDM4NWEzOGU2NmM6c2VkaW1lbnQ6Ly9lZWRhODI4MTZlOWMzMzIjZmlsZV8wMDAwMDAwMDdlNmM4MWZkYmZkMDZiMTQ5NDAwYzEyOSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMGZiY2U0Mjg0NGI0NzhkZTY5MWU3MTU5YTBlOTljMzRjMmRmOTk4ZjY0MmI5NGZmNzcyZmY4ZDdiYTU3NWEwZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ocean",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a73269880cc8191afb5f387040ebcf5",
+    "name": "Ocean 069",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI2OTg4MGNjODE5MWFmYjVmMzg3MDQwZWJjZjU6c2VkaW1lbnQ6Ly9mZGQzZWMzNjRlZTY2YjMjZmlsZV8wMDAwMDAwMDA0MDQ4MWY5OTkwYThjYmQ5MjY0ZDkzZiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMTQ1NTk0MzBiMTIyYTE4NmQ3NDdjZDJiMjhkYWJjNGVmNmViZTRiNzk4NTg0ODY3NzgxZTI0YWUzYTJhMTZhZSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ocean",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7325f869a88191a9ac97b1c91075c6",
+    "name": "Ocean 070",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzI1Zjg2OWE4ODE5MWE5YWM5N2IxYzkxMDc1YzY6c2VkaW1lbnQ6Ly9lMmJkZTQyOTBmYjhkODUjZmlsZV8wMDAwMDAwMDlkZDA4MWY3YTIwNTEyYzA3YzFjZjY5YiN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZjExNjA4M2VkMzczOWIwNGVkYmE5MDhjMWYxODliZTE4NDQyYjAzZThmOWZlMGJhN2E3MDY0NzQ0YTA3ZTIwYyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ocean",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a730b7017388191b3486aa9472cc901",
+    "name": "Ocean 071",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3MzBiNzAxNzM4ODE5MWIzNDg2YWE5NDcyY2M5MDE6c2VkaW1lbnQ6Ly8xM2QyNTNiOGVhOTNmZjMjZmlsZV8wMDAwMDAwMGE0MGM4MjJmODk1NzY4Y2E5ZTU0NWIwNCN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNjQwMGUwMmE4NDRkMTc2ZGFkZDEyNmQ0ZTQwOTZhNzM1YWM3NjE5NzI2M2U1NzMwMDQyYWUyNGRiOGViZmY5ZCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "WORLD",
+    "directory": "Terrain",
+    "folder": "Ocean",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a761b4cfa98819188d0e8e93fdb145e",
+    "name": "Springs and Water Sources 072",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjFiNGNmYTk4ODE5MTg4ZDBlOGU5M2ZkYjE0NWU6c2VkaW1lbnQ6Ly82MWIwN2I1NzdmOGIyZjkjZmlsZV8wMDAwMDAwMGE5Nzg4MjJmYjI5YzI5OWQ2ZDhiOTYwZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiNDQzZjAyMjViYmIzZWEwNmM1NTljM2Y1Yjc4NDA3NDllY2VjNTBjMDE1N2VkZWYwMGZlMzFmMGViOWJhYmFlMSIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Springs and Water Sources",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a761a9ee4648191b98cd87db4eee6d8",
+    "name": "Pools and Basins 073",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjFhOWVlNDY0ODE5MWI5OGNkODdkYjRlZWU2ZDg6c2VkaW1lbnQ6Ly8wYjdiYWU0MDRjZjBmY2QjZmlsZV8wMDAwMDAwMDA1MTQ4MWZiYmMwZDA2OTAwMmNlYmE3NyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYjdjODAxMzdmNjFhYWMzMjMwNTgyZGM1Mjk4YTQ3OTQxZmZiZTQyMTdkODYwM2RlYzgwNGFmNjFlYjM5NWJiNCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Pools and Basins",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7619ee48b881919a33e020f9e6b333",
+    "name": "Rapids and Riffles 074",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjE5ZWU0OGI4ODE5MTlhMzNlMDIwZjllNmIzMzM6c2VkaW1lbnQ6Ly82MWRhOTM0ZjUxNjI2N2EjZmlsZV8wMDAwMDAwMDJlNzg4MjJmOWI1NjQ0NzIzNTQyZWRhMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMjI2ZWUwY2E1Mzg2MTYxYTU1ZDkyNGU0Zjk0YWFkNjczY2E3MmNlZmVmM2QxOTMxZTFkNWNjZTYzMGI5OGYxMiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Rapids and Riffles",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a76194c04148191b6b4c8a9f7e5dbea",
+    "name": "Fords and Natural Crossings 075",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjE5NGMwNDE0ODE5MWI2YjRjOGE5ZjdlNWRiZWE6c2VkaW1lbnQ6Ly80N2Q2MzQzYzNkMmI4MDcjZmlsZV8wMDAwMDAwMGM2YWM4MjBjYTI1OGY4ZmFjNDM1NDRlZSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiZjI0YmY2YjdjZmIxMDMwNzc3YjU4ZmUyOWUzYzY0YTQyYmUwMDFkMzM4MDdmMTEzNzllODkxOWVmYzEzYzk1OCIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Fords and Natural Crossings",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7618836e5c81919ca3566c4a32a378",
+    "name": "Riverbanks and Channel Edges 076",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjE4ODM2ZTVjODE5MTljYTM1NjZjNGEzMmEzNzg6c2VkaW1lbnQ6Ly85NGU5M2E2YWJiY2UyZDgjZmlsZV8wMDAwMDAwMDE2OTg4MjJmOGYxNTVjYjZjMmQ3ZDFhYyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMTlmZDAwY2RlNWNlNzA3MzBjNjc1YWZhMjFhYmZmNGM5Mzg2ZDJmNmQ0MTg2M2FlZWM4NWIzMjAzZjFhZTNmYiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Riverbanks and Channel Edges",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a7617b975288191a52088e925924e6f",
+    "name": "Streams and Small Watercourses 077",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjE3Yjk3NTI4ODE5MWE1MjA4OGU5MjU5MjRlNmY6c2VkaW1lbnQ6Ly9mNjFhY2MwZmExMzVmNjgjZmlsZV8wMDAwMDAwMDQxNjg4MWY5YjQ1MzBkMjVjZmM5NzIzMyN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiMDNlYzAyNjcyNzVkZjQ1NjQ3ZjFjY2E3NzI2OTJlMWZmNGVkZGVkYmFmOGI2MDEwY2FlNjM4OGNlNjI3OGRiZiIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Water",
+    "folder": "Streams and Small Watercourses",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  },
+  {
+    "id": "drive-6a76123ddd488191816e7e5747beaef6",
+    "name": "Paths and Trails 078",
+    "image": "https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmE3NjEyM2RkZDQ4ODE5MTgxNmU3ZTU3NDdiZWFlZjY6c2VkaW1lbnQ6Ly9jYTgxYzE1NmJjZDRkMjMjZmlsZV8wMDAwMDAwMDlmNTg4MWY3ODkyODU0ODdjN2JjYzZhMSN1bmZ1cmwiLCJnaXptb19pZCI6bnVsbCwid2lkIjpudWxsLCJvaWQiOm51bGwsInNpZCI6bnVsbCwiY3MiOm51bGwsImZuIjpudWxsLCJjZCI6bnVsbCwidHMiOiIyMDY4NiIsInAiOiJweWkiLCJjaWQiOiIxIiwic2lnIjoiYWNhYWFmZTNhYzQ4YTU4MjdjZWUwNTk1Y2E4NGJiZDQ4NWRlMDg1ZDM3N2FhN2Y0MzZiMGI1ZTNmYTViYTc0MyIsInYiOiIwIiwiY2RuIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9",
+    "layer": "REGION",
+    "directory": "Travel",
+    "folder": "Paths and Trails",
+    "author": "Ryan L. Cole / Shaelvien Drive"
+  }
+]
