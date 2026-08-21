@@ -9,12 +9,26 @@ public partial class WorldMap:IDisposable
  [Inject] public IJSRuntime JS{get;set;}=default!;
  readonly MapGestureState G=new();
  ElementReference MapElement;
+ AtlasTile? AtlasDragging;
  StagedAsset? TrayDragging;
  PieceItem? PieceDragging;
  TileItem? TileDragging;
  double DragClientX;
  double DragClientY;
- bool Dragging=>TrayDragging is not null||PieceDragging is not null||TileDragging is not null;
+ double DragStartX;
+ double DragStartY;
+ bool DragMoved;
+ string BrowserLayer="*";
+ string BrowserDirectory="*";
+ string BrowserFolder="*";
+ bool Dragging=>AtlasDragging is not null||TrayDragging is not null||PieceDragging is not null||TileDragging is not null;
+
+ IEnumerable<string> BrowserLayers=>Session.AtlasTiles.Select(x=>x.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order();
+ IEnumerable<AtlasTile> LayerTiles=>Session.AtlasTiles.Where(x=>BrowserLayer=="*"||x.Layer.Equals(BrowserLayer,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<string> BrowserDirectories=>LayerTiles.Select(x=>x.Directory).Distinct(StringComparer.OrdinalIgnoreCase).Order();
+ IEnumerable<AtlasTile> DirectoryTiles=>LayerTiles.Where(x=>BrowserDirectory=="*"||x.Directory.Equals(BrowserDirectory,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<string> BrowserFolders=>DirectoryTiles.Select(x=>x.Folder).Distinct(StringComparer.OrdinalIgnoreCase).Order();
+ IEnumerable<AtlasTile> BrowserTiles=>DirectoryTiles.Where(x=>BrowserFolder=="*"||x.Folder.Equals(BrowserFolder,StringComparison.OrdinalIgnoreCase));
 
  protected override void OnInitialized(){Session.ViewZoom=G.Zoom;Session.Changed+=Refresh;}
  void Refresh()=>InvokeAsync(StateHasChanged);
@@ -36,25 +50,35 @@ public partial class WorldMap:IDisposable
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
 
- void BeginTrayDrag(StagedAsset staged,PointerEventArgs e){TrayDragging=staged;PieceDragging=null;TileDragging=null;DragClientX=e.ClientX;DragClientY=e.ClientY;}
- void BeginPieceDrag(PieceItem piece,PointerEventArgs e){PieceDragging=piece;TrayDragging=null;TileDragging=null;DragClientX=e.ClientX;DragClientY=e.ClientY;}
- void BeginTileDrag(TileItem tile,PointerEventArgs e){TileDragging=tile;TrayDragging=null;PieceDragging=null;DragClientX=e.ClientX;DragClientY=e.ClientY;}
- void DragMove(PointerEventArgs e){if(!Dragging)return;DragClientX=e.ClientX;DragClientY=e.ClientY;StateHasChanged();}
+ void StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;}
+ void BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;StartDrag(e);}
+ void BeginTrayDrag(StagedAsset staged,PointerEventArgs e){AtlasDragging=null;TrayDragging=staged;PieceDragging=null;TileDragging=null;StartDrag(e);}
+ void BeginPieceDrag(PieceItem piece,PointerEventArgs e){AtlasDragging=null;PieceDragging=piece;TrayDragging=null;TileDragging=null;StartDrag(e);}
+ void BeginTileDrag(TileItem tile,PointerEventArgs e){AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;StartDrag(e);}
+ void DragMove(PointerEventArgs e){if(!Dragging)return;DragClientX=e.ClientX;DragClientY=e.ClientY;if(Math.Abs(DragClientX-DragStartX)+Math.Abs(DragClientY-DragStartY)>7)DragMoved=true;StateHasChanged();}
 
  async Task DragEnd(PointerEventArgs e)
  {
   if(!Dragging)return;
   DragClientX=e.ClientX;DragClientY=e.ClientY;
+  if(!DragMoved){ClearDrag();await InvokeAsync(StateHasChanged);return;}
   var p=await DropPoint(e);
   var inside=p.Length>=3&&p[0]>.5;
-  if(TrayDragging is not null){if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);}
+  var overPallet=await JS.InvokeAsync<bool>("ristWorld.overPallet",e.ClientX,e.ClientY);
+  if(AtlasDragging is not null){if(overPallet)Session.StageTile(AtlasDragging);}
+  else if(TrayDragging is not null){if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);else if(!overPallet)Session.RemoveStaged(TrayDragging.Key);}
   else if(PieceDragging is not null){if(inside)Session.MovePiece(PieceDragging,p[1],p[2]);else Session.RemovePiece(PieceDragging);}
   else if(TileDragging is not null){if(inside)Session.MoveTile(TileDragging,p[1],p[2]);else Session.RemoveTile(TileDragging);}
   ClearDrag();
   await InvokeAsync(StateHasChanged);
  }
  void DragCancel(PointerEventArgs e){if(Dragging){ClearDrag();StateHasChanged();}}
- void ClearDrag(){TrayDragging=null;PieceDragging=null;TileDragging=null;}
+ void ClearDrag(){AtlasDragging=null;TrayDragging=null;PieceDragging=null;TileDragging=null;DragMoved=false;}
+
+ void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"*";BrowserDirectory="*";BrowserFolder="*";}
+ void DirectoryChanged(ChangeEventArgs e){BrowserDirectory=e.Value?.ToString()??"*";BrowserFolder="*";}
+ void FolderChanged(ChangeEventArgs e)=>BrowserFolder=e.Value?.ToString()??"*";
+ static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
 
  async Task Down(PointerEventArgs e)
  {

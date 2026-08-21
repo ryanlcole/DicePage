@@ -3,8 +3,7 @@
 <header class="topbar header-rail finite-rail" aria-label="Tabletop controls">
  <div class="finite-set header-circular-set">
   <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
-  <div class="control"><label>Tile</label><select @bind="Session.SelectedTile"><option value="">None</option>@foreach(var t in Session.AtlasTiles){<option value="@t.Id">@t.Name</option>}</select></div>
-  <button @onclick="Session.StageSelectedTile">To tray</button>
+  <button class="tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen">Tiles</button>
   <div class="control"><label>Piece</label><select @bind="Session.PieceKind"><option value="pin">Pin</option><option value="token">Token</option></select></div>
   <button @onclick="StagePiece">To tray</button>
   <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>

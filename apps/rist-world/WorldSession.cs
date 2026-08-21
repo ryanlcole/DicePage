@@ -57,6 +57,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public List<MixerChannel> MixerChannels { get; } = [new("Knowledge",0,20),new("Swim",0,20),new("Perception",0,20),new("Athletics",0,20),new("Stealth",0,20),new("Insight",0,20),new("Survival",0,20),new("Craft",0,20)];
 
     public string SelectedTile { get; set; } = "";
+    public bool TileBrowserOpen { get; private set; }
     public string PieceKind { get; set; } = "pin";
     public string Role { get; set; } = "GM";
     public string GridStyle { get; set; } = "square";
@@ -75,6 +76,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
+    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}
     public void CalibrateGrid(){GridDistance=Math.Max(.01,GridDistance);GridCalibrationZoom=Math.Max(.01,ViewZoom);Notify();}
 
     public void OpenMixer(){MixerOpen=true;Notify();}
@@ -133,6 +135,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public async Task RollAsync(string key,int? selectedMagnitude){var die=Dice(key);if(die is null)return;var (x,y)=OpenRollPosition();var initialFrame=Random.Shared.Next(die.FrameCount);var item=new RollItem(die.Key,die.Label,ValueForFrame(die,initialFrame),initialFrame,x,y);Rolls.Add(item);Notify();var steps=Random.Shared.Next(13,23);for(var n=0;n<steps;n++){var i=Rolls.IndexOf(item);if(i<0)return;var frame=(item.Frame+1)%die.FrameCount;item=item with{Value=ValueForFrame(die,frame),Frame=frame};Rolls[i]=item;Notify();await Task.Delay(52+Math.Min(n*3,34));}var magnitude=selectedMagnitude.HasValue&&(die.Key is "d5-bonus" or "d5-penalty")?Math.Clamp(selectedMagnitude.Value,1,5):(die.ValueOffset==0?Random.Shared.Next(die.Sides):Random.Shared.Next(1,die.Sides+1));var value=magnitude*die.Sign;var finalFrame=FinalFrameForValue(die,value);var finalIndex=Rolls.IndexOf(item);if(finalIndex>=0)Rolls[finalIndex]=item with{Value=value,Frame=finalFrame};Notify();}
     public void StagePiece(string kind){if(Role!="GM"||kind is not("pin" or "token"))return;var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,kind=="pin"?"Pin":"Token"));Notify();}
     public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
+    public void StageTile(AtlasTile tile){if(Role!="GM")return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
     public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}

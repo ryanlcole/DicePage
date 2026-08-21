@@ -1,8 +1,31 @@
 <main class="table-workspace" @onpointermove="DragMove" @onpointerup="DragEnd" @onpointercancel="DragCancel">
- <aside class="staging-tray" aria-label="Tabletop staging tray">
+ @if(Session.TileBrowserOpen)
+ {
+  <section class="tile-browser" aria-label="Tile library">
+   <header><strong>Tile library</strong><small>Choose a directory, then drag a tile to the pallet.</small></header>
+   <div class="tile-browser-path">
+    <label>Layer<select value="@BrowserLayer" @onchange="LayerChanged"><option value="*">All layers</option>@foreach(var layer in BrowserLayers){<option value="@layer">@Pretty(layer)</option>}</select></label>
+    <span aria-hidden="true">›</span>
+    <label>Directory<select value="@BrowserDirectory" @onchange="DirectoryChanged"><option value="*">All directories</option>@foreach(var directory in BrowserDirectories){<option value="@directory">@directory</option>}</select></label>
+    <span aria-hidden="true">›</span>
+    <label>Folder<select value="@BrowserFolder" @onchange="FolderChanged"><option value="*">All folders</option>@foreach(var folder in BrowserFolders){<option value="@folder">@folder</option>}</select></label>
+   </div>
+   <div class="tile-browser-grid">
+    @foreach(var tile in BrowserTiles)
+    {
+     <button class="library-tile" title="@tile.Name — @tile.Author. Drag to pallet."
+             @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true">
+      <img src="@tile.Image" alt="" draggable="false"/><span>@tile.Name</span>
+     </button>
+    }
+    @if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
+   </div>
+  </section>
+ }
+ <aside class="staging-tray pallet" aria-label="Tile pallet">
   @if(Session.StagedAssets.Count==0)
   {
-   <div class="tray-hint">Choose a pin, token, or tile above to place it here.</div>
+   <div class="tray-hint"><strong>PALLET</strong><span>Drag tiles here.</span></div>
   }
   @foreach(var staged in Session.StagedAssets)
   {
@@ -72,7 +95,8 @@
  @if(Dragging)
  {
   <div class="drag-ghost" style="@DragPreviewStyle">
-   @if(TrayDragging?.Kind=="tile") { <img src="@TrayDragging.Image" alt="" /> }
+   @if(AtlasDragging is not null) { <img src="@AtlasDragging.Image" alt="" /> }
+   else if(TrayDragging?.Kind=="tile") { <img src="@TrayDragging.Image" alt="" /> }
    else if(TileDragging is not null) { <img src="@TileDragging.Image" alt="" /> }
    else if(TrayDragging?.Kind=="pin" || PieceDragging?.Kind=="pin") { <span class="gps-pin"></span> }
    else { <span class="token-preview">token</span> }
