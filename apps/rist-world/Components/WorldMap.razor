@@ -10,11 +10,15 @@
    </header>
    @if(!string.IsNullOrWhiteSpace(ImportStatus)){<div class="tileset-import-status" role="status">@ImportStatus</div>}
    <div class="tile-browser-path">
-    <label>Layer<select value="@BrowserLayer" @onchange="LayerChanged"><option value="*">All layers</option>@foreach(var layer in BrowserLayers){<option value="@layer">@Pretty(layer)</option>}</select></label>
+    <label>Layer<select value="@BrowserLayer" @onchange="LayerChanged">@foreach(var layer in BrowserLayers){<option value="@layer">@Pretty(layer)</option>}</select></label>
     <span aria-hidden="true">›</span>
-    <label>Directory<select value="@BrowserDirectory" @onchange="DirectoryChanged"><option value="*">All directories</option>@foreach(var directory in BrowserDirectories){<option value="@directory">@directory</option>}</select></label>
+    <label>Directory<select value="@BrowserDirectory" @onchange="DirectoryChanged">@foreach(var directory in BrowserDirectories){<option value="@directory">@directory</option>}</select></label>
     <span aria-hidden="true">›</span>
-    <label>Folder<select value="@BrowserFolder" @onchange="FolderChanged"><option value="*">All folders</option>@foreach(var folder in BrowserFolders){<option value="@folder">@folder</option>}</select></label>
+    <label>Folder<select value="@BrowserFolder" @onchange="FolderChanged"><option value="">Choose folder</option>@foreach(var folder in BrowserFolders){<option value="@folder">@folder</option>}</select></label>
+   </div>
+   <div class="tile-filter-tools">
+    <label>Saved filters<select value="@SelectedSavedFilter" @onchange="ApplySavedFilter"><option value="">Choose saved filter</option>@foreach(var filter in SavedFilters){<option value="@filter.Key">@filter.Label</option>}</select></label>
+    <button @onclick="SaveCurrentFilter" disabled="@string.IsNullOrWhiteSpace(BrowserFolder)">Save filter</button>
    </div>
    <div class="tile-browser-grid">
     @foreach(var tile in BrowserTiles)
@@ -23,7 +27,8 @@
       <span class="tile-drag-source" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" alt="" draggable="false"/></span><span>@tile.Name</span>
      </button>
     }
-    @if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
+    @if(string.IsNullOrWhiteSpace(BrowserFolder)){<p>Choose a folder to load its tiles.</p>}
+    else if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
    </div>
   </section>
  }
