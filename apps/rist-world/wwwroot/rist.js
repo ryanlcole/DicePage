@@ -10,6 +10,9 @@ window.ristWorld={
  },
  overPublicCardDrop:(x,y)=>{
   const el=document.querySelector('.public-card-drop');if(!el)return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
+ },
+ overPallet:(x,y)=>{
+  const el=document.querySelector('.staging-tray');if(!el)return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
  }
 };
 
