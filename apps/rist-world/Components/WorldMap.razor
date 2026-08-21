@@ -24,7 +24,7 @@
     @foreach(var tile in BrowserTiles)
     {
      <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
-      <span class="tile-drag-source" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" alt="" draggable="false"/></span><span>@tile.Name</span>
+      <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
      </button>
     }
     @if(string.IsNullOrWhiteSpace(BrowserFolder)){<p>Choose a folder to load its tiles.</p>}
@@ -44,7 +44,7 @@
            @ondblclick="()=>Session.RemoveStaged(staged.Key)">
     @if(staged.Kind=="tile")
     {
-     <img src="@staged.Image" alt="@staged.Name" />
+     <span class="tile-image-crop"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>
     }
     else if(staged.Kind=="pin")
     {
@@ -67,7 +67,7 @@
     {
      <div class="tile-cell" style="@TileStyle(t)"
           @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true">
-      <img src="@t.Image" alt="@t.Name" draggable="false" />
+      <span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span>
      </div>
     }
     @foreach(var roll in Session.Rolls)
@@ -106,9 +106,9 @@
  @if(Dragging)
  {
   <div class="drag-ghost" style="@DragPreviewStyle">
-   @if(AtlasDragging is not null) { <img src="@AtlasDragging.Image" alt="" /> }
-   else if(TrayDragging?.Kind=="tile") { <img src="@TrayDragging.Image" alt="" /> }
-   else if(TileDragging is not null) { <img src="@TileDragging.Image" alt="" /> }
+   @if(AtlasDragging is not null) { <span class="tile-image-crop"><img src="@AtlasDragging.Image" style="@CropStyle(AtlasDragging)" alt="" /></span> }
+   else if(TrayDragging?.Kind=="tile") { <span class="tile-image-crop"><img src="@TrayDragging.Image" style="@CropStyle(TrayDragging)" alt="" /></span> }
+   else if(TileDragging is not null) { <span class="tile-image-crop"><img src="@TileDragging.Image" style="@CropStyle(TileDragging)" alt="" /></span> }
    else if(TrayDragging?.Kind=="pin" || PieceDragging?.Kind=="pin") { <span class="gps-pin"></span> }
    else { <span class="token-preview">token</span> }
   </div>
