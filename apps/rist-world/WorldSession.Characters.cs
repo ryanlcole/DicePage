@@ -10,6 +10,7 @@ public sealed partial class WorldSession
         public string Alignment { get; set; } = "";
         public string Description { get; set; } = "";
         public string Background { get; set; } = "";
+        public string Notes { get; set; } = "";
         public string Portrait { get; set; } = "";
         public List<CharacterField> Fields { get; set; } = [];
         public List<string> HandFieldIds { get; set; } = [];
@@ -39,6 +40,18 @@ public sealed partial class WorldSession
         Notify();
     }
 
+    public void DeleteCharacter()
+    {
+        if (_characterSlots.Count == 1) return;
+        _characterSlots.RemoveAt(_activeCharacterIndex);
+        _activeCharacterIndex = Math.Min(_activeCharacterIndex, _characterSlots.Count - 1);
+        LoadCharacterSlot(_characterSlots[_activeCharacterIndex]);
+        CharacterEditMode = false;
+        EditingHandCard = null;
+        EditingDiceField = null;
+        Notify();
+    }
+
     public void SwitchCharacter(int delta)
     {
         if (_characterSlots.Count <= 1) return;
@@ -63,6 +76,7 @@ public sealed partial class WorldSession
         slot.Alignment = CharacterAlignment;
         slot.Description = CharacterDescription;
         slot.Background = CharacterBackground;
+        slot.Notes = CharacterNotes;
         slot.Portrait = _characterPortraitDataUrl;
         slot.Fields = CharacterFields.Select(CloneField).ToList();
         slot.HandFieldIds = HandCards.Select(card => card.Field.Id).Distinct().ToList();
@@ -76,6 +90,7 @@ public sealed partial class WorldSession
         CharacterAlignment = slot.Alignment;
         CharacterDescription = slot.Description;
         CharacterBackground = slot.Background;
+        CharacterNotes = slot.Notes;
         _characterPortraitDataUrl = slot.Portrait;
         CharacterFields.Clear();
         CharacterFields.AddRange(slot.Fields.Select(CloneField));
