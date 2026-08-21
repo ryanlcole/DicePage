@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 namespace RistWorld.Components;
 public partial class WorldMap:IDisposable
@@ -21,6 +22,8 @@ public partial class WorldMap:IDisposable
  string BrowserLayer="*";
  string BrowserDirectory="*";
  string BrowserFolder="*";
+ bool ImportingTileset;
+ string ImportStatus="";
  bool Dragging=>AtlasDragging is not null||TrayDragging is not null||PieceDragging is not null||TileDragging is not null;
 
  IEnumerable<string> BrowserLayers=>Session.AtlasTiles.Select(x=>x.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order();
@@ -78,6 +81,25 @@ public partial class WorldMap:IDisposable
  void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"*";BrowserDirectory="*";BrowserFolder="*";}
  void DirectoryChanged(ChangeEventArgs e){BrowserDirectory=e.Value?.ToString()??"*";BrowserFolder="*";}
  void FolderChanged(ChangeEventArgs e)=>BrowserFolder=e.Value?.ToString()??"*";
+ async Task ImportTileset(InputFileChangeEventArgs e)
+ {
+  ImportingTileset=true;ImportStatus="Analyzing tileset…";StateHasChanged();
+  try
+  {
+   var file=e.File;
+   await using var stream=file.OpenReadStream(12*1024*1024);
+   using var memory=new MemoryStream();await stream.CopyToAsync(memory);
+   var dataUrl=$"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+   var slices=await JS.InvokeAsync<string[]>("ristWorld.splitTileset",dataUrl);
+   var stem=Path.GetFileNameWithoutExtension(file.Name);
+   var folder=string.IsNullOrWhiteSpace(stem)?"Uploaded tileset":stem;
+   var added=Session.ImportTileset(folder,slices);
+   BrowserLayer="UNIVERSAL";BrowserDirectory="Imported";BrowserFolder=folder;
+   ImportStatus=added==0?"No separate tiles were detected.":$"Added {added} tile{(added==1?"":"s")} to Imported › {folder}.";
+  }
+  catch(Exception ex){ImportStatus=ex.Message.Contains("maximum",StringComparison.OrdinalIgnoreCase)?"Tileset is larger than the 12 MB upload limit.":"This image could not be analyzed.";}
+  finally{ImportingTileset=false;StateHasChanged();}
+ }
  static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
 
  async Task Down(PointerEventArgs e)

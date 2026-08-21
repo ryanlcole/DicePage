@@ -16,7 +16,23 @@ window.ristWorld={
  },
  overPallet:(x,y)=>{
   const el=document.querySelector('.staging-tray');if(!el)return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
- }
+ },
+ splitTileset:(dataUrl)=>new Promise((resolve,reject)=>{
+  const img=new Image();
+  img.onerror=()=>reject(new Error('Unable to read tileset image'));
+  img.onload=()=>{
+   const w=img.naturalWidth,h=img.naturalHeight,canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);const pixels=ctx.getImageData(0,0,w,h).data;
+   const corners=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>{const i=(y*w+x)*4;return[pixels[i],pixels[i+1],pixels[i+2],pixels[i+3]]});
+   const bg=corners.reduce((a,c)=>a.map((v,i)=>v+c[i]/corners.length),[0,0,0,0]);
+   const active=(x,y)=>{const i=(y*w+x)*4,a=pixels[i+3];if(a<18)return false;if(bg[3]<40)return true;const d=Math.abs(pixels[i]-bg[0])+Math.abs(pixels[i+1]-bg[1])+Math.abs(pixels[i+2]-bg[2])+Math.abs(a-bg[3]);return d>48};
+   const bands=(length,cross,isColumn)=>{const filled=[];for(let p=0;p<length;p++){let hits=0;const step=Math.max(1,Math.floor(cross/180));for(let q=0;q<cross;q+=step)if(active(isColumn?p:q,isColumn?q:p))hits++;filled[p]=hits>1}const runs=[];let start=-1;for(let i=0;i<=length;i++){if(i<length&&filled[i]&&start<0)start=i;if((i===length||!filled[i])&&start>=0){if(i-start>=3)runs.push([start,i]);start=-1}}return runs};
+   let xs=bands(w,h,true),ys=bands(h,w,false);
+   if(xs.length*ys.length<2){const gcd=(a,b)=>b?gcd(b,a%b):a,g=gcd(w,h);if(g>=16&&w/g*h/g<=256&&(w/g>1||h/g>1)){xs=Array.from({length:w/g},(_,i)=>[i*g,(i+1)*g]);ys=Array.from({length:h/g},(_,i)=>[i*g,(i+1)*g]);}else{xs=[[0,w]];ys=[[0,h]]}}
+   const output=[];for(const yr of ys)for(const xr of xs){if(output.length>=256)break;let minX=xr[1],minY=yr[1],maxX=-1,maxY=-1;for(let y=yr[0];y<yr[1];y++)for(let x=xr[0];x<xr[1];x++)if(active(x,y)){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}if(maxX<minX||maxY<minY)continue;const pad=1,sx=Math.max(xr[0],minX-pad),sy=Math.max(yr[0],minY-pad),sw=Math.min(xr[1]-sx,maxX-minX+1+pad*2),sh=Math.min(yr[1]-sy,maxY-minY+1+pad*2);const out=document.createElement('canvas');out.width=sw;out.height=sh;out.getContext('2d').drawImage(canvas,sx,sy,sw,sh,0,0,sw,sh);output.push(out.toDataURL('image/png'))}
+   resolve(output);
+  };img.src=dataUrl;
+ })
 };
 
 window.ristCropPortrait=(dataUrl,zoom,xPct,yPct,size)=>new Promise((resolve,reject)=>{

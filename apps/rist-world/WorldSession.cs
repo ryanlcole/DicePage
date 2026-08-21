@@ -18,7 +18,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public HandCard? EditingHandCard { get; private set; }
     public string? DraggedDieKey { get; private set; }
 
-    public string WorldMapUrl { get; } = "assets/world/naeja.png";
+    public string WorldMapUrl { get; } = "";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
         new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 4, VisualAspect:1.06),
@@ -136,6 +136,13 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void StagePiece(string kind){if(Role!="GM"||kind is not("pin" or "token"))return;var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,kind=="pin"?"Pin":"Token"));Notify();}
     public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
     public void StageTile(AtlasTile tile){if(Role!="GM")return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
+    public int ImportTileset(string folder,IEnumerable<string> images)
+    {
+        var list=images.Where(x=>!string.IsNullOrWhiteSpace(x)).Take(256).ToList();
+        var batch=Guid.NewGuid().ToString("N")[..8];
+        for(var i=0;i<list.Count;i++)AtlasTiles.Add(new($"user-{batch}-{i+1}",$"{folder} {i+1:000}",list[i],"UNIVERSAL","Imported",folder,"User upload"));
+        Notify();return list.Count;
+    }
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
     public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
