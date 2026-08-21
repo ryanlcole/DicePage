@@ -120,7 +120,24 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         var builtIn=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
         if(builtIn is not null)AtlasTiles.AddRange(builtIn);
         var drive=await http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json");
-        if(drive is not null)AtlasTiles.AddRange(drive.Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
+        if(drive is not null)
+        {
+            // Drive previews are 1200x630 sheets containing a centered 630x630 6x6 atlas.
+            // Expand them as lightweight crop records; the browser fetches only sheets in the chosen folder.
+            foreach(var sheet in drive)
+            for(var row=0;row<6;row++)
+            for(var col=0;col<6;col++)
+            {
+                var tile=sheet with
+                {
+                    Id=$"{sheet.Id}-{row+1:00}-{col+1:00}",
+                    Name=$"{sheet.Name} · {row+1},{col+1}",
+                    SourceWidth=1200,SourceHeight=630,
+                    CropX=285+col*105,CropY=row*105,CropWidth=105,CropHeight=105
+                };
+                if(AtlasTiles.All(existing=>existing.Id!=tile.Id))AtlasTiles.Add(tile);
+            }
+        }
     }
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
     public DiceSpec? Dice(string key)=>DiceSet.FirstOrDefault(x=>x.Key==key);
@@ -140,8 +157,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     }
     public async Task RollAsync(string key,int? selectedMagnitude){var die=Dice(key);if(die is null)return;var (x,y)=OpenRollPosition();var initialFrame=Random.Shared.Next(die.FrameCount);var item=new RollItem(die.Key,die.Label,ValueForFrame(die,initialFrame),initialFrame,x,y);Rolls.Add(item);Notify();var steps=Random.Shared.Next(13,23);for(var n=0;n<steps;n++){var i=Rolls.IndexOf(item);if(i<0)return;var frame=(item.Frame+1)%die.FrameCount;item=item with{Value=ValueForFrame(die,frame),Frame=frame};Rolls[i]=item;Notify();await Task.Delay(52+Math.Min(n*3,34));}var magnitude=selectedMagnitude.HasValue&&(die.Key is "d5-bonus" or "d5-penalty")?Math.Clamp(selectedMagnitude.Value,1,5):(die.ValueOffset==0?Random.Shared.Next(die.Sides):Random.Shared.Next(1,die.Sides+1));var value=magnitude*die.Sign;var finalFrame=FinalFrameForValue(die,value);var finalIndex=Rolls.IndexOf(item);if(finalIndex>=0)Rolls[finalIndex]=item with{Value=value,Frame=finalFrame};Notify();}
     public void StagePiece(string kind){if(Role!="GM"||kind is not("pin" or "token"))return;var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,kind=="pin"?"Pin":"Token"));Notify();}
-    public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
-    public void StageTile(AtlasTile tile){if(Role!="GM")return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image));Notify();}
+    public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;StageTile(tile);}
+    public void StageTile(AtlasTile tile){if(Role!="GM")return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight));Notify();}
     public int ImportTileset(string folder,IEnumerable<string> images)
     {
         var list=images.Where(x=>!string.IsNullOrWhiteSpace(x)).Take(256).ToList();
@@ -150,7 +167,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         Notify();return list.Count;
     }
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
-    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
+    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
     public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
