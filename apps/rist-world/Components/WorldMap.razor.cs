@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using System.Text.Json;
 namespace RistWorld.Components;
 public partial class WorldMap:IDisposable
 {
@@ -19,21 +20,36 @@ public partial class WorldMap:IDisposable
  double DragStartX;
  double DragStartY;
  bool DragMoved;
- string BrowserLayer="*";
- string BrowserDirectory="*";
- string BrowserFolder="*";
+ string BrowserLayer="WORLD";
+ string BrowserDirectory="Terrain";
+ string BrowserFolder="";
  bool ImportingTileset;
  string ImportStatus="";
+ string SelectedSavedFilter="";
+ readonly List<SavedTileFilter> SavedFilters=[];
+ bool FilterStateLoaded;
+ const string FilterSaveKey="rist.tile.filters.v1";
  bool Dragging=>AtlasDragging is not null||TrayDragging is not null||PieceDragging is not null||TileDragging is not null;
 
  IEnumerable<string> BrowserLayers=>Session.AtlasTiles.Select(x=>x.Layer).Distinct(StringComparer.OrdinalIgnoreCase).Order();
- IEnumerable<AtlasTile> LayerTiles=>Session.AtlasTiles.Where(x=>BrowserLayer=="*"||x.Layer.Equals(BrowserLayer,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<AtlasTile> LayerTiles=>Session.AtlasTiles.Where(x=>x.Layer.Equals(BrowserLayer,StringComparison.OrdinalIgnoreCase));
  IEnumerable<string> BrowserDirectories=>LayerTiles.Select(x=>x.Directory).Distinct(StringComparer.OrdinalIgnoreCase).Order();
- IEnumerable<AtlasTile> DirectoryTiles=>LayerTiles.Where(x=>BrowserDirectory=="*"||x.Directory.Equals(BrowserDirectory,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<AtlasTile> DirectoryTiles=>LayerTiles.Where(x=>x.Directory.Equals(BrowserDirectory,StringComparison.OrdinalIgnoreCase));
  IEnumerable<string> BrowserFolders=>DirectoryTiles.Select(x=>x.Folder).Distinct(StringComparer.OrdinalIgnoreCase).Order();
- IEnumerable<AtlasTile> BrowserTiles=>DirectoryTiles.Where(x=>BrowserFolder=="*"||x.Folder.Equals(BrowserFolder,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<AtlasTile> BrowserTiles=>string.IsNullOrWhiteSpace(BrowserFolder)?Enumerable.Empty<AtlasTile>():DirectoryTiles.Where(x=>x.Folder.Equals(BrowserFolder,StringComparison.OrdinalIgnoreCase));
 
  protected override void OnInitialized(){Session.ViewZoom=G.Zoom;Session.Changed+=Refresh;}
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||FilterStateLoaded)return;FilterStateLoaded=true;
+  var json=await JS.InvokeAsync<string?>("localStorage.getItem",FilterSaveKey);
+  if(!string.IsNullOrWhiteSpace(json))
+  {
+   var saved=JsonSerializer.Deserialize<List<SavedTileFilter>>(json);
+   if(saved is not null)SavedFilters.AddRange(saved.Where(x=>!string.IsNullOrWhiteSpace(x.Folder)));
+  }
+  StateHasChanged();
+ }
  void Refresh()=>InvokeAsync(StateHasChanged);
  string StageTransform=>$"translate({G.PanX:0.##}px,{G.PanY:0.##}px) scale({G.Zoom:0.###})";
  string StatusText=>Session.EncounterActive?"ENCOUNTER • 5 ft/hex":Session.GridStyle=="none"?$"{Session.Layer} • grid off":$"{Session.Layer} • {WorldSession.GridColumns}×{WorldSession.GridRows} • {Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq";
@@ -78,9 +94,21 @@ public partial class WorldMap:IDisposable
  void DragCancel(PointerEventArgs e){if(Dragging){ClearDrag();StateHasChanged();}}
  void ClearDrag(){AtlasDragging=null;TrayDragging=null;PieceDragging=null;TileDragging=null;DragMoved=false;}
 
- void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"*";BrowserDirectory="*";BrowserFolder="*";}
- void DirectoryChanged(ChangeEventArgs e){BrowserDirectory=e.Value?.ToString()??"*";BrowserFolder="*";}
- void FolderChanged(ChangeEventArgs e)=>BrowserFolder=e.Value?.ToString()??"*";
+ void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"WORLD";BrowserDirectory=BrowserDirectories.FirstOrDefault()??"";BrowserFolder="";}
+ void DirectoryChanged(ChangeEventArgs e){BrowserDirectory=e.Value?.ToString()??"";BrowserFolder="";}
+ void FolderChanged(ChangeEventArgs e)=>BrowserFolder=e.Value?.ToString()??"";
+ async Task SaveCurrentFilter()
+ {
+  if(string.IsNullOrWhiteSpace(BrowserFolder))return;
+  var filter=new SavedTileFilter(BrowserLayer,BrowserDirectory,BrowserFolder);
+  SavedFilters.RemoveAll(x=>x.Key==filter.Key);SavedFilters.Add(filter);SelectedSavedFilter=filter.Key;
+  await JS.InvokeVoidAsync("localStorage.setItem",FilterSaveKey,JsonSerializer.Serialize(SavedFilters));
+ }
+ void ApplySavedFilter(ChangeEventArgs e)
+ {
+  SelectedSavedFilter=e.Value?.ToString()??"";var filter=SavedFilters.FirstOrDefault(x=>x.Key==SelectedSavedFilter);if(filter is null)return;
+  BrowserLayer=filter.Layer;BrowserDirectory=filter.Directory;BrowserFolder=filter.Folder;
+ }
  async Task ImportTileset(InputFileChangeEventArgs e)
  {
   ImportingTileset=true;ImportStatus="Analyzing tileset…";StateHasChanged();
@@ -129,4 +157,9 @@ public partial class WorldMap:IDisposable
  void Cancel(PointerEventArgs e){G.Pointers.Remove(e.PointerId);G.LastDistance=0;}
  void PinTap(PieceItem p)=>Session.PinTap(p);
  public void Dispose()=>Session.Changed-=Refresh;
+}
+public sealed record SavedTileFilter(string Layer,string Directory,string Folder)
+{
+ public string Key=>$"{Layer}|{Directory}|{Folder}";
+ public string Label=>$"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Layer.ToLowerInvariant())} › {Directory} › {Folder}";
 }
