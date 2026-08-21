@@ -12,13 +12,54 @@ web = root / 'apps' / 'rist-world' / 'wwwroot'
 
 registry = json.loads((tactical / 'data' / 'atlas' / 'atlas_asset_registry.json').read_text())
 rows = []
-for asset in registry.get('assets', [])[:40]:
+for asset in registry.get('assets', []):
     source = tactical / asset.get('derivedPath', '')
     if not source.exists():
         continue
     target = web / 'assets' / 'atlas' / source.name
     shutil.copy2(source, target)
-    rows.append({'id': asset['assetId'], 'name': asset.get('name', asset['assetId']), 'image': 'assets/atlas/' + source.name})
+    tags = asset.get('tags', [])
+    layer = 'WORLD' if 'world_map' in tags else 'REGION' if 'region_map' in tags else 'UNIVERSAL'
+    rows.append({
+        'id': asset['assetId'],
+        'name': asset.get('name', asset['assetId']),
+        'image': 'assets/atlas/' + source.name,
+        'layer': layer,
+        'directory': str(asset.get('category', 'Atlas')).replace('_', ' ').title(),
+        'folder': str(asset.get('collection', 'General')).replace('_', ' ').title(),
+        'author': 'Shaelvien / owner-provided atlas'
+    })
+
+tile_registry = json.loads((tactical / 'data' / 'assets' / 'tile_asset_registry.json').read_text())
+for asset in tile_registry.get('assets', []):
+    if asset.get('type') != 'tile_image':
+        continue
+    source = tactical / asset.get('sourcePath', '')
+    if not source.exists():
+        continue
+    target = web / 'assets' / 'tiles' / source.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    tags = [str(tag).lower() for tag in asset.get('tags', [])]
+    if 'marker' in tags or any(tag in tags for tag in ('entrance', 'exit', 'trigger', 'player_start', 'enemy_start')):
+        layer = 'ENCOUNTER'
+    elif 'symbol' in tags or any(tag in tags for tag in ('city', 'town', 'village')):
+        layer = 'WORLD'
+    elif 'object' in tags or any(tag in tags for tag in ('table', 'chair', 'door', 'chest', 'barrel', 'bed')):
+        layer = 'AREA'
+    else:
+        layer = 'LOCAL'
+    directory = next((name for name in ('terrain', 'autotile', 'object', 'symbol', 'marker') if name in tags), 'tiles')
+    folder = next((tag for tag in tags if tag not in {'shaelvien_woodcut_v1', 'original', directory, 'placeholder'}), 'general')
+    rows.append({
+        'id': asset['assetId'],
+        'name': asset.get('name', asset['assetId']),
+        'image': 'assets/tiles/' + source.name,
+        'layer': layer,
+        'directory': directory.title(),
+        'folder': folder.replace('_', ' ').title(),
+        'author': asset.get('author', 'Shaelvien')
+    })
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
 # Verify the canonical AWS-hosted world map during every build and retain a
