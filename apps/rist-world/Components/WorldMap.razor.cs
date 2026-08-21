@@ -50,11 +50,11 @@ public partial class WorldMap:IDisposable
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
 
- void StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;}
- void BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;StartDrag(e);}
- void BeginTrayDrag(StagedAsset staged,PointerEventArgs e){AtlasDragging=null;TrayDragging=staged;PieceDragging=null;TileDragging=null;StartDrag(e);}
- void BeginPieceDrag(PieceItem piece,PointerEventArgs e){AtlasDragging=null;PieceDragging=piece;TrayDragging=null;TileDragging=null;StartDrag(e);}
- void BeginTileDrag(TileItem tile,PointerEventArgs e){AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;StartDrag(e);}
+ async Task StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
+ async Task BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;await StartDrag(e);}
+ async Task BeginTrayDrag(StagedAsset staged,PointerEventArgs e){AtlasDragging=null;TrayDragging=staged;PieceDragging=null;TileDragging=null;await StartDrag(e);}
+ async Task BeginPieceDrag(PieceItem piece,PointerEventArgs e){AtlasDragging=null;PieceDragging=piece;TrayDragging=null;TileDragging=null;await StartDrag(e);}
+ async Task BeginTileDrag(TileItem tile,PointerEventArgs e){AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;await StartDrag(e);}
  void DragMove(PointerEventArgs e){if(!Dragging)return;DragClientX=e.ClientX;DragClientY=e.ClientY;if(Math.Abs(DragClientX-DragStartX)+Math.Abs(DragClientY-DragStartY)>7)DragMoved=true;StateHasChanged();}
 
  async Task DragEnd(PointerEventArgs e)
