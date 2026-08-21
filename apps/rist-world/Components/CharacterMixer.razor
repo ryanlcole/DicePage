@@ -63,7 +63,7 @@
 @if(Session.EditingDiceField is not null)
 {
  var bagField=Session.EditingDiceField;
- <div class="dicebag-modal sheet-bag-modal" @onclick="Session.CloseFieldDiceBag"><section class="dicebag-workspace dicebag-form" @onclick:stopPropagation="true"><header class="dicebag-title"><div class="dicebag-subject">@bagField.Name dice</div><button @onclick="Session.CloseFieldDiceBag">×</button></header><div class="dicebag-editor">@if(Session.DiceSpecs.Count > 0){<div class="dice-options">@foreach(var die in Session.DiceSpecs){<article><strong>@die.Name</strong><div><input type="number" min="0" max="20" value="@Session.DiceBagCount(bagField,die.Key)" @onchange="e=>Session.SetDiceBagCount(bagField,die.Key,int.TryParse(e.Value?.ToString(),out var v)?v:0)"/></div></article>}}</div>}</div><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="Session.CloseFieldDiceBag">Done</button></footer></section></div>
+ <div class="dicebag-modal sheet-bag-modal" @onclick="Session.CloseFieldDiceBag"><section class="dicebag-workspace dicebag-form" @onclick:stopPropagation="true"><header class="dicebag-title"><div class="dicebag-subject">@bagField.Name dice</div><button @onclick="Session.CloseFieldDiceBag">×</button></header><div class="dicebag-editor">@if(Session.DiceSet.Count > 0){<div class="dice-options">@foreach(var die in Session.DiceSet){<article><strong>@die.Label</strong><div><input type="number" min="0" max="20" value="@Session.DiceBagCount(bagField,die.Key)" @onchange="e=>Session.SetDiceBagCount(bagField,die.Key,int.TryParse(e.Value?.ToString(),out var v)?v:0)"/></div></article>}}</div>}</div><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="Session.CloseFieldDiceBag">Done</button></footer></section></div>
 }
 }
 @code{
@@ -82,11 +82,11 @@
  async Task LoadPaneStates()
  {
   _openPanes.Clear();
-  if(Session.CurrentCharacter is not null)
+  if(Session.CharacterCount > 0)
   {
    try
    {
-    var charId=Session.CurrentCharacter.Id??Guid.NewGuid().ToString();
+    var charId=Session.ActiveCharacterNumber.ToString();
     var storedState=await JS.InvokeAsync<string>("localStorage.getItem",$"rist-pane-states-{charId}");
     if(!string.IsNullOrWhiteSpace(storedState))
     {
@@ -106,11 +106,11 @@
  
  async Task SavePaneStates()
  {
-  if(Session.CurrentCharacter is not null)
+  if(Session.CharacterCount > 0)
   {
    try
    {
-    var charId=Session.CurrentCharacter.Id??Guid.NewGuid().ToString();
+    var charId=Session.ActiveCharacterNumber.ToString();
     var state=string.Join(",",_openPanes);
     await JS.InvokeVoidAsync("localStorage.setItem",$"rist-pane-states-{charId}",state);
    }
@@ -208,7 +208,7 @@
  
  int EditableBagCount(CharacterField f)=>f.DiceBag.Where(x=>x.DieKey is not "d5-bonus" and not "d5-penalty").Sum(x=>x.Count);
  
- IEnumerable<DiceSpec> EditableDiceSet(CharacterField f)=>Session.DiceSpecs.Where(d=>d.Key is not "d5-bonus" and not "d5-penalty");
+ IEnumerable<DiceSpec> EditableDiceSet(CharacterField f)=>Session.DiceSet.Where(d=>d.Key is not "d5-bonus" and not "d5-penalty");
  
  List<int> ModifierDice(int modifier){var result=new List<int>();var sign=Math.Sign(modifier);var remaining=Math.Abs(Math.Clamp(modifier,-10,10));while(remaining>0){var value=Math.Min(5,remaining);result.Add(sign*value);remaining-=value;}return result;}
  
@@ -220,7 +220,7 @@
  
  void CancelPortrait(){_portraitEditing=false;_portraitSource="";}
  
- async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortraitDataUrl(result);_portraitEditing=false;_portraitSource="";}
+ async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortrait(result);_portraitEditing=false;_portraitSource="";}
  
  async Task UploadFieldImage(CharacterField field,InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(3*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);var dataUrl=$"data:image/{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";Session.SetCharacterFieldImage(field,dataUrl);}
 }

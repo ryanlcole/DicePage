@@ -42,6 +42,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string CharacterAlignment { get; set; } = "";
     public string CharacterDescription { get; set; } = "";
     public string CharacterBackground { get; set; } = "";
+    public string CharacterNotes { get; set; } = "";
     public string CharacterTab { get; set; } = "Description";
     public string FieldSearch { get; set; } = "";
     public List<CharacterField> CharacterFields { get; } = [];
@@ -79,6 +80,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void OpenMixer(){MixerOpen=true;Notify();}
     public void CloseMixer(){MixerOpen=false;EditingHandCard=null;DraggedDieKey=null;Notify();}
     public void EditCharacter(){CharacterEditMode=true;Notify();}
+    public void OpenCharacterEditMode()=>EditCharacter();
     public void SaveCharacter(){CharacterEditMode=false;EditingHandCard=null;DraggedDieKey=null;Notify();}
     public void SetCharacterTab(string tab){CharacterTab=tab;Notify();}
     public void SetFieldSearch(string value){FieldSearch=value;Notify();}
@@ -88,6 +90,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void RenameCharacterField(CharacterField field,string name){if(!CharacterEditMode)return;name=name.Trim();if(name.Length==0)return;field.Name=name;Notify();}
     public void SetCharacterFieldColor(CharacterField field,string color){if(!CharacterEditMode)return;field.Color=color switch{"red" or "orange" or "gold" or "green" or "teal" or "blue" or "purple"=>color,_=>"gold"};Notify();}
     public void RemoveCharacterField(CharacterField field){if(!CharacterEditMode)return;CharacterFields.Remove(field);HandCards.RemoveAll(x=>ReferenceEquals(x.Field,field));if(EditingHandCard is not null&&ReferenceEquals(EditingHandCard.Field,field))EditingHandCard=null;Notify();}
+    public void DeleteCharacterControl(CharacterField field)=>RemoveCharacterField(field);
     public void SetCharacterField(CharacterField field,int current,int? max=null){if(!CharacterEditMode)return;field.Max=Math.Clamp(max??field.Max,0,999);field.Current=Math.Clamp(current,0,field.Kind=="POOL"?Math.Max(field.Max,0):999);Notify();}
     public void TurnCharacterDial(CharacterField field,int delta){if(!CharacterEditMode)return;var max=Math.Max(field.Max,0);var next=Math.Clamp(field.Current+delta,0,field.Kind=="POOL"?max:999);field.Current=next;Notify();}
     public void SetMixerChannel(string name,int current,int max){var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);if(channel is null)return;max=Math.Clamp(max,0,999);current=Math.Clamp(current,0,max);channel.Current=current;channel.Max=max;Notify();}
