@@ -600,3 +600,47 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  white-space:normal!important;
  writing-mode:horizontal-tb!important
 }
+
+
+/* Mode selector reuses the encounter icon; native option text stays accessible. */
+.table-mode-control{position:relative}
+.table-mode-control.play,.table-mode-control.encounter{border-color:#d4b55d!important;box-shadow:inset 0 0 0 1px #d4b55d}
+.table-mode-control.test{border-color:#6e91b8!important}
+.table-mode-control.forge{border-color:#b96f43!important}
+
+/* Footer chat and RPG-style over-map dialogue. */
+.footer-chat-button{
+ box-sizing:border-box!important;position:relative!important;flex:0 0 var(--footer-slot-h)!important;
+ width:var(--footer-slot-h)!important;min-width:var(--footer-slot-h)!important;height:var(--footer-slot-h)!important;
+ display:grid!important;place-items:center!important;padding:5px!important;border:1px solid #725d30!important;
+ border-radius:10px!important;background:#1d2630!important;color:#f2d997!important
+}
+.footer-chat-button span{font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.footer-chat-button.active{border-color:#d4b55d!important;box-shadow:inset 0 0 0 1px #d4b55d}
+.dialogue-scrim{
+ position:fixed;z-index:82;inset:128px 0 126px;display:grid;align-items:end;padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));
+ background:#03060966;backdrop-filter:blur(2px)
+}
+.dialogue-composer,.rpg-dialogue-box{
+ box-sizing:border-box;width:min(760px,100%);min-height:128px;margin:0 auto;display:grid;
+ grid-template-columns:96px minmax(0,1fr) auto;gap:12px;align-items:stretch;padding:10px;
+ border:2px solid #d4b55d;border-radius:10px;background:#101923f2;color:#f4ead1;
+ box-shadow:0 12px 38px #000,inset 0 0 0 2px #283848
+}
+.dialogue-portrait{box-sizing:border-box;width:96px;height:108px;overflow:hidden;border:1px solid #d4b55d;border-radius:7px;background:#080d12}
+.dialogue-portrait img{display:block;width:100%;height:100%;object-fit:cover}
+.dialogue-card-back{display:block;width:100%;height:100%;background:url("../assets/cards/shaelvien_card_back.jpg") center/cover no-repeat}
+.dialogue-composer label{display:grid;grid-template-rows:auto 1fr;gap:5px;min-width:0;color:#e6c879;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.dialogue-composer textarea{box-sizing:border-box;width:100%;min-height:82px;resize:none;padding:9px;border:1px solid #725d30;border-radius:7px;background:#091018;color:#f5ecd8;font-size:16px;line-height:1.35}
+.dialogue-actions{display:grid;align-content:end;gap:6px}.dialogue-actions button,.dialogue-next{height:36px!important;padding:5px 10px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#18242e!important;color:#eee6d3!important;font-size:10px!important}
+.dialogue-actions .primary,.dialogue-next{border-color:#b9903b!important;color:#f5dda0!important}.dialogue-actions button:disabled{opacity:.42}
+.rpg-dialogue-box{grid-template-columns:96px minmax(0,1fr) auto}
+.dialogue-copy{min-width:0;padding:5px 2px}.dialogue-copy strong{display:block;margin-bottom:6px;color:#e7c972;font-size:12px;letter-spacing:.07em}.dialogue-copy p{margin:0;color:#f6efe0;font-size:16px;line-height:1.45;white-space:pre-wrap}
+.dialogue-next{align-self:end;min-width:62px}
+@media(orientation:landscape){.dialogue-scrim{inset:58px 0 119px}.dialogue-composer,.rpg-dialogue-box{min-height:112px}.dialogue-portrait{height:92px}}
+@media(max-width:600px){
+ .dialogue-scrim{inset:128px 0 126px;padding:7px}
+ .dialogue-composer,.rpg-dialogue-box{grid-template-columns:76px minmax(0,1fr);gap:8px;min-height:116px;padding:8px}
+ .dialogue-portrait{width:76px;height:96px}.dialogue-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}
+ .rpg-dialogue-box .dialogue-next{grid-column:2;justify-self:end}.dialogue-copy p{font-size:14px}
+}
