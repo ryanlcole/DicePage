@@ -5,9 +5,16 @@ public sealed partial class WorldSession
  object SavePayload()=>new{Format="RISTMAP",Version=1,Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
+ public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
- public async Task LoadAsync(){var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);if(!string.IsNullOrWhiteSpace(json))LoadMapJson(json);}
+ public async Task<bool> TryLoadSavedMapAsync()
+ {
+  var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
+  if(string.IsNullOrWhiteSpace(json))return false;
+  LoadMapJson(json);return true;
+ }
+ public async Task LoadAsync(){await TryLoadSavedMapAsync();}
  public void LoadMapJson(string json)
  {
   var save=JsonSerializer.Deserialize<SavedWorld>(json,new JsonSerializerOptions{PropertyNameCaseInsensitive=true});if(save is null)return;
