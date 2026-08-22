@@ -20,6 +20,10 @@ public partial class WorldMap:IDisposable
  double DragStartX;
  double DragStartY;
  bool DragMoved;
+ CancellationTokenSource? TileHoldCts;
+ double TileHoldStartX;
+ double TileHoldStartY;
+ bool TileHoldTriggered;
  string BrowserLayer="WORLD";
  string BrowserDirectory="Terrain";
  string BrowserFolder="";
@@ -92,14 +96,32 @@ public partial class WorldMap:IDisposable
  async Task BeginTileDrag(TileItem tile,PointerEventArgs e)
  {
   if(!Session.CanEditTiles)return;
+  if(Session.RecursiveRegionSelectionMode){Session.ToggleRecursiveRegionTile(tile);return;}
   if(Session.TileLockMode){Session.SelectTileZone(tile);return;}
-  if(tile.Locked)return;
+  if(tile.Locked){await StartLockedTileHold(tile,e);return;}
   AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;await StartDrag(e);
  }
- void DragMove(PointerEventArgs e){if(!Dragging)return;DragClientX=e.ClientX;DragClientY=e.ClientY;if(Math.Abs(DragClientX-DragStartX)+Math.Abs(DragClientY-DragStartY)>7)DragMoved=true;StateHasChanged();}
+ async Task StartLockedTileHold(TileItem tile,PointerEventArgs e)
+ {
+  CancelTileHold();TileHoldCts=new();TileHoldStartX=e.ClientX;TileHoldStartY=e.ClientY;TileHoldTriggered=false;
+  await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);
+  try
+  {
+   await Task.Delay(560,TileHoldCts.Token);
+   TileHoldTriggered=true;Session.OpenLockedTileMenu(tile);await InvokeAsync(StateHasChanged);
+  }
+  catch(OperationCanceledException){}
+ }
+ void CancelTileHold(){TileHoldCts?.Cancel();TileHoldCts?.Dispose();TileHoldCts=null;}
+ void DragMove(PointerEventArgs e)
+ {
+  if(TileHoldCts is not null&&Math.Abs(e.ClientX-TileHoldStartX)+Math.Abs(e.ClientY-TileHoldStartY)>8)CancelTileHold();
+  if(!Dragging)return;DragClientX=e.ClientX;DragClientY=e.ClientY;if(Math.Abs(DragClientX-DragStartX)+Math.Abs(DragClientY-DragStartY)>7)DragMoved=true;StateHasChanged();
+ }
 
  async Task DragEnd(PointerEventArgs e)
  {
+  CancelTileHold();
   if(!Dragging)return;
   DragClientX=e.ClientX;DragClientY=e.ClientY;
   if(!DragMoved){ClearDrag();await InvokeAsync(StateHasChanged);return;}
@@ -114,7 +136,7 @@ public partial class WorldMap:IDisposable
   ClearDrag();
   await InvokeAsync(StateHasChanged);
  }
- void DragCancel(PointerEventArgs e){if(Dragging){ClearDrag();StateHasChanged();}}
+ void DragCancel(PointerEventArgs e){CancelTileHold();if(Dragging){ClearDrag();StateHasChanged();}}
  void ClearDrag(){AtlasDragging=null;TrayDragging=null;PieceDragging=null;TileDragging=null;DragMoved=false;}
 
  void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"WORLD";BrowserDirectory=BrowserDirectories.FirstOrDefault()??"";BrowserFolder="";}
@@ -173,6 +195,7 @@ public partial class WorldMap:IDisposable
  void Pinch(){var d=G.Distance();if(G.LastDistance>0){G.Zoom=Math.Clamp(G.Zoom*(d/G.LastDistance),.5,5);Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;}G.LastDistance=d;}
  async Task Up(PointerEventArgs e)
  {
+  var held=TileHoldTriggered;CancelTileHold();TileHoldTriggered=false;if(held)return;
   if(Session.HeaderPinDragging)
   {
    var pinDrop=await DropPoint(e);
@@ -184,9 +207,9 @@ public partial class WorldMap:IDisposable
   G.Pointers.Remove(e.PointerId);G.LastDistance=0;
   if(wasTracked&&!wasMoved&&G.Pointers.Count==0){var p=await WorldPoint(e);Session.MapTap(p[0],p[1]);}
  }
- void Cancel(PointerEventArgs e){G.Pointers.Remove(e.PointerId);G.LastDistance=0;}
+ void Cancel(PointerEventArgs e){CancelTileHold();G.Pointers.Remove(e.PointerId);G.LastDistance=0;}
  void PinTap(PieceItem p)=>Session.PinTap(p);
- public void Dispose()=>Session.Changed-=Refresh;
+ public void Dispose(){CancelTileHold();Session.Changed-=Refresh;}
 }
 public sealed record SavedTileFilter(string Layer,string Directory,string Folder)
 {
