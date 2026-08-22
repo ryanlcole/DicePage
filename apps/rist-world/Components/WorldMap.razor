@@ -45,7 +45,7 @@
    </div>
   </section>
  }
- @if(Session.EncounterActive)
+ @if(Session.PlayActive)
  {
   <aside class="staging-tray encounter-control-rail" aria-label="Initiative tracker and encounter timer">
    <div class="initiative-heading"><strong>Initiative</strong><span>@Session.Pieces.Count piece@(Session.Pieces.Count==1?"":"s")</span></div>
