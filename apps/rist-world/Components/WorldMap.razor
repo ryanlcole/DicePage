@@ -110,6 +110,10 @@
        @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel"
        @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown"
        @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
+   <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true">
+    <button type="button" @onclick="ZoomOut" aria-label="Zoom out" title="Zoom out (-)">−</button>
+    <button type="button" @onclick="ZoomIn" aria-label="Zoom in" title="Zoom in (+)">+</button>
+   </div>
    @if(Session.LockedTileMenuOpen)
    {
     <div class="locked-tile-menu" role="menu" aria-label="Locked region actions" @onpointerdown:stopPropagation="true">
