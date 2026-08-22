@@ -8,7 +8,7 @@ public sealed partial class WorldSession
  public string TableMode { get; private set; } = "worldbuilder";
  public string TableModeLabel=>TableMode switch{"forge"=>"Forge","test"=>"Test","encounter"=>"Encounter","play"=>"Let's Roll!",_=>"Worldbuilder"};
  public bool PlayActive=>TableMode=="play";
- public bool TileLockMode { get; private set; }
+ public bool MapLocked { get; private set; } = true;
  public bool CanEditTiles=>Role=="GM"&&TableMode=="worldbuilder";
  public bool LockedTileMenuOpen { get; private set; }
  public bool RecursiveRegionSelectionMode { get; private set; }
@@ -51,7 +51,12 @@ public sealed partial class WorldSession
   .GroupBy(x=>x.ZoneId).Select(g=>new MapZoneLabel(g.Key,g.First().ZoneLabel,
    g.Select(TileTerrain).GroupBy(x=>x).OrderByDescending(x=>x.Count()).First().Key,
    g.Average(x=>x.X)+GridCellWidthPercent/2,g.Average(x=>x.Y)+GridCellHeightPercent/2,g.All(x=>x.Locked))).ToList();
- public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;if(!TileLockMode)selectedZoneTiles.Clear();CloseLockedTileMenu(false);Notify();}
+ public void ToggleMapLock()
+ {
+  if(!CanEditTiles)return;
+  MapLocked=!MapLocked;
+  selectedZoneTiles.Clear();CloseLockedTileMenu(false);RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();Notify();
+ }
  public void OpenLockedTileMenu(TileItem tile)
  {
   if(!CanEditTiles||!tile.Locked)return;
@@ -123,7 +128,7 @@ public sealed partial class WorldSession
   if(recursiveChildren.TryGetValue(key,out var child)){PlacedTiles=child.Tiles.ToList();Pieces=child.Pieces.ToList();}
   else{PlacedTiles=[];Pieces=[];recursiveChildren[key]=new(targetLayer,key,[],[]);}
   activeRecursiveKey=key;Layer=targetLayer;RecurseTarget=key;TableMode="worldbuilder";
-  LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();TileLockMode=false;selectedZoneTiles.Clear();Notify();
+  LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();MapLocked=true;selectedZoneTiles.Clear();Notify();
  }
  string? HeldRegionKey()=>HeldLockedTile is null?null:recursiveTileRoutes.GetValueOrDefault(RecursiveTileRouteKey(Layer,HeldLockedTile));
  static string RecursiveTileRouteKey(string layer,TileItem tile){var k=TileGridKey(tile);return $"{layer}:{k.X}:{k.Y}";}
@@ -131,7 +136,7 @@ public sealed partial class WorldSession
  sealed record RecursiveMapState(string Layer,string Key,List<TileItem> Tiles,List<PieceItem> Pieces);
  public void SelectTileZone(TileItem tile)
  {
-  if(!CanEditTiles||!TileLockMode)return;
+  if(!CanEditTiles||MapLocked)return;
   selectedZoneTiles.Clear();
   var all=PlacedTiles.GroupBy(TileGridKey).ToDictionary(x=>x.Key,x=>x.Last());
   var open=new Queue<TileItem>();var seen=new HashSet<(int X,int Y)>();open.Enqueue(tile);
@@ -197,7 +202,7 @@ public sealed partial class WorldSession
   if(mode is "encounter" or "play"){if(!EncounterActive)EnterEncounter();}
   else if(EncounterActive)ExitEncounter();
   TableMode=mode;
-  if(mode!="worldbuilder"){TileLockMode=false;selectedZoneTiles.Clear();LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();}
+  if(mode!="worldbuilder"){MapLocked=true;selectedZoneTiles.Clear();LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();}
   if(mode!="play"){encounterClock.Stop();encounterTimer?.Dispose();encounterTimer=null;}
   Notify();
  }
@@ -290,6 +295,6 @@ public sealed partial class WorldSession
    activeRecursiveKey=recursiveParents.Count>0?recursiveParents.Peek().Key:null;RecurseTarget=activeRecursiveKey;
   }
   else{Layer="WORLD";RecurseTarget=null;activeRecursiveKey=null;}
-  SelectedPin=null;EncounterActive=false;TableMode="worldbuilder";LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();Notify();
+  SelectedPin=null;EncounterActive=false;TableMode="worldbuilder";MapLocked=true;LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();Notify();
  }
 }
