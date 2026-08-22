@@ -3,16 +3,24 @@
  <div class="player-hand-pane" aria-label="Player card hand">
   <span class="player-tools-label">Hand</span>
   <div class="player-hand-strip">
-   <button class="compact-hand-card character-hand-card" @onclick="Session.OpenMixer" aria-label="Open active character">
+   <button class="compact-hand-card hand-deck-card" @onclick="Session.ToggleHand" aria-expanded="@Session.HandOpen" aria-label="Open available card deck"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
+   <button class="compact-hand-card character-hand-card approved" @onclick="Session.OpenMixer" aria-label="Open active character sheet">
     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
     else{<span class="drawer-glyph">CHAR</span>}
    </button>
    @foreach(var card in Session.HandCards)
    {
-    <button class="compact-hand-card" style="@CardStyle(card)" @onclick="()=>Session.RollHandCardAsync(card)" aria-label="@card.Name">
-     @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
-     else{<span class="drawer-glyph">@Glyph(card)</span>}
-    </button>
+    <div class="hand-card-wrap @card.ApprovalStatus">
+     <button class="compact-hand-card @card.ApprovalStatus" style="@CardStyle(card)" @onclick="()=>HandCardClick(card)" aria-label="@($"{card.Name}, {card.ApprovalStatus}")">
+      @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+      else{<span class="drawer-glyph">@Glyph(card)</span>}
+      @if(card.ApprovalStatus==HandCard.Pending){<span class="pending-mark" aria-hidden="true">?</span>}
+     </button>
+     @if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending)
+     {
+      <span class="approval-actions"><button @onclick="()=>Session.ApproveHandCard(card)" aria-label="Approve @card.Name">✓</button><button @onclick="()=>Session.DenyHandCard(card)" aria-label="Deny @card.Name">×</button></span>
+     }
+    </div>
    }
   </div>
  </div>
@@ -22,6 +30,14 @@
    <button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
    <button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
    <button @onclick='()=>Session.StagePiece("pin")' aria-label="Add map pin to pallet"><span class="header-icon icon-pin token-pin-icon" aria-hidden="true"></span></button>
+   @foreach(var asset in Session.StagedAssets.Where(x=>x.Kind!="tile"))
+   {
+    <div class="token-approval-chip @asset.ApprovalStatus">
+     @if(asset.Kind=="pin"){<span class="header-icon icon-pin token-pin-icon" aria-hidden="true"></span>}
+     else{<span class="token-choice">@asset.Kind</span>}
+     @if(Session.Role=="GM"&&asset.ApprovalStatus==HandCard.Pending){<span class="approval-actions"><button @onclick="()=>Session.ApproveStaged(asset.Key)" aria-label="Approve @asset.Name">✓</button><button @onclick="()=>Session.DenyStaged(asset.Key)" aria-label="Deny @asset.Name">×</button></span>}
+    </div>
+   }
   </div>
  </div>
 </section>
@@ -61,6 +77,11 @@
 </section>
 }
 @code{
+ async Task HandCardClick(HandCard card)
+ {
+  if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending){Session.ApproveHandCard(card);return;}
+  await Session.RollHandCardAsync(card);
+ }
  IEnumerable<HandCard> ActionCards=>Session.HandCards.Where(x=>x.DiceBag.Count>0||x.Field.Group is "Skills" or "Feats");
  IEnumerable<HandCard> IntelCards=>Session.HandCards.Except(ActionCards);
  string CardStyle(HandCard card)=>$"--field-accent:{AccentHex(card.Field.Color)}";
