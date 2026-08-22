@@ -73,7 +73,7 @@
  </aside>
 
  <section class="map-shell">
-  <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel">
+  <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
