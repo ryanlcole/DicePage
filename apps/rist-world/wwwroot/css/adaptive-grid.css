@@ -111,7 +111,7 @@
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .icon-header .header-circular-set{align-items:center}
 .header-icon-button{box-sizing:border-box;flex:0 0 58px!important;width:58px!important;height:58px!important;min-width:58px!important;padding:3px!important;display:grid!important;place-items:center!important;overflow:hidden}
-.header-icon{display:block;flex:0 0 auto;width:50px;height:50px;background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/ui/header/shaelvien-header-icons.png");background-repeat:no-repeat;background-size:400% 300%;filter:drop-shadow(0 2px 2px #0008);pointer-events:none}
+.header-icon{display:block;flex:0 0 auto;width:50px;height:50px;background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/ui/header/shaelvien-header-icons.png?v=BJnQJ-XDKkunnsddAtV7c6QE7w-FeEt6");background-repeat:no-repeat;background-size:400% 300%;filter:drop-shadow(0 2px 2px #0008);pointer-events:none}
 .icon-encounter{background-position:0 0}.icon-assets{background-position:33.333% 0}.icon-browse{background-position:66.667% 0}.icon-role{background-position:100% 0}
 .icon-grid-square{background-position:0 50%}.icon-grid-hex{background-position:33.333% 50%}.icon-grid-none{background-position:0 50%;opacity:.42}.icon-unit{background-position:66.667% 50%}.icon-scale{background-position:100% 50%}
 .icon-save{background-position:0 100%}.icon-load{background-position:33.333% 100%}.icon-exit{background-position:66.667% 100%}.icon-pin{background-position:100% 100%}
