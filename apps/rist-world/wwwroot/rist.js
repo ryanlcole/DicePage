@@ -112,6 +112,9 @@ window.ristWorld.scrollRail=(selector,direction)=>{
  if(!rail)return;
  const dir=Number(direction)<0?-1:1;
  const vertical=rail.classList.contains('desktop-arrow-adaptive')&&matchMedia('(orientation: landscape)').matches;
- const amount=Math.max(96,(vertical?rail.clientHeight:rail.clientWidth)*.78)*dir;
- rail.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});
+ const axisOverflow=el=>vertical?el.scrollHeight>el.clientHeight+2:el.scrollWidth>el.clientWidth+2;
+ const middle=[...rail.children].find(el=>el.classList&&!el.classList.contains('rail-scroll-arrow')&&axisOverflow(el));
+ const target=middle||rail;
+ const amount=Math.max(96,(vertical?target.clientHeight:target.clientWidth)*.78)*dir;
+ target.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});
 };
