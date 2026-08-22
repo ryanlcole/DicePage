@@ -289,3 +289,61 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .player-tools-rail{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
  .player-tools-label{writing-mode:vertical-rl}
 }
+
+
+/* Four-row deck drawer; compact rails cover the map without changing table flow. */
+.card-quad-drawer{
+ bottom:126px!important;
+ grid-template-rows:repeat(4,58px)!important;
+ gap:5px!important;
+ padding-block:5px!important;
+ max-height:calc(100dvh - 198px)!important;
+ overflow-y:auto!important
+}
+.card-quad-drawer .card-drawer-row{height:58px!important;min-height:58px!important}
+.standard-game-controls{display:flex;align-items:center;gap:6px;min-width:max-content;height:100%;padding-right:7px}
+.standard-counts{display:flex;align-items:center;gap:5px;height:100%}
+.standard-counts label{box-sizing:border-box;display:grid;grid-template-rows:auto 24px;gap:1px;min-width:58px;color:#d9bd78;font-size:7px;text-align:center}
+.standard-counts input{box-sizing:border-box;width:58px;height:24px;padding:2px 4px;border:1px solid #725d30;border-radius:5px;background:#121a22;color:#f2e6ca;text-align:center}
+.draw-only-setting{box-sizing:border-box;display:grid;grid-template-columns:auto auto;align-items:center;gap:4px;height:38px;padding:4px 7px;border:1px solid #725d30;border-radius:7px;background:#161e26;color:#f2e6ca;font-size:9px;white-space:nowrap}
+.standard-game-controls>button,.standard-load{box-sizing:border-box;display:grid;place-items:center;height:38px;min-width:48px;padding:4px 7px;border:1px solid #725d30;border-radius:7px;background:#161e26;color:#f2e6ca;font-size:9px}
+.standard-load{position:relative;overflow:hidden}.standard-load input{position:absolute;inset:0;opacity:0}
+.standard-card-face{box-sizing:border-box;display:grid;grid-template-rows:auto 1fr;place-items:center;width:100%;height:100%;padding:3px;border-radius:5px;background:#d4bd89;color:#24180d;text-align:center}
+.standard-card-face small{font-size:6px;text-transform:uppercase}.standard-card-face strong{font-size:7px;line-height:1.05}
+
+/* Character sheet is a stable playing-card surface; pages flip inside one footprint. */
+.mixer-modal:has(.universal-sheet){
+ position:fixed!important;z-index:88!important;inset:64px 0 126px!important;
+ display:grid!important;place-items:center!important;padding:7px!important;
+ overflow:hidden!important;background:#05090cb8!important;backdrop-filter:blur(5px)
+}
+.character-mixer.universal-sheet{
+ box-sizing:border-box!important;position:relative!important;
+ width:min(90dvw,430px,calc((100dvh - 211px)*5/7))!important;
+ height:min(calc(100dvh - 211px),602px,calc(90dvw*7/5))!important;
+ aspect-ratio:5/7!important;margin:0!important;padding:12px!important;
+ overflow:hidden!important;border:2px solid #b28a44!important;border-radius:18px!important;
+ background:#111820 url("../assets/cards/shaelvien_card_back.jpg") center/cover no-repeat!important;
+ box-shadow:0 18px 52px #000,inset 0 0 0 3px #15100a!important
+}
+.character-mixer.universal-sheet:before{content:"";position:absolute;inset:8px;border:1px solid #c59b4f;border-radius:12px;background:#0c1317ed;pointer-events:none}
+.character-mixer.universal-sheet>*{position:relative;z-index:1}
+.character-mixer .exact-sheet-toolbar{box-sizing:border-box;height:34px!important;display:flex!important;align-items:center!important;gap:4px!important;padding:3px 5px!important;overflow-x:auto!important;border:1px solid #80642f!important;border-radius:8px!important;background:#0d1419ed!important}
+.character-mixer .exact-sheet-toolbar span{margin-right:auto;white-space:nowrap;color:#e5ca8d;font-size:9px}
+.character-mixer .exact-sheet-toolbar button{height:26px!important;min-width:38px!important;padding:2px 6px!important;font-size:9px!important}
+.character-mixer .exact-sheet-screen{box-sizing:border-box!important;position:relative!important;height:calc(100% - 39px)!important;display:block!important;padding:7px 7px 42px!important;overflow-y:auto!important;overflow-x:hidden!important;border:1px solid #80642f!important;border-radius:9px!important;background:#d8c18f!important;color:#24190f!important}
+.character-mixer .identity-badge{position:sticky!important;top:0!important;z-index:8!important;display:grid!important;grid-template-columns:54px minmax(0,1fr)!important;gap:7px!important;min-height:58px!important;margin-bottom:7px!important;padding:5px!important;border:1px solid #88682d!important;border-radius:28px 8px 8px 28px!important;background:#ead8ad!important}
+.character-mixer .exact-portrait{box-sizing:border-box!important;width:54px!important;height:54px!important;min-height:54px!important;border:3px double #9d7429!important;border-radius:50%!important;overflow:hidden!important;background:#111!important}
+.character-mixer .exact-portrait img{width:100%!important;height:100%!important;object-fit:cover!important}
+.character-mixer .identity-badge-fields{display:grid!important;align-content:center!important;gap:3px!important}.character-mixer .exact-name{box-sizing:border-box!important;width:100%!important;height:30px!important;font-size:15px!important;font-weight:800!important}
+.character-mixer .sheet-pane{margin:0 0 6px!important;border:1px solid #8c6b31!important;border-radius:7px!important;background:#f0dfb7!important;color:#24190f!important}
+.character-mixer .sheet-pane header,.character-mixer .pane-toggle{min-height:30px!important}
+.character-mixer .pane-content{max-height:220px!important;overflow:auto!important;padding:5px!important}
+.character-mixer .exact-page-arrows{position:absolute!important;z-index:12!important;left:7px!important;right:7px!important;bottom:6px!important;display:flex!important;justify-content:space-between!important;pointer-events:none}
+.character-mixer .exact-page-arrows button{pointer-events:auto!important;width:34px!important;height:34px!important;padding:2px!important;border-radius:50%!important;background:#111a20ed!important}
+.character-mixer .exact-page-arrows img{width:100%!important;height:100%!important;object-fit:contain!important}
+@media(orientation:landscape){
+ .card-quad-drawer{bottom:119px!important}
+ .mixer-modal:has(.universal-sheet){inset:58px 0 119px!important}
+ .character-mixer.universal-sheet{width:min(88dvw,430px,calc((100dvh - 191px)*5/7))!important;height:min(calc(100dvh - 191px),602px,calc(88dvw*7/5))!important}
+}
