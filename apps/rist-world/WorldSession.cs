@@ -59,7 +59,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string SelectedTile { get; set; } = "";
     public bool TileBrowserOpen { get; private set; }
     public string PieceKind { get; set; } = "mini";
-    public string Role { get; set; } = "GM";
+    public string Role { get; set; } = "GM";\n    public bool IsLoggedIn { get; private set; } = true;
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; private set; } = "mi";
     public const int GridColumns = 20;
@@ -76,7 +76,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
-    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}
+    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}\n    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;Notify();}
     public void CalibrateGrid(){GridDistance=Math.Max(.01,GridDistance);GridCalibrationZoom=Math.Max(.01,ViewZoom);Notify();}
 
     public void OpenMixer(){MixerOpen=true;Notify();}
