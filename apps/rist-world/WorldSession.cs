@@ -189,12 +189,12 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     }
     static string PangeaTerrain(int column,int row)
     {
-        if(row<=1)return column<=8?"jungle":"ice";
-        if(column>=10&&row<=5)return "mountains";
-        if(column<=4&&row>=6)return "swamp";
-        if(column>=10&&row>=7)return "desert";
-        if(column is >=6 and <=10&&row is >=3 and <=7)return row%2==0?"rivers":"hills";
-        if(column<=7)return "forest";
+        if(row<=2&&column<=5)return "jungle";
+        if(column>=11&&row<=4)return "mountains";
+        if(column<=3&&row>=7)return "swamp";
+        if(column>=11&&row>=8)return "desert";
+        if(column is >=7 and <=9&&row is >=4 and <=6)return row==5?"rivers":"hills";
+        if(column is >=4 and <=6&&row is >=3 and <=5)return "forest";
         return "plains";
     }
     async Task LoadAtlasAsync()
