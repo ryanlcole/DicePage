@@ -107,7 +107,7 @@
    @if(Session.LockedTileMenuOpen)
    {
     <div class="locked-tile-menu" role="menu" aria-label="Locked region actions" @onpointerdown:stopPropagation="true">
-     <strong>Locked region</strong>
+     <strong>Pinned region</strong>
      <button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button>
      <button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button>
      <button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button>
@@ -171,10 +171,6 @@
       <div class="piece @p.Kind" style="@PieceStyle(p)"
            @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">@p.Kind</div>
      }
-    }
-    @if(Session.SelectedPin is not null)
-    {
-     <aside class="pin-callout" style="left:@Pct(Session.SelectedPin.X);top:@Pct(Session.SelectedPin.Y)"><strong>Location detail</strong><small>Tap pin again to recurse.</small></aside>
     }
    </div>
    <div class="status">@Session.MapName • @StatusText • drag • pinch • @($"{G.Zoom:0.0}x")</div>
