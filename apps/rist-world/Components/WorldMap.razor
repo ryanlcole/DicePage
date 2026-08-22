@@ -108,9 +108,11 @@
    {
     <div class="locked-tile-menu" role="menu" aria-label="Locked region actions" @onpointerdown:stopPropagation="true">
      <strong>Pinned region</strong>
+     <label class="pin-label-editor"><span>Label call-out</span><input value="@Session.SelectedPin?.Label" @onchange="e=>Session.SetSelectedPinLabel(e.Value?.ToString()??string.Empty)" placeholder="Name this location" /></label>
      <button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button>
      <button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button>
      <button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button>
+     <button class="danger" role="menuitem" @onclick="Session.RemoveSelectedPin">Remove Pin</button>
      <button role="menuitem" @onclick="()=>Session.CloseLockedTileMenu()">Cancel</button>
     </div>
    }
@@ -165,6 +167,10 @@
               @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">
        <span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span>
       </button>
+      @if(!string.IsNullOrWhiteSpace(p.Label))
+      {
+       <span class="pin-label-callout" style="left:@Pct(p.X);top:@Pct(p.Y)">@p.Label</span>
+      }
      }
      else
      {
