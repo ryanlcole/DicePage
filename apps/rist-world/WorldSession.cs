@@ -131,72 +131,79 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
-        string[] pangeaMask=
+
+        // A tile-built interpretation of the approved Shaelvien reference map.
+        // Every character is one independently editable World tile; dots remain
+        // open Shaelvien Ocean supplied by the map background.
+        string[] pangea=
         [
-            "....######......",
-            "..###########...",
-            ".#############..",
-            "##############..",
-            "###############.",
-            ".###############",
-            "..##############",
-            "..#############.",
-            "...##########...",
-            "....########....",
-            "......####......"
+            "....CCCCCCCCCC......",
+            "..CCIIIMMMDDDDCC....",
+            ".CIIIIVMMMHHDDDDCC..",
+            "CIIIIVVMMMMHHDDDDCC.",
+            "CJJJFFMMMMHPPPDDDDDC",
+            "CJJJJFFFFRRPPPPDDDDC",
+            "CJJJJFFFRRPPPPHHHHCC",
+            ".CJJJSSFFRRPPPPHHHHC",
+            "..CJJSSFFRRPPHHHHICC",
+            "...CJJSSFFWPPHHIIIIC",
+            "....CFFFWWHPPHIIIIC.",
+            ".....CCPPWHHHIIICC..",
+            ".......CCCCC.CC....."
         ];
-        const int startColumn=2,startRow=1;
-        for(var row=0;row<pangeaMask.Length;row++)
+
+        for(var row=0;row<pangea.Length;row++)
         {
-            for(var column=0;column<pangeaMask[row].Length;column++)
+            for(var column=0;column<pangea[row].Length;column++)
             {
-                if(pangeaMask[row][column]!='#')continue;
-                var boundary=IsPangeaBoundary(pangeaMask,column,row);
-                var terrain=boundary?"coast":PangeaTerrain(column,row);
-                var atlasNumber=terrain switch
-                {
-                    "coast"=>"066","forest"=>"028","mountains"=>"022","desert"=>"024",
-                    "hills"=>"023","ice"=>"021","jungle"=>"026","swamp"=>"025",
-                    "rivers"=>"017",_=>"029"
-                };
-                var sourceRow=row%6+1;
-                var sourceColumn=column%6+1;
+                var code=pangea[row][column];
+                if(code=='.')continue;
+                var terrain=PangeaTerrain(code);
+                var atlasNumber=PangeaAtlasNumber(code,column,row);
+                var sourceRow=(row*2+column)%6+1;
+                var sourceColumn=(column*3+row)%6+1;
                 var id=$"aws-{terrain}-{atlasNumber}-{sourceRow:00}-{sourceColumn:00}";
                 var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
                 if(tile is null)continue;
                 var region=PangeaRegion(column,row);
-                PlacedTiles.Add(new(tile.Id,$"Pangea · {region} · {terrain}",tile.Image,
-                    (startColumn+column)/(double)GridColumns,
-                    (startRow+row)/(double)GridRows,
+                PlacedTiles.Add(new(tile.Id,$"Shaelvien · {region} · {terrain}",tile.Image,
+                    column/(double)GridColumns,
+                    row/(double)GridRows,
                     tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,1));
             }
         }
     }
-    static bool IsPangeaBoundary(string[] mask,int column,int row)
+
+    static string PangeaTerrain(char code)=>code switch
     {
-        if(row==0||row==mask.Length-1||column==0||column==mask[row].Length-1)return true;
-        return mask[row-1][column]!='#'||mask[row+1][column]!='#'
-            ||mask[row][column-1]!='#'||mask[row][column+1]!='#';
-    }
+        'C'=>"coast",'I'=>"ice",'V'=>"volcano",'M'=>"mountains",
+        'D'=>"desert",'J'=>"jungle",'F'=>"forest",'H'=>"hills",
+        'P'=>"plains",'R'=>"rivers",'S'=>"swamp",'W'=>"vent-fields",
+        _=>"plains"
+    };
+
+    static string PangeaAtlasNumber(char code,int column,int row)=>code switch
+    {
+        'C'=>"066",'I'=>"021",'V'=>"020",'M'=>"022",'D'=>"024",
+        'J'=>(column+row)%2==0?"026":"027",
+        'F'=>"028",'H'=>"023",'R'=>"017",'S'=>"025",
+        'W'=>(1+(column+row)%11).ToString("000"),
+        'P'=>(29+(column+row*2)%32).ToString("000"),
+        _=>"029"
+    };
+
     static string PangeaRegion(int column,int row)
     {
-        if(row<=2&&column<=8)return "Amazon Crown";
-        if(row<=4&&column>=9)return "Eastern Old World";
-        if(row>=7&&column<=6)return "Southern Reach";
-        if(row>=7&&column>=10)return "Austral Reach";
-        if(column is >=6 and <=10&&row is >=3 and <=7)return "Endemar Uplands";
+        if(row<=3&&column<=6)return "Ice Crown";
+        if(row<=4&&column is >=6 and <=12)return "Crownspine";
+        if(row<=6&&column>=13)return "Sunward Expanse";
+        if(row>=4&&column<=5)return "Amazon Crown";
+        if(row>=8&&column>=14)return "Southeastern Ice";
+        if(row>=8&&column is >=8 and <=12)return "Emberfall";
+        if(column is >=7 and <=12&&row is >=4 and <=8)return "Endemar";
         return "Pangean Interior";
     }
-    static string PangeaTerrain(int column,int row)
-    {
-        if(row<=2&&column<=5)return "jungle";
-        if(column>=11&&row<=4)return "mountains";
-        if(column<=3&&row>=7)return "swamp";
-        if(column>=11&&row>=8)return "desert";
-        if(column is >=7 and <=9&&row is >=4 and <=6)return row==5?"rivers":"hills";
-        if(column is >=4 and <=6&&row is >=3 and <=5)return "forest";
-        return "plains";
-    }
+
     async Task LoadAtlasAsync()
     {
         var builtIn=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
