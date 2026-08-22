@@ -61,6 +61,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string PieceKind { get; set; } = "mini";
     public string Role { get; set; } = "GM";
     public bool IsLoggedIn { get; private set; } = true;
+    public bool CanManageCurrentMap => IsLoggedIn;
     public bool SaveMenuOpen { get; private set; }
     public bool LoadMenuOpen { get; private set; }
     public bool HeaderPinDragging { get; private set; }
@@ -81,7 +82,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
     public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}
-    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;CloseHeaderMenus();Notify();}
+    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;if(!IsLoggedIn)Role="PC";CloseHeaderMenus();Notify();}
     public void ToggleSaveMenu(){SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
     public void ToggleLoadMenu(){LoadMenuOpen=!LoadMenuOpen;SaveMenuOpen=false;Notify();}
     public void CloseHeaderMenus(){SaveMenuOpen=false;LoadMenuOpen=false;}
@@ -121,7 +122,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void BeginDiceDrag(string dieKey){DraggedDieKey=Dice(dieKey) is null?null:dieKey;Notify();}
     public void DropDraggedDieIntoBag(){if(DraggedDieKey is null||EditingHandCard is null)return;AddDiceBagEntry(DraggedDieKey);DraggedDieKey=null;Notify();}
     public void DropBagEntryOutside(DiceBagEntry entry){if(EditingHandCard is null)return;EditingHandCard.DiceBag.Remove(entry);Notify();}
-    public async Task RollHandCardAsync(HandCard card){if(MixerOpen&&CharacterEditMode){EditDiceBag(card);return;}if(card.DiceBag.Count==0){EditDiceBag(card);return;}var tasks=new List<Task>();foreach(var entry in card.DiceBag){for(var i=0;i<entry.Count;i++){var selected=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude:(int?)null;tasks.Add(RollAsync(entry.DieKey,selected));}}await Task.WhenAll(tasks);}
+    public async Task RollHandCardAsync(HandCard card){if(Role=="PC"&&!CanPlay(card))return;if(MixerOpen&&CharacterEditMode){EditDiceBag(card);return;}if(card.DiceBag.Count==0){EditDiceBag(card);return;}var tasks=new List<Task>();foreach(var entry in card.DiceBag){for(var i=0;i<entry.Count;i++){var selected=entry.DieKey is "d5-bonus" or "d5-penalty"?entry.SelectedMagnitude:(int?)null;tasks.Add(RollAsync(entry.DieKey,selected));}}await Task.WhenAll(tasks);}
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
@@ -150,9 +151,9 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         return (frame/2+die.ValueOffset)*die.Sign;
     }
     public async Task RollAsync(string key,int? selectedMagnitude){var die=Dice(key);if(die is null)return;var (x,y)=OpenRollPosition();var initialFrame=Random.Shared.Next(die.FrameCount);var item=new RollItem(die.Key,die.Label,ValueForFrame(die,initialFrame),initialFrame,x,y);Rolls.Add(item);Notify();var steps=Random.Shared.Next(13,23);for(var n=0;n<steps;n++){var i=Rolls.IndexOf(item);if(i<0)return;var frame=(item.Frame+1)%die.FrameCount;item=item with{Value=ValueForFrame(die,frame),Frame=frame};Rolls[i]=item;Notify();await Task.Delay(52+Math.Min(n*3,34));}var magnitude=selectedMagnitude.HasValue&&(die.Key is "d5-bonus" or "d5-penalty")?Math.Clamp(selectedMagnitude.Value,1,5):(die.ValueOffset==0?Random.Shared.Next(die.Sides):Random.Shared.Next(1,die.Sides+1));var value=magnitude*die.Sign;var finalFrame=FinalFrameForValue(die,value);var finalIndex=Rolls.IndexOf(item);if(finalIndex>=0)Rolls[finalIndex]=item with{Value=value,Frame=finalFrame};Notify();}
-    public void StagePiece(string kind){if(Role!="GM"||kind is not("mini" or "rolling-stock" or "pawn" or "pin" or "terrain" or "bit"))return;var name=kind switch{"mini"=>"Miniature","rolling-stock"=>"Rolling Stock","pawn"=>"Pawn / Meeple","pin"=>"Token / Chit","terrain"=>"Scenery / Terrain","bit"=>"Bit",_=>"Asset"};var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,name));Notify();}
+    public void StagePiece(string kind){if(kind is not("mini" or "rolling-stock" or "pawn" or "pin" or "terrain" or "bit"))return;var name=kind switch{"mini"=>"Miniature","rolling-stock"=>"Rolling Stock","pawn"=>"Pawn / Meeple","pin"=>"Token / Chit","terrain"=>"Scenery / Terrain","bit"=>"Bit",_=>"Asset"};var key=$"piece:{kind}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,kind,name,ApprovalStatus:Role=="GM"?HandCard.Approved:HandCard.Pending));Notify();}
     public void StageSelectedTile(){if(Role!="GM"||string.IsNullOrWhiteSpace(SelectedTile))return;var tile=AtlasTiles.FirstOrDefault(t=>t.Id==SelectedTile);if(tile is null)return;StageTile(tile);}
-    public void StageTile(AtlasTile tile){if(Role!="GM")return;var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight));Notify();}
+    public void StageTile(AtlasTile tile){var key=$"tile:{tile.Id}";if(StagedAssets.All(x=>x.Key!=key))StagedAssets.Add(new(key,"tile",tile.Name,tile.Image,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,Role=="GM"?HandCard.Approved:HandCard.Pending));Notify();}
     public int ImportTileset(string folder,IEnumerable<string> images)
     {
         var list=images.Where(x=>!string.IsNullOrWhiteSpace(x)).Take(256).ToList();
@@ -161,7 +162,9 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         Notify();return list.Count;
     }
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
-    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight,Math.Max(placementZoom,.01)));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
+    public void ApproveStaged(string key){if(Role!="GM")return;var i=StagedAssets.FindIndex(x=>x.Key==key);if(i>=0)StagedAssets[i]=StagedAssets[i] with{ApprovalStatus=HandCard.Approved};Notify();}
+    public void DenyStaged(string key){if(Role!="GM")return;RemoveStaged(key);}
+    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){if(Role=="PC"&&staged.ApprovalStatus!=HandCard.Approved)return;x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight,Math.Max(placementZoom,.01)));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
     public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
