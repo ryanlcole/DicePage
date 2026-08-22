@@ -1,4 +1,30 @@
 @inject WorldSession Session
+<section class="player-tools-rail" aria-label="Player hand and token placement">
+ <div class="player-hand-pane" aria-label="Player card hand">
+  <span class="player-tools-label">Hand</span>
+  <div class="player-hand-strip">
+   <button class="compact-hand-card character-hand-card" @onclick="Session.OpenMixer" aria-label="Open active character">
+    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
+    else{<span class="drawer-glyph">CHAR</span>}
+   </button>
+   @foreach(var card in Session.HandCards)
+   {
+    <button class="compact-hand-card" style="@CardStyle(card)" @onclick="()=>Session.RollHandCardAsync(card)" aria-label="@card.Name">
+     @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+     else{<span class="drawer-glyph">@Glyph(card)</span>}
+    </button>
+   }
+  </div>
+ </div>
+ <div class="token-placement-pane" aria-label="Token placement">
+  <span class="player-tools-label">Tokens</span>
+  <div class="token-choice-strip">
+   <button @onclick="()=>Session.StagePiece(&quot;mini&quot;)" aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
+   <button @onclick="()=>Session.StagePiece(&quot;pawn&quot;)" aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
+   <button @onclick="()=>Session.StagePiece(&quot;pin&quot;)" aria-label="Add map pin to pallet"><span class="header-icon icon-pin token-pin-icon" aria-hidden="true"></span></button>
+  </div>
+ </div>
+</section>
 @if(Session.HandOpen)
 {
 <section class="card-triple-drawer" aria-label="Character and card drawer">
