@@ -27,7 +27,7 @@ public sealed partial class WorldSession
  {
   if(!CanEditTiles||!TileLockMode)return;
   selectedZoneTiles.Clear();
-  var all=PlacedTiles.ToDictionary(TileGridKey);
+  var all=PlacedTiles.GroupBy(TileGridKey).ToDictionary(x=>x.Key,x=>x.Last());
   var open=new Queue<TileItem>();var seen=new HashSet<(int X,int Y)>();open.Enqueue(tile);
   while(open.Count>0)
   {
