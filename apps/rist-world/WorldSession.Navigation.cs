@@ -10,8 +10,62 @@ public sealed partial class WorldSession
  public bool PlayActive=>TableMode=="play";
  public bool TileLockMode { get; private set; }
  public bool CanEditTiles=>Role=="GM"&&TableMode=="worldbuilder";
- public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;Notify();}
- public void ToggleTileLock(TileItem tile){if(!CanEditTiles||!TileLockMode)return;var index=PlacedTiles.IndexOf(tile);if(index>=0)PlacedTiles[index]=tile with{Locked=!tile.Locked};Notify();}
+ readonly List<TileItem> selectedZoneTiles=[];
+ public bool HasSelectedZone=>selectedZoneTiles.Count>0;
+ public bool SelectedZoneLocked=>HasSelectedZone&&selectedZoneTiles.All(x=>x.Locked);
+ public string SelectedZoneTerrain=>selectedZoneTiles
+  .Select(TileTerrain).GroupBy(x=>x,StringComparer.OrdinalIgnoreCase)
+  .OrderByDescending(x=>x.Count()).ThenBy(x=>x.Key).Select(x=>x.Key).FirstOrDefault()??"Terrain";
+ public string SelectedZoneLabel=>selectedZoneTiles.Select(x=>x.ZoneLabel).FirstOrDefault(x=>!string.IsNullOrWhiteSpace(x))??"";
+ public IReadOnlyList<MapZoneLabel> MapZoneLabels=>PlacedTiles
+  .Where(x=>!string.IsNullOrWhiteSpace(x.ZoneId)&&!string.IsNullOrWhiteSpace(x.ZoneLabel))
+  .GroupBy(x=>x.ZoneId).Select(g=>new MapZoneLabel(g.Key,g.First().ZoneLabel,
+   g.Select(TileTerrain).GroupBy(x=>x).OrderByDescending(x=>x.Count()).First().Key,
+   g.Average(x=>x.X)+GridCellWidthPercent/2,g.Average(x=>x.Y)+GridCellHeightPercent/2,g.All(x=>x.Locked))).ToList();
+ public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;if(!TileLockMode)selectedZoneTiles.Clear();Notify();}
+ public void SelectTileZone(TileItem tile)
+ {
+  if(!CanEditTiles||!TileLockMode)return;
+  selectedZoneTiles.Clear();
+  var all=PlacedTiles.ToDictionary(TileGridKey);
+  var open=new Queue<TileItem>();var seen=new HashSet<(int X,int Y)>();open.Enqueue(tile);
+  while(open.Count>0)
+  {
+   var current=open.Dequeue();var key=TileGridKey(current);if(!seen.Add(key))continue;selectedZoneTiles.Add(current);
+   foreach(var next in new[]{(key.X-1,key.Y),(key.X+1,key.Y),(key.X,key.Y-1),(key.X,key.Y+1)})
+    if(all.TryGetValue(next,out var adjacent))open.Enqueue(adjacent);
+  }
+  Notify();
+ }
+ public void ToggleSelectedZoneLock()
+ {
+  if(!CanEditTiles||!HasSelectedZone)return;
+  var lockTiles=!SelectedZoneLocked;var zoneId=selectedZoneTiles.Select(x=>x.ZoneId).FirstOrDefault(x=>!string.IsNullOrWhiteSpace(x))??Guid.NewGuid().ToString("N");
+  var replacements=new List<TileItem>();
+  foreach(var tile in selectedZoneTiles){var index=PlacedTiles.IndexOf(tile);if(index<0)continue;var replacement=tile with{ZoneId=zoneId,Locked=lockTiles};PlacedTiles[index]=replacement;replacements.Add(replacement);}
+  selectedZoneTiles.Clear();selectedZoneTiles.AddRange(replacements);Notify();
+ }
+ public void SetSelectedZoneLabel(string label)
+ {
+  if(!CanEditTiles||!HasSelectedZone)return;label=label.Trim();
+  var zoneId=selectedZoneTiles.Select(x=>x.ZoneId).FirstOrDefault(x=>!string.IsNullOrWhiteSpace(x))??Guid.NewGuid().ToString("N");
+  var replacements=new List<TileItem>();
+  foreach(var tile in selectedZoneTiles){var index=PlacedTiles.IndexOf(tile);if(index<0)continue;var replacement=tile with{ZoneId=zoneId,ZoneLabel=label};PlacedTiles[index]=replacement;replacements.Add(replacement);}
+  selectedZoneTiles.Clear();selectedZoneTiles.AddRange(replacements);Notify();
+ }
+ public bool IsSelectedZoneTile(TileItem tile)=>selectedZoneTiles.Contains(tile);
+ public string ZoneBoundaryClasses(TileItem tile)
+ {
+  if(!IsSelectedZoneTile(tile))return "";
+  var keys=selectedZoneTiles.Select(TileGridKey).ToHashSet();var key=TileGridKey(tile);var parts=new List<string>{"zone-selected"};
+  if(!keys.Contains((key.X,key.Y-1)))parts.Add("zone-edge-top");
+  if(!keys.Contains((key.X+1,key.Y)))parts.Add("zone-edge-right");
+  if(!keys.Contains((key.X,key.Y+1)))parts.Add("zone-edge-bottom");
+  if(!keys.Contains((key.X-1,key.Y)))parts.Add("zone-edge-left");
+  return string.Join(" ",parts);
+ }
+ static (int X,int Y) TileGridKey(TileItem tile)=>((int)Math.Round(tile.X*GridColumns),(int)Math.Round(tile.Y*GridRows));
+ static string TileTerrain(TileItem tile){var parts=tile.Name.Split(" · ",StringSplitOptions.RemoveEmptyEntries);return parts.Length>2?parts[^1]:"Terrain";}
  public bool ChatComposerOpen { get; private set; }
  public bool DialogueOpen { get; private set; }
  public string ChatDraft { get; set; } = "";
@@ -37,7 +91,7 @@ public sealed partial class WorldSession
   if(mode is "encounter" or "play"){if(!EncounterActive)EnterEncounter();}
   else if(EncounterActive)ExitEncounter();
   TableMode=mode;
-  if(mode!="worldbuilder")TileLockMode=false;
+  if(mode!="worldbuilder"){TileLockMode=false;selectedZoneTiles.Clear();}
   if(mode!="play"){encounterClock.Stop();encounterTimer?.Dispose();encounterTimer=null;}
   Notify();
  }
