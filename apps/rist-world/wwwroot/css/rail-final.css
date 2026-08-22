@@ -218,3 +218,49 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .public-card-strip,.public-card-empty{height:32px!important;min-height:32px!important;max-height:32px!important}
  .public-card-empty{font-size:11px!important;padding:2px 8px!important}
 }
+
+
+/* Permanent player tools directly above the dice footer. */
+.rist{box-sizing:border-box!important;padding-bottom:max(5px,env(safe-area-inset-bottom))!important}
+.player-tools-rail{
+ grid-area:hand;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(150px,1fr);
+ gap:7px;width:100%;min-width:0;height:54px;padding:3px 7px;
+ overflow:hidden;background:#0d1319;border-top:1px solid #6e592c;border-bottom:1px solid #6e592c;color:#eee6d3
+}
+.player-hand-pane,.token-placement-pane{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px;min-width:0;overflow:hidden}
+.token-placement-pane{border-left:1px solid #6e592c;padding-left:7px}
+.player-tools-label{color:#d9bd78;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg)}
+.player-hand-strip,.token-choice-strip{display:flex;align-items:center;gap:5px;min-width:0;height:46px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+.player-hand-strip::-webkit-scrollbar,.token-choice-strip::-webkit-scrollbar{display:none}
+.compact-hand-card,.token-choice-strip>button{box-sizing:border-box;position:relative;flex:0 0 40px;width:40px;height:42px;display:grid;place-items:center;overflow:hidden;padding:2px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#161e26!important;color:#eee6d3!important}
+.compact-hand-card img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.compact-hand-card .drawer-glyph{font-size:15px}
+.character-hand-card{background:url("../assets/cards/shaelvien_card_back.jpg") center/cover no-repeat!important}
+.token-choice{display:grid;place-items:center;width:30px;height:30px;border:2px solid #e3bf55;border-radius:50%;background:#57320fcf;color:#fff;font-size:8px;font-weight:700}
+.pawn-choice{border-radius:7px;background:#26374a}
+.token-pin-icon,.map-pin-icon{display:block!important;width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;background-repeat:no-repeat!important}
+.piece.pin .map-pin-icon{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important}
+.drag-ghost .map-pin-icon{width:42px!important;height:42px!important}
+
+/* Atlas crops must be allowed to enlarge beyond the generic pallet image cap. */
+.tray-item.tile>.tile-image-crop>img,.drag-ghost>.tile-image-crop>img{
+ max-width:none!important;max-height:none!important;object-fit:fill!important
+}
+
+@media(orientation:portrait){
+ .rist{grid-template-rows:64px 52px minmax(0,1fr) 54px 64px!important}
+}
+@media(orientation:landscape){
+ .rist{
+  grid-template-rows:58px minmax(0,1fr) 48px 58px!important;
+  grid-template-areas:"header" "map" "hand" "footer"!important
+ }
+ .player-tools-rail{height:48px;padding-block:2px}
+ .player-hand-strip,.token-choice-strip{height:42px}
+ .compact-hand-card,.token-choice-strip>button{height:38px;width:38px;flex-basis:38px}
+ .card-triple-drawer{bottom:119px}
+}
+@media(max-width:430px){
+ .player-tools-rail{grid-template-columns:minmax(0,1.45fr) minmax(132px,.9fr)}
+ .player-tools-label{font-size:8px}
+}
