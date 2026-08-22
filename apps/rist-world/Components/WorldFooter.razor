@@ -1,6 +1,7 @@
 @inject WorldSession Session
 <footer class="footer dice-footer circular-rail" data-circular-rail aria-label="Dice tray">
  <div class="circular-set dice-circular-set">
+   <button class="footer-chat-button @(Session.ChatComposerOpen||Session.DialogueOpen?"active":"")" @onclick="Session.ToggleChatComposer" aria-expanded="@(Session.ChatComposerOpen||Session.DialogueOpen)" aria-label="Open dialogue chat"><span>Chat</span></button>
    @foreach(var die in Session.DiceSet)
    {
     if(die.Key=="d5-bonus")
@@ -33,6 +34,32 @@
    @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
  </div>
 </footer>
+@if(Session.ChatComposerOpen)
+{
+ <div class="dialogue-scrim" @onclick="Session.CloseChat">
+  <section class="dialogue-composer" role="dialog" aria-modal="true" aria-label="Write dialogue" @onclick:stopPropagation="true">
+   <div class="dialogue-portrait">
+    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
+    else{<span class="dialogue-card-back" aria-hidden="true"></span>}
+   </div>
+   <label><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?" autofocus></textarea></label>
+   <div class="dialogue-actions"><button @onclick="Session.CloseChat">Cancel</button><button class="primary" @onclick="Session.SendChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Say it</button></div>
+  </section>
+ </div>
+}
+@if(Session.DialogueOpen)
+{
+ <div class="dialogue-scrim dialogue-playback" @onclick="Session.AdvanceDialogue">
+  <section class="rpg-dialogue-box" role="dialog" aria-modal="true" aria-live="polite" aria-label="Dialogue from @Session.DialogueSpeaker" @onclick:stopPropagation="true">
+   <div class="dialogue-portrait">
+    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
+    else{<span class="dialogue-card-back" aria-hidden="true"></span>}
+   </div>
+   <div class="dialogue-copy"><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></div>
+   <button class="dialogue-next" @onclick="Session.AdvanceDialogue">Next</button>
+  </section>
+ </div>
+}
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollAsync(key,magnitude);}
