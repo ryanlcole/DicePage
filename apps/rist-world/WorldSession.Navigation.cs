@@ -5,6 +5,15 @@ public sealed partial class WorldSession
  public string Layer { get; private set; } = "WORLD";
  public bool EncounterActive { get; private set; }
  public string? RecurseTarget { get; private set; }
+ public string TableMode { get; private set; } = "worldbuilder";
+ public string TableModeLabel=>TableMode switch{"forge"=>"Forge","test"=>"Test","encounter"=>"Encounter","play"=>"Let's Roll!",_=>"Worldbuilder"};
+ public bool PlayActive=>TableMode=="play";
+ public bool ChatComposerOpen { get; private set; }
+ public bool DialogueOpen { get; private set; }
+ public string ChatDraft { get; set; } = "";
+ public string DialogueText { get; private set; } = "";
+ public string DialogueSpeaker=>string.IsNullOrWhiteSpace(CharacterName)?"Player":CharacterName;
+
  public PieceItem? SelectedPin { get; private set; }
  readonly System.Diagnostics.Stopwatch encounterClock=new();
  System.Threading.Timer? encounterTimer;
@@ -17,6 +26,25 @@ public sealed partial class WorldSession
  string preEncounterUnit = "mi";
  double preEncounterDistance = 5;
  double preEncounterCalibrationZoom = 1;
+
+ public void SetTableMode(string mode)
+ {
+  mode=mode switch{"worldbuilder" or "forge" or "test" or "encounter" or "play"=>mode,_=>"worldbuilder"};
+  if(mode is "encounter" or "play"){if(!EncounterActive)EnterEncounter();}
+  else if(EncounterActive)ExitEncounter();
+  TableMode=mode;
+  if(mode!="play"){encounterClock.Stop();encounterTimer?.Dispose();encounterTimer=null;}
+  Notify();
+ }
+ public void ToggleChatComposer(){ChatComposerOpen=!ChatComposerOpen;if(ChatComposerOpen)DialogueOpen=false;Notify();}
+ public void CloseChat(){ChatComposerOpen=false;DialogueOpen=false;Notify();}
+ public void SendChat()
+ {
+  var message=ChatDraft.Trim();
+  if(message.Length==0)return;
+  DialogueText=message;ChatDraft="";ChatComposerOpen=false;DialogueOpen=true;Notify();
+ }
+ public void AdvanceDialogue(){DialogueOpen=false;Notify();}
 
  public void SetLayer(string layer)
  {
@@ -47,6 +75,7 @@ public sealed partial class WorldSession
   encounterTimer?.Dispose();
   encounterTimer=null;
   EncounterActive=false;
+  if(TableMode is "encounter" or "play")TableMode="worldbuilder";
   GridStyle=preEncounterGridStyle;
   DistanceUnit=preEncounterUnit;
   GridDistance=preEncounterDistance;
@@ -87,5 +116,5 @@ public sealed partial class WorldSession
   Notify();
  }
  public void DismissPin(){SelectedPin=null;Notify();}
- public void ReturnToWorld(){Layer="WORLD";RecurseTarget=null;SelectedPin=null;EncounterActive=false;Notify();}
+ public void ReturnToWorld(){Layer="WORLD";RecurseTarget=null;SelectedPin=null;EncounterActive=false;TableMode="worldbuilder";Notify();}
 }
