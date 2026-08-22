@@ -8,6 +8,10 @@ public sealed partial class WorldSession
  public string TableMode { get; private set; } = "worldbuilder";
  public string TableModeLabel=>TableMode switch{"forge"=>"Forge","test"=>"Test","encounter"=>"Encounter","play"=>"Let's Roll!",_=>"Worldbuilder"};
  public bool PlayActive=>TableMode=="play";
+ public bool TileLockMode { get; private set; }
+ public bool CanEditTiles=>Role=="GM"&&TableMode=="worldbuilder";
+ public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;Notify();}
+ public void ToggleTileLock(TileItem tile){if(!CanEditTiles||!TileLockMode)return;var index=PlacedTiles.IndexOf(tile);if(index>=0)PlacedTiles[index]=tile with{Locked=!tile.Locked};Notify();}
  public bool ChatComposerOpen { get; private set; }
  public bool DialogueOpen { get; private set; }
  public string ChatDraft { get; set; } = "";
@@ -33,6 +37,7 @@ public sealed partial class WorldSession
   if(mode is "encounter" or "play"){if(!EncounterActive)EnterEncounter();}
   else if(EncounterActive)ExitEncounter();
   TableMode=mode;
+  if(mode!="worldbuilder")TileLockMode=false;
   if(mode!="play"){encounterClock.Stop();encounterTimer?.Dispose();encounterTimer=null;}
   Notify();
  }
