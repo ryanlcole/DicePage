@@ -1,5 +1,6 @@
 @inject WorldSession Session
-<footer class="footer dice-footer circular-rail" data-circular-rail aria-label="Dice tray">
+<footer id="footer-slider" class="footer dice-footer circular-rail desktop-arrow-slider" data-circular-rail aria-label="Dice tray">
+ <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#footer-slider',-1)" aria-label="Scroll dice left" title="Scroll left">‹</button>
  <div class="circular-set dice-circular-set">
    <button class="footer-chat-button @(Session.ChatComposerOpen||Session.DialogueOpen?"active":"")" @onclick="Session.ToggleChatComposer" aria-expanded="@(Session.ChatComposerOpen||Session.DialogueOpen)" aria-label="Open dialogue chat"><span>Chat</span></button>
    @foreach(var die in Session.DiceSet)
@@ -33,6 +34,7 @@
    <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
    @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
  </div>
+ <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#footer-slider',1)" aria-label="Scroll dice right" title="Scroll right">›</button>
 </footer>
 @if(Session.ChatComposerOpen)
 {
