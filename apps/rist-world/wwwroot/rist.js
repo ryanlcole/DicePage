@@ -11,6 +11,14 @@ window.ristWorld={
   const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [1,((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
  },
+ tileDropPoint:(el,x,y,panX,panY,zoom,columns,rows)=>{
+  const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];
+  const cols=Math.max(1,Number(columns)||20),gridRows=Math.max(1,Number(rows)||20);
+  const sx=(Math.floor(Math.max(0,Math.min(.999999,(x-r.left)/r.width))*cols)+.5)/cols;
+  const sy=(Math.floor(Math.max(0,Math.min(.999999,(y-r.top)/r.height))*gridRows)+.5)/gridRows;
+  const z=Math.max(Number(zoom)||1,.01);
+  return [1,((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
+ },
  overPublicCardDrop:(x,y)=>{
   const el=document.querySelector('.public-card-drop');if(!el)return false;const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
  },
