@@ -3,9 +3,9 @@
 <header class="topbar header-rail finite-rail" aria-label="Tabletop controls">
  <div class="finite-set header-circular-set">
   <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
-  <button class="tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen">Tiles</button>
-  <div class="control"><label>Piece</label><select @bind="Session.PieceKind"><option value="pin">Pin</option><option value="token">Token</option></select></div>
-  <button @onclick="StagePiece">To tray</button>
+  <div class="control asset-type-control"><label>Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
+  <button class="tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen">Browse</button>
+  <button @onclick="StageAsset">To pallet</button>
   <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>
   <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
   <div class="control unit-control"><label>Unit</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive"><option value="mi">mi/sq</option><option value="km">km/sq</option><option value="m">m/sq</option><option value="yd">yd/sq</option><option value="ft">ft/sq</option></select></div>
@@ -16,7 +16,7 @@
  </div>
 </header>
 @code{
- void StagePiece()=>Session.StagePiece(Session.PieceKind);
+ void StageAsset(){if(Session.PieceKind=="tile"){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();return;}Session.StagePiece(Session.PieceKind);}
  void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
  void ToggleEncounter(){if(Session.EncounterActive)Session.ExitEncounter();else Session.EnterEncounter();}
  void Exit()=>Nav.NavigateTo("../",true);
