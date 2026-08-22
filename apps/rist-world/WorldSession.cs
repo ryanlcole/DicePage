@@ -132,9 +132,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     {
         if(PlacedTiles.Count>0)return;
 
-        // A tile-built interpretation of the approved Shaelvien reference map.
-        // Every character is one independently editable World tile; dots remain
-        // open Shaelvien Ocean supplied by the map background.
+        // The World remains a 20x13 navigation grid, but the default terrain is
+        // authored as though it were placed at 3x zoom. Each world square can
+        // therefore contain nine independently editable detail tiles.
+        const int detailZoom=3;
         string[] pangea=
         [
             "....CCCCCCCCCC......",
@@ -152,26 +153,75 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
             ".......CCCCC.CC....."
         ];
 
-        for(var row=0;row<pangea.Length;row++)
+        for(var baseRow=0;baseRow<pangea.Length;baseRow++)
         {
-            for(var column=0;column<pangea[row].Length;column++)
+            for(var baseColumn=0;baseColumn<pangea[baseRow].Length;baseColumn++)
             {
-                var code=pangea[row][column];
-                if(code=='.')continue;
-                var terrain=PangeaTerrain(code);
-                var atlasNumber=PangeaAtlasNumber(code,column,row);
-                var sourceRow=(row*2+column)%6+1;
-                var sourceColumn=(column*3+row)%6+1;
-                var id=$"aws-{terrain}-{atlasNumber}-{sourceRow:00}-{sourceColumn:00}";
-                var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
-                if(tile is null)continue;
-                var region=PangeaRegion(column,row);
-                PlacedTiles.Add(new(tile.Id,$"Shaelvien · {region} · {terrain}",tile.Image,
-                    column/(double)GridColumns,
-                    row/(double)GridRows,
-                    tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,1));
+                var baseCode=pangea[baseRow][baseColumn];
+                if(baseCode=='.')continue;
+
+                for(var subRow=0;subRow<detailZoom;subRow++)
+                {
+                    for(var subColumn=0;subColumn<detailZoom;subColumn++)
+                    {
+                        if(IsRoundedOceanCorner(pangea,baseColumn,baseRow,subColumn,subRow,detailZoom))continue;
+
+                        var fineColumn=baseColumn*detailZoom+subColumn;
+                        var fineRow=baseRow*detailZoom+subRow;
+                        var code=DetailedPangeaTerrain(pangea,baseColumn,baseRow,subColumn,subRow,detailZoom);
+                        var terrain=PangeaTerrain(code);
+                        var atlasNumber=PangeaAtlasNumber(code,fineColumn,fineRow);
+                        var sourceRow=(fineRow*2+fineColumn)%6+1;
+                        var sourceColumn=(fineColumn*3+fineRow)%6+1;
+                        var id=$"aws-{terrain}-{atlasNumber}-{sourceRow:00}-{sourceColumn:00}";
+                        var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
+                        if(tile is null)continue;
+
+                        var region=PangeaRegion(baseColumn,baseRow);
+                        PlacedTiles.Add(new(tile.Id,$"Shaelvien · {region} · {terrain}",tile.Image,
+                            fineColumn/(double)(GridColumns*detailZoom),
+                            fineRow/(double)(GridRows*detailZoom),
+                            tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,
+                            detailZoom));
+                    }
+                }
             }
         }
+    }
+
+    static bool IsRoundedOceanCorner(string[] map,int column,int row,int subColumn,int subRow,int detailZoom)
+    {
+        var left=column==0||map[row][column-1]=='.';
+        var right=column==map[row].Length-1||map[row][column+1]=='.';
+        var up=row==0||map[row-1][column]=='.';
+        var down=row==map.Length-1||map[row+1][column]=='.';
+        return (subColumn==0&&subRow==0&&left&&up)
+            || (subColumn==detailZoom-1&&subRow==0&&right&&up)
+            || (subColumn==0&&subRow==detailZoom-1&&left&&down)
+            || (subColumn==detailZoom-1&&subRow==detailZoom-1&&right&&down);
+    }
+
+    static char DetailedPangeaTerrain(string[] map,int column,int row,int subColumn,int subRow,int detailZoom)
+    {
+        var code=map[row][column];
+        if(code=='C')return 'C';
+
+        // Pull coast detail one micro-cell into exposed land edges.
+        if(subColumn==0&&(column==0||map[row][column-1]=='.'))return 'C';
+        if(subColumn==detailZoom-1&&(column==map[row].Length-1||map[row][column+1]=='.'))return 'C';
+        if(subRow==0&&(row==0||map[row-1][column]=='.'))return 'C';
+        if(subRow==detailZoom-1&&(row==map.Length-1||map[row+1][column]=='.'))return 'C';
+
+        // Small deterministic transition details break up large biome blocks
+        // while keeping the approved continental geography readable at 1x.
+        var seed=column*31+row*17+subColumn*7+subRow*13;
+        if(code=='P'&&seed%11==0)return 'H';
+        if(code=='F'&&seed%13==0)return 'P';
+        if(code=='J'&&seed%17==0)return 'S';
+        if(code=='D'&&seed%19==0)return 'H';
+        if(code=='M'&&seed%13==0)return 'V';
+        if(code=='H'&&seed%17==0)return 'P';
+        return code;
     }
 
     static string PangeaTerrain(char code)=>code switch
