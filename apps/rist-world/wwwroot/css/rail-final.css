@@ -1008,3 +1008,48 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
   min-height:40px!important
  }
 }
+
+
+/* Desktop end-cap layout: arrows frame the icon window; only the center strip
+   scrolls, so controls never wrap underneath or disappear with the arrows. */
+@media (hover:hover) and (pointer:fine){
+ .topbar.desktop-arrow-slider,
+ .footer.desktop-arrow-slider,
+ .public-card-drop.desktop-arrow-slider{
+  display:grid!important;
+  grid-template-columns:40px minmax(0,1fr) 40px!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  align-items:center!important;
+  column-gap:4px!important;
+  overflow:hidden!important
+ }
+ .topbar.desktop-arrow-slider>.rail-scroll-prev,
+ .footer.desktop-arrow-slider>.rail-scroll-prev,
+ .public-card-drop.desktop-arrow-slider>.rail-scroll-prev{grid-column:1!important;grid-row:1!important}
+ .topbar.desktop-arrow-slider>.rail-scroll-next,
+ .footer.desktop-arrow-slider>.rail-scroll-next,
+ .public-card-drop.desktop-arrow-slider>.rail-scroll-next{grid-column:3!important;grid-row:1!important}
+ .topbar.desktop-arrow-slider>.header-circular-set,
+ .footer.desktop-arrow-slider>.dice-circular-set,
+ .public-card-drop.desktop-arrow-slider>.public-card-strip{
+  box-sizing:border-box!important;
+  grid-column:2!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:100%!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important
+ }
+ .topbar.desktop-arrow-slider>.header-circular-set::-webkit-scrollbar,
+ .footer.desktop-arrow-slider>.dice-circular-set::-webkit-scrollbar,
+ .public-card-drop.desktop-arrow-slider>.public-card-strip::-webkit-scrollbar{display:none!important}
+ .topbar.desktop-arrow-slider>.header-circular-set>*,
+ .footer.desktop-arrow-slider>.dice-circular-set>*,
+ .public-card-drop.desktop-arrow-slider>.public-card-strip>*{flex-shrink:0!important}
+}
