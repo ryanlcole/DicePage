@@ -103,7 +103,7 @@
  }
 
  <section class="map-shell">
-  <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
+  <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    @if(Session.LockedTileMenuOpen)
    {
     <div class="locked-tile-menu" role="menu" aria-label="Locked region actions" @onpointerdown:stopPropagation="true">
