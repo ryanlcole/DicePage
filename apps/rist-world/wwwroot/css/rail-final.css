@@ -422,3 +422,36 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  min-width:32px!important;
  min-height:32px!important
 }
+
+
+/* Compact hand labels and a centered three-card deck silhouette. */
+.character-hand-card .drawer-glyph{
+ box-sizing:border-box!important;
+ max-width:100%!important;
+ padding-inline:2px!important;
+ overflow:hidden!important;
+ color:#f0d99d!important;
+ font-size:7px!important;
+ line-height:1!important;
+ letter-spacing:0!important;
+ text-align:center!important
+}
+.hand-deck-card{
+ display:block!important;
+ overflow:hidden!important;
+ padding:0!important
+}
+.hand-deck-card .hand-toggle-card-back{
+ position:absolute!important;
+ z-index:3!important;
+ inset:2px 6px 6px 2px!important;
+ width:auto!important;
+ height:auto!important;
+ margin:0!important;
+ overflow:visible!important;
+ border:1px solid #98783d!important;
+ background:url("../assets/cards/shaelvien_card_back.jpg") center/cover no-repeat!important;
+ box-shadow:
+  2px 2px 0 #10171d,3px 3px 0 #98783d,
+  4px 4px 0 #10171d,5px 5px 0 #98783d!important
+}
