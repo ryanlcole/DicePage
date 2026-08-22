@@ -110,7 +110,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void TurnCharacterDial(CharacterField field,int delta){if(!CharacterEditMode)return;var max=Math.Max(field.Max,0);var next=Math.Clamp(field.Current+delta,0,field.Kind=="POOL"?max:999);field.Current=next;Notify();}
     public void SetMixerChannel(string name,int current,int max){var channel=MixerChannels.FirstOrDefault(x=>x.Name==name);if(channel is null)return;max=Math.Clamp(max,0,999);current=Math.Clamp(current,0,max);channel.Current=current;channel.Max=max;Notify();}
 
-    public void ShowHand(CharacterField field){if(field.Kind is not("VALUE" or "ABILITY")||HandCards.Any(x=>ReferenceEquals(x.Field,field)))return;HandCards.Add(new(field));Notify();}
+    public void ShowHand(CharacterField field){if(field.Kind is not("VALUE" or "ABILITY")||HandCards.Any(x=>ReferenceEquals(x.Field,field)))return;HandCards.Add(new HandCard(field){ApprovalStatus=Role=="GM"?HandCard.Approved:HandCard.Pending});Notify();}
     public void HideHand(HandCard card){HandCards.Remove(card);if(ReferenceEquals(EditingHandCard,card))EditingHandCard=null;Notify();}
     public void MoveHandCard(HandCard card,int delta){var from=HandCards.IndexOf(card);if(from<0)return;var to=Math.Clamp(from+delta,0,HandCards.Count-1);if(to==from)return;HandCards.RemoveAt(from);HandCards.Insert(to,card);Notify();}
     public void EditDiceBag(HandCard card){if(MixerOpen&&!CharacterEditMode)return;EditingHandCard=card;Notify();}
