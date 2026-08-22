@@ -71,6 +71,18 @@
    {
     <div class="tray-hint"><strong>PALLET</strong><span>Drag tiles here.</span></div>
    }
+   @if(Session.CanEditTiles)
+   {
+    <div class="zone-editor" aria-label="Terrain zone editor">
+     <button class="zone-mode-button @(Session.TileLockMode?"active":"")" @onclick="Session.ToggleTileLockMode" aria-pressed="@Session.TileLockMode">@(Session.TileLockMode?"Done selecting":"Select zone")</button>
+     @if(Session.HasSelectedZone)
+     {
+      <strong>@Session.SelectedZoneTerrain zone</strong>
+      <button @onclick="Session.ToggleSelectedZoneLock">@(Session.SelectedZoneLocked?"Unlock zone":"Lock zone")</button>
+      <label><span>Zone label</span><input value="@Session.SelectedZoneLabel" @onchange="e=>Session.SetSelectedZoneLabel(e.Value?.ToString()??string.Empty)" placeholder="Add label" /></label>
+     }
+    </div>
+   }
    @foreach(var staged in Session.StagedAssets)
    {
     <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray."
@@ -94,13 +106,16 @@
   <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
     <div class="grid @Session.GridStyle"></div>
-    @if(Session.PlacedTiles.Count>0){<div class="continent-name" aria-label="Endemar continent">Endemar</div>}
     @foreach(var t in Session.PlacedTiles)
     {
-     <div class="tile-cell" style="@TileStyle(t)"
-          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true">
+     <div class="tile-cell @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t)" style="@TileStyle(t)"
+          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true" data-zone="@t.ZoneId" aria-label="@t.Name @(t.Locked?"locked":"unlocked")">
       <span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span>
      </div>
+    }
+    @foreach(var zone in Session.MapZoneLabels)
+    {
+     <div class="map-zone-label @(zone.Locked?"locked":"")" style="left:@Pct(zone.X);top:@Pct(zone.Y)">@zone.Label</div>
     }
     @foreach(var roll in Session.Rolls)
     {
