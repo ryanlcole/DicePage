@@ -1,18 +1,20 @@
 @inject WorldSession Session
 @inject NavigationManager Nav
-<header class="topbar header-rail finite-rail" aria-label="Tabletop controls">
+<header class="topbar header-rail finite-rail icon-header" aria-label="Tabletop controls">
  <div class="finite-set header-circular-set">
-  <button class="encounter-button" @onclick="ToggleEncounter">@(Session.EncounterActive ? "Exit encounter" : "Encounter")</button>
-  <div class="control asset-type-control"><label>Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
-  <button class="tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen">Browse</button>
-  <button @onclick="StageAsset">To pallet</button>
-  <div class="control"><label>Role</label><select @bind="Session.Role" @bind:after="Session.Notify"><option>GM</option><option>PC</option></select></div>
-  <div class="control"><label>Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
-  <div class="control unit-control"><label>Unit</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive"><option value="mi">mi/sq</option><option value="km">km/sq</option><option value="m">m/sq</option><option value="yd">yd/sq</option><option value="ft">ft/sq</option></select></div>
+  <button class="header-icon-button encounter-button" @onclick="ToggleEncounter" title="@(Session.EncounterActive ? "Exit encounter" : "Enter encounter")" aria-label="@(Session.EncounterActive ? "Exit encounter" : "Enter encounter")"><span class="header-icon icon-encounter" aria-hidden="true"></span></button>
+  <div class="control asset-type-control icon-select-control"><span class="header-icon icon-assets" aria-hidden="true"></span><label class="sr-only">Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
+  <button class="header-icon-button tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen" title="Browse assets" aria-label="Browse assets"><span class="header-icon icon-browse" aria-hidden="true"></span></button>
+  <button class="header-icon-button" @onclick="StageAsset" title="Add selected asset to pallet" aria-label="Add selected asset to pallet"><span class="header-icon icon-pin" aria-hidden="true"></span></button>
+  <div class="control icon-select-control compact-select"><span class="header-icon icon-role" aria-hidden="true"></span><label class="sr-only">Role</label><select @bind="Session.Role" @bind:after="Session.Notify" aria-label="Role"><option>GM</option><option>PC</option></select></div>
+  <div class="control icon-select-control compact-select"><span class="header-icon icon-grid-@Session.GridStyle" aria-hidden="true"></span><label class="sr-only">Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive" aria-label="Grid"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
+  <div class="control unit-control icon-select-control compact-select"><span class="header-icon icon-unit" aria-hidden="true"></span><label class="sr-only">Unit</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive" aria-label="Distance unit"><option value="mi">mi/sq</option><option value="km">km/sq</option><option value="m">m/sq</option><option value="yd">yd/sq</option><option value="ft">ft/sq</option></select></div>
   <div class="control scale-control"><label>@(Session.EncounterActive ? "ft / hex" : $"{Session.DistanceUnit} / sq")</label><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" disabled="@Session.EncounterActive" /></div>
-  <button class="scale-button" @onclick="Session.CalibrateGrid" disabled="@Session.EncounterActive">Set scale</button>
+  <button class="header-icon-button scale-button" @onclick="Session.CalibrateGrid" disabled="@Session.EncounterActive" title="Set scale" aria-label="Set scale"><span class="header-icon icon-scale" aria-hidden="true"></span></button>
   <div class="scale-readout">@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</div>
-  <button @onclick="Session.SaveAsync">Save</button><button @onclick="Session.LoadAsync">Load</button><button @onclick="Exit">Exit</button>
+  <button class="header-icon-button" @onclick="Session.SaveAsync" title="Save" aria-label="Save"><span class="header-icon icon-save" aria-hidden="true"></span></button>
+  <button class="header-icon-button" @onclick="Session.LoadAsync" title="Load" aria-label="Load"><span class="header-icon icon-load" aria-hidden="true"></span></button>
+  <button class="header-icon-button" @onclick="Exit" title="Exit" aria-label="Exit"><span class="header-icon icon-exit" aria-hidden="true"></span></button>
  </div>
 </header>
 @code{
