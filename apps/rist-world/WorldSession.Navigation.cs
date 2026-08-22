@@ -290,6 +290,19 @@ public sealed partial class WorldSession
   if(CanEditTiles&&tile is not null){OpenLockedTileMenu(tile);return;}
   Notify();
  }
+ public void SetSelectedPinLabel(string label)
+ {
+  if(SelectedPin is null)return;
+  var index=Pieces.IndexOf(SelectedPin);
+  if(index<0)return;
+  var updated=SelectedPin with{Label=label.Trim()};
+  Pieces[index]=updated;SelectedPin=updated;Notify();
+ }
+ public void RemoveSelectedPin()
+ {
+  if(SelectedPin is null)return;
+  Pieces.Remove(SelectedPin);SelectedPin=null;CloseLockedTileMenu(false);Notify();
+ }
  public void DismissPin(){SelectedPin=null;Notify();}
  public void ReturnToWorld()
  {
