@@ -57,7 +57,11 @@ public partial class WorldMap:IDisposable
  static string Pct(double v)=>$"{v*100:0.###}%";
  static string PinStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)};--placement-zoom:{Math.Max(p.PlacementZoom,.01).ToString("0.###",CultureInfo.InvariantCulture)}";
  static string PieceStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)}";
- static string TileStyle(TileItem t)=>$"left:{Pct(t.X)};top:{Pct(t.Y)}";
+ static string TileStyle(TileItem t)
+ {
+  var zoom=Math.Max(t.PlacementZoom,.01);var inv=CultureInfo.InvariantCulture;
+  return $"left:{Pct(t.X)};top:{Pct(t.Y)};width:{(100.0/WorldSession.GridColumns/zoom).ToString("0.###",inv)}%;height:{(100.0/WorldSession.GridRows/zoom).ToString("0.###",inv)}%";
+ }
  static string CropStyle(int sourceWidth,int sourceHeight,int cropX,int cropY,int cropWidth,int cropHeight)
  {
   if(sourceWidth<=0||sourceHeight<=0||cropWidth<=0||cropHeight<=0)return "";
@@ -78,6 +82,7 @@ public partial class WorldMap:IDisposable
 
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
+ async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.tileDropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom,WorldSession.GridColumns,WorldSession.GridRows);
 
  async Task StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;await StartDrag(e);}
@@ -91,7 +96,8 @@ public partial class WorldMap:IDisposable
   if(!Dragging)return;
   DragClientX=e.ClientX;DragClientY=e.ClientY;
   if(!DragMoved){ClearDrag();await InvokeAsync(StateHasChanged);return;}
-  var p=await DropPoint(e);
+  var droppingTile=TrayDragging?.Kind=="tile"||TileDragging is not null;
+  var p=droppingTile?await TileDropPoint(e):await DropPoint(e);
   var inside=p.Length>=3&&p[0]>.5;
   var overPallet=await JS.InvokeAsync<bool>("ristWorld.overPallet",e.ClientX,e.ClientY);
   if(AtlasDragging is not null){if(overPallet)Session.StageTile(AtlasDragging);}
