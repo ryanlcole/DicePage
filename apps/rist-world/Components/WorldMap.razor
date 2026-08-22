@@ -75,7 +75,13 @@
    @if(Session.CanEditTiles)
    {
     <div class="zone-editor" aria-label="Terrain zone editor">
-     <button class="zone-mode-button @(!Session.MapLocked?"active":"")" @onclick="Session.ToggleMapLock" aria-pressed="@(!Session.MapLocked)">@(Session.MapLocked?"Unlock map":"Lock map")</button>
+     <button class="zone-mode-button map-lock-button @(!Session.MapLocked?"active":"")"
+             @onclick="Session.ToggleMapLock"
+             aria-pressed="@(!Session.MapLocked)"
+             aria-label="@(Session.MapLocked?"Unlock map":"Lock map")"
+             title="@(Session.MapLocked?"Unlock map":"Lock map")">
+      <span class="map-lock-glyph @(Session.MapLocked?"locked":"unlocked")" aria-hidden="true"></span>
+     </button>
      @if(Session.HasSelectedZone)
      {
       <strong>@Session.SelectedZoneTerrain zone</strong>
