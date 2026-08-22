@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
-    private const string SaveKey = "rist.world.blazor.v3";
+    private const string SaveKey = "rist.world.blazor.v4";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -18,7 +18,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public HandCard? EditingHandCard { get; private set; }
     public string? DraggedDieKey { get; private set; }
 
-    public string WorldMapUrl { get; } = "";
+    public string WorldMapUrl { get; } = "assets/world/naeja.png";
     public string MapName { get; private set; } = "Shaelvien";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
@@ -127,7 +127,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
-    public async Task InitializeAsync(){await LoadAtlasAsync();if(!await TryLoadSavedMapAsync())BuildShaelvienPangaea();await LoadCardsAsync();Notify();}
+    public async Task InitializeAsync(){await LoadAtlasAsync();await TryLoadSavedMapAsync();await LoadCardsAsync();Notify();}
     void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
