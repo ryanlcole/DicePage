@@ -3,7 +3,7 @@
  <div class="public-card-strip">
   @if(Session.PublicCards.Count==0)
   {
-   <div class="public-card-empty">Drag a card here to show it publicly.</div>
+   <div class="public-card-empty">@(Session.IsLoggedIn?"Drag a card here to show it publicly.":"Log in for additional features.")</div>
   }
   else
   {
