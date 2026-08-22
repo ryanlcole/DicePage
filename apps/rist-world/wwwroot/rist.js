@@ -7,6 +7,7 @@ window.ristWorld={
   const r=el.getBoundingClientRect();const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
  },
+ railPinDrop:(x,y)=>{const el=document.querySelector(".map");if(!el)return [0,0,0];const panX=Number(el.dataset.panX)||0,panY=Number(el.dataset.panY)||0,zoom=Number(el.dataset.zoom)||1;const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width,sy=(y-r.top)/r.height,z=Math.max(zoom,.01);return [1,((sx-.5)/z)+.5-panX/(r.width*z),((sy-.5)/z)+.5-panY/(r.height*z)];},
  dropPoint:(el,x,y,panX,panY,zoom)=>{
   const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [1,((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
