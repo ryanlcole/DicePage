@@ -76,3 +76,11 @@
  .footer{margin-top:7px;margin-bottom:7px;padding-inline:18px;scroll-padding-inline:18px}
  .asset-type-control{min-width:168px}.asset-type-control select{min-width:168px;max-width:168px}
 }
+
+/* Keep both physical frame edges visible; only inner rail content may overflow. */
+@media(max-width:800px){
+ .public-card-drop,.footer{display:flex!important;width:calc(100vw - 48px)!important;min-width:0!important;max-width:calc(100vw - 48px)!important;contain:inline-size;overflow-x:auto!important;overflow-y:hidden!important}
+ .public-card-strip{flex:0 0 max-content;min-width:100%;max-width:none}
+ .public-card-empty{flex:0 0 calc(100vw - 86px);width:calc(100vw - 86px);min-width:0;max-width:520px}
+ .footer>.circular-set{flex:0 0 max-content;min-width:max-content}
+}
