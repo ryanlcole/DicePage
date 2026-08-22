@@ -95,10 +95,9 @@ public partial class WorldMap:IDisposable
  async Task BeginPieceDrag(PieceItem piece,PointerEventArgs e){AtlasDragging=null;PieceDragging=piece;TrayDragging=null;TileDragging=null;await StartDrag(e);}
  async Task BeginTileDrag(TileItem tile,PointerEventArgs e)
  {
-  if(!Session.CanEditTiles)return;
+  if(!Session.CanEditTiles||Session.MapLocked)return;
   if(Session.RecursiveRegionSelectionMode){Session.ToggleRecursiveRegionTile(tile);return;}
-  if(Session.TileLockMode){Session.SelectTileZone(tile);return;}
-  if(tile.Locked){await StartLockedTileHold(tile,e);return;}
+  if(tile.Locked){Session.SelectTileZone(tile);return;}
   AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;await StartDrag(e);
  }
  async Task StartLockedTileHold(TileItem tile,PointerEventArgs e)
