@@ -120,24 +120,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         var builtIn=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
         if(builtIn is not null)AtlasTiles.AddRange(builtIn);
         var drive=await http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json");
-        if(drive is not null)
-        {
-            // Drive previews are 1200x630 sheets containing a centered 630x630 6x6 atlas.
-            // Expand them as lightweight crop records; the browser fetches only sheets in the chosen folder.
-            foreach(var sheet in drive)
-            for(var row=0;row<6;row++)
-            for(var col=0;col<6;col++)
-            {
-                var tile=sheet with
-                {
-                    Id=$"{sheet.Id}-{row+1:00}-{col+1:00}",
-                    Name=$"{sheet.Name} · {row+1},{col+1}",
-                    SourceWidth=1200,SourceHeight=630,
-                    CropX=285+col*105,CropY=row*105,CropWidth=105,CropHeight=105
-                };
-                if(AtlasTiles.All(existing=>existing.Id!=tile.Id))AtlasTiles.Add(tile);
-            }
-        }
+        if(drive is not null)AtlasTiles.AddRange(drive.Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
     }
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
     public DiceSpec? Dice(string key)=>DiceSet.FirstOrDefault(x=>x.Key==key);
