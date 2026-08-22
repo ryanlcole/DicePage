@@ -724,3 +724,11 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
 .character-mixer .exact-page-arrows button{
  border-color:#baa36e!important;background:#ece3d1!important;color:#4b4236!important
 }
+
+
+/* Endemar world label sits over its assembled AWS coast tiles without blocking map gestures. */
+.continent-name{
+ position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%);
+ pointer-events:none;color:#f1ddb0;text-shadow:0 2px 4px #071016,0 0 8px #071016;
+ font-family:Georgia,serif;font-size:clamp(16px,2.4vw,32px);font-weight:700;letter-spacing:.12em
+}
