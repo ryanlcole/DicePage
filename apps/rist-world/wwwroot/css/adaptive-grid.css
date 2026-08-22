@@ -180,3 +180,7 @@
 /* Map tiles own long-press gestures; Safari must not open text/image lookup. */
 .tile-cell,.tile-cell *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 .tile-cell img{-webkit-user-drag:none!important;pointer-events:none!important}
+
+.pin-label-callout{position:absolute;z-index:9;transform:translate(-50%,calc(-100% - 16px));max-width:18rem;padding:4px 8px;border:1px solid #b78d35;border-radius:7px;background:#071018e8;color:#f4ead1;font-weight:800;font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 2px 8px #000a}
+.pin-label-editor{display:grid;gap:4px;color:#cdbb91;font-size:11px}.pin-label-editor input{min-width:190px;background:#121b24;color:#f4ead1;border:1px solid #8c7138;border-radius:7px;padding:7px 9px}
+.locked-tile-menu .danger{border-color:#a95151;color:#ffd6d0}
