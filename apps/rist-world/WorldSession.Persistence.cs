@@ -14,7 +14,7 @@ public sealed partial class WorldSession
   EncounterActive=false;Role=save.Role;Layer=TableLayers.Contains(save.Layer)?save.Layer:"WORLD";GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
-  Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();PlacedTiles=save.Tiles??[];CloseHeaderMenus();Notify();
+  Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();PlacedTiles=save.Tiles??[];MapLocked=true;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
  public void CloseCard(){OpenCard=null;Notify();}
