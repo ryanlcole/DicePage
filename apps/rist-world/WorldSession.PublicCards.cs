@@ -40,6 +40,7 @@ public sealed partial class WorldSession
 
     public void PublishHandCard(HandCard card)
     {
+        if (Role=="PC" && !CanPlay(card)) return;
         if (PublicCards.All(x => x.Field.Id != card.Field.Id)) PublicCards.Add(card);
         DraggedHandCardId = null;
         Notify();
