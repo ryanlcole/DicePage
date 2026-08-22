@@ -861,3 +861,43 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .map:has(.grid.square)::before,
  .map:has(.grid.hex)::before{inset:0!important;width:100%!important;height:100%!important}
 }
+
+
+/* Compact map state control: visible padlock, accessible action text only. */
+.map-lock-button{
+ display:grid!important;
+ place-items:center!important;
+ flex:0 0 48px!important;
+ width:48px!important;
+ min-width:48px!important;
+ height:48px!important;
+ min-height:48px!important;
+ padding:0!important;
+ overflow:visible!important;
+ color:#f1d681!important;
+}
+.map-lock-glyph{
+ position:relative;
+ display:block;
+ width:23px;
+ height:18px;
+ margin-top:7px;
+ border:3px solid currentColor;
+ border-radius:4px;
+ background:rgba(229,196,95,.08);
+}
+.map-lock-glyph::before{
+ content:"";
+ position:absolute;
+ left:3px;
+ bottom:100%;
+ width:11px;
+ height:11px;
+ border:3px solid currentColor;
+ border-bottom:0;
+ border-radius:9px 9px 0 0;
+ transform-origin:left bottom;
+ transition:transform .16s ease;
+}
+.map-lock-glyph.unlocked::before{transform:translate(8px,-1px) rotate(28deg)}
+.map-lock-button:hover,.map-lock-button:focus-visible{color:#fff0ad!important}
