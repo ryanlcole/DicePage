@@ -167,6 +167,12 @@ public partial class WorldMap:IDisposable
  void Pinch(){var d=G.Distance();if(G.LastDistance>0){G.Zoom=Math.Clamp(G.Zoom*(d/G.LastDistance),.5,5);Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;}G.LastDistance=d;}
  async Task Up(PointerEventArgs e)
  {
+  if(Session.HeaderPinDragging)
+  {
+   var pinDrop=await DropPoint(e);
+   if(pinDrop.Length>=3&&pinDrop[0]>.5)Session.PlaceHeaderPin(pinDrop[1],pinDrop[2]);else Session.EndHeaderPinDrag();
+   return;
+  }
   if(Dragging){await DragEnd(e);return;}
   var wasTracked=G.Pointers.ContainsKey(e.PointerId);var wasMoved=G.Moved;
   G.Pointers.Remove(e.PointerId);G.LastDistance=0;
