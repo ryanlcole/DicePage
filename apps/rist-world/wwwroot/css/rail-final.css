@@ -753,3 +753,21 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
 .map-zone-label{position:absolute;z-index:8;transform:translate(-50%,-50%);padding:3px 8px;border:1px solid #9c7b31;border-radius:8px;background:rgba(8,15,20,.78);color:#f4e3b2;font:700 clamp(10px,1.8vw,16px) Georgia,serif;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}
 .map-zone-label.locked{box-shadow:0 0 0 1px rgba(229,196,96,.35)}
 @media(max-width:760px){.zone-editor{overflow-x:auto;max-width:72%;padding:4px 6px}.zone-editor strong{font-size:11px}.zone-editor label span{display:none}.zone-editor input{width:96px}}
+
+
+/* Recursive locked-region drill-down */
+.tile-cell{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.tile-cell.locked{cursor:context-menu}
+.tile-cell.recursive-region-selected{z-index:4;box-shadow:inset 0 0 0 2px rgba(125,220,255,.55);filter:brightness(1.12)}
+.tile-cell.recursive-edge-top{border-top:4px solid #8de5ff}
+.tile-cell.recursive-edge-right{border-right:4px solid #8de5ff}
+.tile-cell.recursive-edge-bottom{border-bottom:4px solid #8de5ff}
+.tile-cell.recursive-edge-left{border-left:4px solid #8de5ff}
+.locked-tile-menu,.region-player-picker{position:absolute;z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;gap:8px;width:min(86%,320px);padding:14px;border:1px solid #c69a35;border-radius:14px;background:rgba(10,17,24,.98);box-shadow:0 14px 38px rgba(0,0,0,.55);color:#f2dfad}
+.locked-tile-menu strong,.region-player-picker strong{font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.locked-tile-menu button,.region-player-picker button,.recursive-region-actions button{min-height:42px;padding:8px 12px;border:1px solid #9b7927;border-radius:10px;background:#17222c;color:#f4e7c2;font-weight:700}
+.locked-tile-menu button:disabled{opacity:.4}
+.region-player-picker label{display:flex;align-items:center;gap:9px;min-height:40px;padding:6px 9px;border:1px solid rgba(155,121,39,.55);border-radius:9px;background:#121d26}
+.recursive-region-actions{position:absolute;z-index:28;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;max-width:calc(100% - 20px);padding:7px;border:1px solid #8de5ff;border-radius:12px;background:rgba(8,20,29,.96);color:#d7f6ff;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.recursive-region-actions strong{white-space:nowrap;font-size:12px}
+@media(max-width:600px){.recursive-region-actions{bottom:8px;flex-wrap:wrap;justify-content:center}.recursive-region-actions button{min-height:36px}.locked-tile-menu,.region-player-picker{width:min(90%,300px)}}
