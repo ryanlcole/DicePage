@@ -276,13 +276,18 @@ public sealed partial class WorldSession
  public void PinTap(PieceItem piece)
  {
   if(piece.Kind!="pin")return;
-  if(SelectedPin is not null && ReferenceEquals(SelectedPin,piece))
-  {
-   Layer="REGION";
-   RecurseTarget=$"pin:{piece.X:0.####},{piece.Y:0.####}";
-   SelectedPin=null;
-  }
-  else SelectedPin=piece;
+  SelectedPin=piece;
+
+  // A pin is the region anchor. Prefer the smallest locked detail tile under
+  // its point so the same interaction continues to work at deeper zoom levels.
+  var tile=PlacedTiles
+   .Where(x=>x.Locked
+    && piece.X>=x.X && piece.X<x.X+1.0/(GridColumns*Math.Max(x.PlacementZoom,.01))
+    && piece.Y>=x.Y && piece.Y<x.Y+1.0/(GridRows*Math.Max(x.PlacementZoom,.01)))
+   .OrderByDescending(x=>x.PlacementZoom)
+   .FirstOrDefault();
+
+  if(CanEditTiles&&tile is not null){OpenLockedTileMenu(tile);return;}
   Notify();
  }
  public void DismissPin(){SelectedPin=null;Notify();}
