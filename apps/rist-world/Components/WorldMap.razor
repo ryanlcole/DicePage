@@ -94,6 +94,7 @@
   <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
     <div class="grid @Session.GridStyle"></div>
+    @if(Session.PlacedTiles.Count>0){<div class="continent-name" aria-label="Endemar continent">Endemar</div>}
     @foreach(var t in Session.PlacedTiles)
     {
      <div class="tile-cell" style="@TileStyle(t)"
@@ -130,7 +131,7 @@
      <aside class="pin-callout" style="left:@Pct(Session.SelectedPin.X);top:@Pct(Session.SelectedPin.Y)"><strong>Location detail</strong><small>Tap pin again to recurse.</small></aside>
     }
    </div>
-   <div class="status">@StatusText • drag • pinch • @($"{G.Zoom:0.0}x")</div>
+   <div class="status">@Session.MapName • @StatusText • drag • pinch • @($"{G.Zoom:0.0}x")</div>
   </div>
  </section>
 
