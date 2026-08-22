@@ -813,3 +813,51 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .token-pin-source .map-pin-icon{width:32px!important;height:32px!important}
  .footer{padding-bottom:max(2px,env(safe-area-inset-bottom,0px))!important}
 }
+
+
+/* Desktop map workspace: use the available canvas and expose precise controls. */
+.desktop-map-zoom{display:none}
+.map:focus{outline:none}
+.map:focus-visible{outline:2px solid #e5c45f;outline-offset:-3px}
+@media (hover:hover) and (pointer:fine){
+ .map-shell{place-items:stretch!important}
+ .map{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  cursor:grab;
+ }
+ .map:active{cursor:grabbing}
+ .desktop-map-zoom{
+  position:absolute;
+  z-index:35;
+  top:10px;
+  right:10px;
+  display:flex;
+  gap:6px;
+  padding:5px;
+  border:1px solid rgba(156,123,49,.78);
+  border-radius:12px;
+  background:rgba(8,15,20,.88);
+  box-shadow:0 5px 18px rgba(0,0,0,.38);
+ }
+ .desktop-map-zoom button{
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  padding:0;
+  border:1px solid #9c7b31;
+  border-radius:9px;
+  background:#18232d;
+  color:#f5e6bb;
+  font:700 27px/1 system-ui,sans-serif;
+  cursor:pointer;
+ }
+ .desktop-map-zoom button:hover{background:#263746;border-color:#e5c45f}
+ .desktop-map-zoom button:focus-visible{outline:2px solid #f3d879;outline-offset:2px}
+ .map:has(.grid.square)::before,
+ .map:has(.grid.hex)::before{inset:0!important;width:100%!important;height:100%!important}
+}
