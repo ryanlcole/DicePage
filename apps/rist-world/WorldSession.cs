@@ -19,6 +19,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string? DraggedDieKey { get; private set; }
 
     public string WorldMapUrl { get; } = "";
+    public string MapName { get; private set; } = "Endemar";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
         new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 4, VisualAspect:1.06),
@@ -126,7 +127,25 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
-    public async Task InitializeAsync(){await LoadAtlasAsync();await LoadCardsAsync();Notify();}
+    public async Task InitializeAsync(){await LoadAtlasAsync();BuildEndemarContinent();await LoadCardsAsync();Notify();}
+    void BuildEndemarContinent()
+    {
+        if(PlacedTiles.Count>0)return;
+        const int startColumn=7,startRow=3;
+        for(var row=1;row<=6;row++)
+        {
+            for(var column=1;column<=6;column++)
+            {
+                var id=$"aws-coast-066-{row:00}-{column:00}";
+                var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
+                if(tile is null)continue;
+                PlacedTiles.Add(new(tile.Id,$"Endemar · {row},{column}",tile.Image,
+                    (startColumn+column-1)/(double)GridColumns,
+                    (startRow+row-1)/(double)GridRows,
+                    tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,1));
+            }
+        }
+    }
     async Task LoadAtlasAsync()
     {
         var builtIn=await http.GetFromJsonAsync<List<AtlasTile>>("data/atlas-public.json");
