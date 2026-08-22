@@ -74,7 +74,7 @@
    @if(Session.CanEditTiles)
    {
     <div class="zone-editor" aria-label="Terrain zone editor">
-     <button class="zone-mode-button @(Session.TileLockMode?"active":"")" @onclick="Session.ToggleTileLockMode" aria-pressed="@Session.TileLockMode">@(Session.TileLockMode?"Done selecting":"Select zone")</button>
+     <button class="zone-mode-button @(!Session.MapLocked?"active":"")" @onclick="Session.ToggleMapLock" aria-pressed="@(!Session.MapLocked)">@(Session.MapLocked?"Unlock map":"Lock map")</button>
      @if(Session.HasSelectedZone)
      {
       <strong>@Session.SelectedZoneTerrain zone</strong>
@@ -138,7 +138,7 @@
     @foreach(var t in Session.PlacedTiles)
     {
      <div class="tile-cell @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t) @Session.RecursiveRegionBoundaryClasses(t)" style="@TileStyle(t)"
-          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="true" @oncontextmenu:preventDefault="true"
+          @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="@(!Session.MapLocked)" @oncontextmenu:preventDefault="true"
           data-zone="@t.ZoneId" aria-label="@t.Name @(t.Locked?"locked":"unlocked") @(Session.IsRecursiveRegionTile(t)?"selected for local region":"")">
       <span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span>
      </div>
