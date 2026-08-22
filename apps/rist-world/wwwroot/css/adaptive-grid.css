@@ -127,3 +127,19 @@
  .icon-select-control.compact-select{flex-basis:112px!important;min-width:112px!important}
  .icon-header .asset-type-control{flex-basis:228px!important;min-width:228px!important}
 }
+
+
+/* Icon-only native dropdowns: the transparent select covers the icon, so the
+   entire tile opens the platform picker while option text stays accessible. */
+.icon-header .icon-select-control,
+.icon-header .icon-select-control.compact-select,
+.icon-header .asset-type-control{box-sizing:border-box;position:relative;flex:0 0 58px!important;width:58px!important;min-width:58px!important;max-width:58px!important;height:58px!important;padding:3px!important;display:grid!important;place-items:center!important;overflow:hidden;border:1px solid #725d30;border-radius:9px;background:#161e26}
+.icon-header .icon-select-control .header-icon{width:50px;height:50px}
+.icon-header .icon-select-control select,
+.icon-header .asset-type-control select{position:absolute!important;inset:0!important;z-index:2;width:100%!important;min-width:100%!important;max-width:100%!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;opacity:0!important;cursor:pointer;-webkit-appearance:none;appearance:none}
+.icon-header .icon-select-control:focus-within{border-color:#d4b55d;box-shadow:inset 0 0 0 1px #d4b55d}
+@media(max-width:800px){
+ .icon-header .icon-select-control,
+ .icon-header .icon-select-control.compact-select,
+ .icon-header .asset-type-control{flex-basis:58px!important;min-width:58px!important;max-width:58px!important}
+}
