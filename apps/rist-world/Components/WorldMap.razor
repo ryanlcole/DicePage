@@ -134,7 +134,7 @@
     </div>
    }
    <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
-    <img class="base" src="@Session.WorldMapUrl" alt="Shaelvien world map" draggable="false" />
+    @if(!Session.HasBaseMapTilemap)\n    {\n     <img class="base" src="@Session.WorldMapUrl" alt="Shaelvien world map" draggable="false" />\n    }
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
