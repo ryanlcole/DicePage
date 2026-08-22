@@ -83,6 +83,7 @@ public partial class WorldMap:IDisposable
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.tileDropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom,WorldSession.GridColumns,WorldSession.GridRows);
+ async Task DropHeaderPin(DragEventArgs e){if(!Session.HeaderPinDragging)return;var p=await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
 
  async Task StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;await StartDrag(e);}
