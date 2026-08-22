@@ -45,32 +45,50 @@
    </div>
   </section>
  }
- <aside class="staging-tray pallet" aria-label="Tile pallet">
-  @if(Session.StagedAssets.Count==0)
-  {
-   <div class="tray-hint"><strong>PALLET</strong><span>Drag tiles here.</span></div>
-  }
-  @foreach(var staged in Session.StagedAssets)
-  {
-   <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray."
-           @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true"
-           @ondblclick="()=>Session.RemoveStaged(staged.Key)">
-    @if(staged.Kind=="tile")
+ @if(Session.EncounterActive)
+ {
+  <aside class="staging-tray encounter-control-rail" aria-label="Initiative tracker and encounter timer">
+   <div class="initiative-heading"><strong>Initiative</strong><span>@Session.Pieces.Count piece@(Session.Pieces.Count==1?"":"s")</span></div>
+   <ol class="initiative-strip">
+    @for(var index=0;index<Session.Pieces.Count;index++)
     {
-     <span class="tile-image-crop"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>
+     var piece=Session.Pieces[index];
+     <li><span>@(index+1)</span><strong>@Pretty(piece.Kind)</strong></li>
     }
-    else if(staged.Kind=="pin")
-    {
-     <span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span>
-    }
-    else
-    {
-     <span class="token-preview">token</span>
-    }
-    <small>@staged.Name</small>
-   </button>
-  }
- </aside>
+    @if(Session.Pieces.Count==0){<li class="initiative-empty">Place tokens to begin.</li>}
+   </ol>
+   <div class="encounter-timer">
+    <time datetime="@Session.EncounterElapsedIso">@Session.EncounterElapsedText</time>
+    <button @onclick="Session.ToggleEncounterTimer" aria-label="@(Session.EncounterTimerRunning?"Pause timer":"Start timer")">@(Session.EncounterTimerRunning?"Pause":"Start")</button>
+    <button @onclick="Session.ResetEncounterTimer" aria-label="Reset timer">Reset</button>
+   </div>
+  </aside>
+ }
+ else
+ {
+  <aside class="staging-tray pallet" aria-label="Tile pallet">
+   @if(Session.StagedAssets.Count==0)
+   {
+    <div class="tray-hint"><strong>PALLET</strong><span>Drag tiles here.</span></div>
+   }
+   @foreach(var staged in Session.StagedAssets)
+   {
+    <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray."
+            @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true"
+            @ondblclick="()=>Session.RemoveStaged(staged.Key)">
+     @if(staged.Kind=="tile")
+     {
+      <span class="tile-image-crop"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>
+     }
+     else
+     {
+      <span class="token-preview">token</span>
+     }
+     <small>@staged.Name</small>
+    </button>
+   }
+  </aside>
+ }
 
  <section class="map-shell">
   <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
