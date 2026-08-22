@@ -52,7 +52,15 @@ window.ristWorld={
    }
    resolve(output);
   };img.src=dataUrl;
- })
+ }),
+ downloadText:(name,text,type)=>{
+  const blob=new Blob([text],{type:type||'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ },
+ shareTextFile:async(name,text,type)=>{
+  const file=new File([text],name,{type:type||'application/octet-stream'});
+  if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'RIST map'});return true;}
+  window.ristWorld.downloadText(name,text,type);return false;
+ }
 };
 
 window.ristCropPortrait=(dataUrl,zoom,xPct,yPct,size)=>new Promise((resolve,reject)=>{

@@ -59,7 +59,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string SelectedTile { get; set; } = "";
     public bool TileBrowserOpen { get; private set; }
     public string PieceKind { get; set; } = "mini";
-    public string Role { get; set; } = "GM";\n    public bool IsLoggedIn { get; private set; } = true;
+    public string Role { get; set; } = "GM";\n    public bool IsLoggedIn { get; private set; } = true;\n    public bool SaveMenuOpen { get; private set; }\n    public bool LoadMenuOpen { get; private set; }\n    public bool HeaderPinDragging { get; private set; }
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; private set; } = "mi";
     public const int GridColumns = 20;
@@ -76,7 +76,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
-    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}\n    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;Notify();}
+    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}\n    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;CloseHeaderMenus();Notify();}\n    public void ToggleSaveMenu(){SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}\n    public void ToggleLoadMenu(){LoadMenuOpen=!LoadMenuOpen;SaveMenuOpen=false;Notify();}\n    public void CloseHeaderMenus(){SaveMenuOpen=false;LoadMenuOpen=false;}\n    public void BeginHeaderPinDrag(){HeaderPinDragging=true;}\n    public void EndHeaderPinDrag(){HeaderPinDragging=false;}\n    public void PlaceHeaderPin(double x,double y){if(!HeaderPinDragging)return;Pieces.Add(new("pin",Math.Clamp(x,0,1),Math.Clamp(y,0,1),Math.Max(ViewZoom,.01)));HeaderPinDragging=false;Notify();}
     public void CalibrateGrid(){GridDistance=Math.Max(.01,GridDistance);GridCalibrationZoom=Math.Max(.01,ViewZoom);Notify();}
 
     public void OpenMixer(){MixerOpen=true;Notify();}

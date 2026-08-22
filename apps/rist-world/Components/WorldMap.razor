@@ -4,8 +4,8 @@
   <section class="tile-browser" aria-label="Tile library">
    <header>
     <div class="tile-browser-title"><strong>Tile library</strong><small>Choose a directory, then drag a tile to the pallet.</small></div>
-    <label class="tileset-upload" title="Upload and split a tileset" aria-label="Upload tileset">
-     <span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@ImportingTileset" />
+    <label class="tileset-upload" title="@(Session.IsLoggedIn?"Upload and split a tileset":"Log in to upload tilesets")" aria-label="Upload tileset">
+     <span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@(!Session.IsLoggedIn||ImportingTileset)" />
     </label>
    </header>
    @if(!string.IsNullOrWhiteSpace(ImportStatus)){<div class="tileset-import-status" role="status">@ImportStatus</div>}
@@ -73,7 +73,7 @@
  </aside>
 
  <section class="map-shell">
-  <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel">
+  <div class="map" @ref="MapElement" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
