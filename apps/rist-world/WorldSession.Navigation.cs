@@ -10,6 +10,35 @@ public sealed partial class WorldSession
  public bool PlayActive=>TableMode=="play";
  public bool TileLockMode { get; private set; }
  public bool CanEditTiles=>Role=="GM"&&TableMode=="worldbuilder";
+ public bool LockedTileMenuOpen { get; private set; }
+ public bool RecursiveRegionSelectionMode { get; private set; }
+ public bool RegionPlayerPickerOpen { get; private set; }
+ public TileItem? HeldLockedTile { get; private set; }
+ readonly List<TileItem> recursiveRegionTiles=[];
+ readonly Stack<RecursiveMapState> recursiveParents=[];
+ readonly Dictionary<string,RecursiveMapState> recursiveChildren=new(StringComparer.Ordinal);
+ readonly Dictionary<string,string> recursiveTileRoutes=new(StringComparer.Ordinal);
+ readonly Dictionary<string,HashSet<string>> recursiveRegionPlayers=new(StringComparer.Ordinal);
+ string? activeRecursiveKey;
+ public bool HasRecursiveRegionSelection=>recursiveRegionTiles.Count>0;
+ public int RecursiveRegionSelectionCount=>recursiveRegionTiles.Count;
+ public string NextRecursiveLayer
+ {
+  get{var i=Array.IndexOf(TableLayers,Layer);return i>=0&&i<TableLayers.Length-1?TableLayers[i+1]:Layer;}
+ }
+ public bool CanEnterHeldRegion=>HeldLockedTile is not null&&recursiveTileRoutes.ContainsKey(RecursiveTileRouteKey(Layer,HeldLockedTile));
+ public IReadOnlyList<string> RegionPlayerChoices
+ {
+  get{var choices=new List<string>{"Player 1"};if(!string.IsNullOrWhiteSpace(CharacterName))choices.Insert(0,CharacterName.Trim());return choices.Distinct(StringComparer.OrdinalIgnoreCase).ToList();}
+ }
+ public IReadOnlySet<string> AssignedRegionPlayers
+ {
+  get
+  {
+   var key=HeldRegionKey();
+   return key is not null&&recursiveRegionPlayers.TryGetValue(key,out var players)?players:new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+  }
+ }
  readonly List<TileItem> selectedZoneTiles=[];
  public bool HasSelectedZone=>selectedZoneTiles.Count>0;
  public bool SelectedZoneLocked=>HasSelectedZone&&selectedZoneTiles.All(x=>x.Locked);
@@ -22,7 +51,84 @@ public sealed partial class WorldSession
   .GroupBy(x=>x.ZoneId).Select(g=>new MapZoneLabel(g.Key,g.First().ZoneLabel,
    g.Select(TileTerrain).GroupBy(x=>x).OrderByDescending(x=>x.Count()).First().Key,
    g.Average(x=>x.X)+GridCellWidthPercent/2,g.Average(x=>x.Y)+GridCellHeightPercent/2,g.All(x=>x.Locked))).ToList();
- public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;if(!TileLockMode)selectedZoneTiles.Clear();Notify();}
+ public void ToggleTileLockMode(){if(!CanEditTiles)return;TileLockMode=!TileLockMode;if(!TileLockMode)selectedZoneTiles.Clear();CloseLockedTileMenu(false);Notify();}
+ public void OpenLockedTileMenu(TileItem tile)
+ {
+  if(!CanEditTiles||!tile.Locked)return;
+  HeldLockedTile=tile;LockedTileMenuOpen=true;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;recursiveRegionTiles.Clear();Notify();
+ }
+ public void CloseLockedTileMenu(bool notify=true)
+ {
+  LockedTileMenuOpen=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;
+  if(notify)Notify();
+ }
+ public void BeginRecursiveRegionSelection()
+ {
+  if(!CanEditTiles||HeldLockedTile is null||!HeldLockedTile.Locked)return;
+  recursiveRegionTiles.Clear();recursiveRegionTiles.Add(HeldLockedTile);LockedTileMenuOpen=false;RecursiveRegionSelectionMode=true;Notify();
+ }
+ public void ToggleRecursiveRegionTile(TileItem tile)
+ {
+  if(!CanEditTiles||!RecursiveRegionSelectionMode||!tile.Locked)return;
+  var seed=recursiveRegionTiles.FirstOrDefault();
+  if(seed is not null&&!string.Equals(seed.ZoneId,tile.ZoneId,StringComparison.Ordinal))return;
+  if(recursiveRegionTiles.Contains(tile))recursiveRegionTiles.Remove(tile);
+  else recursiveRegionTiles.Add(tile);
+  Notify();
+ }
+ public bool IsRecursiveRegionTile(TileItem tile)=>recursiveRegionTiles.Contains(tile);
+ public string RecursiveRegionBoundaryClasses(TileItem tile)
+ {
+  if(!IsRecursiveRegionTile(tile))return "";
+  var keys=recursiveRegionTiles.Select(TileGridKey).ToHashSet();var key=TileGridKey(tile);var parts=new List<string>{"recursive-region-selected"};
+  if(!keys.Contains((key.X,key.Y-1)))parts.Add("recursive-edge-top");
+  if(!keys.Contains((key.X+1,key.Y)))parts.Add("recursive-edge-right");
+  if(!keys.Contains((key.X,key.Y+1)))parts.Add("recursive-edge-bottom");
+  if(!keys.Contains((key.X-1,key.Y)))parts.Add("recursive-edge-left");
+  return string.Join(" ",parts);
+ }
+ public void CancelRecursiveRegionSelection(){RecursiveRegionSelectionMode=false;recursiveRegionTiles.Clear();HeldLockedTile=null;Notify();}
+ public void CommitRecursiveRegion()
+ {
+  if(!CanEditTiles||!HasRecursiveRegionSelection)return;
+  var parentLayer=Layer;var targetLayer=NextRecursiveLayer;if(targetLayer==parentLayer)return;
+  var key=RecursiveSelectionKey(parentLayer,recursiveRegionTiles);
+  SaveCurrentRecursiveState(key);
+  foreach(var tile in recursiveRegionTiles)recursiveTileRoutes[RecursiveTileRouteKey(parentLayer,tile)]=key;
+  EnterRecursiveChild(key,targetLayer);
+ }
+ public void EnterHeldRegion()
+ {
+  var key=HeldRegionKey();if(!CanEditTiles||key is null||!recursiveChildren.TryGetValue(key,out var child))return;
+  SaveCurrentRecursiveState(key);EnterRecursiveChild(key,child.Layer);
+ }
+ public void OpenSendPlayersToRegion()
+ {
+  if(!CanEditTiles||HeldRegionKey() is null)return;LockedTileMenuOpen=false;RegionPlayerPickerOpen=true;Notify();
+ }
+ public void TogglePlayerInHeldRegion(string player)
+ {
+  var key=HeldRegionKey();if(!CanEditTiles||key is null)return;
+  if(!recursiveRegionPlayers.TryGetValue(key,out var players))recursiveRegionPlayers[key]=players=new(StringComparer.OrdinalIgnoreCase);
+  if(!players.Add(player))players.Remove(player);Notify();
+ }
+ public void CloseRegionPlayerPicker(){RegionPlayerPickerOpen=false;HeldLockedTile=null;Notify();}
+ void SaveCurrentRecursiveState(string childKey)
+ {
+  if(activeRecursiveKey is not null)recursiveChildren[activeRecursiveKey]=new(Layer,activeRecursiveKey,PlacedTiles.ToList(),Pieces.ToList());
+  recursiveParents.Push(new(Layer,childKey,PlacedTiles.ToList(),Pieces.ToList()));
+ }
+ void EnterRecursiveChild(string key,string targetLayer)
+ {
+  if(recursiveChildren.TryGetValue(key,out var child)){PlacedTiles=child.Tiles.ToList();Pieces=child.Pieces.ToList();}
+  else{PlacedTiles=[];Pieces=[];recursiveChildren[key]=new(targetLayer,key,[],[]);}
+  activeRecursiveKey=key;Layer=targetLayer;RecurseTarget=key;TableMode="worldbuilder";
+  LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();TileLockMode=false;selectedZoneTiles.Clear();Notify();
+ }
+ string? HeldRegionKey()=>HeldLockedTile is null?null:recursiveTileRoutes.GetValueOrDefault(RecursiveTileRouteKey(Layer,HeldLockedTile));
+ static string RecursiveTileRouteKey(string layer,TileItem tile){var k=TileGridKey(tile);return $"{layer}:{k.X}:{k.Y}";}
+ static string RecursiveSelectionKey(string layer,IEnumerable<TileItem> tiles)=>$"{layer}>{string.Join(",",tiles.Select(TileGridKey).OrderBy(x=>x.Y).ThenBy(x=>x.X).Select(x=>$"{x.X}.{x.Y}"))}";
+ sealed record RecursiveMapState(string Layer,string Key,List<TileItem> Tiles,List<PieceItem> Pieces);
  public void SelectTileZone(TileItem tile)
  {
   if(!CanEditTiles||!TileLockMode)return;
@@ -91,7 +197,7 @@ public sealed partial class WorldSession
   if(mode is "encounter" or "play"){if(!EncounterActive)EnterEncounter();}
   else if(EncounterActive)ExitEncounter();
   TableMode=mode;
-  if(mode!="worldbuilder"){TileLockMode=false;selectedZoneTiles.Clear();}
+  if(mode!="worldbuilder"){TileLockMode=false;selectedZoneTiles.Clear();LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();}
   if(mode!="play"){encounterClock.Stop();encounterTimer?.Dispose();encounterTimer=null;}
   Notify();
  }
@@ -175,5 +281,15 @@ public sealed partial class WorldSession
   Notify();
  }
  public void DismissPin(){SelectedPin=null;Notify();}
- public void ReturnToWorld(){Layer="WORLD";RecurseTarget=null;SelectedPin=null;EncounterActive=false;TableMode="worldbuilder";Notify();}
+ public void ReturnToWorld()
+ {
+  if(activeRecursiveKey is not null)recursiveChildren[activeRecursiveKey]=new(Layer,activeRecursiveKey,PlacedTiles.ToList(),Pieces.ToList());
+  if(recursiveParents.Count>0)
+  {
+   var parent=recursiveParents.Pop();PlacedTiles=parent.Tiles.ToList();Pieces=parent.Pieces.ToList();Layer=parent.Layer;
+   activeRecursiveKey=recursiveParents.Count>0?recursiveParents.Peek().Key:null;RecurseTarget=activeRecursiveKey;
+  }
+  else{Layer="WORLD";RecurseTarget=null;activeRecursiveKey=null;}
+  SelectedPin=null;EncounterActive=false;TableMode="worldbuilder";LockedTileMenuOpen=false;RecursiveRegionSelectionMode=false;RegionPlayerPickerOpen=false;HeldLockedTile=null;recursiveRegionTiles.Clear();Notify();
+ }
 }
