@@ -109,8 +109,8 @@
     }
    </div>
    <label class="draw-only-setting"><input type="checkbox" checked="@Session.StandardDrawOnly" @onchange="e=>Session.SetStandardDrawOnly(e.Value is bool value&&value)" /><span>Draw only</span></label>
-   <button @onclick="SaveStandardDeck">Save</button>
-   <label class="standard-load">Load<InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label>
+   <button class="standard-save-icon" @onclick="SaveStandardDeck" aria-label="Save standard deck" title="Save standard deck"><span class="header-icon icon-save" aria-hidden="true"></span></button>
+   <label class="standard-load standard-load-icon" aria-label="Load standard deck" title="Load standard deck"><span class="header-icon icon-load" aria-hidden="true"></span><InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label>
    <button class="standard-drawer-exit" @onclick="Session.CloseHand" aria-label="Close card sliders" title="Close card sliders"><span class="header-icon icon-exit" aria-hidden="true"></span></button>
   </div>
  </div>
