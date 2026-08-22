@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
-    private const string SaveKey = "rist.world.blazor.v5";
+    private const string SaveKey = "rist.world.blazor.v6";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -168,7 +168,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
             var column=int.Parse(parts[^1],System.Globalization.CultureInfo.InvariantCulture);
             PlacedTiles.Add(new(tile.Id,tile.Name,tile.Image,
                 column/(double)GridColumns,row/(double)GridRows,
-                tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight));
+                tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,
+                Locked:true));
         }
         MapLocked=true;
     }
