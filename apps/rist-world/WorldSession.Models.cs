@@ -77,6 +77,9 @@ public sealed class DiceBagEntry(string dieKey,int count=1,int selectedMagnitude
 
 public sealed class HandCard(CharacterField field)
 {
+    public const string Pending = "pending";
+    public const string Approved = "approved";
+    public string ApprovalStatus { get; set; } = Pending;
     public string Id { get; } = Guid.NewGuid().ToString("N");
     public CharacterField Field { get; } = field;
     public List<DiceBagEntry> DiceBag => Field.DiceBag;
