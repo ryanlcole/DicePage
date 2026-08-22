@@ -732,3 +732,24 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  pointer-events:none;color:#f1ddb0;text-shadow:0 2px 4px #071016,0 0 8px #071016;
  font-family:Georgia,serif;font-size:clamp(16px,2.4vw,32px);font-weight:700;letter-spacing:.12em
 }
+
+
+/* Connected terrain-zone editor */
+.zone-editor{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0;padding:6px 10px;border-left:1px solid #80672d;background:rgba(11,18,24,.9)}
+.zone-editor button,.zone-editor input{min-height:34px;border:1px solid #9b7927;border-radius:9px;background:#17222c;color:#f4e7c2}
+.zone-editor button{padding:5px 10px;font-weight:700}
+.zone-editor .zone-mode-button.active{background:#8b6b22;color:#fff4c8;box-shadow:0 0 0 2px #e2bd54 inset}
+.zone-editor strong{white-space:nowrap;color:#e5c56c;text-transform:capitalize}
+.zone-editor label{display:flex;align-items:center;gap:6px;min-width:150px}
+.zone-editor label span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c9b88c}
+.zone-editor input{width:130px;padding:4px 8px}
+.tile-cell.locked{cursor:default}
+.tile-cell.locked::after{content:"";position:absolute;inset:0;background:rgba(8,14,18,.08);pointer-events:none}
+.tile-cell.zone-selected{z-index:3;filter:brightness(1.12)}
+.tile-cell.zone-edge-top{border-top:3px solid #f3cf61}
+.tile-cell.zone-edge-right{border-right:3px solid #f3cf61}
+.tile-cell.zone-edge-bottom{border-bottom:3px solid #f3cf61}
+.tile-cell.zone-edge-left{border-left:3px solid #f3cf61}
+.map-zone-label{position:absolute;z-index:8;transform:translate(-50%,-50%);padding:3px 8px;border:1px solid #9c7b31;border-radius:8px;background:rgba(8,15,20,.78);color:#f4e3b2;font:700 clamp(10px,1.8vw,16px) Georgia,serif;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}
+.map-zone-label.locked{box-shadow:0 0 0 1px rgba(229,196,96,.35)}
+@media(max-width:760px){.zone-editor{overflow-x:auto;max-width:72%;padding:4px 6px}.zone-editor strong{font-size:11px}.zone-editor label span{display:none}.zone-editor input{width:96px}}
