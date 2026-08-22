@@ -131,53 +131,70 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
-        string[] landMask=
+        string[] pangeaMask=
         [
-            "..#####.......",
-            ".########.....",
-            "############..",
-            "#############.",
-            "##############",
-            ".############.",
-            "..###########.",
-            "...########...",
-            "....######...."
+            "....######......",
+            "..###########...",
+            ".#############..",
+            "##############..",
+            "###############.",
+            ".###############",
+            "..##############",
+            "..#############.",
+            "...##########...",
+            "....########....",
+            "......####......"
         ];
-        const int startColumn=3,startRow=2;
-        for(var row=0;row<landMask.Length;row++)
+        const int startColumn=2,startRow=1;
+        for(var row=0;row<pangeaMask.Length;row++)
         {
-            for(var column=0;column<landMask[row].Length;column++)
+            for(var column=0;column<pangeaMask[row].Length;column++)
             {
-                if(landMask[row][column]!='#')continue;
-                var boundary=row==0||row==landMask.Length-1||column==0||column==landMask[row].Length-1
-                    || landMask[row-1][column]!='#'||landMask[row+1][column]!='#'
-                    || landMask[row][column-1]!='#'||landMask[row][column+1]!='#';
-                var terrain=boundary?"coast":TerrainForWorldCell(column,row);
+                if(pangeaMask[row][column]!='#')continue;
+                var boundary=IsPangeaBoundary(pangeaMask,column,row);
+                var terrain=boundary?"coast":PangeaTerrain(column,row);
                 var atlasNumber=terrain switch
                 {
                     "coast"=>"066","forest"=>"028","mountains"=>"022","desert"=>"024",
-                    "hills"=>"023","ice"=>"021","jungle"=>"026","swamp"=>"025",_=>"029"
+                    "hills"=>"023","ice"=>"021","jungle"=>"026","swamp"=>"025",
+                    "rivers"=>"017",_=>"029"
                 };
                 var sourceRow=row%6+1;
                 var sourceColumn=column%6+1;
                 var id=$"aws-{terrain}-{atlasNumber}-{sourceRow:00}-{sourceColumn:00}";
                 var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
                 if(tile is null)continue;
-                PlacedTiles.Add(new(tile.Id,$"Shaelvien · {terrain} · {row+1},{column+1}",tile.Image,
+                var region=PangeaRegion(column,row);
+                PlacedTiles.Add(new(tile.Id,$"Pangea · {region} · {terrain}",tile.Image,
                     (startColumn+column)/(double)GridColumns,
                     (startRow+row)/(double)GridRows,
                     tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,1));
             }
         }
     }
-    static string TerrainForWorldCell(int column,int row)
+    static bool IsPangeaBoundary(string[] mask,int column,int row)
     {
-        if(row<=1)return "ice";
-        if(column>=9&&row<=4)return "mountains";
-        if(column<=3&&row>=5)return "swamp";
-        if(column>=8&&row>=6)return "desert";
-        if(column<=5&&row>=2)return "forest";
-        if(column>=5&&column<=8&&row>=3)return "hills";
+        if(row==0||row==mask.Length-1||column==0||column==mask[row].Length-1)return true;
+        return mask[row-1][column]!='#'||mask[row+1][column]!='#'
+            ||mask[row][column-1]!='#'||mask[row][column+1]!='#';
+    }
+    static string PangeaRegion(int column,int row)
+    {
+        if(row<=2&&column<=8)return "Amazon Crown";
+        if(row<=4&&column>=9)return "Eastern Old World";
+        if(row>=7&&column<=6)return "Southern Reach";
+        if(row>=7&&column>=10)return "Austral Reach";
+        if(column is >=6 and <=10&&row is >=3 and <=7)return "Endemar Uplands";
+        return "Pangean Interior";
+    }
+    static string PangeaTerrain(int column,int row)
+    {
+        if(row<=1)return column<=8?"jungle":"ice";
+        if(column>=10&&row<=5)return "mountains";
+        if(column<=4&&row>=6)return "swamp";
+        if(column>=10&&row>=7)return "desert";
+        if(column is >=6 and <=10&&row is >=3 and <=7)return row%2==0?"rivers":"hills";
+        if(column<=7)return "forest";
         return "plains";
     }
     async Task LoadAtlasAsync()
@@ -220,8 +237,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){if(Role=="PC"&&staged.ApprovalStatus!=HandCard.Approved)return;x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight,Math.Max(placementZoom,.01)));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
-    public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
-    public void RemoveTile(TileItem tile){PlacedTiles.Remove(tile);Notify();}
+    public void MoveTile(TileItem tile,double x,double y){if(!CanEditTiles||tile.Locked)return;var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
+    public void RemoveTile(TileItem tile){if(!CanEditTiles||tile.Locked)return;PlacedTiles.Remove(tile);Notify();}
     public void MapTap(double x,double y){}
     public void PlacePin(double x,double y,double placementZoom)=>Pieces.Add(new("pin",Math.Clamp(x,0,1),Math.Clamp(y,0,1),Math.Max(placementZoom,.01)));
     public void AddGem(int value){Gems.Add(new(value,.20+Random.Shared.NextDouble()*.60,.20+Random.Shared.NextDouble()*.60));Notify();}
