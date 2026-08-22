@@ -1,7 +1,12 @@
 # universal-badge-collapsible-deploy-2026-08-15
 name: Deploy RIST WORLD Public
 # restore-card-character-layout-17
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - live-alpha-rist-blazor-world
 permissions:
   contents: read
   pages: write
