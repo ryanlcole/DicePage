@@ -38,14 +38,6 @@
   <div class="token-choice-strip">
    <button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
    <button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
-   @foreach(var asset in Session.StagedAssets.Where(x=>x.Kind!="tile"&&x.Kind!="pin"))
-   {
-    <div class="token-approval-chip @asset.ApprovalStatus">
-     @if(asset.Kind=="pin"){<span class="header-icon icon-pin token-pin-icon" aria-hidden="true"></span>}
-     else{<span class="token-choice">@asset.Kind</span>}
-     @if(Session.Role=="GM"&&asset.ApprovalStatus==HandCard.Pending){<span class="approval-actions"><button @onclick="()=>Session.ApproveStaged(asset.Key)" aria-label="Approve @asset.Name">✓</button><button @onclick="()=>Session.DenyStaged(asset.Key)" aria-label="Deny @asset.Name">×</button></span>}
-    </div>
-   }
   </div>
  </div>
 </section>
