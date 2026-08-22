@@ -3,7 +3,7 @@
  @for(var copy=0;copy<3;copy++)
  {
   <div class="circular-set dice-circular-set">
-   <button type="button" class="hand-drawer-toggle character-cards-launcher" title="Open character cards" aria-label="Open character cards" @onclick="Session.OpenMixer">
+   <button type="button" class="hand-drawer-toggle character-cards-launcher @(Session.HandOpen?"open":"")" title="@(Session.HandOpen?"Close card drawer":"Open card drawer")" aria-label="@(Session.HandOpen?"Close card drawer":"Open card drawer")" aria-expanded="@Session.HandOpen" @onclick="Session.ToggleHand">
     <span class="hand-toggle-card-back" aria-hidden="true"></span>
     <span class="hand-toggle-chevron" aria-hidden="true">⌃</span>
    </button>
