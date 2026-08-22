@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
-    private const string SaveKey = "rist.world.blazor.v1";
+    private const string SaveKey = "rist.world.blazor.v2";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -127,15 +127,15 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
-    public async Task InitializeAsync(){await LoadAtlasAsync();BuildShaelvienPangaea();await LoadCardsAsync();Notify();}
+    public async Task InitializeAsync(){await LoadAtlasAsync();if(!await TryLoadSavedMapAsync())BuildShaelvienPangaea();await LoadCardsAsync();Notify();}
     void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
 
         // The World remains a 20x13 navigation grid, but the default terrain is
-        // authored as though it were placed at 3x zoom. Each world square can
-        // therefore contain nine independently editable detail tiles.
-        const int detailZoom=3;
+        // authored as though it were placed at 4x zoom. Each world square can
+        // therefore contain sixteen independently editable detail tiles.
+        const int detailZoom=4;
         string[] pangea=
         [
             "....CCCCCCCCCC......",
