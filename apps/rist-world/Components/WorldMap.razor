@@ -23,8 +23,8 @@
    <div class="tile-browser-grid">
     @foreach(var tile in BrowserTiles)
     {
-     <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
-      <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
+     <button class="library-tile" aria-label="@tile.Name by @tile.Author" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
+      <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span>
      </button>
     }
     @if(string.IsNullOrWhiteSpace(BrowserFolder)){<p>Choose a folder to load its tiles.</p>}
