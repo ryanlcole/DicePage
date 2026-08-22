@@ -20,7 +20,20 @@
     <label>Saved filters<select value="@SelectedSavedFilter" @onchange="ApplySavedFilter"><option value="">Choose saved filter</option>@foreach(var filter in SavedFilters){<option value="@filter.Key">@filter.Label</option>}</select></label>
     <button @onclick="SaveCurrentFilter" disabled="@string.IsNullOrWhiteSpace(BrowserFolder)">Save filter</button>
    </div>
-   <div class="tile-browser-grid">
+   <div class="tile-tool-row">
+    <label>Tool type
+     <select value="@SelectedTileTool" @onchange="TileToolChanged" aria-label="Tile tool type">
+      <option value="draw">Draw</option>
+      <option value="brush">Brush</option>
+      <option value="fill">Fill</option>
+      <option value="line">Line</option>
+      <option value="square">Square</option>
+      <option value="circle">Circle</option>
+      <option value="erase">Erase</option>
+     </select>
+    </label>
+   </div>
+   <div class="tile-browser-grid" aria-label="Tiles; swipe left or right">
     @foreach(var tile in BrowserTiles)
     {
      <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
