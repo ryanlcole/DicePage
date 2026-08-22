@@ -347,3 +347,50 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .mixer-modal:has(.universal-sheet){inset:58px 0 119px!important}
  .character-mixer.universal-sheet{width:min(88dvw,430px,calc((100dvh - 191px)*5/7))!important;height:min(calc(100dvh - 191px),602px,calc(88dvw*7/5))!important}
 }
+
+
+/* Playing-card geometry: card controls use a consistent 5:7 silhouette.
+   Token controls intentionally retain their square and circular shapes. */
+:root{--rist-card-height:44px;--rist-card-width:calc(var(--rist-card-height)*5/7)}
+.compact-hand-card{
+ flex:0 0 var(--rist-card-width)!important;
+ width:var(--rist-card-width)!important;
+ height:var(--rist-card-height)!important;
+ aspect-ratio:5/7!important;
+ padding:2px!important;
+ border-radius:5px!important
+}
+.hand-card-wrap{
+ flex:0 0 var(--rist-card-width)!important;
+ width:var(--rist-card-width)!important;
+ height:var(--rist-card-height)!important;
+ aspect-ratio:5/7!important
+}
+.hand-deck-card .hand-toggle-card-back,.compact-hand-card img,.standard-card-face{
+ border-radius:3px!important
+}
+.header-card-deck{
+ box-sizing:border-box!important;
+ width:46px!important;
+ min-width:46px!important;
+ padding:3px!important
+}
+.header-card-deck .header-card-back{
+ width:34px!important;
+ height:48px!important;
+ aspect-ratio:5/7!important;
+ margin:auto!important;
+ border-radius:5px!important
+}
+.drawer-category-card,.drawer-front{
+ flex:0 0 41px!important;
+ width:41px!important;
+ height:58px!important;
+ aspect-ratio:5/7!important;
+ border-radius:6px!important
+}
+.category-card-back{border-radius:5px!important}
+@media(orientation:landscape){
+ :root{--rist-card-height:40px}
+ .header-card-deck .header-card-back{width:32px!important;height:45px!important}
+}
