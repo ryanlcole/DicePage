@@ -97,7 +97,8 @@ public sealed partial class WorldSession
         else if(IsAttributeField(field)){field.Kind="ATTRIBUTE";field.Group="Attributes";}
         else if(IsLimitField(field)){field.Kind="LIMIT";field.Group="Limits";}
         else if(IsFlareField(field)){field.Kind="FLARE";field.Group="Flare";}
-        HandCards.Add(new(field));
+        var card=new HandCard(field){ApprovalStatus=Role=="GM"?HandCard.Approved:HandCard.Pending};
+        HandCards.Add(card);
         Notify();
     }
 
