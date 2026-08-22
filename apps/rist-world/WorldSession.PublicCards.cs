@@ -60,4 +60,30 @@ public sealed partial class WorldSession
     }
 
     public bool IsPublicCard(CharacterField field) => PublicCards.Any(x => x.Field.Id == field.Id);
+
+    public int PendingHandApprovalCount => HandCards.Count(x => x.ApprovalStatus == HandCard.Pending);
+
+    public void ApproveHandCard(HandCard card)
+    {
+        if (Role != "GM" || !HandCards.Contains(card)) return;
+        card.ApprovalStatus = HandCard.Approved;
+        Notify();
+    }
+
+    public void DenyHandCard(HandCard card)
+    {
+        if (Role != "GM" || !HandCards.Contains(card)) return;
+        PublicCards.RemoveAll(x => x.Field.Id == card.Field.Id);
+        HandCards.Remove(card);
+        Notify();
+    }
+
+    public void ResubmitHandCard(HandCard card)
+    {
+        if (!HandCards.Contains(card)) return;
+        card.ApprovalStatus = HandCard.Pending;
+        Notify();
+    }
+
+    public bool CanPlay(HandCard card) => card.ApprovalStatus == HandCard.Approved;
 }
