@@ -1,9 +1,12 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 @inject WorldSession Session
 <section class="player-tools-rail" aria-label="Player hand and token placement">
  <div class="player-hand-pane" aria-label="Player card hand">
   <span class="player-tools-label">Hand</span>
   <div class="player-hand-strip">
-   <button class="compact-hand-card hand-deck-card" @onclick="Session.ToggleHand" aria-expanded="@Session.HandOpen" aria-label="Open available card deck"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
+   <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open deck or draw a random card"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
    <button class="compact-hand-card character-hand-card approved" @onclick="Session.OpenMixer" aria-label="Open active character sheet">
     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
     else{<span class="drawer-glyph">CHAR</span>}
@@ -21,6 +24,12 @@
       <span class="approval-actions"><button @onclick="()=>Session.ApproveHandCard(card)" aria-label="Approve @card.Name">✓</button><button @onclick="()=>Session.DenyHandCard(card)" aria-label="Deny @card.Name">×</button></span>
      }
     </div>
+   }
+   @foreach(var card in Session.StandardHandCards)
+   {
+    <button class="compact-hand-card standard-hand-card approved" @onclick="()=>Session.ShowCard(card)" aria-label="@card.Name">
+     <span class="standard-card-face"><small>@card.Type</small><strong>@card.Name</strong></span>
+    </button>
    }
   </div>
  </div>
@@ -93,6 +102,14 @@
 </section>
 }
 @code{
+ void SetStandardCount(string type,ChangeEventArgs e)=>Session.SetStandardTypeCount(type,int.TryParse(e.Value?.ToString(),out var count)?count:0);
+ async Task SaveStandardDeck()=>await JS.InvokeVoidAsync("ristWorld.downloadText","standard-deck.ristdeck",Session.SaveStandardDeckJson(),"application/json");
+ async Task LoadStandardDeck(InputFileChangeEventArgs e)
+ {
+  using var stream=e.File.OpenReadStream(5*1024*1024);
+  using var reader=new StreamReader(stream);
+  Session.LoadStandardDeckJson(await reader.ReadToEndAsync());
+ }
  async Task HandCardClick(HandCard card)
  {
   if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending){Session.ApproveHandCard(card);return;}
