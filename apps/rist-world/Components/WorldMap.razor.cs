@@ -178,7 +178,7 @@ public partial class WorldMap:IDisposable
  }
  static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
 
- async Task ZoomAt(double clientX,double clientY,double targetZoom)
+ async Task ZoomAt(double? clientX,double? clientY,double targetZoom)
  {
   var next=Math.Clamp(targetZoom,.5,5);
   if(Math.Abs(next-G.Zoom)<.0001)return;
@@ -186,8 +186,8 @@ public partial class WorldMap:IDisposable
   if(pan.Length>=2){G.PanX=pan[0];G.PanY=pan[1];}
   G.Zoom=next;Session.ViewZoom=G.Zoom;Session.Notify();
  }
- async Task ZoomIn()=>await ZoomAt(double.NaN,double.NaN,G.Zoom*1.2);
- async Task ZoomOut()=>await ZoomAt(double.NaN,double.NaN,G.Zoom/1.2);
+ async Task ZoomIn()=>await ZoomAt(null,null,G.Zoom*1.2);
+ async Task ZoomOut()=>await ZoomAt(null,null,G.Zoom/1.2);
  async Task Wheel(WheelEventArgs e)
  {
   if(Dragging)return;
@@ -212,8 +212,8 @@ public partial class WorldMap:IDisposable
    case "arrowright":case "d":G.PanX-=step;break;
    case "arrowup":case "w":G.PanY+=step;break;
    case "arrowdown":case "s":G.PanY-=step;break;
-   case "+":case "=":await ZoomAt(double.NaN,double.NaN,G.Zoom*1.2);return;
-   case "-":case "_":await ZoomAt(double.NaN,double.NaN,G.Zoom/1.2);return;
+   case "+":case "=":await ZoomAt(null,null,G.Zoom*1.2);return;
+   case "-":case "_":await ZoomAt(null,null,G.Zoom/1.2);return;
    case "0":G.PanX=0;G.PanY=0;G.Zoom=1;Session.ViewZoom=1;Session.Notify();return;
    default:return;
   }
