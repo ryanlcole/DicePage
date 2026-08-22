@@ -7,6 +7,13 @@ window.ristWorld={
   const r=el.getBoundingClientRect();const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
  },
+ zoomPan:(el,x,y,panX,panY,oldZoom,newZoom)=>{
+  const r=el.getBoundingClientRect();const cx=Number.isFinite(Number(x))?Number(x):r.left+r.width/2;const cy=Number.isFinite(Number(y))?Number(y):r.top+r.height/2;
+  const sx=(cx-r.left)/r.width,sy=(cy-r.top)/r.height,oldZ=Math.max(Number(oldZoom)||1,.01),nextZ=Math.max(Number(newZoom)||1,.01);
+  const wx=((sx-.5)/oldZ)+.5-(Number(panX)||0)/(r.width*oldZ),wy=((sy-.5)/oldZ)+.5-(Number(panY)||0)/(r.height*oldZ);
+  return [r.width*((sx-.5)+nextZ*(.5-wx)),r.height*((sy-.5)+nextZ*(.5-wy))];
+ },
+ isTyping:()=>{const el=document.activeElement,tag=el?.tagName?.toLowerCase();return tag==='input'||tag==='textarea'||tag==='select'||!!el?.isContentEditable;},
  railPinDrop:(x,y)=>{const el=document.querySelector(".map");if(!el)return [0,0,0];const panX=Number(el.dataset.panX)||0,panY=Number(el.dataset.panY)||0,zoom=Number(el.dataset.zoom)||1;const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width,sy=(y-r.top)/r.height,z=Math.max(zoom,.01);return [1,((sx-.5)/z)+.5-panX/(r.width*z),((sy-.5)/z)+.5-panY/(r.height*z)];},
  dropPoint:(el,x,y,panX,panY,zoom)=>{
   const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
