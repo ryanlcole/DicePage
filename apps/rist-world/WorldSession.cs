@@ -19,7 +19,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string? DraggedDieKey { get; private set; }
 
     public string WorldMapUrl { get; } = "";
-    public string MapName { get; private set; } = "Endemar";
+    public string MapName { get; private set; } = "Shaelvien";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
         new("d4", "D4", "assets/dice/d4.png", 4, 8, 1, 8, 4, VisualAspect:1.06),
@@ -127,24 +127,58 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
-    public async Task InitializeAsync(){await LoadAtlasAsync();BuildEndemarContinent();await LoadCardsAsync();Notify();}
-    void BuildEndemarContinent()
+    public async Task InitializeAsync(){await LoadAtlasAsync();BuildShaelvienPangaea();await LoadCardsAsync();Notify();}
+    void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
-        const int startColumn=7,startRow=3;
-        for(var row=1;row<=6;row++)
+        string[] landMask=
+        [
+            "..#####.......",
+            ".########.....",
+            "############..",
+            "#############.",
+            "##############",
+            ".############.",
+            "..###########.",
+            "...########...",
+            "....######...."
+        ];
+        const int startColumn=3,startRow=2;
+        for(var row=0;row<landMask.Length;row++)
         {
-            for(var column=1;column<=6;column++)
+            for(var column=0;column<landMask[row].Length;column++)
             {
-                var id=$"aws-coast-066-{row:00}-{column:00}";
+                if(landMask[row][column]!='#')continue;
+                var boundary=row==0||row==landMask.Length-1||column==0||column==landMask[row].Length-1
+                    || landMask[row-1][column]!='#'||landMask[row+1][column]!='#'
+                    || landMask[row][column-1]!='#'||landMask[row][column+1]!='#';
+                var terrain=boundary?"coast":TerrainForWorldCell(column,row);
+                var atlasNumber=terrain switch
+                {
+                    "coast"=>"066","forest"=>"028","mountains"=>"022","desert"=>"024",
+                    "hills"=>"023","ice"=>"021","jungle"=>"026","swamp"=>"025",_=>"029"
+                };
+                var sourceRow=row%6+1;
+                var sourceColumn=column%6+1;
+                var id=$"aws-{terrain}-{atlasNumber}-{sourceRow:00}-{sourceColumn:00}";
                 var tile=AtlasTiles.FirstOrDefault(x=>x.Id==id);
                 if(tile is null)continue;
-                PlacedTiles.Add(new(tile.Id,$"Endemar · {row},{column}",tile.Image,
-                    (startColumn+column-1)/(double)GridColumns,
-                    (startRow+row-1)/(double)GridRows,
+                PlacedTiles.Add(new(tile.Id,$"Shaelvien · {terrain} · {row+1},{column+1}",tile.Image,
+                    (startColumn+column)/(double)GridColumns,
+                    (startRow+row)/(double)GridRows,
                     tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,1));
             }
         }
+    }
+    static string TerrainForWorldCell(int column,int row)
+    {
+        if(row<=1)return "ice";
+        if(column>=9&&row<=4)return "mountains";
+        if(column<=3&&row>=5)return "swamp";
+        if(column>=8&&row>=6)return "desert";
+        if(column<=5&&row>=2)return "forest";
+        if(column>=5&&column<=8&&row>=3)return "hills";
+        return "plains";
     }
     async Task LoadAtlasAsync()
     {
