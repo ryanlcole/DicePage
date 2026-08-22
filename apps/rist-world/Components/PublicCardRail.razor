@@ -1,5 +1,5 @@
 @inject WorldSession Session
-<section class="public-card-drop" style="width:calc(100vw - 48px);min-width:0;max-width:calc(100vw - 48px);height:72px;min-height:72px;max-height:72px;margin:0;justify-self:start;transform:translateX(24px)" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
+<section class="public-card-drop" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
  <div class="public-card-strip">
   @if(Session.PublicCards.Count==0)
   {

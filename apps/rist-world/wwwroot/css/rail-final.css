@@ -1,0 +1,26 @@
+/* Final rail geometry: outer frames stay inside the app; only their inner
+   control rows scroll. Horizontal insets are replaced by a small inner space. */
+@media(max-width:800px){
+ .rist{width:100dvw!important;max-width:100dvw!important;overflow:hidden!important}
+ .topbar,.public-card-drop,.staging-tray,.footer{
+  box-sizing:border-box!important;
+  justify-self:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin-inline:0!important;
+  transform:none!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-radius:0!important;
+  contain:inline-size;
+ }
+ .topbar,.footer{overflow-x:auto!important;overflow-y:hidden!important;scroll-padding-inline:7px!important}
+ .header-circular-set,.dice-footer .circular-set{box-sizing:border-box!important;padding-left:7px!important;padding-right:7px!important}
+ .header-circular-set{align-items:center!important;margin:0!important}
+ .public-card-drop{overflow:hidden!important;padding-inline:0!important}
+ .public-card-strip{box-sizing:border-box!important;width:max-content!important;min-width:100%!important;padding-inline:7px!important}
+ .public-card-empty{box-sizing:border-box!important;flex:0 0 calc(100dvw - 14px)!important;width:calc(100dvw - 14px)!important;min-width:calc(100dvw - 14px)!important;max-width:calc(100dvw - 14px)!important}
+ .staging-tray{padding-inline:7px!important;scroll-padding-inline:7px!important}
+ .footer>.circular-set{flex:0 0 max-content!important;width:max-content!important;min-width:max-content!important;max-width:none!important}
+}

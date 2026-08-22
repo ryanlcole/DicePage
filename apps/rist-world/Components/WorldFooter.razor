@@ -1,20 +1,11 @@
 @inject WorldSession Session
-<footer class="footer dice-footer circular-rail" style="width:calc(100vw - 48px);min-width:0;max-width:calc(100vw - 48px);height:72px;min-height:72px;max-height:72px;margin:0;justify-self:start;transform:translateX(24px)" data-circular-rail aria-label="Dice tray">
+<footer class="footer dice-footer circular-rail" data-circular-rail aria-label="Dice tray">
  @for(var copy=0;copy<3;copy++)
  {
   <div class="circular-set dice-circular-set">
-   <div class="character-switch-cluster">
-    <button type="button" class="character-footer-button" title="Open character" aria-label="Open character" @onclick="()=>Session.OpenMixer()">
-     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
-     {<img class="footer-portrait" src="@Session.CharacterPortraitDataUrl" alt="Active character" />}
-     else
-     {<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="18" r="11"></circle><path d="M12 55c1-14 8-22 20-22s19 8 20 22z"></path></svg>}
-    </button>
-    <button type="button" class="character-cycle-button" title="Switch character" aria-label="Switch character" @onclick="()=>Session.SwitchCharacter(1)">⌃</button>
-   </div>
-   <button type="button" class="hand-drawer-toggle @(Session.HandOpen?"open":"")" title="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-label="@(Session.HandOpen?"Collapse hand":"Reveal hand")" aria-expanded="@Session.HandOpen" @onclick="Session.ToggleHand">
+   <button type="button" class="hand-drawer-toggle character-cards-launcher" title="Open character cards" aria-label="Open character cards" @onclick="Session.OpenMixer">
     <span class="hand-toggle-card-back" aria-hidden="true"></span>
-    <span class="hand-toggle-chevron" aria-hidden="true">@(Session.HandOpen?"⌄":"⌃")</span>
+    <span class="hand-toggle-chevron" aria-hidden="true">⌃</span>
    </button>
    @foreach(var die in Session.DiceSet)
    {
