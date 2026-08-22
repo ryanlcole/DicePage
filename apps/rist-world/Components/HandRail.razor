@@ -5,7 +5,7 @@
 <section class="player-tools-rail" aria-label="Player hand and token placement">
  <div class="player-hand-pane" aria-label="Player card hand">
   <span class="player-tools-label">Hand</span>
-  <div class="player-hand-strip">
+  <div id="hand-slider" class="player-hand-strip desktop-arrow-slider"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#hand-slider',-1)" aria-label="Scroll hand left">‹</button>
    <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open deck or draw a random card"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
    <button class="compact-hand-card character-hand-card approved" @onclick="Session.OpenMixer" aria-label="Open active character sheet">
     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
@@ -31,29 +31,32 @@
      <span class="standard-card-face"><small>@card.Type</small><strong>@card.Name</strong></span>
     </button>
    }
+   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#hand-slider',1)" aria-label="Scroll hand right">›</button>
   </div>
  </div>
  <div class="token-placement-pane" aria-label="Token placement">
   <span class="player-tools-label">Tokens</span>
-  <div class="token-choice-strip">
+  <div id="token-slider" class="token-choice-strip desktop-arrow-slider"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#token-slider',-1)" aria-label="Scroll tokens left">‹</button>
    <button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
    <button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
    <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#token-slider',1)" aria-label="Scroll tokens right">›</button>
   </div>
  </div>
 </section>
 @if(Session.HandOpen)
 {
 <section class="card-triple-drawer card-quad-drawer" aria-label="Character and card drawer">
- <div class="card-drawer-row character-row" aria-label="Characters and companions">
+ <div id="character-slider" class="card-drawer-row character-row desktop-arrow-slider" aria-label="Characters and companions"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#character-slider',-1)" aria-label="Scroll characters left">‹</button>
   <button class="drawer-category-card" @onclick="Session.OpenMixer"><span class="category-card-back"></span><strong>Character</strong></button>
   <button class="drawer-front character-front" @onclick="Session.OpenMixer" aria-label="Open active character">
    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
    else{<span class="drawer-glyph">CHAR</span>}
    <strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"Character":Session.CharacterName)</strong>
   </button>
+  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#character-slider',1)" aria-label="Scroll characters right">›</button>
  </div>
- <div class="card-drawer-row action-row" aria-label="Action cards">
+ <div id="action-slider" class="card-drawer-row action-row desktop-arrow-slider" aria-label="Action cards"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#action-slider',-1)" aria-label="Scroll actions left">‹</button>
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Action</strong></div>
   @foreach(var field in AvailableActionFields)
   {
@@ -71,8 +74,9 @@
     <strong>@card.Name</strong>
    </button>
   }
+  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#action-slider',1)" aria-label="Scroll actions right">›</button>
  </div>
- <div class="card-drawer-row intel-row" aria-label="Lore handouts and notes">
+ <div id="intel-slider" class="card-drawer-row intel-row desktop-arrow-slider" aria-label="Lore handouts and notes"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#intel-slider',-1)" aria-label="Scroll intel left">‹</button>
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Intel</strong></div>
   @foreach(var field in AvailableIntelFields)
   {
@@ -90,8 +94,9 @@
     <strong>@card.Name</strong>
    </button>
   }
+  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#intel-slider',1)" aria-label="Scroll intel right">›</button>
  </div>
- <div class="card-drawer-row standard-row" aria-label="Standard card game controls">
+ <div id="standard-slider" class="card-drawer-row standard-row desktop-arrow-slider" aria-label="Standard card game controls"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#standard-slider',-1)" aria-label="Scroll standard controls left">‹</button>
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Standard</strong></div>
   <div class="standard-game-controls">
    <div class="standard-counts" aria-label="Card counts by type">
@@ -105,6 +110,7 @@
    <label class="standard-load standard-load-icon" aria-label="Load standard deck" title="Load standard deck"><span class="header-icon icon-load" aria-hidden="true"></span><InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label>
    <button class="standard-drawer-exit" @onclick="Session.CloseHand" aria-label="Close card sliders" title="Close card sliders"><span class="header-icon icon-exit" aria-hidden="true"></span></button>
   </div>
+  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#standard-slider',1)" aria-label="Scroll standard controls right">›</button>
  </div>
 </section>
 }
