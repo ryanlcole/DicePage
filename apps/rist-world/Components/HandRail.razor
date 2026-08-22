@@ -52,7 +52,7 @@
 </section>
 @if(Session.HandOpen)
 {
-<section class="card-triple-drawer" aria-label="Character and card drawer">
+<section class="card-triple-drawer card-quad-drawer" aria-label="Character and card drawer">
  <div class="card-drawer-row character-row" aria-label="Characters and companions">
   <button class="drawer-category-card" @onclick="Session.OpenMixer"><span class="category-card-back"></span><strong>Character</strong></button>
   <button class="drawer-front character-front" @onclick="Session.OpenMixer" aria-label="Open active character">
@@ -98,6 +98,22 @@
     <strong>@card.Name</strong>
    </button>
   }
+ </div>
+ <div class="card-drawer-row standard-row" aria-label="Standard card game controls">
+  <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Standard</strong></div>
+  <div class="standard-game-controls">
+   <div class="standard-counts" aria-label="Card counts by type">
+    @foreach(var type in Session.StandardCardTypes)
+    {
+     <label><span>@type</span><input type="number" min="0" max="120" value="@Session.StandardTypeCount(type)" @onchange="e=>SetStandardCount(type,e)" /></label>
+    }
+   </div>
+   <label class="draw-only-setting"><input type="checkbox" checked="@Session.StandardDrawOnly" @onchange="e=>Session.SetStandardDrawOnly(e.Value is bool value&&value)" /><span>Draw only</span></label>
+   @if(!Session.StandardGameActive){<button @onclick="Session.StartStandardGame">Play</button>}
+   else{<button @onclick="Session.EndStandardGame">Exit</button>}
+   <button @onclick="SaveStandardDeck">Save</button>
+   <label class="standard-load">Load<InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label>
+  </div>
  </div>
 </section>
 }
