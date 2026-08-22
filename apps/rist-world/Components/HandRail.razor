@@ -38,6 +38,7 @@
   <div class="token-choice-strip">
    <button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
    <button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
+   <button class="token-pin-source" draggable="true" @ondragstart="Session.BeginHeaderPinDrag" @onpointerdown="Session.BeginHeaderPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
   </div>
  </div>
 </section>
