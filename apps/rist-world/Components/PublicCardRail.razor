@@ -1,5 +1,6 @@
 @inject WorldSession Session
-<section class="public-card-drop" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
+<section id="public-card-slider" class="public-card-drop desktop-arrow-slider" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
+ <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#public-card-slider',-1)" aria-label="Scroll public cards left">‹</button>
  <div class="public-card-strip">
   @if(Session.PublicCards.Count==0)
   {
@@ -34,6 +35,7 @@
    }
   }
  </div>
+ <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#public-card-slider',1)" aria-label="Scroll public cards right">›</button>
 </section>
 @code{
  string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}');--field-accent:{AccentHex(card.Field.Color)}";
