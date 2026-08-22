@@ -26,6 +26,7 @@ public partial class WorldMap:IDisposable
  bool ImportingTileset;
  string ImportStatus="";
  string SelectedSavedFilter="";
+ string SelectedTileTool="draw";
  readonly List<SavedTileFilter> SavedFilters=[];
  bool FilterStateLoaded;
  const string FilterSaveKey="rist.tile.filters.v1";
@@ -106,6 +107,7 @@ public partial class WorldMap:IDisposable
  void LayerChanged(ChangeEventArgs e){BrowserLayer=e.Value?.ToString()??"WORLD";BrowserDirectory=BrowserDirectories.FirstOrDefault()??"";BrowserFolder="";}
  void DirectoryChanged(ChangeEventArgs e){BrowserDirectory=e.Value?.ToString()??"";BrowserFolder="";}
  void FolderChanged(ChangeEventArgs e)=>BrowserFolder=e.Value?.ToString()??"";
+ void TileToolChanged(ChangeEventArgs e)=>SelectedTileTool=e.Value?.ToString()??"draw";
  async Task SaveCurrentFilter()
  {
   if(string.IsNullOrWhiteSpace(BrowserFolder))return;
