@@ -971,3 +971,40 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .desktop-arrow-adaptive .arrow-horizontal{display:none!important}
  .desktop-arrow-adaptive .arrow-vertical{display:inline!important}
 }
+
+
+/* Rail arrows are real end-cap controls, never floating overlays. */
+@media (hover:hover) and (pointer:fine){
+ .rail-scroll-arrow{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  margin:0!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  align-self:center!important;
+  box-shadow:none!important
+ }
+ .rail-scroll-next{margin-left:0!important}
+ .topbar>.rail-scroll-arrow,.footer>.rail-scroll-arrow,.public-card-drop>.rail-scroll-arrow{
+  position:static!important;inset:auto!important
+ }
+}
+@media (hover:hover) and (pointer:fine) and (orientation:landscape){
+ .desktop-arrow-adaptive>.rail-scroll-arrow{
+  position:static!important;
+  inset:auto!important;
+  margin:0 auto!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important
+ }
+}
