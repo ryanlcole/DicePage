@@ -1,55 +1,43 @@
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.JSInterop
 @inject WorldSession Session
-@inject IJSRuntime JS
 @if(Session.HandOpen)
 {
-<section class="hand-rail tabletop-dial-rail finite-rail hand-drawer-open" aria-label="Player hand">
- <div class="finite-set hand-card-set">
- @if(Session.HandCards.Count==0)
- {
-  <div class="hand-rail-empty">HAND • Add a card from the character sheet.</div>
- }
- else
- {
-  @foreach(var card in Session.HandCards)
+<section class="card-triple-drawer" aria-label="Character and card drawer">
+ <div class="card-drawer-row character-row" aria-label="Characters and companions">
+  <button class="drawer-category-card" @onclick="Session.OpenMixer"><span class="category-card-back"></span><strong>Character</strong></button>
+  <button class="drawer-front character-front" @onclick="Session.OpenMixer" aria-label="Open active character">
+   @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
+   else{<span class="drawer-glyph">CHAR</span>}
+   <strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"Character":Session.CharacterName)</strong>
+  </button>
+ </div>
+ <div class="card-drawer-row action-row" aria-label="Action cards">
+  <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Action</strong></div>
+  @foreach(var card in ActionCards)
   {
-   <article class="hand-card-mini color-@card.Field.Color" style="@CardStyle(card)" draggable="true" @ondragstart="()=>Session.BeginHandCardDrag(card)" @ondragend="Session.CancelHandCardDrag" @onpointerdown="e=>PointerStart(card,e)" @onpointerup="e=>PointerEnd(card,e)" @key="card.Field.Id">
-    <div class="hand-mini-name">@card.Name</div>
-    @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl))
-    {
-     <img class="hand-mini-image" src="@card.Field.ImageDataUrl" alt="@card.Name" />
-    }
-    else
-    {
-     <div class="hand-mini-image hand-mini-glyph">@Glyph(card)</div>
-    }
-    @if(WorldSession.IsTrackerField(card.Field))
-    {
-     <input class="hand-mini-tracker" type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true" />
-     <strong class="hand-mini-value">@card.Value/@card.Max</strong>
-    }
-    else
-    {
-     <strong class="hand-mini-value">@CardValue(card)</strong>
-    }
-    <button class="dicebag-button hand-mini-bag" title="Roll dice bag" @onclick="()=>BagClick(card)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button>
-    <button class="hand-mini-close tap-safe" title="Return to sheet" @onclick="()=>Session.HideHand(card)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @onpointerup:stopPropagation="true">×</button>
-   </article>
+   <button class="drawer-front" style="@CardStyle(card)" @onclick="()=>Session.RollHandCardAsync(card)" aria-label="@card.Name action card">
+    @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+    else{<span class="drawer-glyph">@Glyph(card)</span>}
+    <strong>@card.Name</strong>
+   </button>
   }
- }
+ </div>
+ <div class="card-drawer-row intel-row" aria-label="Lore handouts and notes">
+  <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Intel</strong></div>
+  @foreach(var card in IntelCards)
+  {
+   <button class="drawer-front" style="@CardStyle(card)" aria-label="@card.Name intel card">
+    @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+    else{<span class="drawer-glyph">@Glyph(card)</span>}
+    <strong>@card.Name</strong>
+   </button>
+  }
  </div>
 </section>
 }
 @code{
- HandCard? _pointerCard; double _pointerX; double _pointerY;
- string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}');--field-accent:{AccentHex(card.Field.Color)}";
- string CardFront(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"assets/cards/fronts/card_front_01_three_roses.png":WorldSession.IsTrackerField(card.Field)?"assets/cards/fronts/card_front_02_two_roses.png":WorldSession.IsLimitField(card.Field)?"assets/cards/fronts/card_front_03_four_roses.png":card.Field.Group=="Skills"?"assets/cards/fronts/card_front_04_single_rose.png":WorldSession.IsFlareField(card.Field)?"assets/cards/fronts/card_front_05_two_low_roses.png":"assets/cards/fronts/card_front_06_minimal.png";
- string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","yellow"=>"#f0d85c","lime"=>"#9bc84a","green"=>"#58a765","teal"=>"#41aaa4","cyan"=>"#55c7dc","blue"=>"#4c82d5","indigo"=>"#6559c7","purple"=>"#9653c9","magenta"=>"#cf59ad","rose"=>"#d16d7f","silver"=>"#b8bdc4","white"=>"#eee6d2",_=>"#d9a82f"};
- string Glyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
- string CardValue(HandCard card)=>WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsFlareField(card.Field)?"✦":card.Value.ToString();
- void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
- async Task BagClick(HandCard card){if(Session.MixerOpen)Session.EditFieldDiceBag(card.Field);else await Session.RollHandCardAsync(card);}
- void PointerStart(HandCard card,PointerEventArgs e){_pointerCard=card;_pointerX=e.ClientX;_pointerY=e.ClientY;Session.BeginHandCardDrag(card);}
- async Task PointerEnd(HandCard card,PointerEventArgs e){var moved=Math.Abs(e.ClientX-_pointerX)+Math.Abs(e.ClientY-_pointerY);if(_pointerCard==card&&moved>28&&await JS.InvokeAsync<bool>("ristWorld.overPublicCardDrop",e.ClientX,e.ClientY))Session.PublishHandCard(card);else Session.CancelHandCardDrag();_pointerCard=null;}
+ IEnumerable<HandCard> ActionCards=>Session.HandCards.Where(x=>x.DiceBag.Count>0||x.Field.Group is "Skills" or "Feats");
+ IEnumerable<HandCard> IntelCards=>Session.HandCards.Except(ActionCards);
+ string CardStyle(HandCard card)=>$"--field-accent:{AccentHex(card.Field.Color)}";
+ static string Glyph(HandCard card)=>WorldSession.IsTrackerField(card.Field)?"◉":WorldSession.IsFlareField(card.Field)?"✦":"•";
+ static string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","green"=>"#58a765","teal"=>"#41aaa4","blue"=>"#4c82d5","purple"=>"#9653c9",_=>"#d9a82f"};
 }
