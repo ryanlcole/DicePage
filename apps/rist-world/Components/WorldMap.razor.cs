@@ -186,6 +186,8 @@ public partial class WorldMap:IDisposable
   if(pan.Length>=2){G.PanX=pan[0];G.PanY=pan[1];}
   G.Zoom=next;Session.ViewZoom=G.Zoom;Session.Notify();
  }
+ async Task ZoomIn()=>await ZoomAt(double.NaN,double.NaN,G.Zoom*1.2);
+ async Task ZoomOut()=>await ZoomAt(double.NaN,double.NaN,G.Zoom/1.2);
  async Task Wheel(WheelEventArgs e)
  {
   if(Dragging)return;
