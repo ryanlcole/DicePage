@@ -162,9 +162,9 @@
     {
      @if(p.Kind=="pin")
      {
-      <button class="piece pin zoom-pin" style="@PinStyle(p)" aria-label="Map pin"
+      <button class="piece pin zoom-pin placed-pin" style="@PinStyle(p)" aria-label="Open map pin menu"
               @onclick="()=>PinTap(p)" @onclick:stopPropagation="true"
-              @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">
+              @onpointerdown:stopPropagation="true" @oncontextmenu:preventDefault="true">
        <span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span>
       </button>
       @if(!string.IsNullOrWhiteSpace(p.Label))
