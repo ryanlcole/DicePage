@@ -6,6 +6,12 @@ public sealed partial class WorldSession
  public bool EncounterActive { get; private set; }
  public string? RecurseTarget { get; private set; }
  public PieceItem? SelectedPin { get; private set; }
+ readonly System.Diagnostics.Stopwatch encounterClock=new();
+ System.Threading.Timer? encounterTimer;
+ public bool EncounterTimerRunning=>encounterClock.IsRunning;
+ public TimeSpan EncounterElapsed=>encounterClock.Elapsed;
+ public string EncounterElapsedText=>$"{(int)EncounterElapsed.TotalHours:00}:{EncounterElapsed.Minutes:00}:{EncounterElapsed.Seconds:00}";
+ public string EncounterElapsedIso=>$"PT{(int)EncounterElapsed.TotalHours}H{EncounterElapsed.Minutes}M{EncounterElapsed.Seconds}S";
 
  string preEncounterGridStyle = "square";
  string preEncounterUnit = "mi";
@@ -37,6 +43,9 @@ public sealed partial class WorldSession
  public void ExitEncounter()
  {
   if(!EncounterActive)return;
+  encounterClock.Stop();
+  encounterTimer?.Dispose();
+  encounterTimer=null;
   EncounterActive=false;
   GridStyle=preEncounterGridStyle;
   DistanceUnit=preEncounterUnit;
@@ -45,6 +54,26 @@ public sealed partial class WorldSession
   Notify();
  }
 
+ public void ToggleEncounterTimer()
+ {
+  if(encounterClock.IsRunning)
+  {
+   encounterClock.Stop();
+   encounterTimer?.Dispose();
+   encounterTimer=null;
+  }
+  else
+  {
+   encounterClock.Start();
+   encounterTimer=new System.Threading.Timer(_=>Notify(),null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
+  }
+  Notify();
+ }
+ public void ResetEncounterTimer()
+ {
+  encounterClock.Reset();
+  Notify();
+ }
  public void PinTap(PieceItem piece)
  {
   if(piece.Kind!="pin")return;
