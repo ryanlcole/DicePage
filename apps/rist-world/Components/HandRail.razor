@@ -38,7 +38,7 @@
   <div class="token-choice-strip">
    <button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button>
    <button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button>
-   <button class="token-pin-source" draggable="true" @ondragstart="Session.BeginHeaderPinDrag" @onpointerdown="Session.BeginHeaderPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+   <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
   </div>
  </div>
 </section>
@@ -109,6 +109,9 @@
 </section>
 }
 @code{
+ async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
+ async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
+ void CancelPinDrag(PointerEventArgs e)=>Session.EndHeaderPinDrag();
  void SetStandardCount(string type,ChangeEventArgs e)=>Session.SetStandardTypeCount(type,int.TryParse(e.Value?.ToString(),out var count)?count:0);
  async Task SaveStandardDeck()=>await JS.InvokeVoidAsync("ristWorld.downloadText","standard-deck.ristdeck",Session.SaveStandardDeckJson(),"application/json");
  async Task LoadStandardDeck(InputFileChangeEventArgs e)
