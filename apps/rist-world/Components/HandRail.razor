@@ -54,6 +54,14 @@
  </div>
  <div class="card-drawer-row action-row" aria-label="Action cards">
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Action</strong></div>
+  @foreach(var field in AvailableActionFields)
+  {
+   <button class="drawer-front deck-available-card" draggable="true" style="@FieldStyle(field)" @onclick="()=>Session.ShowFieldHand(field)" @ondragend="()=>Session.ShowFieldHand(field)" aria-label="Add @field.Name to hand">
+    @if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="" />}
+    else{<span class="drawer-glyph">@FieldGlyph(field)</span>}
+    <strong>@field.Name</strong>
+   </button>
+  }
   @foreach(var card in ActionCards)
   {
    <button class="drawer-front" style="@CardStyle(card)" @onclick="()=>Session.RollHandCardAsync(card)" aria-label="@card.Name action card">
@@ -65,6 +73,14 @@
  </div>
  <div class="card-drawer-row intel-row" aria-label="Lore handouts and notes">
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Intel</strong></div>
+  @foreach(var field in AvailableIntelFields)
+  {
+   <button class="drawer-front deck-available-card" draggable="true" style="@FieldStyle(field)" @onclick="()=>Session.ShowFieldHand(field)" @ondragend="()=>Session.ShowFieldHand(field)" aria-label="Add @field.Name to hand">
+    @if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="" />}
+    else{<span class="drawer-glyph">@FieldGlyph(field)</span>}
+    <strong>@field.Name</strong>
+   </button>
+  }
   @foreach(var card in IntelCards)
   {
    <button class="drawer-front" style="@CardStyle(card)" aria-label="@card.Name intel card">
@@ -82,8 +98,13 @@
   if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending){Session.ApproveHandCard(card);return;}
   await Session.RollHandCardAsync(card);
  }
+ IEnumerable<CharacterField> AvailableFields=>Session.CharacterFields.Where(x=>!Session.IsFieldInHand(x));
+ IEnumerable<CharacterField> AvailableActionFields=>AvailableFields.Where(x=>x.DiceBag.Count>0||x.Group is "Skills" or "Feats" or "Flare");
+ IEnumerable<CharacterField> AvailableIntelFields=>AvailableFields.Except(AvailableActionFields);
  IEnumerable<HandCard> ActionCards=>Session.HandCards.Where(x=>x.DiceBag.Count>0||x.Field.Group is "Skills" or "Feats");
  IEnumerable<HandCard> IntelCards=>Session.HandCards.Except(ActionCards);
+ string FieldStyle(CharacterField field)=>$"--field-accent:{AccentHex(field.Color)}";
+ static string FieldGlyph(CharacterField field)=>WorldSession.IsTrackerField(field)?"◉":WorldSession.IsFlareField(field)?"✦":"•";
  string CardStyle(HandCard card)=>$"--field-accent:{AccentHex(card.Field.Color)}";
  static string Glyph(HandCard card)=>WorldSession.IsTrackerField(card.Field)?"◉":WorldSession.IsFlareField(card.Field)?"✦":"•";
  static string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","green"=>"#58a765","teal"=>"#41aaa4","blue"=>"#4c82d5","purple"=>"#9653c9",_=>"#d9a82f"};
