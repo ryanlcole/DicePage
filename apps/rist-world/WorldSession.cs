@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
-    private const string SaveKey = "rist.world.blazor.v2";
+    private const string SaveKey = "rist.world.blazor.v3";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -138,19 +138,22 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         const int detailZoom=4;
         string[] pangea=
         [
-            "....CCCCCCCCCC......",
-            "..CCIIIMMMDDDDCC....",
-            ".CIIIIVMMMHHDDDDCC..",
-            "CIIIIVVMMMMHHDDDDCC.",
-            "CJJJFFMMMMHPPPDDDDDC",
-            "CJJJJFFFFRRPPPPDDDDC",
-            "CJJJJFFFRRPPPPHHHHCC",
-            ".CJJJSSFFRRPPPPHHHHC",
-            "..CJJSSFFRRPPHHHHICC",
-            "...CJJSSFFWPPHHIIIIC",
-            "....CFFFWWHPPHIIIIC.",
-            ".....CCPPWHHHIIICC..",
-            ".......CCCCC.CC....."
+            // Geography follows the original Drive-deployed Naeja.PNG world map.
+            // Recent screenshots are presentation references only and must not
+            // be used as source geography.
+            "..CCCCCCCCCCCCCCCC..",
+            ".CPPMMMPPPPPPPPPMPC.",
+            "CPMMMMMPPPMMMMPPMMPC",
+            "CPPPMMPPMMMMMMPVVVPC",
+            "CPMMMMMPMMMMMPPVVVVC",
+            "CPMMMMMPMMMMMPPPVVVC",
+            "CPPPPPPPPPMMMMPPPPPC",
+            "CPPPPPPMMMMMMPPPPPPC",
+            "CPFFFPPMMMMMPPMMFFPC",
+            "CPFFFPPPMMMPPPMFFFFC",
+            "CPFFFRPPPPPPPMFFFFFC",
+            ".CFFFRPPPPPPPPFFFFC.",
+            "..CCCCCCCCCCCCCCCC.."
         ];
 
         for(var baseRow=0;baseRow<pangea.Length;baseRow++)
@@ -244,14 +247,13 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     static string PangeaRegion(int column,int row)
     {
-        if(row<=3&&column<=6)return "Ice Crown";
-        if(row<=4&&column is >=6 and <=12)return "Crownspine";
-        if(row<=6&&column>=13)return "Sunward Expanse";
-        if(row>=4&&column<=5)return "Amazon Crown";
-        if(row>=8&&column>=14)return "Southeastern Ice";
-        if(row>=8&&column is >=8 and <=12)return "Emberfall";
-        if(column is >=7 and <=12&&row is >=4 and <=8)return "Endemar";
-        return "Pangean Interior";
+        if(row<=4&&column<=5)return "Northwestern Marches";
+        if(column is >=6 and <=12&&row is >=2 and <=7)return "Iron Labyrinth";
+        if(row<=5&&column>=14)return "Deepwater Reach";
+        if(row>=8&&column<=7)return "Emerald Basin";
+        if(row>=8&&column>=14)return "Southern Forests";
+        if(column is >=7 and <=13&&row>=7)return "Endemar";
+        return "Naejan Interior";
     }
 
     async Task LoadAtlasAsync()
