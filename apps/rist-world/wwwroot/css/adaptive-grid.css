@@ -158,3 +158,21 @@
  .public-card-strip,.public-card-empty,.footer>.circular-set{height:58px!important;min-height:58px!important}
  .staging-tray{padding-block:3px!important}
 }
+
+
+/* Consolidated scale control, centered icon cells, stateful door, and rails
+   locked to the same physical viewport width. */
+.icon-header .header-circular-set{height:58px;min-height:58px;align-items:center!important}
+.icon-header .header-icon-button,.icon-header .icon-select-control{align-self:center!important;place-items:center!important}
+.icon-header .header-icon{margin:auto}
+.scale-stack{box-sizing:border-box;flex:0 0 78px;width:78px;height:58px;display:grid;grid-template-rows:30px 22px;gap:2px;align-content:center;padding:2px;border:1px solid #725d30;border-radius:9px;background:#161e26}
+.scale-stack input{box-sizing:border-box;width:100%;height:30px;min-width:0;padding:2px 6px;border:0;border-bottom:1px solid #725d30;border-radius:5px;background:#1b252d;color:#f5ecd7;text-align:center;font-size:14px}
+.scale-stack output{display:grid;place-items:center;min-width:0;overflow:hidden;color:#d9ccb0;font-size:9px;line-height:1;white-space:nowrap}
+.door-button{position:relative}
+.door-button .door-label{position:absolute;z-index:2;left:7px;top:24px;width:29px;color:#172027;text-shadow:0 1px #f5e4bd;font-size:7px;font-weight:900;line-height:1;text-align:center;pointer-events:none}
+.door-button.logged-out .icon-exit{transform:scaleX(-1)}
+@media(max-width:800px){
+ .topbar,.public-card-drop,.staging-tray,.footer{box-sizing:border-box!important;justify-self:center!important;width:calc(100dvw - 48px)!important;min-width:calc(100dvw - 48px)!important;max-width:calc(100dvw - 48px)!important}
+ .public-card-strip{box-sizing:border-box;min-width:100%!important}
+ .footer>.circular-set{box-sizing:border-box}
+}
