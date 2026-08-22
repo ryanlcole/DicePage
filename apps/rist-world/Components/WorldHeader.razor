@@ -2,7 +2,17 @@
 @inject WorldSession Session
 <header class="topbar header-rail finite-rail icon-header" aria-label="Tabletop controls">
  <div class="finite-set header-circular-set">
-  <button class="header-icon-button encounter-button" @onclick="ToggleEncounter" title="@(Session.EncounterActive ? "Exit encounter" : "Enter encounter")" aria-label="@(Session.EncounterActive ? "Exit encounter" : "Enter encounter")"><span class="header-icon icon-encounter" aria-hidden="true"></span></button>
+  <div class="control icon-select-control table-mode-control @Session.TableMode" title="@Session.TableModeLabel">
+   <span class="header-icon icon-encounter" aria-hidden="true"></span>
+   <label class="sr-only" for="table-mode">Table mode</label>
+   <select id="table-mode" value="@Session.TableMode" @onchange="ModeChanged" aria-label="Table mode">
+    <option value="worldbuilder">Worldbuilder</option>
+    <option value="forge">Forge</option>
+    <option value="test">Test</option>
+    <option value="encounter">Encounter</option>
+    <option value="play">Let's Roll!</option>
+   </select>
+  </div>
   <div class="control asset-type-control icon-select-control"><span class="header-icon icon-assets" aria-hidden="true"></span><label class="sr-only">Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
   <button class="header-icon-button header-card-deck @(Session.HandOpen?"active":"")" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" title="@(Session.StandardGameActive&&Session.StandardDrawOnly?"Draw random card":Session.HandOpen?"Close card deck":"Open card deck")" aria-label="@(Session.HandOpen?"Close card deck":"Open card deck")"><span class="header-card-back" aria-hidden="true"></span>@if(Session.PendingHandApprovalCount>0&&Session.Role=="GM"){<span class="approval-count" aria-label="@Session.PendingHandApprovalCount pending approvals">@Session.PendingHandApprovalCount</span>}</button>
   <button class="header-icon-button tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen" title="Browse assets" aria-label="Browse assets"><span class="header-icon icon-browse" aria-hidden="true"></span></button>
@@ -48,6 +58,6 @@
 @code{
  void StageAsset(){if(Session.PieceKind=="tile"){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();return;}Session.StagePiece(Session.PieceKind);}
  void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
- void ToggleEncounter(){if(Session.EncounterActive)Session.ExitEncounter();else Session.EnterEncounter();}
+ void ModeChanged(ChangeEventArgs e)=>Session.SetTableMode(e.Value?.ToString()??"worldbuilder");
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
 }
