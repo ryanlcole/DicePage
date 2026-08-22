@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 {
-    private const string SaveKey = "rist.world.blazor.v4";
+    private const string SaveKey = "rist.world.blazor.v5";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -19,6 +19,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string? DraggedDieKey { get; private set; }
 
     public string WorldMapUrl { get; } = "assets/world/naeja.png";
+    public bool HasBaseMapTilemap => PlacedTiles.Any(x => x.Id.StartsWith("naeja-map-", StringComparison.Ordinal));
     public string MapName { get; private set; } = "Shaelvien";
     public IReadOnlyList<DiceSpec> DiceSet { get; } =
     [
@@ -127,7 +128,50 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
 
     public void SetDistanceUnit(string unit){if(EncounterActive)return;unit=unit switch{"mi" or "km" or "m" or "yd" or "ft"=>unit,_=>DistanceUnit};if(unit==DistanceUnit)return;var meters=GridDistance*MetersPerUnit(DistanceUnit);GridDistance=meters/MetersPerUnit(unit);DistanceUnit=unit;Notify();}
     static double MetersPerUnit(string unit)=>unit switch{"mi"=>1609.344,"km"=>1000.0,"m"=>1.0,"yd"=>.9144,"ft"=>.3048,_=>1.0};
-    public async Task InitializeAsync(){await LoadAtlasAsync();await TryLoadSavedMapAsync();await LoadCardsAsync();Notify();}
+    public async Task InitializeAsync()
+    {
+        await LoadAtlasAsync();
+        RegisterNaejaMapTiles();
+        if(!await TryLoadSavedMapAsync())BuildNaejaMapTilemap();
+        await LoadCardsAsync();
+        Notify();
+    }
+
+    void RegisterNaejaMapTiles()
+    {
+        const int sourceWidth=1536;
+        const int sourceHeight=1024;
+        for(var row=0;row<GridRows;row++)
+        {
+            var cropY=row*sourceHeight/GridRows;
+            var cropBottom=(row+1)*sourceHeight/GridRows;
+            for(var column=0;column<GridColumns;column++)
+            {
+                var cropX=column*sourceWidth/GridColumns;
+                var cropRight=(column+1)*sourceWidth/GridColumns;
+                var id=$"naeja-map-{row:00}-{column:00}";
+                if(AtlasTiles.Any(x=>x.Id==id))continue;
+                AtlasTiles.Add(new(id,$"Naeja {row+1},{column+1}",WorldMapUrl,
+                    "WORLD","Imported Maps","Naeja Map","Shaelvien",
+                    sourceWidth,sourceHeight,cropX,cropY,cropRight-cropX,cropBottom-cropY));
+            }
+        }
+    }
+
+    void BuildNaejaMapTilemap()
+    {
+        if(PlacedTiles.Count>0)return;
+        foreach(var tile in AtlasTiles.Where(x=>x.Id.StartsWith("naeja-map-",StringComparison.Ordinal)))
+        {
+            var parts=tile.Id.Split('-');
+            var row=int.Parse(parts[^2],System.Globalization.CultureInfo.InvariantCulture);
+            var column=int.Parse(parts[^1],System.Globalization.CultureInfo.InvariantCulture);
+            PlacedTiles.Add(new(tile.Id,tile.Name,tile.Image,
+                column/(double)GridColumns,row/(double)GridRows,
+                tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight));
+        }
+        MapLocked=true;
+    }
     void BuildShaelvienPangaea()
     {
         if(PlacedTiles.Count>0)return;
