@@ -644,3 +644,83 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
  .dialogue-portrait{width:76px;height:96px}.dialogue-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}
  .rpg-dialogue-box .dialogue-next{grid-column:2;justify-self:end}.dialogue-copy p{font-size:14px}
 }
+
+
+/* Safari-safe header pin: pointer gesture only, never native image/text selection. */
+.header-pin-drag,
+.header-pin-drag *{
+ -webkit-user-select:none!important;
+ user-select:none!important;
+ -webkit-touch-callout:none!important;
+ touch-action:none!important;
+ -webkit-user-drag:none!important
+}
+.header-pin-drag{cursor:grab!important}
+.header-pin-drag:active{cursor:grabbing!important;border-color:#d7b75a!important;box-shadow:inset 0 0 0 1px #d7b75a!important}
+
+/* Compact RPG dialogue: one-third-height presentation while remaining tap-friendly. */
+.dialogue-scrim{padding:6px!important}
+.dialogue-composer,.rpg-dialogue-box{
+ width:min(620px,92%)!important;
+ min-height:46px!important;
+ grid-template-columns:38px minmax(0,1fr) auto!important;
+ gap:6px!important;
+ padding:5px 6px!important;
+ border-radius:7px!important
+}
+.dialogue-portrait{width:38px!important;height:42px!important;border-radius:5px!important}
+.dialogue-composer label{grid-template-rows:auto 30px!important;gap:2px!important;font-size:7px!important}
+.dialogue-composer textarea{min-height:30px!important;height:30px!important;padding:4px 6px!important;font-size:12px!important;line-height:1.2!important}
+.dialogue-actions{display:flex!important;align-items:end!important;gap:4px!important}
+.dialogue-actions button,.dialogue-next{height:30px!important;min-width:46px!important;padding:3px 7px!important;font-size:8px!important}
+.dialogue-copy{padding:1px!important}.dialogue-copy strong{margin:0 0 2px!important;font-size:8px!important}.dialogue-copy p{font-size:11px!important;line-height:1.2!important}
+@media(max-width:600px){
+ .dialogue-composer,.rpg-dialogue-box{width:96%!important;grid-template-columns:38px minmax(0,1fr) auto!important;min-height:46px!important;gap:5px!important;padding:5px!important}
+ .dialogue-actions{grid-column:auto!important}.rpg-dialogue-box .dialogue-next{grid-column:auto!important}
+}
+
+/* Ivory crystal character card: every sheet page shares one stable 5:7 front. */
+.character-mixer.universal-sheet{
+ border-color:#b7a176!important;
+ background:#eee8da!important;
+ color:#4b4236!important;
+ box-shadow:0 18px 52px #000,inset 0 0 0 3px #d8ccb3!important
+}
+.character-mixer.universal-sheet:before{
+ border-color:#c7b789!important;
+ background:#f4efe4!important;
+ box-shadow:inset 0 0 18px #d7cbb4!important
+}
+.character-mixer .exact-sheet-toolbar{
+ border-color:#c7b789!important;
+ background:#e8dfcd!important
+}
+.character-mixer .exact-sheet-toolbar span{color:#665b48!important}
+.character-mixer .exact-sheet-toolbar button{
+ border-color:#b9a471!important;background:#f3ecdc!important;color:#554a39!important
+}
+.character-mixer .exact-sheet-screen{
+ border-color:#c7b789!important;
+ background:#f7f2e8!important;
+ color:#4b4236!important
+}
+.character-mixer .identity-badge{
+ border-color:#c1ad7f!important;
+ background:#eee5d3!important
+}
+.character-mixer .exact-portrait{border-color:#b8a06c!important;background:#ddd3c0!important}
+.character-mixer .exact-name,.character-mixer input,.character-mixer textarea,.character-mixer select{
+ border-color:#c5b181!important;background:#fbf7ef!important;color:#4b4236!important
+}
+.character-mixer .sheet-pane{
+ border-color:#c4b080!important;
+ background:#eee6d6!important;
+ color:#4b4236!important
+}
+.character-mixer .sheet-pane header,.character-mixer .pane-toggle{
+ background:#e5dbc7!important;color:#574c3b!important
+}
+.character-mixer .pane-content{background:#f8f3e9!important}
+.character-mixer .exact-page-arrows button{
+ border-color:#baa36e!important;background:#ece3d1!important;color:#4b4236!important
+}
