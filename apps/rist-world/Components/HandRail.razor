@@ -109,10 +109,9 @@
     }
    </div>
    <label class="draw-only-setting"><input type="checkbox" checked="@Session.StandardDrawOnly" @onchange="e=>Session.SetStandardDrawOnly(e.Value is bool value&&value)" /><span>Draw only</span></label>
-   @if(!Session.StandardGameActive){<button @onclick="Session.StartStandardGame">Play</button>}
-   else{<button @onclick="Session.EndStandardGame">Exit</button>}
    <button @onclick="SaveStandardDeck">Save</button>
    <label class="standard-load">Load<InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label>
+   <button class="standard-drawer-exit" @onclick="Session.CloseHand" aria-label="Close card sliders" title="Close card sliders"><span class="header-icon icon-exit" aria-hidden="true"></span></button>
   </div>
  </div>
 </section>
