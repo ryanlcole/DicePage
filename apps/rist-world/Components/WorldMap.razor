@@ -133,7 +133,8 @@
      <button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button>
     </div>
    }
-   <div class="world-stage ocean-world" style="transform:@StageTransform" aria-label="Open ocean world map">
+   <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
+    <img class="base" src="@Session.WorldMapUrl" alt="Shaelvien world map" draggable="false" />
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
