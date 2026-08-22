@@ -150,7 +150,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         Notify();return list.Count;
     }
     public void RemoveStaged(string key){StagedAssets.RemoveAll(x=>x.Key==key);Notify();}
-    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
+    public void PlaceStaged(StagedAsset staged,double x,double y,double placementZoom){x=Math.Clamp(x,0,1);y=Math.Clamp(y,0,1);if(staged.Kind=="tile")PlacedTiles.Add(new(staged.Key[5..],staged.Name,staged.Image,x,y,staged.SourceWidth,staged.SourceHeight,staged.CropX,staged.CropY,staged.CropWidth,staged.CropHeight,Math.Max(placementZoom,.01)));else Pieces.Add(new(staged.Kind,x,y,staged.Kind=="pin"?Math.Max(placementZoom,.01):1));Notify();}
     public void MovePiece(PieceItem piece,double x,double y){var i=Pieces.IndexOf(piece);if(i<0)return;Pieces[i]=piece with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
     public void RemovePiece(PieceItem piece){Pieces.Remove(piece);Notify();}
     public void MoveTile(TileItem tile,double x,double y){var i=PlacedTiles.IndexOf(tile);if(i<0)return;PlacedTiles[i]=tile with{X=Math.Clamp(x,0,1),Y=Math.Clamp(y,0,1)};Notify();}
