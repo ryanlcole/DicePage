@@ -176,3 +176,7 @@
  .public-card-strip{box-sizing:border-box;min-width:100%!important}
  .footer>.circular-set{box-sizing:border-box}
 }
+
+/* Map tiles own long-press gestures; Safari must not open text/image lookup. */
+.tile-cell,.tile-cell *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+.tile-cell img{-webkit-user-drag:none!important;pointer-events:none!important}
