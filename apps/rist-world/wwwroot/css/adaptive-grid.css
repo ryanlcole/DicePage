@@ -105,3 +105,25 @@
  .footer>.circular-set{height:58px;min-height:58px;align-items:stretch!important}
  .dice-footer{--footer-slot-h:58px!important}
 }
+
+
+/* AWS-backed 4x3 header icon sheet. Each control crops one fixed cell. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.icon-header .header-circular-set{align-items:center}
+.header-icon-button{box-sizing:border-box;flex:0 0 58px!important;width:58px!important;height:58px!important;min-width:58px!important;padding:3px!important;display:grid!important;place-items:center!important;overflow:hidden}
+.header-icon{display:block;flex:0 0 auto;width:50px;height:50px;background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/ui/header/shaelvien-header-icons.png");background-repeat:no-repeat;background-size:400% 300%;filter:drop-shadow(0 2px 2px #0008);pointer-events:none}
+.icon-encounter{background-position:0 0}.icon-assets{background-position:33.333% 0}.icon-browse{background-position:66.667% 0}.icon-role{background-position:100% 0}
+.icon-grid-square{background-position:0 50%}.icon-grid-hex{background-position:33.333% 50%}.icon-grid-none{background-position:0 50%;opacity:.42}.icon-unit{background-position:66.667% 50%}.icon-scale{background-position:100% 50%}
+.icon-save{background-position:0 100%}.icon-load{background-position:33.333% 100%}.icon-exit{background-position:66.667% 100%}.icon-pin{background-position:100% 100%}
+.icon-select-control{box-sizing:border-box;position:relative;flex:0 0 auto!important;height:58px;min-width:74px!important;padding:2px!important;display:flex!important;align-items:center!important;gap:2px;overflow:hidden}
+.icon-select-control .header-icon{width:50px;height:50px}
+.icon-select-control select{width:auto;max-width:168px;min-width:0;height:48px;padding-inline:6px 22px!important}
+.icon-select-control.compact-select select{max-width:76px}
+.icon-header .asset-type-control{min-width:220px!important}.icon-header .asset-type-control select{min-width:164px}
+@media(max-width:800px){
+ .header-icon-button{flex-basis:58px!important}
+ .icon-header .header-circular-set{gap:7px}
+ .icon-select-control{flex:0 0 126px!important;min-width:126px!important}
+ .icon-select-control.compact-select{flex-basis:112px!important;min-width:112px!important}
+ .icon-header .asset-type-control{flex-basis:228px!important;min-width:228px!important}
+}
