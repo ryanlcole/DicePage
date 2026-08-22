@@ -8,7 +8,7 @@ window.ristWorld={
   return [((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
  },
  zoomPan:(el,x,y,panX,panY,oldZoom,newZoom)=>{
-  const r=el.getBoundingClientRect();const cx=Number.isFinite(Number(x))?Number(x):r.left+r.width/2;const cy=Number.isFinite(Number(y))?Number(y):r.top+r.height/2;
+  const r=el.getBoundingClientRect();const cx=x!==null&&x!==undefined&&Number.isFinite(Number(x))?Number(x):r.left+r.width/2;const cy=y!==null&&y!==undefined&&Number.isFinite(Number(y))?Number(y):r.top+r.height/2;
   const sx=(cx-r.left)/r.width,sy=(cy-r.top)/r.height,oldZ=Math.max(Number(oldZoom)||1,.01),nextZ=Math.max(Number(newZoom)||1,.01);
   const wx=((sx-.5)/oldZ)+.5-(Number(panX)||0)/(r.width*oldZ),wy=((sy-.5)/oldZ)+.5-(Number(panY)||0)/(r.height*oldZ);
   return [r.width*((sx-.5)+nextZ*(.5-wx)),r.height*((sy-.5)+nextZ*(.5-wy))];
