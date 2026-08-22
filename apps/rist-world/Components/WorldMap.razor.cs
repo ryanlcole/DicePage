@@ -97,8 +97,13 @@ public partial class WorldMap:IDisposable
  {
   if(!Session.CanEditTiles||Session.MapLocked)return;
   if(Session.RecursiveRegionSelectionMode){Session.ToggleRecursiveRegionTile(tile);return;}
+  if(tile.Locked)
+  {
+   Session.SelectTileZone(tile);
+   await StartLockedTileHold(tile,e);
+   return;
+  }
   await StartLockedTileHold(tile,e);
-  if(tile.Locked)return;
   AtlasDragging=null;TileDragging=tile;TrayDragging=null;PieceDragging=null;await StartDrag(e);
  }
  async Task StartLockedTileHold(TileItem tile,PointerEventArgs e)
