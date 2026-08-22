@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 <main class="table-workspace" @onpointermove="DragMove" @onpointerup="DragEnd" @onpointercancel="DragCancel">
  @if(Session.TileBrowserOpen)
  {
@@ -136,7 +137,10 @@
     </div>
    }
    <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
-    @if(!Session.HasBaseMapTilemap)\n    {\n     <img class="base" src="@Session.WorldMapUrl" alt="Shaelvien world map" draggable="false" />\n    }
+    @if(!Session.HasBaseMapTilemap)
+    {
+     <img class="base" src="@Session.WorldMapUrl" alt="Shaelvien world map" draggable="false" />
+    }
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
