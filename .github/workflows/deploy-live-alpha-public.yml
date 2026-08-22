@@ -28,7 +28,24 @@ jobs:
           dotnet-version: '10.0.x'
       - run: python apps/rist-world/prepare_public_data.py
       - run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
-      - run: mkdir -p dist/app && cp -r build/rist/wwwroot/. dist/app/ && touch dist/.nojekyll
+      - name: Assemble GitHub Pages site
+        run: |
+          mkdir -p dist/app
+          cp -r build/rist/wwwroot/. dist/app/
+          touch dist/.nojekyll
+          cat > dist/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="0;url=./app/">
+            <title>Opening Shaelvien RIST</title>
+            <script>location.replace("./app/" + location.search + location.hash);</script>
+          </head>
+          <body><a href="./app/">Open Shaelvien RIST</a></body>
+          </html>
+          HTML
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
