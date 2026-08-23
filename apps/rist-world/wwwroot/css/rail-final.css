@@ -1283,3 +1283,104 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
   min-height:44px!important
  }
 }
+
+
+/* Desktop rails use scrollbars instead of arrow endcaps. */
+@media (hover:hover) and (pointer:fine){
+ .rail-scroll-arrow{
+  display:none!important
+ }
+
+ .topbar.desktop-arrow-slider,
+ .footer.desktop-arrow-slider,
+ .public-card-drop.desktop-arrow-slider{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  column-gap:0!important
+ }
+ .topbar.desktop-arrow-slider>.header-circular-set,
+ .footer.desktop-arrow-slider>.dice-circular-set,
+ .public-card-drop.desktop-arrow-slider>.public-card-strip{
+  grid-column:1!important;
+  grid-row:1!important
+ }
+
+ .tile-browser-slider{
+  display:block!important;
+  min-height:0!important;
+  overflow:hidden!important
+ }
+ .tile-browser-slider>.tile-browser-grid{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow-x:auto!important;
+  overflow-y:scroll!important
+ }
+
+ .topbar>.header-circular-set,
+ .footer>.dice-circular-set,
+ .public-card-drop>.public-card-strip,
+ .player-hand-strip,
+ .token-choice-strip,
+ .card-drawer-row{
+  overflow-x:scroll!important;
+  overflow-y:hidden!important;
+  scrollbar-width:auto!important
+ }
+ .staging-tray{
+  scrollbar-width:auto!important
+ }
+
+ .topbar>.header-circular-set::-webkit-scrollbar,
+ .footer>.dice-circular-set::-webkit-scrollbar,
+ .public-card-drop>.public-card-strip::-webkit-scrollbar,
+ .player-hand-strip::-webkit-scrollbar,
+ .token-choice-strip::-webkit-scrollbar,
+ .card-drawer-row::-webkit-scrollbar{
+  display:block!important;
+  height:11px!important
+ }
+ .tile-browser-grid::-webkit-scrollbar,
+ .staging-tray::-webkit-scrollbar{
+  display:block!important;
+  width:11px!important;
+  height:11px!important
+ }
+
+ .topbar>.header-circular-set::-webkit-scrollbar-track,
+ .footer>.dice-circular-set::-webkit-scrollbar-track,
+ .public-card-drop>.public-card-strip::-webkit-scrollbar-track,
+ .player-hand-strip::-webkit-scrollbar-track,
+ .token-choice-strip::-webkit-scrollbar-track,
+ .card-drawer-row::-webkit-scrollbar-track,
+ .tile-browser-grid::-webkit-scrollbar-track,
+ .staging-tray::-webkit-scrollbar-track{
+  background:#0b1117!important;
+  border:1px solid #4e4124!important;
+  border-radius:999px!important
+ }
+ .topbar>.header-circular-set::-webkit-scrollbar-thumb,
+ .footer>.dice-circular-set::-webkit-scrollbar-thumb,
+ .public-card-drop>.public-card-strip::-webkit-scrollbar-thumb,
+ .player-hand-strip::-webkit-scrollbar-thumb,
+ .token-choice-strip::-webkit-scrollbar-thumb,
+ .card-drawer-row::-webkit-scrollbar-thumb,
+ .tile-browser-grid::-webkit-scrollbar-thumb,
+ .staging-tray::-webkit-scrollbar-thumb{
+  background:#806a35!important;
+  border:2px solid #0b1117!important;
+  border-radius:999px!important
+ }
+ .topbar>.header-circular-set::-webkit-scrollbar-thumb:hover,
+ .footer>.dice-circular-set::-webkit-scrollbar-thumb:hover,
+ .public-card-drop>.public-card-strip::-webkit-scrollbar-thumb:hover,
+ .player-hand-strip::-webkit-scrollbar-thumb:hover,
+ .token-choice-strip::-webkit-scrollbar-thumb:hover,
+ .card-drawer-row::-webkit-scrollbar-thumb:hover,
+ .tile-browser-grid::-webkit-scrollbar-thumb:hover,
+ .staging-tray::-webkit-scrollbar-thumb:hover{
+  background:#c09a45!important
+ }
+}
