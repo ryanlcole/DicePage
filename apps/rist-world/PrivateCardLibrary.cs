@@ -20,7 +20,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
     public string Status { get; private set; } = "";
 
     public IEnumerable<LibraryCard> SpellbookCards =>
-        SpellbookIds.Select(id => Cards.FirstOrDefault(card => card.Id == id)).Where(card => card is not null)!;
+        SpellbookIds.Select(id => Cards.FirstOrDefault(card => card.Id == id)).OfType<LibraryCard>();
 
     public async Task EnsureLoadedAsync()
     {
