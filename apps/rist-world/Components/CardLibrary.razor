@@ -7,7 +7,7 @@
 {
 <section id="card-library" class="tile-browser card-browser" aria-label="Card library">
  <header>
-  <div class="tile-browser-title"><strong>Card library</strong><small>Search private cards, create cards, or add them to the active character's spellbook.</small></div>
+  <div class="tile-browser-title"><strong>Card library</strong></div>
   @if(Session.IsLoggedIn){<button class="card-create-toggle" @onclick="()=>_creating=!_creating" aria-expanded="@_creating" title="Create custom card">+</button>}
  </header>
 
