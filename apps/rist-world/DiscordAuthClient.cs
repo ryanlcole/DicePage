@@ -77,6 +77,16 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public async Task<string?> DownloadUrlAsync(string key)
         => (await SendAsync<DownloadResponse>(HttpMethod.Get, "/storage/download?key=" + Uri.EscapeDataString(key)))?.Url;
 
+    public async Task<T?> DownloadJsonAsync<T>(string key)
+    {
+        var url = await DownloadUrlAsync(key);
+        if (string.IsNullOrWhiteSpace(url)) return default;
+        using var response = await http.GetAsync(url);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return default;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>();
+    }
+
     private async Task<T?> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
         using var request = new HttpRequestMessage(method, _apiBaseUrl + path);
