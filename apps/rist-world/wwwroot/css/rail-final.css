@@ -1489,3 +1489,119 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
 /* Reliable tap target for the header Card Library on mobile rails. */
 .header-card-deck{touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important;cursor:pointer!important}
 .header-card-deck .header-card-back{pointer-events:none!important;-webkit-user-drag:none!important}
+
+
+/* Landscape workspace v2: public hand beside pallet; fluid map canvas. */
+@media (orientation:landscape){
+ .table-workspace{
+  grid-template-columns:80px clamp(132px,17vw,220px) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  align-items:stretch!important;
+ }
+ .staging-tray{grid-column:1!important;grid-row:1!important}
+ .map-shell{
+  grid-column:3!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:0 7px 0 0!important;
+  place-items:stretch!important;
+ }
+ .map{
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+ }
+ .map:has(.grid.square)::before,
+ .map:has(.grid.hex)::before{
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+ }
+ .public-card-drop{
+  position:absolute!important;
+  z-index:30!important;
+  top:65px!important;
+  bottom:120px!important;
+  left:87px!important;
+  right:auto!important;
+  width:clamp(132px,17vw,220px)!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:7px!important;
+  overflow:hidden!important;
+  border:1px solid #6e592c!important;
+  border-radius:0!important;
+  background:#0d1319!important;
+  backdrop-filter:none!important;
+ }
+ .public-card-drop.desktop-arrow-slider{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+ }
+ .public-card-drop>.rail-scroll-arrow{display:none!important}
+ .public-card-strip{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex:1 1 auto!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:7px!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  touch-action:pan-y!important;
+ }
+ .public-card-empty{
+  box-sizing:border-box!important;
+  flex:1 1 auto!important;
+  display:grid!important;
+  place-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:10px!important;
+  white-space:normal!important;
+  text-align:center!important;
+  writing-mode:horizontal-tb!important;
+ }
+ .public-table-card{
+  flex:0 0 auto!important;
+  width:min(100%,150px)!important;
+  max-width:100%!important;
+  margin-inline:auto!important;
+ }
+ .table-workspace>.card-browser{
+  position:absolute!important;
+  z-index:90!important;
+  top:0!important;
+  right:7px!important;
+  bottom:0!important;
+  left:calc(80px + clamp(132px,17vw,220px) + 14px)!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:none!important;
+  max-height:none!important;
+  border-radius:10px!important;
+  pointer-events:auto!important;
+ }
+}
