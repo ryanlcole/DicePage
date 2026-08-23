@@ -184,3 +184,33 @@
 .pin-label-callout{position:absolute;z-index:9;transform:translate(-50%,calc(-100% - 16px));max-width:18rem;padding:4px 8px;border:1px solid #b78d35;border-radius:7px;background:#071018e8;color:#f4ead1;font-weight:800;font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 2px 8px #000a}
 .pin-label-editor{display:grid;gap:4px;color:#cdbb91;font-size:11px}.pin-label-editor input{min-width:190px;background:#121b24;color:#f4ead1;border:1px solid #8c7138;border-radius:7px;padding:7px 9px}
 .locked-tile-menu .danger{border-color:#a95151;color:#ffd6d0}
+
+
+/* Card library: same map-overlay behavior as the tile library, with card geometry. */
+.card-browser{inset:0;top:0;left:0;width:100%;height:100%;max-height:none;border-radius:0;z-index:43}
+.card-create-toggle{margin-left:auto;flex:0 0 36px;width:36px;height:36px;border:1px solid #9a7937;border-radius:8px;background:#1b252d;color:#f1d68f;font-size:28px;line-height:1}
+.custom-card-form{display:grid;grid-template-columns:1.2fr .7fr 1fr auto;gap:7px;align-items:end;padding:8px 10px;border-bottom:1px solid #40371f;background:#111920}
+.custom-card-form label{display:grid;gap:3px;color:#b7a980;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.custom-card-form input,.custom-card-form select,.custom-card-form textarea,.custom-card-form button,.card-browser-filters input,.card-browser-filters select{box-sizing:border-box;width:100%;min-height:36px;border:1px solid #80662f;border-radius:7px;background:#17212a;color:#eee6d3;padding:6px 8px}
+.custom-card-form textarea{height:36px;resize:vertical}.custom-card-form button{width:auto;color:#f1d68f;font-weight:800}
+.card-browser-filters{display:grid;grid-template-columns:.7fr .65fr .8fr 1.5fr;gap:7px;padding:7px 9px;border-bottom:1px solid #40371f;background:#111920}
+.card-browser-filters label{display:grid;gap:2px;min-width:0;color:#b7a980;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.card-library-import{margin:10px;flex:none;max-width:430px}
+.card-library-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,27%);flex:1;min-height:0;overflow:hidden}
+.card-library-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));align-content:start;gap:9px;padding:10px;overflow:auto;overscroll-behavior:contain}
+.library-playing-card{position:relative;justify-self:center;width:min(100%,112px);aspect-ratio:2.5/3.5;display:grid;grid-template-rows:minmax(0,1fr) auto;border:1px solid #80662f;border-radius:9px;background:#17212a;overflow:hidden;box-shadow:0 4px 10px #0008;touch-action:manipulation}
+.library-card-face{min-width:0;display:flex;flex-direction:column;justify-content:flex-start;gap:5px;padding:10px 7px;border:0;background:linear-gradient(#20303c,#10171d);color:#eee6d3;text-align:left}
+.library-card-face small{color:#c7a95e;font-size:8px;text-transform:uppercase}.library-card-face strong{font-family:Georgia,serif;font-size:13px;line-height:1.05}.library-card-face span{display:-webkit-box;overflow:hidden;color:#aaa18e;font-size:8px;line-height:1.25;-webkit-line-clamp:5;-webkit-box-orient:vertical}
+.library-card-add{min-height:27px;border:0;border-top:1px solid #80662f;background:#18242d;color:#f1d68f;font-size:8px;font-weight:800}
+.character-spellbook-drop{min-width:0;display:flex;flex-direction:column;gap:8px;padding:10px;border-left:1px solid #80662f;background:#0c1217;overflow:auto}
+.character-spellbook-drop>header{display:grid;gap:2px}.character-spellbook-drop>header strong{color:#f1d68f;font-family:Georgia,serif}.character-spellbook-drop>header small,.character-spellbook-drop>p{color:#9f998b;font-size:9px}
+.spellbook-card-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:7px}
+.spellbook-mini-card{aspect-ratio:2.5/3.5;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;padding:7px;border:1px solid #80662f;border-radius:7px;background:linear-gradient(#20303c,#10171d);color:#eee6d3;text-align:left;overflow:hidden}.spellbook-mini-card strong{font-size:9px}.spellbook-mini-card small{font-size:7px;color:#c7a95e}
+.card-detail-spellbook{width:100%;min-height:40px;border:1px solid #80662f;border-radius:8px;background:#17212a;color:#f1d68f;font-weight:800}
+.spellbook-pane{height:100%;overflow:auto}.spellbook-pane>header{padding:9px 12px}.character-sheet-spellbook{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;padding:10px}.character-sheet-spellbook>p{grid-column:1/-1;color:#766c5c;font-size:11px}
+.character-spell-card{position:relative;aspect-ratio:2.5/3.5;border:1px solid #c9ad77;border-radius:9px;background:#f0e8d8;overflow:hidden}.character-spell-card>button:first-child{width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;padding:8px;border:0;background:transparent;color:#55452f;text-align:left}.character-spell-card small{font-size:7px}.character-spell-card strong{font-family:Georgia,serif;font-size:10px}.remove-spell-card{position:absolute;top:3px;right:3px;width:24px;height:24px;border:1px solid #ad9260;border-radius:50%;background:#fff9;color:#6a3b2e}
+@media(max-width:700px){
+ .card-browser-filters{grid-template-columns:1fr 1fr}.custom-card-form{grid-template-columns:1fr 1fr}.custom-card-description{grid-column:1/-1}
+ .card-library-workspace{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 104px}.character-spellbook-drop{border-left:0;border-top:1px solid #80662f;padding:7px}.character-spellbook-drop>header small{display:none}.spellbook-card-strip{display:flex;overflow-x:auto}.spellbook-mini-card{flex:0 0 58px;height:80px}
+ .card-library-results{grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:7px;padding:8px}.library-playing-card{max-width:94px}
+}
