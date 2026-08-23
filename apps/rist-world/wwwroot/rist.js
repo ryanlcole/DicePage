@@ -111,7 +111,7 @@ window.ristWorld.scrollRail=(selector,direction)=>{
  const rail=document.querySelector(selector);
  if(!rail)return;
  const dir=Number(direction)<0?-1:1;
- const vertical=rail.classList.contains('desktop-arrow-adaptive')&&matchMedia('(orientation: landscape)').matches;
+ const vertical=rail.classList.contains('tile-browser-slider')||(rail.classList.contains('desktop-arrow-adaptive')&&matchMedia('(orientation: landscape)').matches);
  const axisOverflow=el=>vertical?el.scrollHeight>el.clientHeight+2:el.scrollWidth>el.clientWidth+2;
  const middle=[...rail.children].find(el=>el.classList&&!el.classList.contains('rail-scroll-arrow')&&axisOverflow(el));
  const target=middle||rail;
