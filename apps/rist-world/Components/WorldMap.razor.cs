@@ -74,6 +74,13 @@ public partial class WorldMap:IDisposable
  }
  static string CropStyle(AtlasTile t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
  static string CropStyle(StagedAsset t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
+ static string CropBoxStyle(StagedAsset t)
+ {
+  if(t.CropWidth<=0||t.CropHeight<=0)return "";
+  var scale=Math.Min(60.0/t.CropWidth,42.0/t.CropHeight);
+  var inv=CultureInfo.InvariantCulture;
+  return $"--crop-box-w:{(t.CropWidth*scale).ToString("0.###",inv)}px;--crop-box-h:{(t.CropHeight*scale).ToString("0.###",inv)}px";
+ }
  static string CropStyle(TileItem t)=>CropStyle(t.SourceWidth,t.SourceHeight,t.CropX,t.CropY,t.CropWidth,t.CropHeight);
  static string RollStyle(RollItem r,DiceSpec die)
  {
