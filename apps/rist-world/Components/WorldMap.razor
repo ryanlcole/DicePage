@@ -34,8 +34,9 @@
      </select>
     </label>
    </div>
-   <div id="tile-library-slider" class="tile-browser-grid desktop-arrow-slider" aria-label="Tiles; swipe left or right">
-    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#tile-library-slider',-1)" aria-label="Scroll tile library left">‹</button>
+   <div id="tile-library-slider" class="tile-browser-slider desktop-arrow-slider" aria-label="Tile library; scroll up or down">
+    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#tile-library-slider',-1)" aria-label="Scroll tile library up">‹</button>
+    <div class="tile-browser-grid">
     @foreach(var tile in BrowserTiles)
     {
      <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
@@ -44,7 +45,8 @@
     }
     @if(string.IsNullOrWhiteSpace(BrowserFolder)){<p>Choose a folder to load its tiles.</p>}
     else if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
-    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#tile-library-slider',1)" aria-label="Scroll tile library right">›</button>
+    </div>
+    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#tile-library-slider',1)" aria-label="Scroll tile library down">›</button>
    </div>
   </section>
  }
@@ -102,7 +104,7 @@
             @ondblclick="()=>Session.RemoveStaged(staged.Key)">
      @if(staged.Kind=="tile")
      {
-      <span class="tile-image-crop"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>
+      <span class="tile-image-crop" style="@CropBoxStyle(staged)"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>
      }
      else
      {
