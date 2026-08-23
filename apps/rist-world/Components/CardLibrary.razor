@@ -8,7 +8,7 @@
 <section id="card-library" class="tile-browser card-browser unified-card-library" aria-label="Card library">
  <header>
   <div class="tile-browser-title"><strong>Card library</strong></div>
-  @if(Session.IsLoggedIn && !_source.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+  @if(Session.IsLoggedIn)
   {
    <button class="card-create-toggle" @onclick="ToggleTools" aria-expanded="@_toolsOpen" title="Card library actions" aria-label="Card library actions">+</button>
   }
@@ -27,9 +27,10 @@
   <div class="card-library-source-row">
    <label>Library
     <select @bind="_source" @bind:after="ResetPage">
-     <option value="Custom">Custom</option>
+     <option value="Shaelvien">Shaelvien</option>
      <option value="Pathfinder 1e">Pathfinder 1e</option>
-     <option value="">All</option>
+     @foreach(var libraryName in CustomLibraries){<option value="@libraryName">@libraryName</option>}
+     <option value="">All libraries</option>
     </select>
    </label>
    <button class="card-filter-toggle" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
@@ -60,9 +61,9 @@
 
   <div class="card-library-workspace">
    <div class="card-library-results" aria-label="Card search results">
-    @if(_source.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+    @if(!string.IsNullOrWhiteSpace(_source) && !_source.Equals("Pathfinder 1e", StringComparison.OrdinalIgnoreCase))
     {
-     <button class="library-playing-card library-new-card" @onclick="OpenCreator" aria-label="Create a custom card">
+     <button class="library-playing-card library-new-card" @onclick="OpenCreator" aria-label="Create a card in this library">
       <span aria-hidden="true">+</span>
       <strong>New card</strong>
      </button>
@@ -137,6 +138,7 @@
     </label>
    </div>
 
+   <label>Library / category<input @bind="_draft.LibraryName" maxlength="80" placeholder="Shaelvien" /></label>
    <label>Name<input @bind="_draft.Name" maxlength="80" /></label>
    <label>Type<select @bind="_draft.Type"><option>Spell</option><option>Character</option><option>Action</option><option>Intel</option><option>Standard</option></select></label>
    <label>Category<input @bind="_draft.Category" placeholder="School, theme, or set" maxlength="80" /></label>
@@ -179,7 +181,7 @@
  LibraryCard? _selected;
  CardDraft _draft=new();
  string _search="";
- string _source="Custom";
+ string _source="Shaelvien";
  string _type="";
  string _classFilter="";
  string _editorStatus="";
@@ -188,6 +190,7 @@
  bool _filtersOpen;
  bool _toolsOpen;
 
+ IEnumerable<string> CustomLibraries=>Library.Cards.Where(x=>x.Custom&&!x.Source.Equals("Shaelvien",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Custom",StringComparison.OrdinalIgnoreCase)).Select(x=>x.Source).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
  IEnumerable<string> Types=>Library.Cards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
  IEnumerable<string> ClassNames=>Library.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
  IEnumerable<LibraryCard> FilteredCards=>Library.Cards.Where(card=>
@@ -210,7 +213,7 @@
  void NextPage(){if(HasNextPage)_page++;}
  void PreviousPage(){if(_page>0)_page--;}
  void ToggleTools()=>_toolsOpen=!_toolsOpen;
- void OpenCreator(){_toolsOpen=false;_editorStatus="";_creating=true;}
+ void OpenCreator(){_toolsOpen=false;_editorStatus="";_draft=new(){LibraryName=string.IsNullOrWhiteSpace(_source)||_source.Equals("Pathfinder 1e",StringComparison.OrdinalIgnoreCase)?"Shaelvien":_source};_creating=true;}
  void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
 
  async Task ImportDeckAsync(InputFileChangeEventArgs e)
@@ -225,7 +228,7 @@
   _toolsOpen=false;
   await using var stream=e.File.OpenReadStream(4*1024*1024);
   await Library.ImportCustomAsync(stream);
-  _source="Custom";ResetPage();
+  _source="Shaelvien";ResetPage();
  }
  async Task LoadImageAsync(InputFileChangeEventArgs e)
  {
@@ -242,7 +245,7 @@
  {
   if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}
   await Library.CreateCustomAsync(_draft);
-  _source="Custom";_page=0;_creating=false;_draft=new();_editorStatus="";
+  _source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Shaelvien":_draft.LibraryName.Trim();_page=0;_creating=false;_draft=new();_editorStatus="";
  }
  static string CardSummary(LibraryCard card)=>card.Classes.Count==0?card.Type:string.Join(" · ",card.Classes.OrderBy(x=>x.Value).ThenBy(x=>x.Key).Take(3).Select(x=>$"{x.Key} {x.Value}"));
 }
