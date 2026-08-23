@@ -115,6 +115,9 @@ Resources:
         Callback:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /auth/callback, Method: GET }
+        SessionHandoff:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /auth/session, Method: GET }
         Me:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /me, Method: GET }
@@ -246,8 +249,23 @@ Resources:
                     "username": profile.get("global_name") or profile.get("username") or "Discord user",
                     "expiresAt": now + SESSION_SECONDS
                 })
-                target = FRONTEND + "#rist_session=" + urllib.parse.quote(token)
+                handoff = secrets.token_urlsafe(32)
+                ddb.put_item(Item={
+                    "pk": "handoff#" + handoff, "sessionToken": token,
+                    "expiresAt": now + 120
+                })
+                target = FRONTEND + "?rist_handoff=" + urllib.parse.quote(handoff)
                 return response(302, location=target)
+
+            if route == "GET /auth/session":
+                handoff = query.get("handoff") or ""
+                key = {"pk": "handoff#" + handoff}
+                saved = ddb.get_item(Key=key).get("Item")
+                if saved:
+                    ddb.delete_item(Key=key)
+                if not saved or int(saved.get("expiresAt", 0)) <= now:
+                    return response(400, {"error": "Invalid or expired login handoff"})
+                return response(200, {"sessionToken": saved["sessionToken"]})
 
             session = auth(event)
             if not session:
