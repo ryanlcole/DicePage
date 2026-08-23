@@ -78,10 +78,10 @@
  bool _attemptedLoad;
  string _status="";
 
- IEnumerable<string> ClassNames=>_deck?.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x)??[];
+ IEnumerable<string> ClassNames=>_deck?.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x)??Enumerable.Empty<string>();
  IEnumerable<PrivateSpellCard> FilteredCards=>_deck?.Cards.Where(card=>
   (string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))
-  &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)))??[];
+  &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)))??Enumerable.Empty<PrivateSpellCard>();
 
  protected override async Task OnParametersSetAsync()
  {
