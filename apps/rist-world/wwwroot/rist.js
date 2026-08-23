@@ -1,8 +1,24 @@
 window.ristAuth={
- captureSession:()=>{
+ captureSession:async(apiBase)=>{
   const hash=new URLSearchParams(location.hash.replace(/^#/,''));
-  const incoming=hash.get('rist_session');
-  if(incoming){sessionStorage.setItem('rist.session',incoming);history.replaceState(null,'',location.pathname+location.search);}
+  const legacy=hash.get('rist_session');
+  if(legacy)sessionStorage.setItem('rist.session',legacy);
+  const query=new URLSearchParams(location.search);
+  const handoff=query.get('rist_handoff');
+  if(handoff&&apiBase){
+   try{
+    const response=await fetch(apiBase.replace(/\/$/,'')+'/auth/session?handoff='+encodeURIComponent(handoff),{cache:'no-store'});
+    if(response.ok){
+     const payload=await response.json();
+     if(payload.sessionToken)sessionStorage.setItem('rist.session',payload.sessionToken);
+    }
+   }catch{}
+  }
+  if(legacy||handoff){
+   query.delete('rist_handoff');
+   const clean=query.toString();
+   history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
+  }
   return sessionStorage.getItem('rist.session');
  },
  clearSession:()=>sessionStorage.removeItem('rist.session'),
