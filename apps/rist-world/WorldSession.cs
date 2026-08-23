@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace RistWorld;
 
-public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
+public sealed partial class WorldSession(HttpClient http, IJSRuntime js, DiscordAuthClient auth)
 {
     private const string SaveKey = "rist.world.blazor.v6";
     public event Action? Changed;
@@ -61,8 +61,11 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public string SelectedTile { get; set; } = "";
     public bool TileBrowserOpen { get; private set; }
     public string PieceKind { get; set; } = "mini";
-    public string Role { get; set; } = "GM";
-    public bool IsLoggedIn { get; private set; } = true;
+    public string Role { get; set; } = "PC";
+    public bool IsLoggedIn { get; private set; }
+    public bool AuthConfigured => auth.IsConfigured;
+    public string DiscordDisplayName { get; private set; } = "";
+    public string PrivateStorageStatus { get; private set; } = "";
     public bool CanManageCurrentMap => IsLoggedIn;
     public bool SaveMenuOpen { get; private set; }
     public bool LoadMenuOpen { get; private set; }
@@ -84,7 +87,17 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
     public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}
-    public void ToggleLogin(){IsLoggedIn=!IsLoggedIn;if(!IsLoggedIn)Role="PC";CloseHeaderMenus();Notify();}
+    public async Task ToggleLoginAsync()
+    {
+        if(IsLoggedIn)
+        {
+            await auth.LogoutAsync();
+            IsLoggedIn=false;DiscordDisplayName="";PrivateStorageStatus="";Role="PC";
+            CloseHeaderMenus();Notify();return;
+        }
+        if(!auth.IsConfigured){PrivateStorageStatus="Discord login is not configured yet.";Notify();return;}
+        await auth.BeginLoginAsync();
+    }
     public void ToggleSaveMenu(){SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
     public void ToggleLoadMenu(){LoadMenuOpen=!LoadMenuOpen;SaveMenuOpen=false;Notify();}
     public void CloseHeaderMenus(){SaveMenuOpen=false;LoadMenuOpen=false;}
@@ -134,6 +147,11 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js)
         RegisterNaejaMapTiles();
         if(!await TryLoadSavedMapAsync())BuildNaejaMapTilemap();
         await LoadCardsAsync();
+        var profile=await auth.InitializeAsync();
+        IsLoggedIn=profile is not null;
+        DiscordDisplayName=profile?.DisplayName??"";
+        if(!IsLoggedIn)Role="PC";
+        PrivateStorageStatus=IsLoggedIn?"Private AWS storage ready.":auth.IsConfigured?"Log in with Discord to use private storage.":"Discord login is awaiting AWS deployment.";
         Notify();
     }
 
