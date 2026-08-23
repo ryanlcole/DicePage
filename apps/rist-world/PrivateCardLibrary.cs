@@ -108,7 +108,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
             School = draft.Category.Trim(),
             ImageDataUrl = draft.ImageDataUrl,
             Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
-            Source = "Custom",
+            Source = string.IsNullOrWhiteSpace(draft.LibraryName) ? "Shaelvien" : draft.LibraryName.Trim(),
             Custom = true
         };
         Cards.Add(card);
@@ -137,7 +137,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
                     School = draft.Category.Trim(),
                     ImageDataUrl = draft.ImageDataUrl,
                     Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
-                    Source = "Custom",
+                    Source = string.IsNullOrWhiteSpace(draft.LibraryName) ? "Shaelvien" : draft.LibraryName.Trim(),
                     Custom = true
                 });
                 imported++;
@@ -201,6 +201,7 @@ public sealed record StoredCardDeck(string DeckId, string Title, string Visibili
 public sealed record StoredSpellbook(List<string> CardIds);
 public sealed class CardDraft
 {
+    public string LibraryName { get; set; } = "Shaelvien";
     public string Name { get; set; } = "";
     public string Type { get; set; } = "Spell";
     public string Category { get; set; } = "";
