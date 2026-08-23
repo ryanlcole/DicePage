@@ -20,7 +20,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         {
             var config = await http.GetFromJsonAsync<AuthConfig>("auth-config.json");
             _apiBaseUrl = config?.ApiBaseUrl?.TrimEnd('/') ?? "";
-            _sessionToken = await js.InvokeAsync<string?>("ristAuth.captureSession");
+            _sessionToken = await js.InvokeAsync<string?>("ristAuth.captureSession", _apiBaseUrl);
             if (!IsConfigured || string.IsNullOrWhiteSpace(_sessionToken)) return null;
             Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
             if (Profile is null) await ClearSessionAsync();
