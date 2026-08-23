@@ -49,6 +49,14 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await ClearSessionAsync();
     }
 
+    public async Task DeleteAccountAsync()
+    {
+        if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
+            await SendAsync<object>(HttpMethod.Post, "/account/delete");
+        Profile = null;
+        await ClearSessionAsync();
+    }
+
     public async Task UploadTextAsync(string key, string text, string contentType)
     {
         var request = new UploadRequest(key, contentType);
