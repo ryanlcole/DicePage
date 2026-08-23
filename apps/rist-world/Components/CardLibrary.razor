@@ -5,10 +5,13 @@
 
 @if(Session.CardBrowserOpen)
 {
-<section id="card-library" class="tile-browser card-browser" aria-label="Card library">
+<section id="card-library" class="tile-browser card-browser unified-card-library" aria-label="Card library">
  <header>
   <div class="tile-browser-title"><strong>Card library</strong></div>
-  @if(Session.IsLoggedIn){<button class="card-create-toggle" @onclick="()=>_creating=!_creating" aria-expanded="@_creating" title="Create custom card">+</button>}
+  @if(Session.IsLoggedIn && !_source.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+  {
+   <button class="card-create-toggle" @onclick="ToggleTools" aria-expanded="@_toolsOpen" title="Card library actions" aria-label="Card library actions">+</button>
+  }
  </header>
 
  @if(!Session.IsLoggedIn)
@@ -21,48 +24,80 @@
  }
  else
  {
-  @if(_creating)
-  {
-   <section class="custom-card-form" aria-label="Create custom card">
-    <label>Name<input @bind="_draft.Name" /></label>
-    <label>Type<select @bind="_draft.Type"><option>Spell</option><option>Character</option><option>Action</option><option>Intel</option><option>Standard</option></select></label>
-    <label>Category<input @bind="_draft.Category" placeholder="School, theme, or set" /></label>
-    <label class="custom-card-description">Description<textarea @bind="_draft.Description"></textarea></label>
-    <button @onclick="CreateCustomAsync">Create card</button>
-   </section>
-  }
-
-  <div class="card-browser-filters">
-   <label>Source<select @bind="_source"><option value="">All private cards</option><option value="Pathfinder 1e">Pathfinder 1e</option><option value="Custom">Custom cards</option></select></label>
-   <label>Type<select @bind="_type"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
-   <label>Class<select @bind="_classFilter"><option value="">All classes</option>@foreach(var name in ClassNames){<option value="@name">@name</option>}</select></label>
-   <label>Search<input type="search" placeholder="Name, school, or text" @bind="_search" @bind:event="oninput" /></label>
+  <div class="card-library-source-row">
+   <label>Library
+    <select @bind="_source" @bind:after="ResetPage">
+     <option value="Custom">Custom</option>
+     <option value="Pathfinder 1e">Pathfinder 1e</option>
+     <option value="">All</option>
+    </select>
+   </label>
+   <button class="card-filter-toggle" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
   </div>
 
-  @if(!Library.Cards.Any(card=>card.Source=="Pathfinder 1e"))
+  @if(_toolsOpen)
   {
-   <label class="private-deck-import card-library-import">
-    <strong>Import private Pathfinder deck</strong>
-    <span>Select the approved ZIP once. It is stored only in your Discord-owned private space.</span>
-    <InputFile OnChange="ImportDeckAsync" accept=".zip,application/zip" />
-   </label>
+   <div class="card-library-tools" role="menu" aria-label="Card library actions">
+    <button @onclick="OpenCreator">Create custom card</button>
+    <label>
+     <span>Import custom JSON</span>
+     <InputFile OnChange="ImportCustomAsync" accept=".json,application/json" />
+    </label>
+    <label>
+     <span>Import Pathfinder ZIP</span>
+     <InputFile OnChange="ImportDeckAsync" accept=".zip,application/zip" />
+    </label>
+    <a href="templates/custom-card-template.json" download="shaelvien-custom-card-template.json">Download template</a>
+    <button class="card-tools-cancel" @onclick="()=>_toolsOpen=false">Cancel</button>
+   </div>
   }
+
+  <div class="@($"card-browser-filters{(_filtersOpen ? " open" : "")}")">
+   <label>Type<select @bind="_type" @bind:after="ResetPage"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
+   <label>Class<select @bind="_classFilter" @bind:after="ResetPage"><option value="">All classes</option>@foreach(var name in ClassNames){<option value="@name">@name</option>}</select></label>
+   <label class="card-search-field">Search<input type="search" placeholder="Name, school, or text" @bind="_search" @bind:event="oninput" @bind:after="ResetPage" /></label>
+  </div>
 
   <div class="card-library-workspace">
    <div class="card-library-results" aria-label="Card search results">
-    @foreach(var card in FilteredCards.Take(120))
+    @if(_source.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+    {
+     <button class="library-playing-card library-new-card" @onclick="OpenCreator" aria-label="Create a custom card">
+      <span aria-hidden="true">+</span>
+      <strong>New card</strong>
+     </button>
+    }
+
+    @foreach(var card in PagedCards)
     {
      <article class="library-playing-card" draggable="true" @ondragstart="()=>Library.BeginDrag(card)">
       <button class="library-card-face" @onclick="()=>_selected=card" aria-label="@card.Name">
+       @if(!string.IsNullOrWhiteSpace(card.ImageDataUrl))
+       {
+        <img class="library-card-image" src="@card.ImageDataUrl" alt="" />
+       }
        <small>@(string.IsNullOrWhiteSpace(card.School)?card.Type:card.School)</small>
        <strong>@card.Name</strong>
-       <span>@CardSummary(card)</span>
       </button>
       <button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Spellbook +</button>
      </article>
     }
-    @if(!FilteredCards.Any()&&Library.Cards.Any()){<p class="tile-browser-status">No cards match these filters.</p>}
+
+    @if(_page>0)
+    {
+     <button class="library-playing-card library-page-card page-back" @onclick="PreviousPage" aria-label="Previous page"><span>Back</span></button>
+    }
+    @if(HasNextPage)
+    {
+     <button class="library-playing-card library-page-card page-next" @onclick="NextPage" aria-label="Next page"><span>Next</span></button>
+    }
+
+    @if(!FilteredCards.Any() && !_source.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+    {
+     <p class="tile-browser-status card-library-empty">No cards match these filters.</p>
+    }
    </div>
+
    <aside class="character-spellbook-drop" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync" aria-label="Active character spellbook drop area">
     <header><strong>Active character spellbook</strong><small>Drag cards here. The same book appears on the character sheet.</small></header>
     <div class="spellbook-card-strip">
@@ -80,11 +115,50 @@
 </section>
 }
 
+@if(_creating)
+{
+ <div class="private-spell-modal custom-card-editor-modal" role="dialog" aria-modal="true" aria-labelledby="custom-card-title" @onclick="CancelCreator">
+  <article class="custom-card-editor-card" @onclick:stopPropagation>
+   <button class="private-spell-close" @onclick="CancelCreator" aria-label="Cancel custom card">×</button>
+   <h2 id="custom-card-title">Create custom card</h2>
+
+   <div class="custom-card-image">
+    @if(!string.IsNullOrWhiteSpace(_draft.ImageDataUrl))
+    {
+     <img src="@_draft.ImageDataUrl" alt="Custom card preview" />
+    }
+    else
+    {
+     <span>Card image</span>
+    }
+    <label>
+     <strong>@(string.IsNullOrWhiteSpace(_draft.ImageDataUrl) ? "Add image" : "Change image")</strong>
+     <InputFile OnChange="LoadImageAsync" accept="image/png,image/jpeg,image/webp" />
+    </label>
+   </div>
+
+   <label>Name<input @bind="_draft.Name" maxlength="80" /></label>
+   <label>Type<select @bind="_draft.Type"><option>Spell</option><option>Character</option><option>Action</option><option>Intel</option><option>Standard</option></select></label>
+   <label>Category<input @bind="_draft.Category" placeholder="School, theme, or set" maxlength="80" /></label>
+   <label class="custom-card-description">Description<textarea @bind="_draft.Description" maxlength="1200"></textarea></label>
+   @if(!string.IsNullOrWhiteSpace(_editorStatus)){<p class="custom-card-editor-status">@_editorStatus</p>}
+   <footer>
+    <button class="custom-card-cancel" @onclick="CancelCreator">Cancel</button>
+    <button class="custom-card-save" @onclick="CreateCustomAsync" disabled="@string.IsNullOrWhiteSpace(_draft.Name)">Create card</button>
+   </footer>
+  </article>
+ </div>
+}
+
 @if(_selected is not null)
 {
  <div class="private-spell-modal" role="dialog" aria-modal="true" aria-labelledby="library-card-title" @onclick="()=>_selected=null">
   <article class="private-spell-sheet" @onclick:stopPropagation>
    <button class="private-spell-close" @onclick="()=>_selected=null" aria-label="Close card">×</button>
+   @if(!string.IsNullOrWhiteSpace(_selected.ImageDataUrl))
+   {
+    <img class="private-card-detail-image" src="@_selected.ImageDataUrl" alt="" />
+   }
    <span class="private-badge">@(_selected.Custom?"Private custom card":"Private Pathfinder 1e")</span>
    <h2 id="library-card-title">@_selected.Name</h2>
    <p class="private-spell-meta">@_selected.School @if(!string.IsNullOrWhiteSpace(_selected.Subschool)){<text> · @_selected.Subschool</text>}</p>
@@ -101,13 +175,18 @@
 }
 
 @code {
+ const int CardsPerPage=10;
  LibraryCard? _selected;
- readonly CardDraft _draft=new();
+ CardDraft _draft=new();
  string _search="";
- string _source="";
+ string _source="Custom";
  string _type="";
  string _classFilter="";
+ string _editorStatus="";
+ int _page;
  bool _creating;
+ bool _filtersOpen;
+ bool _toolsOpen;
 
  IEnumerable<string> Types=>Library.Cards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
  IEnumerable<string> ClassNames=>Library.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
@@ -116,6 +195,9 @@
   &&(string.IsNullOrWhiteSpace(_source)||card.Source.Equals(_source,StringComparison.OrdinalIgnoreCase))
   &&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase))
   &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)));
+ IEnumerable<LibraryCard> PagedCards=>FilteredCards.Skip(_page*CardsPerPage).Take(CardsPerPage);
+ int MatchCount=>FilteredCards.Count();
+ bool HasNextPage=>(_page+1)*CardsPerPage<MatchCount;
 
  protected override void OnInitialized(){Library.Changed+=LibraryChanged;Session.Changed+=SessionChanged;}
  protected override async Task OnParametersSetAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();}
@@ -124,7 +206,43 @@
  async Task RefreshSessionAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();StateHasChanged();}
  public void Dispose(){Library.Changed-=LibraryChanged;Session.Changed-=SessionChanged;}
 
- async Task ImportDeckAsync(InputFileChangeEventArgs e){await using var stream=e.File.OpenReadStream(12*1024*1024);await Library.ImportPathfinderAsync(stream);}
- async Task CreateCustomAsync(){await Library.CreateCustomAsync(_draft);_creating=false;_draft.Name="";_draft.Description="";_draft.Category="";}
+ void ResetPage(){_page=0;_toolsOpen=false;}
+ void NextPage(){if(HasNextPage)_page++;}
+ void PreviousPage(){if(_page>0)_page--;}
+ void ToggleTools()=>_toolsOpen=!_toolsOpen;
+ void OpenCreator(){_toolsOpen=false;_editorStatus="";_creating=true;}
+ void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
+
+ async Task ImportDeckAsync(InputFileChangeEventArgs e)
+ {
+  _toolsOpen=false;
+  await using var stream=e.File.OpenReadStream(12*1024*1024);
+  await Library.ImportPathfinderAsync(stream);
+  _source="Pathfinder 1e";ResetPage();
+ }
+ async Task ImportCustomAsync(InputFileChangeEventArgs e)
+ {
+  _toolsOpen=false;
+  await using var stream=e.File.OpenReadStream(4*1024*1024);
+  await Library.ImportCustomAsync(stream);
+  _source="Custom";ResetPage();
+ }
+ async Task LoadImageAsync(InputFileChangeEventArgs e)
+ {
+  const long limit=1_500_000;
+  if(e.File.Size>limit){_editorStatus="Choose an image smaller than 1.5 MB.";return;}
+  await using var stream=e.File.OpenReadStream(limit);
+  using var memory=new MemoryStream();
+  await stream.CopyToAsync(memory);
+  var type=string.IsNullOrWhiteSpace(e.File.ContentType)?"image/jpeg":e.File.ContentType;
+  _draft.ImageDataUrl=$"data:{type};base64,{Convert.ToBase64String(memory.ToArray())}";
+  _editorStatus="";
+ }
+ async Task CreateCustomAsync()
+ {
+  if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}
+  await Library.CreateCustomAsync(_draft);
+  _source="Custom";_page=0;_creating=false;_draft=new();_editorStatus="";
+ }
  static string CardSummary(LibraryCard card)=>card.Classes.Count==0?card.Type:string.Join(" · ",card.Classes.OrderBy(x=>x.Value).ThenBy(x=>x.Key).Take(3).Select(x=>$"{x.Key} {x.Value}"));
 }
