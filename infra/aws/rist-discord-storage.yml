@@ -9,6 +9,10 @@ Parameters:
   DiscordClientSecretArn:
     Type: String
     Description: Secrets Manager ARN containing {"client_secret":"..."}
+  FrontendOrigin:
+    Type: String
+    Default: https://ryanlcole.github.io
+    Description: Browser origin only; do not include a path or trailing slash
   FrontendUrl:
     Type: String
     Default: https://ryanlcole.github.io/DicePage/app/
@@ -36,7 +40,7 @@ Resources:
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
-              - !Ref FrontendUrl
+              - !Ref FrontendOrigin
             AllowedMethods: [GET, POST]
             AllowedHeaders: ['*']
             ExposedHeaders: [ETag]
@@ -69,7 +73,7 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins:
-          - !Ref FrontendUrl
+          - !Ref FrontendOrigin
         AllowHeaders:
           - authorization
           - content-type
@@ -91,6 +95,7 @@ Resources:
           DISCORD_CLIENT_ID: !Ref DiscordClientId
           DISCORD_SECRET_ARN: !Ref DiscordClientSecretArn
           FRONTEND_URL: !Ref FrontendUrl
+          FRONTEND_ORIGIN: !Ref FrontendOrigin
           SESSION_HOURS: !Ref SessionHours
           IDENTITY_TABLE: !Ref IdentityTable
           STORAGE_BUCKET: !Ref PrivateStorageBucket
@@ -132,6 +137,7 @@ Resources:
         s3 = boto3.client("s3")
         sm = boto3.client("secretsmanager")
         FRONTEND = os.environ["FRONTEND_URL"]
+        FRONTEND_ORIGIN = os.environ["FRONTEND_ORIGIN"]
         CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
         BUCKET = os.environ["STORAGE_BUCKET"]
         SESSION_SECONDS = int(os.environ["SESSION_HOURS"]) * 3600
@@ -142,7 +148,7 @@ Resources:
 
         def response(status, body=None, location=None):
             headers = {
-                "access-control-allow-origin": FRONTEND.rstrip("/"),
+                "access-control-allow-origin": FRONTEND_ORIGIN.rstrip("/"),
                 "access-control-allow-headers": "authorization,content-type",
                 "access-control-allow-methods": "GET,POST,OPTIONS",
                 "cache-control": "no-store",
