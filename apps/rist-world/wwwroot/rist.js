@@ -1,3 +1,14 @@
+window.ristAuth={
+ captureSession:()=>{
+  const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+  const incoming=hash.get('rist_session');
+  if(incoming){sessionStorage.setItem('rist.session',incoming);history.replaceState(null,'',location.pathname+location.search);}
+  return sessionStorage.getItem('rist.session');
+ },
+ clearSession:()=>sessionStorage.removeItem('rist.session'),
+ navigate:url=>location.assign(url)
+};
+
 window.ristWorld={
  capturePointer:(pointerId,x,y)=>{
   const el=document.elementFromPoint(x,y);if(el?.setPointerCapture)el.setPointerCapture(pointerId);
