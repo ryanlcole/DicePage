@@ -21,16 +21,46 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             var config = await http.GetFromJsonAsync<AuthConfig>("auth-config.json");
             _apiBaseUrl = config?.ApiBaseUrl?.TrimEnd('/') ?? "";
             _sessionToken = await js.InvokeAsync<string?>("ristAuth.captureSession", _apiBaseUrl);
-            if (!IsConfigured || string.IsNullOrWhiteSpace(_sessionToken)) return null;
-            Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
-            if (Profile is null) await ClearSessionAsync();
-            return Profile;
         }
         catch
         {
-            await ClearSessionAsync();
+            Profile = null;
             return null;
         }
+
+        if (!IsConfigured || string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            Profile = null;
+            return null;
+        }
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            try
+            {
+                Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
+                if (Profile is not null) return Profile;
+                await ClearSessionAsync();
+                return null;
+            }
+            catch (HttpRequestException) when (attempt < 2)
+            {
+                await Task.Delay(350 * (attempt + 1));
+            }
+            catch (TaskCanceledException) when (attempt < 2)
+            {
+                await Task.Delay(350 * (attempt + 1));
+            }
+            catch
+            {
+                // Preserve the browser session on transient mobile/network failures.
+                Profile = null;
+                return null;
+            }
+        }
+
+        Profile = null;
+        return null;
     }
 
     public async Task BeginLoginAsync()
