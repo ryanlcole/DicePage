@@ -1,5 +1,6 @@
 [
   {
+    "libraryName": "Shaelvien",
     "name": "Example card",
     "type": "Spell",
     "category": "School, theme, or set",
