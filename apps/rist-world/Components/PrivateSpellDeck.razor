@@ -1,0 +1,168 @@
+@using System.IO.Compression
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
+@inject DiscordAuthClient Auth
+@inject WorldSession Session
+
+<div id="private-spell-slider" class="card-drawer-row private-spell-row desktop-arrow-slider" aria-label="Private Pathfinder spell cards">
+ <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#private-spell-slider',-1)" aria-label="Scroll private spells left">‹</button>
+ <div class="drawer-category-card private-deck-category" aria-hidden="true"><span class="category-card-back"></span><strong>Spells</strong></div>
+ @if(!Session.IsLoggedIn)
+ {
+  <p class="private-deck-status">Log in to open your private spell deck.</p>
+ }
+ else if(_loading)
+ {
+  <p class="private-deck-status">Loading your private spell deck…</p>
+ }
+ else if(_deck is null)
+ {
+  <label class="private-deck-import">
+   <strong>Import private deck</strong>
+   <span>Select the Pathfinder ZIP once. It is stored only in your Discord-owned private space.</span>
+   <InputFile OnChange="ImportDeckAsync" accept=".zip,application/zip" />
+  </label>
+ }
+ else
+ {
+  <div class="private-deck-controls">
+   <label><span class="sr-only">Search private spells</span><input type="search" placeholder="Search @_deck.Title" @bind="_search" @bind:event="oninput" /></label>
+   <label><span class="sr-only">Filter by class</span><select @bind="_classFilter"><option value="">All classes</option>@foreach(var name in ClassNames){<option value="@name">@name</option>}</select></label>
+   <span class="private-deck-count">@FilteredCards.Count() of @_deck.Cards.Count</span>
+  </div>
+  @foreach(var card in FilteredCards.Take(60))
+  {
+   <button class="drawer-front private-spell-card" @onclick="()=>_selected=card" aria-label="@($"{card.Name}, {card.School}, private spell card")">
+    <small>@card.School</small>
+    <strong>@card.Name</strong>
+    <span>@ClassSummary(card)</span>
+   </button>
+  }
+ }
+ <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#private-spell-slider',1)" aria-label="Scroll private spells right">›</button>
+</div>
+
+@if(_selected is not null)
+{
+ <div class="private-spell-modal" role="dialog" aria-modal="true" aria-labelledby="private-spell-title" @onclick="CloseCard">
+  <article class="private-spell-sheet" @onclick:stopPropagation>
+   <button class="private-spell-close" @onclick="CloseCard" aria-label="Close spell card">×</button>
+   <span class="private-badge">Private Pathfinder 1e</span>
+   <h2 id="private-spell-title">@_selected.Name</h2>
+   <p class="private-spell-meta">@_selected.School @if(!string.IsNullOrWhiteSpace(_selected.Subschool)){<text> · @_selected.Subschool</text>}</p>
+   <dl>
+    <div><dt>Level</dt><dd>@ClassSummary(_selected)</dd></div>
+    <div><dt>Casting time</dt><dd>@_selected.CastingTime</dd></div>
+    <div><dt>Range</dt><dd>@_selected.Range</dd></div>
+    <div><dt>Target</dt><dd>@FirstValue(_selected.Targets,_selected.Area,_selected.Effect)</dd></div>
+    <div><dt>Duration</dt><dd>@_selected.Duration</dd></div>
+    <div><dt>Save / resistance</dt><dd>@FirstValue(_selected.SavingThrow,"—") / @FirstValue(_selected.SpellResistance,"—")</dd></div>
+   </dl>
+   <p class="private-spell-description">@_selected.Description</p>
+   <small>@_selected.Sourcebook</small>
+  </article>
+ </div>
+}
+
+@code {
+ const string DeckKey="cards/decks/naeja-pathfinder-1e-private-test.json";
+ static readonly JsonSerializerOptions JsonOptions=new(){PropertyNameCaseInsensitive=true};
+ StoredSpellDeck? _deck;
+ PrivateSpellCard? _selected;
+ string _search="";
+ string _classFilter="";
+ bool _loading;
+ bool _attemptedLoad;
+ string _status="";
+
+ IEnumerable<string> ClassNames=>_deck?.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x)??[];
+ IEnumerable<PrivateSpellCard> FilteredCards=>_deck?.Cards.Where(card=>
+  (string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))
+  &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)))??[];
+
+ protected override async Task OnParametersSetAsync()
+ {
+  if(!Session.IsLoggedIn){_deck=null;_attemptedLoad=false;return;}
+  if(!_attemptedLoad&&!_loading)await LoadDeckAsync();
+ }
+
+ async Task LoadDeckAsync()
+ {
+  _attemptedLoad=true;_loading=true;
+  try{_deck=await Auth.DownloadJsonAsync<StoredSpellDeck>(DeckKey);}
+  catch(Exception ex){_status="Private deck could not be loaded: "+ex.Message;}
+  finally{_loading=false;}
+ }
+
+ async Task ImportDeckAsync(InputFileChangeEventArgs e)
+ {
+  _loading=true;_status="";
+  try
+  {
+   await using var source=e.File.OpenReadStream(12*1024*1024);
+   using var memory=new MemoryStream();
+   await source.CopyToAsync(memory);
+   memory.Position=0;
+   using var archive=new ZipArchive(memory,ZipArchiveMode.Read);
+   var manifestEntry=archive.Entries.FirstOrDefault(x=>x.FullName.EndsWith("spell-cards/data/manifest.json",StringComparison.OrdinalIgnoreCase))
+    ??throw new InvalidDataException("The Pathfinder deck manifest is missing.");
+   SpellDeckManifest manifest;
+   await using(var manifestStream=manifestEntry.Open())
+    manifest=await JsonSerializer.DeserializeAsync<SpellDeckManifest>(manifestStream,JsonOptions)
+     ??throw new InvalidDataException("The Pathfinder deck manifest is invalid.");
+   if(manifest.DeckId!="naeja-pathfinder-1e-private-test"||manifest.Visibility!="private-test-only")
+    throw new InvalidDataException("This is not the approved private Pathfinder deck.");
+   var cards=new List<PrivateSpellCard>(manifest.SpellCount);
+   foreach(var chunk in manifest.Chunks)
+   {
+    var normalized=chunk.File.Replace('\\','/');
+    var entry=archive.Entries.FirstOrDefault(x=>x.FullName.EndsWith(normalized,StringComparison.OrdinalIgnoreCase))
+     ??throw new InvalidDataException("A spell-data chunk is missing.");
+    await using var chunkStream=entry.Open();
+    cards.AddRange(await JsonSerializer.DeserializeAsync<List<PrivateSpellCard>>(chunkStream,JsonOptions)??[]);
+   }
+   if(cards.Count!=manifest.SpellCount)throw new InvalidDataException($"Expected {manifest.SpellCount} spells but found {cards.Count}.");
+   _deck=new StoredSpellDeck(manifest.DeckId,manifest.Title,manifest.Visibility,cards);
+   await Auth.UploadTextAsync(DeckKey,JsonSerializer.Serialize(_deck,JsonOptions),"application/json");
+   _attemptedLoad=true;_status=$"{cards.Count:N0} private spell cards saved.";
+  }
+  catch(Exception ex){_status="Import failed: "+ex.Message;}
+  finally{_loading=false;}
+ }
+
+ void CloseCard()=>_selected=null;
+ static string ClassSummary(PrivateSpellCard card)=>card.Classes.Count==0?"—":string.Join(" · ",card.Classes.OrderBy(x=>x.Value).ThenBy(x=>x.Key).Take(4).Select(x=>$"{x.Key} {x.Value}"));
+ static string FirstValue(params string?[] values)=>values.FirstOrDefault(x=>!string.IsNullOrWhiteSpace(x))??"—";
+
+ sealed record StoredSpellDeck(string DeckId,string Title,string Visibility,List<PrivateSpellCard> Cards);
+ sealed class SpellDeckManifest
+ {
+  [JsonPropertyName("deck_id")] public string DeckId {get;set;}="";
+  public string Title {get;set;}="";
+  public string Visibility {get;set;}="";
+  [JsonPropertyName("spell_count")] public int SpellCount {get;set;}
+  public List<SpellChunk> Chunks {get;set;}=[];
+ }
+ sealed class SpellChunk{public string File {get;set;}="";public int Count {get;set;}}
+ sealed class PrivateSpellCard
+ {
+  public string Id {get;set;}="";
+  public string Name {get;set;}="";
+  public string Description {get;set;}="";
+  public string Rating {get;set;}="";
+  public string School {get;set;}="";
+  public string? Subschool {get;set;}
+  [JsonPropertyName("casting_time")] public string? CastingTime {get;set;}
+  public string? Range {get;set;}
+  public string? Area {get;set;}
+  public string? Effect {get;set;}
+  public string? Targets {get;set;}
+  public string? Duration {get;set;}
+  [JsonPropertyName("saving_throw")] public string? SavingThrow {get;set;}
+  [JsonPropertyName("spell_resistance")] public string? SpellResistance {get;set;}
+  public string? Sourcebook {get;set;}
+  public Dictionary<string,string> Classes {get;set;}=[];
+ }
+}
