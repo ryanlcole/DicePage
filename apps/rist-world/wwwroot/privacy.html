@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>RIST WORLD Privacy</title>
+ <style>body{max-width:48rem;margin:3rem auto;padding:0 1.25rem;font:18px/1.6 system-ui;background:#091117;color:#eee}a{color:#f2c75c}h1,h2{color:#f2d98b}</style>
+</head>
+<body>
+ <h1>RIST WORLD Privacy Notice</h1>
+ <p>Last updated August 22, 2026.</p>
+ <h2>Discord login</h2>
+ <p>RIST WORLD uses Discord OAuth2 only to authenticate you. It requests the <code>identify</code> scope. It does not request your email, friends, servers, messages, presence, or permission to act on your behalf.</p>
+ <h2>Data used</h2>
+ <p>During login, the service reads your Discord account ID and display name. The account ID is immediately transformed into an internal RIST identifier and is not retained as Discord data. Your display name is retained only in a short-lived encrypted session record. Discord access tokens are not stored.</p>
+ <h2>Private AWS storage</h2>
+ <p>Your maps and assets are stored in a private, encrypted AWS S3 prefix assigned to the internal RIST identifier. The browser never receives AWS credentials and cannot choose another user's storage path.</p>
+ <h2>Retention and deletion</h2>
+ <p>Authentication sessions expire automatically. You may delete your private RIST storage and current session from the account controls while logged in. For access, correction, or deletion help, contact the application owner through the project's GitHub repository.</p>
+ <h2>Sharing</h2>
+ <p>Discord API data is not sold or used for advertising. AWS is used as the service provider for encrypted application storage.</p>
+ <p>RIST WORLD is not affiliated with or endorsed by Discord.</p>
+ <p><a href="./">Return to RIST WORLD</a></p>
+</body>
+</html>
