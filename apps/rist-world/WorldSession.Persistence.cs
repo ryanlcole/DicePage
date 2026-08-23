@@ -6,6 +6,19 @@ public sealed partial class WorldSession
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
+ public async Task SaveRistAsync()
+ {
+  if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
+  try
+  {
+   var safeName=string.Concat(MapName.Select(ch=>char.IsLetterOrDigit(ch)||ch is '-' or '_'?ch:'-')).Trim('-');
+   if(string.IsNullOrWhiteSpace(safeName))safeName="map";
+   await auth.UploadTextAsync($"maps/{safeName}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.ristmap",ExportMapJson(),"application/json");
+   PrivateStorageStatus="Saved to your private AWS storage.";
+  }
+  catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
+  Notify();
+ }
  public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
