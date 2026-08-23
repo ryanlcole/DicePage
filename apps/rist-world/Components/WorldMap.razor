@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Components.Forms
 <main class="table-workspace" @onpointermove="DragMove" @onpointerup="DragEnd" @onpointercancel="DragCancel">
+ <CardLibrary />
  @if(Session.TileBrowserOpen)
  {
   <section class="tile-browser" aria-label="Tile library">
