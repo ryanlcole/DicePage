@@ -117,10 +117,12 @@
   &&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase))
   &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)));
 
- protected override void OnInitialized(){Library.Changed+=LibraryChanged;}
+ protected override void OnInitialized(){Library.Changed+=LibraryChanged;Session.Changed+=SessionChanged;}
  protected override async Task OnParametersSetAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();}
  void LibraryChanged()=>_ = InvokeAsync(StateHasChanged);
- public void Dispose()=>Library.Changed-=LibraryChanged;
+ void SessionChanged()=>_ = InvokeAsync(RefreshSessionAsync);
+ async Task RefreshSessionAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();StateHasChanged();}
+ public void Dispose(){Library.Changed-=LibraryChanged;Session.Changed-=SessionChanged;}
 
  async Task ImportDeckAsync(InputFileChangeEventArgs e){await using var stream=e.File.OpenReadStream(12*1024*1024);await Library.ImportPathfinderAsync(stream);}
  async Task CreateCustomAsync(){await Library.CreateCustomAsync(_draft);_creating=false;_draft.Name="";_draft.Description="";_draft.Category="";}
