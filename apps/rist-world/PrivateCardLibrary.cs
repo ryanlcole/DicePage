@@ -32,7 +32,11 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
             try
             {
                 var pathfinder = await auth.DownloadJsonAsync<StoredCardDeck>(PathfinderKey);
-                if (pathfinder?.Cards is not null) Cards.AddRange(pathfinder.Cards);
+                if (pathfinder?.Cards is not null)
+                {
+                    foreach (var card in pathfinder.Cards) { card.Source = "Pathfinder 1e"; card.Type = "Spell"; }
+                    Cards.AddRange(pathfinder.Cards);
+                }
             }
             catch { }
             try
@@ -143,6 +147,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
 
     public void Reset()
     {
+        if (!Loaded && Cards.Count == 0 && SpellbookIds.Count == 0 && string.IsNullOrEmpty(Status)) return;
         Cards.Clear(); SpellbookIds.Clear(); DraggingCard = null; Loaded = false; Loading = false; Status = "";
         Changed?.Invoke();
     }
