@@ -1,4 +1,27 @@
 window.ristAuth={
+ idleMs:30*60*1000,
+ idleTimer:0,
+ installIdleExpiry:()=>{
+  if(window.ristAuth.idleInstalled)return;
+  window.ristAuth.idleInstalled=true;
+  const expire=()=>{
+   if(!sessionStorage.getItem('rist.session'))return;
+   const last=Number(sessionStorage.getItem('rist.lastActivity'))||Date.now();
+   const remaining=window.ristAuth.idleMs-(Date.now()-last);
+   clearTimeout(window.ristAuth.idleTimer);
+   if(remaining<=0){window.ristAuth.clearSession();location.reload();return;}
+   window.ristAuth.idleTimer=setTimeout(expire,remaining);
+  };
+  const activity=()=>{
+   if(!sessionStorage.getItem('rist.session'))return;
+   sessionStorage.setItem('rist.lastActivity',String(Date.now()));
+   clearTimeout(window.ristAuth.idleTimer);
+   window.ristAuth.idleTimer=setTimeout(expire,window.ristAuth.idleMs);
+  };
+  ['pointerdown','keydown','touchstart'].forEach(name=>addEventListener(name,activity,{passive:true}));
+  addEventListener('visibilitychange',()=>{if(!document.hidden)expire();},{passive:true});
+  activity();
+ },
  captureSession:async(apiBase)=>{
   const hash=new URLSearchParams(location.hash.replace(/^#/,''));
   const legacy=hash.get('rist_session');
@@ -19,9 +42,15 @@ window.ristAuth={
    const clean=query.toString();
    history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
   }
-  return sessionStorage.getItem('rist.session');
+  const token=sessionStorage.getItem('rist.session');
+  if(token)window.ristAuth.installIdleExpiry();
+  return token;
  },
- clearSession:()=>sessionStorage.removeItem('rist.session'),
+ clearSession:()=>{
+  clearTimeout(window.ristAuth.idleTimer);
+  sessionStorage.removeItem('rist.session');
+  sessionStorage.removeItem('rist.lastActivity');
+ },
  navigate:url=>location.assign(url)
 };
 
