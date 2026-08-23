@@ -228,7 +228,7 @@
   _toolsOpen=false;
   await using var stream=e.File.OpenReadStream(4*1024*1024);
   await Library.ImportCustomAsync(stream);
-  _source="Shaelvien";ResetPage();
+  _source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Shaelvien";ResetPage();
  }
  async Task LoadImageAsync(InputFileChangeEventArgs e)
  {
