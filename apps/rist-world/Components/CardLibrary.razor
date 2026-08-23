@@ -39,7 +39,7 @@
    <label>Search<input type="search" placeholder="Name, school, or text" @bind="_search" @bind:event="oninput" /></label>
   </div>
 
-  @if(!Library.Cards.Any())
+  @if(!Library.Cards.Any(card=>card.Source=="Pathfinder 1e"))
   {
    <label class="private-deck-import card-library-import">
     <strong>Import private Pathfinder deck</strong>
