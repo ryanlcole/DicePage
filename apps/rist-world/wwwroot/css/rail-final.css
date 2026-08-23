@@ -1178,3 +1178,35 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
 .tray-item.tile>.tile-image-crop>img{
  object-fit:fill!important
 }
+
+
+/* Optically center and enlarge the detailed character-sheet arrows. */
+@media (hover:hover) and (pointer:fine){
+ .rail-scroll-arrow{overflow:visible!important}
+ .rail-scroll-arrow::before{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:28px!important;
+  height:28px!important;
+  margin:0!important;
+  transform:translate(-50%,-50%)!important;
+  transform-origin:center!important
+ }
+ .rail-scroll-next::before{
+  transform:translate(-50%,-50%) scaleX(-1)!important
+ }
+ .tile-browser-slider{
+  grid-template-rows:30px minmax(0,1fr) 30px!important
+ }
+ .tile-browser-slider>.rail-scroll-arrow{
+  height:30px!important;
+  min-height:30px!important
+ }
+ .tile-browser-slider>.rail-scroll-prev::before{
+  transform:translate(-50%,-50%) rotate(90deg)!important
+ }
+ .tile-browser-slider>.rail-scroll-next::before{
+  transform:translate(-50%,-50%) rotate(-90deg)!important
+ }
+}
