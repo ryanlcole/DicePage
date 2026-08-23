@@ -2,6 +2,7 @@
 @using Microsoft.JSInterop
 @implements IDisposable
 @inject WorldSession Session
+@inject PrivateCardLibrary Library
 @inject IJSRuntime JS
 @if(Session.MixerOpen)
 {
@@ -37,6 +38,22 @@
   <section class='sheet-pane locations-pane @PaneClass("locations")'><header><button class="pane-toggle" @onclick='()=>TogglePane("locations")'><h2>Locations</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("locations")){<div class="pane-content"><textarea placeholder="Known locations" readonly="@(!Session.CharacterEditMode)" aria-label="Locations" style="min-height:80px;width:100%"></textarea></div>}</section>
   <section class='sheet-pane asset-notes-pane @PaneClass("asset-notes")'><header><button class="pane-toggle" @onclick='()=>TogglePane("asset-notes")'><h2>Damage &amp; conditions</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("asset-notes")){<div class="pane-content"><textarea placeholder="Damage, conditions, and status effects" readonly="@(!Session.CharacterEditMode)" aria-label="Damage and conditions" style="min-height:80px;width:100%"></textarea></div>}</section>
  }
+ else if(_sheetView=="Spellbook")
+ {
+  <section class='sheet-pane spellbook-pane is-open' @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
+   <header><h2>Spellbook</h2><small>Private cards attached to this character</small></header>
+   <div class="character-sheet-spellbook">
+    @foreach(var card in Library.SpellbookCards)
+    {
+     <article class="character-spell-card">
+      <button @onclick="()=>_spellCard=card"><small>@card.School</small><strong>@card.Name</strong></button>
+      @if(Session.CharacterEditMode){<button class="remove-spell-card" @onclick="()=>Library.RemoveFromSpellbookAsync(card)" aria-label="@($"Remove {card.Name} from spellbook")">×</button>}
+     </article>
+    }
+    @if(!Library.SpellbookCards.Any()){<p>Open the Card Library from the header, then add or drag cards to this spellbook.</p>}
+   </div>
+  </section>
+ }
  else
  {
   <textarea class="exact-notes-page" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" aria-label="Character notes"></textarea>
@@ -44,6 +61,11 @@
  <nav class="exact-page-arrows" aria-label="Character sheet pages"><button class="back" @onclick="PreviousSheet" aria-label="Previous character sheet page"><img src="assets/ui/character-sheet/page-arrow-left.png" alt=""/></button><button class="next" @onclick="NextSheet" aria-label="Next character sheet page"><img src="assets/ui/character-sheet/page-arrow-right.png" alt=""/></button></nav>
  </div>
 </section></div>
+
+@if(_spellCard is not null)
+{
+ <div class="private-spell-modal" @onclick="()=>_spellCard=null"><article class="private-spell-sheet" @onclick:stopPropagation><button class="private-spell-close" @onclick="()=>_spellCard=null">×</button><span class="private-badge">Character spellbook</span><h2>@_spellCard.Name</h2><p class="private-spell-meta">@_spellCard.School</p><p class="private-spell-description">@_spellCard.Description</p></article></div>
+}
 
 @if(_nameplateField is not null)
 {
@@ -68,12 +90,13 @@
 }
 @code{
  static readonly (string Name,string Hex)[] Colors=[("red","#c7493a"),("orange","#e9852c"),("gold","#d9a82f"),("yellow","#f0d85c"),("lime","#9bc84a"),("green","#58a765"),("teal","#41aaa4"),("cyan","#5eb3d6"),("blue","#4a90e2"),("purple","#b19cd9"),("pink","#ff69b4"),("white","#ffffff")];
- static readonly string[] SheetViews=["Profile","Entries","Equipment","Linked"];
+ static readonly string[] SheetViews=["Profile","Entries","Equipment","Linked","Spellbook"];
  readonly HashSet<string> _openPanes=[];
  string _portraitSource=""; bool _portraitEditing; double _portraitZoom=1; int _portraitX=50; int _portraitY=50; string _sheetView="Profile";
- CharacterField? _nameplateField; CharacterField? _cardField; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
+ CharacterField? _nameplateField; CharacterField? _cardField; LibraryCard? _spellCard; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
  
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+ protected override async Task OnParametersSetAsync(){if(Session.MixerOpen&&Session.IsLoggedIn)await Library.EnsureLoadedAsync();}
  
  void SessionChanged()=>_ = InvokeAsync(async ()=>{await LoadPaneStates();await InvokeAsync(StateHasChanged);});
  
