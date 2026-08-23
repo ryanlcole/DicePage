@@ -28,16 +28,20 @@ window.ristAuth={
   if(legacy)sessionStorage.setItem('rist.session',legacy);
   const query=new URLSearchParams(location.search);
   const handoff=query.get('rist_handoff');
+  let handoffComplete=!handoff;
   if(handoff&&apiBase){
    try{
     const response=await fetch(apiBase.replace(/\/$/,'')+'/auth/session?handoff='+encodeURIComponent(handoff),{cache:'no-store'});
     if(response.ok){
      const payload=await response.json();
-     if(payload.sessionToken)sessionStorage.setItem('rist.session',payload.sessionToken);
+     if(payload.sessionToken){
+      sessionStorage.setItem('rist.session',payload.sessionToken);
+      handoffComplete=true;
+     }
     }
    }catch{}
   }
-  if(legacy||handoff){
+  if(legacy||(handoff&&handoffComplete)){
    query.delete('rist_handoff');
    const clean=query.toString();
    history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
