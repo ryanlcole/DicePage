@@ -130,6 +130,9 @@ Resources:
         List:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /storage/list, Method: GET }
+        DeleteAccount:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /account/delete, Method: POST }
       InlineCode: |
         import base64, boto3, hashlib, json, os, re, secrets, time, urllib.parse, urllib.request, uuid
 
@@ -236,11 +239,6 @@ Resources:
                     profile = json.loads(r.read())
                 discord_id = str(profile["id"])
                 user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
-                ddb.put_item(Item={
-                    "pk": "user#" + user_id, "discordId": discord_id,
-                    "username": profile.get("global_name") or profile.get("username") or "Discord user",
-                    "avatar": profile.get("avatar") or "", "createdAt": now
-                })
                 token = secrets.token_urlsafe(48)
                 digest = hashlib.sha256(token.encode()).hexdigest()
                 ddb.put_item(Item={
@@ -267,6 +265,23 @@ Resources:
                 return response(204)
 
             prefix = "users/" + session["userId"] + "/"
+
+            if route == "POST /account/delete":
+                continuation = None
+                while True:
+                    args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
+                    if continuation:
+                        args["ContinuationToken"] = continuation
+                    result = s3.list_objects_v2(**args)
+                    objects = [{"Key": item["Key"]} for item in result.get("Contents", [])]
+                    if objects:
+                        s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects, "Quiet": True})
+                    if not result.get("IsTruncated"):
+                        break
+                    continuation = result.get("NextContinuationToken")
+                header = event["headers"]["authorization"].split(" ", 1)[1]
+                ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
+                return response(204)
 
             if route == "POST /storage/upload":
                 body = json_body(event)
