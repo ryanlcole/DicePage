@@ -60,6 +60,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
 
     public string SelectedTile { get; set; } = "";
     public bool TileBrowserOpen { get; private set; }
+    public bool CardBrowserOpen { get; private set; }
     public string PieceKind { get; set; } = "mini";
     public string Role { get; set; } = "PC";
     public bool IsLoggedIn { get; private set; }
@@ -86,7 +87,8 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public CardItem? OpenCard { get; set; }
     public int Total => Rolls.Sum(x => x.Key == "d10-inverse" ? x.Value * 10 : x.Value) + Gems.Sum(x => x.Value);
     public void Notify() => Changed?.Invoke();
-    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;Notify();}
+    public void ToggleTileBrowser(){TileBrowserOpen=!TileBrowserOpen;if(TileBrowserOpen)CardBrowserOpen=false;Notify();}
+    public void ToggleCardBrowser(){CardBrowserOpen=!CardBrowserOpen;if(CardBrowserOpen)TileBrowserOpen=false;Notify();}
     public async Task ToggleLoginAsync()
     {
         if(IsLoggedIn)
