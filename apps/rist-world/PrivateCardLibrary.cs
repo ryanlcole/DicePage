@@ -42,7 +42,12 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
             try
             {
                 var custom = await auth.DownloadJsonAsync<StoredCardDeck>(CustomKey);
-                if (custom?.Cards is not null) Cards.AddRange(custom.Cards);
+                if (custom?.Cards is not null)
+                {
+                    foreach (var card in custom.Cards)
+                        if (string.IsNullOrWhiteSpace(card.Source) || card.Source.Equals("Custom", StringComparison.OrdinalIgnoreCase)) card.Source = "Shaelvien";
+                    Cards.AddRange(custom.Cards);
+                }
             }
             catch { }
             try
