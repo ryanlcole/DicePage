@@ -1,0 +1,128 @@
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
+@inject WorldSession Session
+@inject PrivateCardLibrary Library
+
+@if(Session.CardBrowserOpen)
+{
+<section class="tile-browser card-browser" aria-label="Card library">
+ <header>
+  <div class="tile-browser-title"><strong>Card library</strong><small>Search private cards, create cards, or add them to the active character's spellbook.</small></div>
+  @if(Session.IsLoggedIn){<button class="card-create-toggle" @onclick="()=>_creating=!_creating" aria-expanded="@_creating" title="Create custom card">+</button>}
+ </header>
+
+ @if(!Session.IsLoggedIn)
+ {
+  <p class="tile-browser-status">Log in to use private and custom cards.</p>
+ }
+ else if(Library.Loading)
+ {
+  <p class="tile-browser-status">Loading your private card library…</p>
+ }
+ else
+ {
+  @if(_creating)
+  {
+   <section class="custom-card-form" aria-label="Create custom card">
+    <label>Name<input @bind="_draft.Name" /></label>
+    <label>Type<select @bind="_draft.Type"><option>Spell</option><option>Character</option><option>Action</option><option>Intel</option><option>Standard</option></select></label>
+    <label>Category<input @bind="_draft.Category" placeholder="School, theme, or set" /></label>
+    <label class="custom-card-description">Description<textarea @bind="_draft.Description"></textarea></label>
+    <button @onclick="CreateCustomAsync">Create card</button>
+   </section>
+  }
+
+  <div class="card-browser-filters">
+   <label>Source<select @bind="_source"><option value="">All private cards</option><option value="Pathfinder 1e">Pathfinder 1e</option><option value="Custom">Custom cards</option></select></label>
+   <label>Type<select @bind="_type"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
+   <label>Class<select @bind="_classFilter"><option value="">All classes</option>@foreach(var name in ClassNames){<option value="@name">@name</option>}</select></label>
+   <label>Search<input type="search" placeholder="Name, school, or text" @bind="_search" @bind:event="oninput" /></label>
+  </div>
+
+  @if(!Library.Cards.Any())
+  {
+   <label class="private-deck-import card-library-import">
+    <strong>Import private Pathfinder deck</strong>
+    <span>Select the approved ZIP once. It is stored only in your Discord-owned private space.</span>
+    <InputFile OnChange="ImportDeckAsync" accept=".zip,application/zip" />
+   </label>
+  }
+
+  <div class="card-library-workspace">
+   <div class="card-library-results" aria-label="Card search results">
+    @foreach(var card in FilteredCards.Take(120))
+    {
+     <article class="library-playing-card" draggable="true" @ondragstart="()=>Library.BeginDrag(card)">
+      <button class="library-card-face" @onclick="()=>_selected=card" aria-label="@card.Name">
+       <small>@(string.IsNullOrWhiteSpace(card.School)?card.Type:card.School)</small>
+       <strong>@card.Name</strong>
+       <span>@CardSummary(card)</span>
+      </button>
+      <button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Spellbook +</button>
+     </article>
+    }
+    @if(!FilteredCards.Any()&&Library.Cards.Any()){<p class="tile-browser-status">No cards match these filters.</p>}
+   </div>
+   <aside class="character-spellbook-drop" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync" aria-label="Active character spellbook drop area">
+    <header><strong>Active character spellbook</strong><small>Drag cards here. The same book appears on the character sheet.</small></header>
+    <div class="spellbook-card-strip">
+     @foreach(var card in Library.SpellbookCards)
+     {
+      <button class="spellbook-mini-card" @onclick="()=>_selected=card"><strong>@card.Name</strong><small>@card.Type</small></button>
+     }
+    </div>
+    @if(!Library.SpellbookCards.Any()){<p>Drop a card here.</p>}
+   </aside>
+  </div>
+ }
+
+ @if(!string.IsNullOrWhiteSpace(Library.Status)){<output class="tile-browser-status">@Library.Status</output>}
+</section>
+}
+
+@if(_selected is not null)
+{
+ <div class="private-spell-modal" role="dialog" aria-modal="true" aria-labelledby="library-card-title" @onclick="()=>_selected=null">
+  <article class="private-spell-sheet" @onclick:stopPropagation>
+   <button class="private-spell-close" @onclick="()=>_selected=null" aria-label="Close card">×</button>
+   <span class="private-badge">@(_selected.Custom?"Private custom card":"Private Pathfinder 1e")</span>
+   <h2 id="library-card-title">@_selected.Name</h2>
+   <p class="private-spell-meta">@_selected.School @if(!string.IsNullOrWhiteSpace(_selected.Subschool)){<text> · @_selected.Subschool</text>}</p>
+   <dl>
+    @if(_selected.Classes.Count>0){<div><dt>Level</dt><dd>@CardSummary(_selected)</dd></div>}
+    @if(!string.IsNullOrWhiteSpace(_selected.CastingTime)){<div><dt>Casting time</dt><dd>@_selected.CastingTime</dd></div>}
+    @if(!string.IsNullOrWhiteSpace(_selected.Range)){<div><dt>Range</dt><dd>@_selected.Range</dd></div>}
+    @if(!string.IsNullOrWhiteSpace(_selected.Duration)){<div><dt>Duration</dt><dd>@_selected.Duration</dd></div>}
+   </dl>
+   <p class="private-spell-description">@_selected.Description</p>
+   <button class="card-detail-spellbook" @onclick="()=>Library.AddToSpellbookAsync(_selected)">Add to active spellbook</button>
+  </article>
+ </div>
+}
+
+@code {
+ LibraryCard? _selected;
+ readonly CardDraft _draft=new();
+ string _search="";
+ string _source="";
+ string _type="";
+ string _classFilter="";
+ bool _creating;
+
+ IEnumerable<string> Types=>Library.Cards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<string> ClassNames=>Library.Cards.SelectMany(x=>x.Classes.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<LibraryCard> FilteredCards=>Library.Cards.Where(card=>
+  (string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))
+  &&(string.IsNullOrWhiteSpace(_source)||card.Source.Equals(_source,StringComparison.OrdinalIgnoreCase))
+  &&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase))
+  &&(string.IsNullOrWhiteSpace(_classFilter)||card.Classes.ContainsKey(_classFilter)));
+
+ protected override void OnInitialized(){Library.Changed+=LibraryChanged;}
+ protected override async Task OnParametersSetAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();}
+ void LibraryChanged()=>_ = InvokeAsync(StateHasChanged);
+ public void Dispose()=>Library.Changed-=LibraryChanged;
+
+ async Task ImportDeckAsync(InputFileChangeEventArgs e){await using var stream=e.File.OpenReadStream(12*1024*1024);await Library.ImportPathfinderAsync(stream);}
+ async Task CreateCustomAsync(){await Library.CreateCustomAsync(_draft);_creating=false;_draft.Name="";_draft.Description="";_draft.Category="";}
+ static string CardSummary(LibraryCard card)=>card.Classes.Count==0?card.Type:string.Join(" · ",card.Classes.OrderBy(x=>x.Value).ThenBy(x=>x.Key).Take(3).Select(x=>$"{x.Key} {x.Value}"));
+}
