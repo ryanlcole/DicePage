@@ -1384,3 +1384,58 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
   background:#c09a45!important
  }
 }
+
+
+/* Dedicated desktop library results scroller. */
+@media (hover:hover) and (pointer:fine){
+ .tile-browser{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto auto minmax(0,1fr)!important;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:hidden!important
+ }
+ .tile-browser>.tileset-import-status{
+  min-height:0!important
+ }
+ .tile-browser-slider{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:hidden!important
+ }
+ .tile-browser-slider>.tile-browser-grid{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding-right:5px!important;
+  overflow-x:hidden!important;
+  overflow-y:scroll!important;
+  scrollbar-gutter:stable!important;
+  scrollbar-width:auto!important;
+  scrollbar-color:#806a35 #0b1117!important
+ }
+ .tile-browser-slider>.tile-browser-grid::-webkit-scrollbar{
+  display:block!important;
+  width:14px!important
+ }
+ .tile-browser-slider>.tile-browser-grid::-webkit-scrollbar-track{
+  background:#0b1117!important;
+  border:1px solid #4e4124!important;
+  border-radius:999px!important
+ }
+ .tile-browser-slider>.tile-browser-grid::-webkit-scrollbar-thumb{
+  min-height:38px!important;
+  background:#806a35!important;
+  border:3px solid #0b1117!important;
+  border-radius:999px!important
+ }
+ .tile-browser-slider>.tile-browser-grid::-webkit-scrollbar-thumb:hover{
+  background:#c09a45!important
+ }
+}
