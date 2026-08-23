@@ -1253,3 +1253,33 @@ html,body,#app{width:100%;height:100%;min-height:0;overflow:hidden}
   min-width:100%!important
  }
 }
+
+
+/* Final visible character-sheet arrow sizing. */
+@media (hover:hover) and (pointer:fine){
+ .rail-scroll-arrow{
+  flex-basis:44px!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important
+ }
+ .rail-scroll-arrow::before{
+  width:38px!important;
+  height:38px!important
+ }
+ .topbar.desktop-arrow-slider,
+ .footer.desktop-arrow-slider,
+ .public-card-drop.desktop-arrow-slider{
+  grid-template-columns:44px minmax(0,1fr) 44px!important
+ }
+ .tile-browser-slider{
+  grid-template-rows:44px minmax(0,1fr) 44px!important
+ }
+ .tile-browser-slider>.rail-scroll-arrow{
+  width:100%!important;
+  min-width:100%!important;
+  height:44px!important;
+  min-height:44px!important
+ }
+}
