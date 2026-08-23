@@ -41,6 +41,7 @@
    </button>
   }
  }
+ @if(!string.IsNullOrWhiteSpace(_status)){<p class="private-deck-status" role="status">@_status</p>}
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#private-spell-slider',1)" aria-label="Scroll private spells right">›</button>
 </div>
 
