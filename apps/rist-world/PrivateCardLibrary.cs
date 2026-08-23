@@ -106,6 +106,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
             Name = name,
             Description = draft.Description.Trim(),
             School = draft.Category.Trim(),
+            ImageDataUrl = draft.ImageDataUrl,
             Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
             Source = "Custom",
             Custom = true
@@ -114,6 +115,40 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
         await SaveCustomAsync();
         Status = $"Created {card.Name}.";
         Changed?.Invoke();
+    }
+
+    public async Task ImportCustomAsync(Stream source)
+    {
+        Loading = true; Status = "";
+        try
+        {
+            var drafts = await JsonSerializer.DeserializeAsync<List<CardDraft>>(source, JsonOptions)
+                ?? throw new InvalidDataException("The custom card file is empty.");
+            var imported = 0;
+            foreach (var draft in drafts)
+            {
+                var name = draft.Name.Trim();
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                Cards.Add(new LibraryCard
+                {
+                    Id = "custom-" + Guid.NewGuid().ToString("N"),
+                    Name = name,
+                    Description = draft.Description.Trim(),
+                    School = draft.Category.Trim(),
+                    ImageDataUrl = draft.ImageDataUrl,
+                    Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
+                    Source = "Custom",
+                    Custom = true
+                });
+                imported++;
+            }
+            if (imported == 0) throw new InvalidDataException("No named custom cards were found.");
+            await SaveCustomAsync();
+            Loaded = true;
+            Status = imported == 1 ? "Imported 1 custom card." : $"Imported {imported:N0} custom cards.";
+        }
+        catch (Exception ex) { Status = "Import failed: " + ex.Message; }
+        finally { Loading = false; Changed?.Invoke(); }
     }
 
     public void BeginDrag(LibraryCard card) => DraggingCard = card;
@@ -170,6 +205,7 @@ public sealed class CardDraft
     public string Type { get; set; } = "Spell";
     public string Category { get; set; } = "";
     public string Description { get; set; } = "";
+    public string ImageDataUrl { get; set; } = "";
 }
 public sealed class DeckManifest
 {
@@ -185,6 +221,7 @@ public sealed class LibraryCard
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
+    public string ImageDataUrl { get; set; } = "";
     public string Rating { get; set; } = "";
     public string School { get; set; } = "";
     public string? Subschool { get; set; }
