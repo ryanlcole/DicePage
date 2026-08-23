@@ -1,0 +1,304 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RIST Discord authentication and private per-user storage
+Parameters:
+  DiscordClientId:
+    Type: String
+    Description: Discord application client ID
+  DiscordClientSecretArn:
+    Type: String
+    Description: Secrets Manager ARN containing {"client_secret":"..."}
+  FrontendOrigin:
+    Type: String
+    Default: https://ryanlcole.github.io
+    Description: Browser origin only; do not include a path or trailing slash
+  FrontendUrl:
+    Type: String
+    Default: https://ryanlcole.github.io/DicePage/app/
+  SessionHours:
+    Type: Number
+    Default: 12
+    MinValue: 1
+    MaxValue: 168
+Resources:
+  PrivateStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+        - AllowedOrigins:
+          - Ref: FrontendOrigin
+          AllowedMethods:
+          - GET
+          - POST
+          AllowedHeaders:
+          - '*'
+          ExposedHeaders:
+          - ETag
+          MaxAge: 300
+      LifecycleConfiguration:
+        Rules:
+        - Id: AbortIncompleteUploads
+          Status: Enabled
+          AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+    Metadata:
+      SamResourceId: PrivateStorageBucket
+  IdentityTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+    Metadata:
+      SamResourceId: IdentityTable
+  AuthApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+        - Ref: FrontendOrigin
+        AllowHeaders:
+        - authorization
+        - content-type
+        AllowMethods:
+        - GET
+        - POST
+        - OPTIONS
+        MaxAge: 300
+    Metadata:
+      SamResourceId: AuthApi
+  AuthStorageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 15
+      MemorySize: 256
+      Environment:
+        Variables:
+          DISCORD_CLIENT_ID:
+            Ref: DiscordClientId
+          DISCORD_SECRET_ARN:
+            Ref: DiscordClientSecretArn
+          FRONTEND_URL:
+            Ref: FrontendUrl
+          FRONTEND_ORIGIN:
+            Ref: FrontendOrigin
+          SESSION_HOURS:
+            Ref: SessionHours
+          IDENTITY_TABLE:
+            Ref: IdentityTable
+          STORAGE_BUCKET:
+            Ref: PrivateStorageBucket
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: IdentityTable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: PrivateStorageBucket
+      - Statement:
+        - Effect: Allow
+          Action: secretsmanager:GetSecretValue
+          Resource:
+            Ref: DiscordClientSecretArn
+      Events:
+        Login:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /auth/login
+            Method: GET
+        Callback:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /auth/callback
+            Method: GET
+        Me:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /me
+            Method: GET
+        Logout:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /auth/logout
+            Method: POST
+        Upload:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /storage/upload
+            Method: POST
+        Download:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /storage/download
+            Method: GET
+        List:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /storage/list
+            Method: GET
+        DeleteAccount:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: AuthApi
+            Path: /account/delete
+            Method: POST
+      InlineCode: "import base64, boto3, hashlib, json, os, re, secrets, time, urllib.parse,\
+        \ urllib.request, uuid\n\nddb = boto3.resource(\"dynamodb\").Table(os.environ[\"\
+        IDENTITY_TABLE\"])\ns3 = boto3.client(\"s3\")\nsm = boto3.client(\"secretsmanager\"\
+        )\nFRONTEND = os.environ[\"FRONTEND_URL\"]\nFRONTEND_ORIGIN = os.environ[\"\
+        FRONTEND_ORIGIN\"]\nCLIENT_ID = os.environ[\"DISCORD_CLIENT_ID\"]\nBUCKET\
+        \ = os.environ[\"STORAGE_BUCKET\"]\nSESSION_SECONDS = int(os.environ[\"SESSION_HOURS\"\
+        ]) * 3600\nALLOWED_TYPES = {\n    \"application/json\", \"application/zip\"\
+        , \"image/png\", \"image/jpeg\",\n    \"image/webp\", \"text/plain\", \"application/octet-stream\"\
+        \n}\n\ndef response(status, body=None, location=None):\n    headers = {\n\
+        \        \"access-control-allow-origin\": FRONTEND_ORIGIN.rstrip(\"/\"),\n\
+        \        \"access-control-allow-headers\": \"authorization,content-type\"\
+        ,\n        \"access-control-allow-methods\": \"GET,POST,OPTIONS\",\n     \
+        \   \"cache-control\": \"no-store\",\n        \"content-type\": \"application/json\"\
+        \n    }\n    if location:\n        headers[\"location\"] = location\n    payload\
+        \ = \"\" if body is None else json.dumps(body, separators=(\",\", \":\"))\n\
+        \    return {\"statusCode\": status, \"headers\": headers, \"body\": payload}\n\
+        \ndef secret_value():\n    raw = sm.get_secret_value(SecretId=os.environ[\"\
+        DISCORD_SECRET_ARN\"])[\"SecretString\"]\n    value = json.loads(raw)\n  \
+        \  return value[\"client_secret\"]\n\ndef api_base(event):\n    ctx = event[\"\
+        requestContext\"]\n    return \"https://\" + ctx[\"domainName\"] + ctx.get(\"\
+        stage\", \"\").replace(\"$default\", \"\")\n\ndef auth(event):\n    header\
+        \ = (event.get(\"headers\") or {}).get(\"authorization\", \"\")\n    if not\
+        \ header.lower().startswith(\"bearer \"):\n        return None\n    token\
+        \ = header.split(\" \", 1)[1].strip()\n    digest = hashlib.sha256(token.encode()).hexdigest()\n\
+        \    item = ddb.get_item(Key={\"pk\": \"session#\" + digest}).get(\"Item\"\
+        )\n    if not item or int(item.get(\"expiresAt\", 0)) <= int(time.time()):\n\
+        \        return None\n    return item\n\ndef safe_key(raw):\n    raw = urllib.parse.unquote(raw\
+        \ or \"\").replace(\"\\\\\", \"/\").strip(\"/\")\n    if not raw or len(raw)\
+        \ > 512 or \"..\" in raw.split(\"/\"):\n        raise ValueError(\"Invalid\
+        \ key\")\n    if not re.fullmatch(r\"[A-Za-z0-9][A-Za-z0-9._ /-]*\", raw):\n\
+        \        raise ValueError(\"Invalid key\")\n    return raw\n\ndef json_body(event):\n\
+        \    body = event.get(\"body\") or \"{}\"\n    if event.get(\"isBase64Encoded\"\
+        ):\n        body = base64.b64decode(body).decode()\n    return json.loads(body)\n\
+        \ndef handler(event, context):\n    route = event[\"requestContext\"][\"http\"\
+        ][\"method\"] + \" \" + event[\"rawPath\"]\n    query = event.get(\"queryStringParameters\"\
+        ) or {}\n    now = int(time.time())\n\n    if route == \"GET /auth/login\"\
+        :\n        state = secrets.token_urlsafe(32)\n        ddb.put_item(Item={\"\
+        pk\": \"state#\" + state, \"expiresAt\": now + 600})\n        redirect = api_base(event)\
+        \ + \"/auth/callback\"\n        params = urllib.parse.urlencode({\n      \
+        \      \"client_id\": CLIENT_ID, \"redirect_uri\": redirect,\n           \
+        \ \"response_type\": \"code\", \"scope\": \"identify\", \"state\": state,\n\
+        \            \"prompt\": \"consent\"\n        })\n        return response(302,\
+        \ location=\"https://discord.com/oauth2/authorize?\" + params)\n\n    if route\
+        \ == \"GET /auth/callback\":\n        code, state = query.get(\"code\"), query.get(\"\
+        state\")\n        state_key = {\"pk\": \"state#\" + (state or \"\")}\n   \
+        \     saved = ddb.get_item(Key=state_key).get(\"Item\")\n        if not code\
+        \ or not saved or int(saved.get(\"expiresAt\", 0)) <= now:\n            return\
+        \ response(400, {\"error\": \"Invalid or expired login state\"})\n       \
+        \ ddb.delete_item(Key=state_key)\n        redirect = api_base(event) + \"\
+        /auth/callback\"\n        encoded = urllib.parse.urlencode({\n           \
+        \ \"client_id\": CLIENT_ID, \"client_secret\": secret_value(),\n         \
+        \   \"grant_type\": \"authorization_code\", \"code\": code,\n            \"\
+        redirect_uri\": redirect\n        }).encode()\n        req = urllib.request.Request(\n\
+        \            \"https://discord.com/api/oauth2/token\", data=encoded,\n   \
+        \         headers={\"Content-Type\": \"application/x-www-form-urlencoded\"\
+        }\n        )\n        with urllib.request.urlopen(req, timeout=8) as r:\n\
+        \            discord_token = json.loads(r.read())[\"access_token\"]\n    \
+        \    req = urllib.request.Request(\n            \"https://discord.com/api/users/@me\"\
+        ,\n            headers={\"Authorization\": \"Bearer \" + discord_token}\n\
+        \        )\n        with urllib.request.urlopen(req, timeout=8) as r:\n  \
+        \          profile = json.loads(r.read())\n        discord_id = str(profile[\"\
+        id\"])\n        user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, \"rist:discord:\"\
+        \ + discord_id))\n        token = secrets.token_urlsafe(48)\n        digest\
+        \ = hashlib.sha256(token.encode()).hexdigest()\n        ddb.put_item(Item={\n\
+        \            \"pk\": \"session#\" + digest, \"userId\": user_id,\n       \
+        \     \"username\": profile.get(\"global_name\") or profile.get(\"username\"\
+        ) or \"Discord user\",\n            \"expiresAt\": now + SESSION_SECONDS\n\
+        \        })\n        target = FRONTEND + \"#rist_session=\" + urllib.parse.quote(token)\n\
+        \        return response(302, location=target)\n\n    session = auth(event)\n\
+        \    if not session:\n        return response(401, {\"error\": \"Authentication\
+        \ required\"})\n\n    if route == \"GET /me\":\n        return response(200,\
+        \ {\n            \"userId\": session[\"userId\"], \"displayName\": session[\"\
+        username\"],\n            \"storagePrefix\": \"users/\" + session[\"userId\"\
+        ] + \"/\"\n        })\n\n    if route == \"POST /auth/logout\":\n        header\
+        \ = event[\"headers\"][\"authorization\"].split(\" \", 1)[1]\n        ddb.delete_item(Key={\"\
+        pk\": \"session#\" + hashlib.sha256(header.encode()).hexdigest()})\n     \
+        \   return response(204)\n\n    prefix = \"users/\" + session[\"userId\"]\
+        \ + \"/\"\n\n    if route == \"POST /account/delete\":\n        continuation\
+        \ = None\n        while True:\n            args = {\"Bucket\": BUCKET, \"\
+        Prefix\": prefix, \"MaxKeys\": 1000}\n            if continuation:\n     \
+        \           args[\"ContinuationToken\"] = continuation\n            result\
+        \ = s3.list_objects_v2(**args)\n            objects = [{\"Key\": item[\"Key\"\
+        ]} for item in result.get(\"Contents\", [])]\n            if objects:\n  \
+        \              s3.delete_objects(Bucket=BUCKET, Delete={\"Objects\": objects,\
+        \ \"Quiet\": True})\n            if not result.get(\"IsTruncated\"):\n   \
+        \             break\n            continuation = result.get(\"NextContinuationToken\"\
+        )\n        header = event[\"headers\"][\"authorization\"].split(\" \", 1)[1]\n\
+        \        ddb.delete_item(Key={\"pk\": \"session#\" + hashlib.sha256(header.encode()).hexdigest()})\n\
+        \        return response(204)\n\n    if route == \"POST /storage/upload\"\
+        :\n        body = json_body(event)\n        key = prefix + safe_key(body.get(\"\
+        key\"))\n        content_type = body.get(\"contentType\") or \"application/octet-stream\"\
+        \n        if content_type not in ALLOWED_TYPES:\n            return response(400,\
+        \ {\"error\": \"Unsupported content type\"})\n        post = s3.generate_presigned_post(\n\
+        \            Bucket=BUCKET, Key=key,\n            Fields={\"Content-Type\"\
+        : content_type},\n            Conditions=[\n                {\"Content-Type\"\
+        : content_type},\n                [\"content-length-range\", 1, 52428800],\n\
+        \                [\"eq\", \"$key\", key]\n            ], ExpiresIn=300\n \
+        \       )\n        return response(200, post)\n\n    if route == \"GET /storage/download\"\
+        :\n        key = prefix + safe_key(query.get(\"key\"))\n        url = s3.generate_presigned_url(\n\
+        \            \"get_object\", Params={\"Bucket\": BUCKET, \"Key\": key}, ExpiresIn=300\n\
+        \        )\n        return response(200, {\"url\": url})\n\n    if route ==\
+        \ \"GET /storage/list\":\n        requested = query.get(\"prefix\") or \"\"\
+        \n        clean = \"\" if not requested else safe_key(requested)\n       \
+        \ result = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix + clean, MaxKeys=250)\n\
+        \        items = [{\n            \"key\": obj[\"Key\"][len(prefix):], \"size\"\
+        : obj[\"Size\"],\n            \"lastModified\": obj[\"LastModified\"].isoformat()\n\
+        \        } for obj in result.get(\"Contents\", [])]\n        return response(200,\
+        \ {\"items\": items, \"truncated\": result.get(\"IsTruncated\", False)})\n\
+        \n    return response(404, {\"error\": \"Not found\"})\n"
+    Metadata:
+      SamResourceId: AuthStorageFunction
+Outputs:
+  ApiBaseUrl:
+    Value:
+      Fn::Sub: https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  DiscordCallbackUrl:
+    Value:
+      Fn::Sub: https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/auth/callback
+  PrivateStorageBucketName:
+    Value:
+      Ref: PrivateStorageBucket
+

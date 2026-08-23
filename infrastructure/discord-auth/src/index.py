@@ -1,0 +1,190 @@
+import base64, boto3, hashlib, json, os, re, secrets, time, urllib.parse, urllib.request, uuid
+
+ddb = boto3.resource("dynamodb").Table(os.environ["IDENTITY_TABLE"])
+s3 = boto3.client("s3")
+sm = boto3.client("secretsmanager")
+FRONTEND = os.environ["FRONTEND_URL"]
+FRONTEND_ORIGIN = os.environ["FRONTEND_ORIGIN"]
+CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
+BUCKET = os.environ["STORAGE_BUCKET"]
+SESSION_SECONDS = int(os.environ["SESSION_HOURS"]) * 3600
+ALLOWED_TYPES = {
+    "application/json", "application/zip", "image/png", "image/jpeg",
+    "image/webp", "text/plain", "application/octet-stream"
+}
+
+def response(status, body=None, location=None):
+    headers = {
+        "access-control-allow-origin": FRONTEND_ORIGIN.rstrip("/"),
+        "access-control-allow-headers": "authorization,content-type",
+        "access-control-allow-methods": "GET,POST,OPTIONS",
+        "cache-control": "no-store",
+        "content-type": "application/json"
+    }
+    if location:
+        headers["location"] = location
+    payload = "" if body is None else json.dumps(body, separators=(",", ":"))
+    return {"statusCode": status, "headers": headers, "body": payload}
+
+def secret_value():
+    raw = sm.get_secret_value(SecretId=os.environ["DISCORD_SECRET_ARN"])["SecretString"]
+    value = json.loads(raw)
+    return value["client_secret"]
+
+def api_base(event):
+    ctx = event["requestContext"]
+    return "https://" + ctx["domainName"] + ctx.get("stage", "").replace("$default", "")
+
+def auth(event):
+    header = (event.get("headers") or {}).get("authorization", "")
+    if not header.lower().startswith("bearer "):
+        return None
+    token = header.split(" ", 1)[1].strip()
+    digest = hashlib.sha256(token.encode()).hexdigest()
+    item = ddb.get_item(Key={"pk": "session#" + digest}).get("Item")
+    if not item or int(item.get("expiresAt", 0)) <= int(time.time()):
+        return None
+    return item
+
+def safe_key(raw):
+    raw = urllib.parse.unquote(raw or "").replace("\\", "/").strip("/")
+    if not raw or len(raw) > 512 or ".." in raw.split("/"):
+        raise ValueError("Invalid key")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._ /-]*", raw):
+        raise ValueError("Invalid key")
+    return raw
+
+def json_body(event):
+    body = event.get("body") or "{}"
+    if event.get("isBase64Encoded"):
+        body = base64.b64decode(body).decode()
+    return json.loads(body)
+
+def handler(event, context):
+    route = event["requestContext"]["http"]["method"] + " " + event["rawPath"]
+    query = event.get("queryStringParameters") or {}
+    now = int(time.time())
+
+    if route == "GET /auth/login":
+        state = secrets.token_urlsafe(32)
+        ddb.put_item(Item={"pk": "state#" + state, "expiresAt": now + 600})
+        redirect = api_base(event) + "/auth/callback"
+        params = urllib.parse.urlencode({
+            "client_id": CLIENT_ID, "redirect_uri": redirect,
+            "response_type": "code", "scope": "identify", "state": state,
+            "prompt": "consent"
+        })
+        return response(302, location="https://discord.com/oauth2/authorize?" + params)
+
+    if route == "GET /auth/callback":
+        code, state = query.get("code"), query.get("state")
+        state_key = {"pk": "state#" + (state or "")}
+        saved = ddb.get_item(Key=state_key).get("Item")
+        if not code or not saved or int(saved.get("expiresAt", 0)) <= now:
+            return response(400, {"error": "Invalid or expired login state"})
+        ddb.delete_item(Key=state_key)
+        redirect = api_base(event) + "/auth/callback"
+        encoded = urllib.parse.urlencode({
+            "client_id": CLIENT_ID, "client_secret": secret_value(),
+            "grant_type": "authorization_code", "code": code,
+            "redirect_uri": redirect
+        }).encode()
+        req = urllib.request.Request(
+            "https://discord.com/api/oauth2/token", data=encoded,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": "RIST-WORLD/1.0"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            discord_token = json.loads(r.read())["access_token"]
+        req = urllib.request.Request(
+            "https://discord.com/api/users/@me",
+            headers={
+                "Authorization": "Bearer " + discord_token,
+                "User-Agent": "RIST-WORLD/1.0"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            profile = json.loads(r.read())
+        discord_id = str(profile["id"])
+        user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
+        token = secrets.token_urlsafe(48)
+        digest = hashlib.sha256(token.encode()).hexdigest()
+        ddb.put_item(Item={
+            "pk": "session#" + digest, "userId": user_id,
+            "username": profile.get("global_name") or profile.get("username") or "Discord user",
+            "expiresAt": now + SESSION_SECONDS
+        })
+        target = FRONTEND + "#rist_session=" + urllib.parse.quote(token)
+        return response(302, location=target)
+
+    session = auth(event)
+    if not session:
+        return response(401, {"error": "Authentication required"})
+
+    if route == "GET /me":
+        return response(200, {
+            "userId": session["userId"], "displayName": session["username"],
+            "storagePrefix": "users/" + session["userId"] + "/"
+        })
+
+    if route == "POST /auth/logout":
+        header = event["headers"]["authorization"].split(" ", 1)[1]
+        ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
+        return response(204)
+
+    prefix = "users/" + session["userId"] + "/"
+
+    if route == "POST /account/delete":
+        continuation = None
+        while True:
+            args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
+            if continuation:
+                args["ContinuationToken"] = continuation
+            result = s3.list_objects_v2(**args)
+            objects = [{"Key": item["Key"]} for item in result.get("Contents", [])]
+            if objects:
+                s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects, "Quiet": True})
+            if not result.get("IsTruncated"):
+                break
+            continuation = result.get("NextContinuationToken")
+        header = event["headers"]["authorization"].split(" ", 1)[1]
+        ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
+        return response(204)
+
+    if route == "POST /storage/upload":
+        body = json_body(event)
+        key = prefix + safe_key(body.get("key"))
+        content_type = body.get("contentType") or "application/octet-stream"
+        if content_type not in ALLOWED_TYPES:
+            return response(400, {"error": "Unsupported content type"})
+        post = s3.generate_presigned_post(
+            Bucket=BUCKET, Key=key,
+            Fields={"Content-Type": content_type},
+            Conditions=[
+                {"Content-Type": content_type},
+                ["content-length-range", 1, 52428800],
+                ["eq", "$key", key]
+            ], ExpiresIn=300
+        )
+        return response(200, post)
+
+    if route == "GET /storage/download":
+        key = prefix + safe_key(query.get("key"))
+        url = s3.generate_presigned_url(
+            "get_object", Params={"Bucket": BUCKET, "Key": key}, ExpiresIn=300
+        )
+        return response(200, {"url": url})
+
+    if route == "GET /storage/list":
+        requested = query.get("prefix") or ""
+        clean = "" if not requested else safe_key(requested)
+        result = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix + clean, MaxKeys=250)
+        items = [{
+            "key": obj["Key"][len(prefix):], "size": obj["Size"],
+            "lastModified": obj["LastModified"].isoformat()
+        } for obj in result.get("Contents", [])]
+        return response(200, {"items": items, "truncated": result.get("IsTruncated", False)})
+
+    return response(404, {"error": "Not found"})
