@@ -98,6 +98,13 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
         if(!auth.IsConfigured){PrivateStorageStatus="Discord login is not configured yet.";Notify();return;}
         await auth.BeginLoginAsync();
     }
+    public async Task DeletePrivateAccountAsync()
+    {
+        if(!IsLoggedIn)return;
+        await auth.DeleteAccountAsync();
+        IsLoggedIn=false;DiscordDisplayName="";PrivateStorageStatus="Private storage and session deleted.";Role="PC";
+        CloseHeaderMenus();Notify();
+    }
     public void ToggleSaveMenu(){SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
     public void ToggleLoadMenu(){LoadMenuOpen=!LoadMenuOpen;SaveMenuOpen=false;Notify();}
     public void CloseHeaderMenus(){SaveMenuOpen=false;LoadMenuOpen=false;}
