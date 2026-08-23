@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
 @inject WorldSession Session
 <header id="header-slider" class="topbar header-rail finite-rail icon-header desktop-arrow-slider" aria-label="Tabletop controls">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll controls left" title="Scroll left">‹</button>
@@ -15,7 +16,7 @@
    </select>
   </div>
   <div class="control asset-type-control icon-select-control"><span class="header-icon icon-assets" aria-hidden="true"></span><label class="sr-only">Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
-  <button class="header-icon-button header-card-deck @(Session.CardBrowserOpen?"active":"")" @onclick="Session.ToggleCardBrowser" aria-expanded="@Session.CardBrowserOpen" title="@(Session.CardBrowserOpen?"Close card library":"Open card library")" aria-label="@(Session.CardBrowserOpen?"Close card library":"Open card library")"><span class="header-card-back" aria-hidden="true"></span>@if(Session.PendingHandApprovalCount>0&&Session.Role=="GM"){<span class="header-notification-badge">@Session.PendingHandApprovalCount</span>}</button>
+  <button type="button" class="header-icon-button header-card-deck tap-safe @(Session.CardBrowserOpen?"active":"")" @onclick="Session.ToggleCardBrowser" aria-expanded="@Session.CardBrowserOpen" aria-controls="card-library" @onclick:stopPropagation="true" title="@(Session.CardBrowserOpen?"Close card library":"Open card library")" aria-label="@(Session.CardBrowserOpen?"Close card library":"Open card library")"><span class="header-card-back" aria-hidden="true"></span>@if(Session.PendingHandApprovalCount>0&&Session.Role=="GM"){<span class="header-notification-badge">@Session.PendingHandApprovalCount</span>}</button>
   <button class="header-icon-button tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen" title="Browse assets" aria-label="Browse assets"><span class="header-icon icon-browse" aria-hidden="true"></span></button>
   <div class="control icon-select-control compact-select"><span class="header-icon icon-role" aria-hidden="true"></span><label class="sr-only">Role</label><select @bind="Session.Role" @bind:after="Session.Notify" aria-label="Role">@if(Session.CanManageCurrentMap){<option value="GM">GM</option>}<option value="PC">PC</option></select></div>
   <div class="control icon-select-control compact-select"><span class="header-icon icon-grid-@Session.GridStyle" aria-hidden="true"></span><label class="sr-only">Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive" aria-label="Grid"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
@@ -60,6 +61,9 @@
  }
 </header>
 @code{
+ protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=SessionChanged;
  void StageAsset(){if(Session.PieceKind=="tile"){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();return;}Session.StagePiece(Session.PieceKind);}
  void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
  void ModeChanged(ChangeEventArgs e)=>Session.SetTableMode(e.Value?.ToString()??"worldbuilder");
