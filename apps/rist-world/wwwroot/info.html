@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>About ReLiC GameMaster</title>
+<link rel="stylesheet" href="legal.css?v=1">
+<style>
+.profile-card{border:2px solid #8a6b33;border-radius:22px;padding:16px;background:linear-gradient(#efe3c9,#d8c093);color:#4e402e;box-shadow:inset 0 0 0 3px #fff4d9}.profile-hero{display:grid;grid-template-columns:minmax(140px,260px) 1fr;gap:18px;align-items:center}.portrait-stage{min-height:330px;border:2px solid #a07c40;border-radius:24px;background:radial-gradient(circle,#18242b,#071016 72%);display:grid;place-items:center;overflow:hidden;position:relative}.portrait-stage img{max-width:100%;max-height:360px;object-fit:contain;display:block}.portrait-stage.creator img{filter:drop-shadow(0 10px 14px #0008)}.d20-toggle{margin:12px auto 0;width:76px;height:76px;border:2px solid #a77d39;border-radius:50%;background:radial-gradient(circle,#d9f5ff,#7eb9d8 55%,#17364a 58%,#10222d);color:#f6e2a9;font:700 18px Georgia;display:grid;place-items:center;box-shadow:0 4px 14px #0008;cursor:pointer}.bio h1{margin:.2rem 0}.bio p{font-size:1.05rem}.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}.legal-grid a{display:block;padding:12px;border:1px solid #80662f;border-radius:12px;background:#111c24;color:#f2cf72;text-decoration:none}.safety-link{border-color:#c5923e!important;background:#2a2112!important}.contact{margin-top:18px;padding:14px;border:1px solid #80662f;border-radius:14px;background:#101920;color:#eee}@media(max-width:680px){.profile-hero{grid-template-columns:1fr}.portrait-stage{min-height:300px}}
+</style>
+</head>
+<body>
+<a class="back" href="./">← Return to RIST WORLD</a>
+<section class="profile-card">
+ <div class="profile-hero">
+  <div>
+   <div id="portrait-stage" class="portrait-stage"><img id="profile-photo" alt="ReLiC GameMaster portrait"></div>
+   <button id="d20-toggle" class="d20-toggle" type="button" aria-label="Show Ryan L. Cole">d20</button>
+  </div>
+  <div class="bio">
+   <h1>Ryan L. Cole</h1>
+   <p><strong>Creator of ReLiCGameMaster, Shaelvien, and RIST.</strong></p>
+   <p>Ryan L. Cole builds tabletop worlds, systems, and tools around a simple goal: give GameMasters and players more freedom to create, discover, and tell stories together. Shaelvien is the shared-world setting, while RIST is the recursive tabletop framework being built to support layered maps, cards, characters, dice, tokens, sprites, encounters, and collaborative worldbuilding.</p>
+   <p>The project focuses on keeping complex tabletop ideas understandable and usable: information can be discovered in layers, objects can be represented differently by scale, and players can define names, identities, abilities, anatomy, equipment, and language through play instead of being forced into a single predefined mold.</p>
+   <p class="small">The GameMaster portrait is shown first. Press the d20 to reveal the creator portrait.</p>
+  </div>
+ </div>
+</section>
+<div class="contact"><strong>Contact:</strong> <a href="mailto:relic.gamemaster@gmail.com">relic.gamemaster@gmail.com</a></div>
+<h2>Legal, Privacy & Safety</h2>
+<div class="legal-grid">
+ <a href="copyright.html">Copyright & intellectual property</a>
+ <a href="privacy.html">Privacy policy</a>
+ <a href="terms.html">Terms of service</a>
+ <a href="dmca.html">Copyright / DMCA notices</a>
+ <a class="safety-link" href="safety.html">Safety / TAKE IT DOWN requests</a>
+ <a href="accessibility.html">Accessibility</a>
+</div>
+<p class="small">© 2026 ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p>
+<script>
+(async()=>{
+ const photo=document.getElementById('profile-photo');
+ const stage=document.getElementById('portrait-stage');
+ const toggle=document.getElementById('d20-toggle');
+ const [gm,creator]=await Promise.all([
+   fetch('assets/profile/gamemaster.webp.b64').then(r=>r.text()),
+   fetch('assets/profile/ryan-cutout.webp.b64').then(r=>r.text())
+ ]);
+ let showingCreator=false;
+ function draw(){
+   photo.src='data:image/webp;base64,'+(showingCreator?creator:gm).trim();
+   photo.alt=showingCreator?'Ryan L. Cole':'ReLiC GameMaster';
+   stage.classList.toggle('creator',showingCreator);
+   toggle.setAttribute('aria-label',showingCreator?'Show GameMaster portrait':'Show Ryan L. Cole');
+ }
+ toggle.addEventListener('click',()=>{showingCreator=!showingCreator;draw()});
+ draw();
+})().catch(()=>{});
+</script>
+</body></html>
