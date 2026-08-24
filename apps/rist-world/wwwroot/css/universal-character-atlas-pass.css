@@ -1,32 +1,28 @@
-/* Universal character sheet atlas pass.
-   Uses the two in-system character-sheet atlases as subtle material/chrome sources
-   while keeping controls readable and touch-safe. */
+/* Universal character sheet: real atlas-component pass.
+   The character-sheet atlases are sprite sheets, not page textures.
+   This pass uses identifiable atlas elements as controls and keeps the page structure clean. */
 
 .character-mixer.universal-sheet{
-  --paper:#f4ead5;
-  --paper-deep:#e9d9b8;
-  --ink:#584a37;
+  --paper:#f7f0df;
+  --paper2:#ead9b8;
+  --ink:#5a4a36;
   --gold:#b48a43;
-  --gold-dark:#80632f;
-  --blue:#83b9d9;
-  border-color:#a9823f!important;
-  background:linear-gradient(180deg,#f4ead8 0%,#eadbbb 100%)!important;
-  box-shadow:0 18px 52px #000b,inset 0 0 0 3px #fff6df,inset 0 0 0 6px #b28c4c!important;
+  --gold2:#8c692f;
+  --blue:#9fd8f2;
+  border-color:#a47b36!important;
+  background:linear-gradient(180deg,#f7eedb 0%,#ead8b7 100%)!important;
+  box-shadow:0 18px 52px #000b,inset 0 0 0 3px #fff7e6,inset 0 0 0 7px #bd9653!important;
 }
 
 .character-mixer.universal-sheet::before{
   content:""!important;
   display:block!important;
   position:absolute!important;
-  inset:7px!important;
+  inset:8px!important;
   z-index:0!important;
-  border:1px solid #c6a669!important;
+  border:1px solid #c5a365!important;
   border-radius:17px!important;
-  background:
-    linear-gradient(#f7eeddf2,#f7eeddf2),
-    url("../assets/ui/character-sheet/controls-atlas.jpeg") center 7%/760px auto no-repeat!important;
-  background-blend-mode:screen,normal!important;
-  opacity:.78!important;
+  background:#f5ead4!important;
   pointer-events:none!important;
 }
 
@@ -37,198 +33,216 @@
   z-index:2!important;
 }
 
+/* Top control bar: pale framed plate from the same visual family as the reference sheets. */
 .character-mixer .exact-sheet-toolbar{
+  min-height:46px!important;
+  height:46px!important;
+  padding:5px 8px!important;
+  gap:6px!important;
   border:1px solid #ad8645!important;
-  border-radius:18px!important;
-  background:linear-gradient(180deg,#f9f0dc,#e9d9b8)!important;
-  box-shadow:inset 0 0 0 2px #fff6e2,0 1px 0 #8a6c38!important;
+  border-radius:20px!important;
+  background:linear-gradient(180deg,#fff8e8,#e9d8b5)!important;
+  box-shadow:inset 0 0 0 2px #fff3d5,0 2px 0 #88652d55!important;
 }
-
 .character-mixer .exact-sheet-toolbar span{
-  color:#786548!important;
+  color:#7c6847!important;
   font-family:Georgia,serif!important;
   font-weight:700!important;
 }
-
 .character-mixer .exact-sheet-toolbar button{
-  border:1px solid #b18b4e!important;
-  background:linear-gradient(180deg,#fff7e8,#eadbbd)!important;
-  color:#5d4b35!important;
+  min-width:52px!important;
+  height:32px!important;
+  border:1px solid #aa8243!important;
+  border-radius:18px!important;
+  background:linear-gradient(#fffaf0,#ead9b8)!important;
+  color:#5b4a35!important;
   box-shadow:inset 0 0 0 1px #fff!important;
 }
 
 .character-mixer .exact-sheet-screen{
-  border:1px solid #b69050!important;
-  border-radius:16px!important;
-  background:linear-gradient(180deg,#f8efdf 0%,#efe1c6 100%)!important;
-  box-shadow:inset 0 0 0 2px #fff7e7!important;
-  padding-bottom:72px!important;
+  height:calc(100% - 51px)!important;
+  padding:10px 10px 76px!important;
+  border:1px solid #b58b49!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,#fbf5e8,#f0e1c3)!important;
+  box-shadow:inset 0 0 0 2px #fff7e9!important;
 }
 
-/* Identity badge: circular portrait + framed name, matching the reference family. */
+/* Identity badge follows the portrait/name arrangement in the references. */
 .character-mixer .identity-badge{
-  border:1px solid #b08743!important;
-  background:linear-gradient(100deg,#ead9b5,#f8efdb 42%,#ead9b5)!important;
-  box-shadow:inset 0 0 0 2px #fff5de,0 2px 5px #7a5f2d33!important;
+  grid-template-columns:72px minmax(0,1fr)!important;
+  min-height:86px!important;
+  padding:7px 10px 7px 7px!important;
+  gap:10px!important;
+  border:1px solid #af8747!important;
+  border-radius:44px 18px 18px 44px!important;
+  background:linear-gradient(100deg,#ead5ae,#fbf3df 45%,#ebd8b4)!important;
+  box-shadow:inset 0 0 0 2px #fff6df!important;
 }
 .character-mixer .exact-portrait{
-  border:2px solid #9d7739!important;
-  outline:2px solid #e8cf96!important;
-  background:radial-gradient(circle,#f8eed8 55%,#dbc28e)!important;
-  color:#7d6a4d!important;
+  width:68px!important;
+  height:68px!important;
+  min-width:68px!important;
+  min-height:68px!important;
+  border:2px solid #96702f!important;
+  outline:3px double #e8cf98!important;
+  background:radial-gradient(circle,#fff8e8 58%,#ddc391 100%)!important;
 }
 .character-mixer .exact-name{
-  border:1px solid #b48c4d!important;
-  background:linear-gradient(180deg,#fffaf0,#efe0c2)!important;
-  color:#5b4c39!important;
+  height:39px!important;
+  border:1px solid #af8747!important;
+  border-radius:12px!important;
+  background:linear-gradient(#fffaf0,#efe0c2)!important;
+  color:#5c4c38!important;
   box-shadow:inset 0 0 0 1px #fff!important;
 }
 .character-mixer .identity-badge-meta button{
-  border:1px solid #b48c4d!important;
-  background:#f7ecd6!important;
+  height:27px!important;
+  border:1px solid #af8747!important;
+  background:#f8ecd3!important;
 }
 
-/* Pane chrome resembles the long framed strips in the supplied references. */
+/* Long collapsible panels mirror the pale framed strips in the reference sheets. */
 .character-mixer .sheet-pane{
-  border:1px solid #ad8545!important;
-  border-radius:14px!important;
-  background:linear-gradient(180deg,#f8efdc,#ead8b7)!important;
-  box-shadow:inset 0 0 0 2px #fff4df,0 2px 4px #6f542622!important;
+  margin-bottom:10px!important;
+  border:1px solid #ab8242!important;
+  border-radius:18px!important;
+  background:#f5e8cd!important;
+  box-shadow:inset 0 0 0 2px #fff2d7,0 2px 3px #6b4e1f22!important;
 }
 .character-mixer .pane-toggle{
-  min-height:48px!important;
-  padding:8px 12px!important;
+  min-height:54px!important;
+  padding:8px 14px!important;
   border:0!important;
-  background:linear-gradient(180deg,#f2e6ce,#e4d2ad)!important;
-  color:#594a37!important;
+  background:linear-gradient(180deg,#f8efdd,#e5d1aa)!important;
+  color:#594936!important;
 }
 .character-mixer .pane-toggle h2{
   font-family:Georgia,serif!important;
-  font-size:clamp(14px,4.1vw,19px)!important;
+  font-size:clamp(15px,4.1vw,19px)!important;
   font-weight:700!important;
-  letter-spacing:.01em!important;
 }
 .character-mixer .pane-toggle img{
-  width:28px!important;
-  height:28px!important;
-  filter:drop-shadow(0 1px 1px #7d622f55)!important;
+  width:30px!important;
+  height:30px!important;
+  filter:drop-shadow(0 1px 1px #6d512c66)!important;
 }
-.character-mixer .sheet-pane.is-open .pane-toggle{
-  background:linear-gradient(180deg,#efe1c3,#ddc79a)!important;
-}
-.character-mixer .sheet-pane.is-open .pane-toggle img{
-  transform:rotate(180deg)!important;
-}
+.character-mixer .sheet-pane.is-open .pane-toggle img{transform:rotate(180deg)!important}
 .character-mixer .pane-content{
-  min-height:72px!important;
-  padding:10px!important;
-  background:linear-gradient(180deg,#fffaf0,#f6ead4)!important;
-  color:#5d4d38!important;
-  border-top:1px solid #d7bd88!important;
+  min-height:86px!important;
+  padding:11px!important;
+  border-top:1px solid #d8bd87!important;
+  background:linear-gradient(#fffaf0,#f6ead2)!important;
+  color:#5c4b37!important;
 }
 
-/* Empty Values/Trackers/Entries states must remain visible and usable. */
+/* Values empty state stays visibly interactive. */
+.character-mixer .values-pane.is-open .pane-content{display:block!important;min-height:96px!important}
 .character-mixer .pane-content>div[style*="color:#aaa"]{
-  min-height:54px!important;
+  min-height:66px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
-  gap:9px!important;
-  color:#756247!important;
+  flex-wrap:wrap!important;
+  gap:10px!important;
+  color:#756145!important;
   font-size:11px!important;
   text-align:center!important;
 }
 .character-mixer .pane-content>div[style*="color:#aaa"] button{
-  min-height:30px!important;
-  padding:4px 10px!important;
-  border:1px solid #a98243!important;
-  border-radius:16px!important;
-  background:linear-gradient(#fff8e8,#e7d2a8)!important;
-  color:#584833!important;
+  min-height:32px!important;
+  padding:5px 11px!important;
+  border:1px solid #a57c39!important;
+  border-radius:17px!important;
+  background:linear-gradient(#fff8e8,#e7d1a6)!important;
+  color:#594732!important;
   font-weight:700!important;
-}
-.character-mixer .values-pane.is-open .pane-content{
-  min-height:86px!important;
-  display:block!important;
 }
 
 .character-mixer textarea,
 .character-mixer input[type="text"],
 .character-mixer input[type="number"]{
-  border:1px solid #b28c4e!important;
-  border-radius:8px!important;
+  border:1px solid #b18a4d!important;
+  border-radius:10px!important;
   background:#fffaf0!important;
   color:#574936!important;
 }
-.character-mixer textarea{padding:8px!important}
+.character-mixer textarea{padding:9px!important}
 
-/* Fixed five-icon dock: atlas-backed ornamental strip rather than a floating generic pill. */
+/* The five buttons are navigation, never toggles. The active page uses a light-blue selection ring. */
 .character-mixer.universal-sheet>.universal-layer-nav{
   position:absolute!important;
   left:50%!important;
-  bottom:12px!important;
+  bottom:10px!important;
   transform:translateX(-50%)!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
-  gap:6px!important;
+  gap:8px!important;
   width:max-content!important;
-  max-width:calc(100% - 34px)!important;
-  padding:7px 10px!important;
-  border:1px solid #a77d38!important;
+  max-width:calc(100% - 28px)!important;
+  padding:7px 11px!important;
+  border:1px solid #a57d3d!important;
   border-radius:34px!important;
-  background:
-    linear-gradient(#f1dfbde8,#e3ca98e8),
-    url("../assets/ui/character-sheet/linked-atlas.jpeg") center 92%/660px auto no-repeat!important;
-  background-blend-mode:screen,normal!important;
-  box-shadow:inset 0 0 0 2px #fff0cf,0 4px 12px #0005!important;
+  background:linear-gradient(#f8edd5,#dfc493)!important;
+  box-shadow:inset 0 0 0 2px #fff0cd,0 3px 10px #0004!important;
 }
 .character-mixer .layer-nav-button{
-  flex:0 0 42px!important;
-  width:42px!important;
-  height:42px!important;
-  min-width:42px!important;
-  border:2px solid #9d7736!important;
-  outline:2px solid #ead09b!important;
+  position:relative!important;
+  flex:0 0 44px!important;
+  width:44px!important;
+  height:44px!important;
+  min-width:44px!important;
+  padding:0!important;
+  border:2px solid #9d7634!important;
+  outline:2px solid #e7ca8d!important;
   border-radius:50%!important;
-  background:radial-gradient(circle at 45% 38%,#fff8e8 0 48%,#dfc48e 72%,#b48b48 100%)!important;
-  color:#665139!important;
-  font-family:Georgia,serif!important;
-  font-size:18px!important;
-  box-shadow:inset 0 0 0 2px #fff4d6,0 2px 4px #5f452a55!important;
+  background:radial-gradient(circle at 44% 38%,#fff9eb 0 56%,#dec28b 76%,#b18440 100%)!important;
+  box-shadow:inset 0 0 0 2px #fff4d8,0 2px 4px #5f452a55!important;
+  overflow:hidden!important;
 }
 .character-mixer .layer-nav-button.active{
-  background:radial-gradient(circle at 45% 38%,#dff5ff 0 42%,#9fcbe3 62%,#6f9ebd 78%,#b48b48 100%)!important;
-  color:#3e5362!important;
-  border-color:#987032!important;
-  box-shadow:inset 0 0 0 2px #f7ffff,0 0 0 2px #d4b46f,0 0 9px #87c8ed99!important;
+  border-color:#8a6b35!important;
+  outline-color:#b8ddf0!important;
+  background:radial-gradient(circle at 44% 38%,#f8fdff 0 48%,#c6e8f7 65%,#84b8d2 82%,#b18440 100%)!important;
+  box-shadow:inset 0 0 0 2px #f8ffff,0 0 0 2px #d2b36c,0 0 10px #7bc7efaa!important;
 }
 
-/* Spellbook/linked content should read as framed cards rather than plain white blocks. */
-.character-mixer .character-sheet-spellbook,
-.character-mixer .spellbook-pane .pane-content{
-  background:linear-gradient(180deg,#fff9ec,#efe0c2)!important;
+/* Real icons are cropped from linked-atlas.jpeg rather than substituted Unicode glyphs. */
+.character-mixer .layer-nav-button span{
+  position:absolute!important;
+  inset:5px!important;
+  display:block!important;
+  width:34px!important;
+  height:34px!important;
+  max-width:none!important;
+  background-image:url("../assets/ui/character-sheet/linked-atlas.jpeg")!important;
+  background-repeat:no-repeat!important;
+  background-size:768px 512px!important;
+  pointer-events:none!important;
 }
+/* Source atlas standalone icon row, scaled to 50%. */
+.character-mixer .layer-nav-button[data-icon="profile"] span{background-position:-91px -397px!important}
+.character-mixer .layer-nav-button[data-icon="entries"] span{background-position:-428px -397px!important}
+.character-mixer .layer-nav-button[data-icon="equipment"] span{background-position:-493px -397px!important}
+.character-mixer .layer-nav-button[data-icon="linked"] span{background-position:-20px -397px!important}
+.character-mixer .layer-nav-button[data-icon="cards"] span{background-position:-287px -397px!important}
+
 .character-mixer .character-spell-card{
-  border:1px solid #b28b4a!important;
-  border-radius:12px!important;
-  background:#f6ead3!important;
+  border:1px solid #ad8545!important;
+  border-radius:14px!important;
+  background:#f6ead2!important;
   box-shadow:inset 0 0 0 1px #fff!important;
 }
 
 @media(max-width:430px){
-  .character-mixer.universal-sheet>.universal-layer-nav{
-    bottom:10px!important;
-    gap:5px!important;
-    padding:6px 8px!important;
-  }
-  .character-mixer .layer-nav-button{
-    flex-basis:38px!important;
-    width:38px!important;
-    height:38px!important;
-    min-width:38px!important;
-    font-size:16px!important;
-  }
-  .character-mixer .pane-toggle{min-height:46px!important}
+  .character-mixer .exact-sheet-toolbar{height:44px!important;min-height:44px!important}
+  .character-mixer .exact-sheet-screen{height:calc(100% - 49px)!important;padding:9px 9px 70px!important}
+  .character-mixer .identity-badge{grid-template-columns:64px minmax(0,1fr)!important;min-height:78px!important}
+  .character-mixer .exact-portrait{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important}
+  .character-mixer .pane-toggle{min-height:50px!important}
   .character-mixer .pane-toggle h2{font-size:16px!important}
+  .character-mixer.universal-sheet>.universal-layer-nav{bottom:9px!important;gap:6px!important;padding:6px 9px!important}
+  .character-mixer .layer-nav-button{flex-basis:40px!important;width:40px!important;height:40px!important;min-width:40px!important}
+  .character-mixer .layer-nav-button span{inset:3px!important}
 }
