@@ -321,4 +321,25 @@
         min-height: 0 !important;
         box-sizing: border-box !important;
     }
+}/* Mobile Card Library uses the permanent Hand rail below it.
+   Remove the redundant internal character-card drop box. */
+@media (max-width: 800px) {
+
+    .card-library-workspace {
+        display: block !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .character-spellbook-drop {
+        display: none !important;
+    }
+
+    .card-library-results {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+    }
 }
+
