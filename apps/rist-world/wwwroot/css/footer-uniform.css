@@ -164,10 +164,16 @@
 }
 
 /* Mobile browser-safe footer spacing.
-   Keep the dice rail above browser chrome and reserve a line underneath
-   for the site copyright notice. */
+   Keep the dice rail above browser chrome, with visually even breathing room
+   between the slider's top and bottom borders. */
 @media(max-width:800px){
  .dice-footer{
-  margin-bottom:calc(22px + env(safe-area-inset-bottom, 0px))!important;
+  margin-bottom:calc(26px + env(safe-area-inset-bottom, 0px))!important;
+  padding-top:5px!important;
+  padding-bottom:5px!important;
+  box-sizing:border-box!important;
+ }
+ .dice-footer .circular-set{
+  align-self:center!important;
  }
 }
