@@ -341,5 +341,60 @@
         min-height: 0 !important;
         box-sizing: border-box !important;
     }
+}/* =========================================================
+   HEADER TRUE HORIZONTAL SCROLL
+   The header has a nested finite-set that must remain wider
+   than the viewport or Safari only gives elastic overscroll.
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    #header-slider {
+        display: block !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+
+        overflow-x: scroll !important;
+        overflow-y: hidden !important;
+
+        -webkit-overflow-scrolling: touch !important;
+
+        overscroll-behavior-x: auto !important;
+        touch-action: pan-x !important;
+
+        scroll-snap-type: none !important;
+
+        white-space: nowrap !important;
+    }
+
+    #header-slider > .finite-set.header-circular-set {
+        display: inline-flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+
+        box-sizing: border-box !important;
+
+        width: max-content !important;
+        min-width: max-content !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding-left: 7px !important;
+        padding-right: 7px !important;
+
+        overflow: visible !important;
+
+        white-space: nowrap !important;
+    }
+
+    #header-slider > .finite-set.header-circular-set > * {
+        flex: 0 0 auto !important;
+    }
+
+    #header-slider > .rail-scroll-arrow {
+        display: none !important;
+    }
 }
 
