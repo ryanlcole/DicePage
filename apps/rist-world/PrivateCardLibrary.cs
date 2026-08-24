@@ -1,247 +1,416 @@
-using System.IO.Compression;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace RistWorld;
 
 public sealed class PrivateCardLibrary(DiscordAuthClient auth)
 {
-    const string PathfinderKey = "cards/decks/naeja-pathfinder-1e-private-test.json";
     const string CustomKey = "cards/decks/custom-cards.json";
     const string SpellbookKey = "cards/spellbooks/active-character.json";
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public event Action? Changed;
+
     public List<LibraryCard> Cards { get; } = [];
     public List<string> SpellbookIds { get; } = [];
+
     public LibraryCard? DraggingCard { get; private set; }
+
     public bool Loading { get; private set; }
     public bool Loaded { get; private set; }
+
     public string Status { get; private set; } = "";
 
     public IEnumerable<LibraryCard> SpellbookCards =>
-        SpellbookIds.Select(id => Cards.FirstOrDefault(card => card.Id == id)).OfType<LibraryCard>();
+        SpellbookIds
+            .Select(id => Cards.FirstOrDefault(card => card.Id == id))
+            .OfType<LibraryCard>();
 
     public async Task EnsureLoadedAsync()
     {
-        if (Loaded || Loading) return;
-        Loading = true; Status = "";
+        if (Loaded || Loading)
+            return;
+
+        Loading = true;
+        Status = "";
+
         try
         {
             Cards.Clear();
+
             try
             {
-                var pathfinder = await auth.DownloadJsonAsync<StoredCardDeck>(PathfinderKey);
-                if (pathfinder?.Cards is not null)
-                {
-                    foreach (var card in pathfinder.Cards) { card.Source = "Pathfinder 1e"; card.Type = "Spell"; }
-                    Cards.AddRange(pathfinder.Cards);
-                }
-            }
-            catch { }
-            try
-            {
-                var custom = await auth.DownloadJsonAsync<StoredCardDeck>(CustomKey);
+                var custom =
+                    await auth.DownloadJsonAsync<StoredCardDeck>(CustomKey);
+
                 if (custom?.Cards is not null)
                 {
                     foreach (var card in custom.Cards)
-                        if (string.IsNullOrWhiteSpace(card.Source) || card.Source.Equals("Custom", StringComparison.OrdinalIgnoreCase)) card.Source = "Shaelvien";
+                    {
+                        if (
+                            string.IsNullOrWhiteSpace(card.Source) ||
+                            card.Source.Equals(
+                                "Custom",
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                        {
+                            card.Source = "Shaelvien";
+                        }
+                    }
+
                     Cards.AddRange(custom.Cards);
                 }
             }
-            catch { }
+            catch
+            {
+            }
+
             try
             {
-                var spellbook = await auth.DownloadJsonAsync<StoredSpellbook>(SpellbookKey);
-                if (spellbook?.CardIds is not null) SpellbookIds.AddRange(spellbook.CardIds.Distinct());
+                var spellbook =
+                    await auth.DownloadJsonAsync<StoredSpellbook>(
+                        SpellbookKey
+                    );
+
+                if (spellbook?.CardIds is not null)
+                {
+                    SpellbookIds.AddRange(
+                        spellbook.CardIds.Distinct()
+                    );
+                }
             }
-            catch { }
+            catch
+            {
+            }
+
             Loaded = true;
         }
-        finally { Loading = false; Changed?.Invoke(); }
-    }
-
-    public async Task ImportPathfinderAsync(Stream source)
-    {
-        Loading = true; Status = "";
-        try
+        finally
         {
-            using var memory = new MemoryStream();
-            await source.CopyToAsync(memory);
-            memory.Position = 0;
-            using var archive = new ZipArchive(memory, ZipArchiveMode.Read);
-            var manifestEntry = archive.Entries.FirstOrDefault(x => x.FullName.EndsWith("spell-cards/data/manifest.json", StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidDataException("The Pathfinder deck manifest is missing.");
-            DeckManifest manifest;
-            await using (var manifestStream = manifestEntry.Open())
-                manifest = await JsonSerializer.DeserializeAsync<DeckManifest>(manifestStream, JsonOptions)
-                    ?? throw new InvalidDataException("The Pathfinder deck manifest is invalid.");
-            if (manifest.DeckId != "naeja-pathfinder-1e-private-test" || manifest.Visibility != "private-test-only")
-                throw new InvalidDataException("This is not the approved private Pathfinder deck.");
-
-            var imported = new List<LibraryCard>(manifest.SpellCount);
-            foreach (var chunk in manifest.Chunks)
-            {
-                var normalized = chunk.File.Replace('\\', '/');
-                var entry = archive.Entries.FirstOrDefault(x => x.FullName.EndsWith(normalized, StringComparison.OrdinalIgnoreCase))
-                    ?? throw new InvalidDataException("A spell-data chunk is missing.");
-                await using var chunkStream = entry.Open();
-                imported.AddRange(await JsonSerializer.DeserializeAsync<List<LibraryCard>>(chunkStream, JsonOptions) ?? []);
-            }
-            if (imported.Count != manifest.SpellCount)
-                throw new InvalidDataException($"Expected {manifest.SpellCount} spells but found {imported.Count}.");
-
-            Cards.RemoveAll(card => card.Source == "Pathfinder 1e" || !card.Custom);
-            foreach (var card in imported) { card.Source = "Pathfinder 1e"; card.Type = "Spell"; }
-            Cards.AddRange(imported);
-            await auth.UploadTextAsync(PathfinderKey, JsonSerializer.Serialize(new StoredCardDeck(manifest.DeckId, manifest.Title, manifest.Visibility, imported), JsonOptions), "application/json");
-            Loaded = true; Status = $"{imported.Count:N0} private spell cards saved.";
+            Loading = false;
+            Changed?.Invoke();
         }
-        catch (Exception ex) { Status = "Import failed: " + ex.Message; }
-        finally { Loading = false; Changed?.Invoke(); }
     }
 
     public async Task CreateCustomAsync(CardDraft draft)
     {
         var name = draft.Name.Trim();
-        if (string.IsNullOrWhiteSpace(name)) { Status = "Give the card a name."; Changed?.Invoke(); return; }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Status = "Give the card a name.";
+            Changed?.Invoke();
+            return;
+        }
+
         var card = new LibraryCard
         {
             Id = "custom-" + Guid.NewGuid().ToString("N"),
+
             Name = name,
+
             Description = draft.Description.Trim(),
+
             School = draft.Category.Trim(),
+
             ImageDataUrl = draft.ImageDataUrl,
-            Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
-            Source = string.IsNullOrWhiteSpace(draft.LibraryName) ? "Shaelvien" : draft.LibraryName.Trim(),
+
+            Type =
+                string.IsNullOrWhiteSpace(draft.Type)
+                    ? "Standard"
+                    : draft.Type,
+
+            Source =
+                string.IsNullOrWhiteSpace(draft.LibraryName)
+                    ? "Shaelvien"
+                    : draft.LibraryName.Trim(),
+
             Custom = true
         };
+
         Cards.Add(card);
+
         await SaveCustomAsync();
+
         Status = $"Created {card.Name}.";
+
         Changed?.Invoke();
     }
 
     public async Task ImportCustomAsync(Stream source)
     {
-        Loading = true; Status = "";
+        Loading = true;
+        Status = "";
+
         try
         {
-            var drafts = await JsonSerializer.DeserializeAsync<List<CardDraft>>(source, JsonOptions)
-                ?? throw new InvalidDataException("The custom card file is empty.");
+            var drafts =
+                await JsonSerializer.DeserializeAsync<List<CardDraft>>(
+                    source,
+                    JsonOptions
+                )
+                ?? throw new InvalidDataException(
+                    "The custom card file is empty."
+                );
+
             var imported = 0;
+
             foreach (var draft in drafts)
             {
                 var name = draft.Name.Trim();
-                if (string.IsNullOrWhiteSpace(name)) continue;
-                Cards.Add(new LibraryCard
-                {
-                    Id = "custom-" + Guid.NewGuid().ToString("N"),
-                    Name = name,
-                    Description = draft.Description.Trim(),
-                    School = draft.Category.Trim(),
-                    ImageDataUrl = draft.ImageDataUrl,
-                    Type = string.IsNullOrWhiteSpace(draft.Type) ? "Spell" : draft.Type,
-                    Source = string.IsNullOrWhiteSpace(draft.LibraryName) ? "Shaelvien" : draft.LibraryName.Trim(),
-                    Custom = true
-                });
+
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                Cards.Add(
+                    new LibraryCard
+                    {
+                        Id =
+                            "custom-" +
+                            Guid.NewGuid().ToString("N"),
+
+                        Name = name,
+
+                        Description =
+                            draft.Description.Trim(),
+
+                        School =
+                            draft.Category.Trim(),
+
+                        ImageDataUrl =
+                            draft.ImageDataUrl,
+
+                        Type =
+                            string.IsNullOrWhiteSpace(draft.Type)
+                                ? "Standard"
+                                : draft.Type,
+
+                        Source =
+                            string.IsNullOrWhiteSpace(
+                                draft.LibraryName
+                            )
+                                ? "Shaelvien"
+                                : draft.LibraryName.Trim(),
+
+                        Custom = true
+                    }
+                );
+
                 imported++;
             }
-            if (imported == 0) throw new InvalidDataException("No named custom cards were found.");
+
+            if (imported == 0)
+            {
+                throw new InvalidDataException(
+                    "No named custom cards were found."
+                );
+            }
+
             await SaveCustomAsync();
+
             Loaded = true;
-            Status = imported == 1 ? "Imported 1 custom card." : $"Imported {imported:N0} custom cards.";
+
+            Status =
+                imported == 1
+                    ? "Imported 1 custom card."
+                    : $"Imported {imported:N0} custom cards.";
         }
-        catch (Exception ex) { Status = "Import failed: " + ex.Message; }
-        finally { Loading = false; Changed?.Invoke(); }
-    }
-
-    public void BeginDrag(LibraryCard card) => DraggingCard = card;
-
-    public async Task DropOnSpellbookAsync()
-    {
-        if (DraggingCard is null) return;
-        await AddToSpellbookAsync(DraggingCard);
-        DraggingCard = null;
-    }
-
-    public async Task AddToSpellbookAsync(LibraryCard card)
-    {
-        if (!SpellbookIds.Contains(card.Id))
+        catch (Exception ex)
         {
-            SpellbookIds.Add(card.Id);
-            await SaveSpellbookAsync();
-            Status = $"{card.Name} added to the active character's spellbook.";
+            Status = "Import failed: " + ex.Message;
+        }
+        finally
+        {
+            Loading = false;
             Changed?.Invoke();
         }
     }
 
-    public async Task RemoveFromSpellbookAsync(LibraryCard card)
+    public void BeginDrag(LibraryCard card)
+    {
+        DraggingCard = card;
+    }
+
+    public async Task DropOnSpellbookAsync()
+    {
+        if (DraggingCard is null)
+            return;
+
+        await AddToSpellbookAsync(DraggingCard);
+
+        DraggingCard = null;
+    }
+
+    public async Task AddToSpellbookAsync(
+        LibraryCard card
+    )
+    {
+        if (!SpellbookIds.Contains(card.Id))
+        {
+            SpellbookIds.Add(card.Id);
+
+            await SaveSpellbookAsync();
+
+            Status =
+                $"{card.Name} added to the active character's spellbook.";
+
+            Changed?.Invoke();
+        }
+    }
+
+    public async Task RemoveFromSpellbookAsync(
+        LibraryCard card
+    )
     {
         if (SpellbookIds.Remove(card.Id))
         {
             await SaveSpellbookAsync();
+
             Changed?.Invoke();
         }
     }
 
     public void Reset()
     {
-        if (!Loaded && Cards.Count == 0 && SpellbookIds.Count == 0 && string.IsNullOrEmpty(Status)) return;
-        Cards.Clear(); SpellbookIds.Clear(); DraggingCard = null; Loaded = false; Loading = false; Status = "";
+        if (
+            !Loaded &&
+            Cards.Count == 0 &&
+            SpellbookIds.Count == 0 &&
+            string.IsNullOrEmpty(Status)
+        )
+        {
+            return;
+        }
+
+        Cards.Clear();
+        SpellbookIds.Clear();
+
+        DraggingCard = null;
+
+        Loaded = false;
+        Loading = false;
+
+        Status = "";
+
         Changed?.Invoke();
     }
 
     async Task SaveCustomAsync()
     {
-        var custom = Cards.Where(card => card.Custom).ToList();
-        await auth.UploadTextAsync(CustomKey, JsonSerializer.Serialize(new StoredCardDeck("custom-private-cards", "Custom cards", "private", custom), JsonOptions), "application/json");
+        var custom =
+            Cards
+                .Where(card => card.Custom)
+                .ToList();
+
+        await auth.UploadTextAsync(
+            CustomKey,
+
+            JsonSerializer.Serialize(
+                new StoredCardDeck(
+                    "shaelvien-private-cards",
+                    "Shaelvien cards",
+                    "private",
+                    custom
+                ),
+                JsonOptions
+            ),
+
+            "application/json"
+        );
     }
 
-    async Task SaveSpellbookAsync() =>
-        await auth.UploadTextAsync(SpellbookKey, JsonSerializer.Serialize(new StoredSpellbook(SpellbookIds), JsonOptions), "application/json");
+    async Task SaveSpellbookAsync()
+    {
+        await auth.UploadTextAsync(
+            SpellbookKey,
+
+            JsonSerializer.Serialize(
+                new StoredSpellbook(
+                    SpellbookIds
+                ),
+                JsonOptions
+            ),
+
+            "application/json"
+        );
+    }
 }
 
-public sealed record StoredCardDeck(string DeckId, string Title, string Visibility, List<LibraryCard> Cards);
-public sealed record StoredSpellbook(List<string> CardIds);
+public sealed record StoredCardDeck(
+    string DeckId,
+    string Title,
+    string Visibility,
+    List<LibraryCard> Cards
+);
+
+public sealed record StoredSpellbook(
+    List<string> CardIds
+);
+
 public sealed class CardDraft
 {
-    public string LibraryName { get; set; } = "Shaelvien";
+    public string LibraryName { get; set; } =
+        "Shaelvien";
+
     public string Name { get; set; } = "";
-    public string Type { get; set; } = "Spell";
+
+    public string Type { get; set; } =
+        "Standard";
+
     public string Category { get; set; } = "";
+
     public string Description { get; set; } = "";
+
     public string ImageDataUrl { get; set; } = "";
 }
-public sealed class DeckManifest
-{
-    [JsonPropertyName("deck_id")] public string DeckId { get; set; } = "";
-    public string Title { get; set; } = "";
-    public string Visibility { get; set; } = "";
-    [JsonPropertyName("spell_count")] public int SpellCount { get; set; }
-    public List<DeckChunk> Chunks { get; set; } = [];
-}
-public sealed class DeckChunk { public string File { get; set; } = ""; public int Count { get; set; } }
+
 public sealed class LibraryCard
 {
     public string Id { get; set; } = "";
+
     public string Name { get; set; } = "";
+
     public string Description { get; set; } = "";
+
     public string ImageDataUrl { get; set; } = "";
+
     public string Rating { get; set; } = "";
+
     public string School { get; set; } = "";
+
     public string? Subschool { get; set; }
-    [JsonPropertyName("casting_time")] public string? CastingTime { get; set; }
+
+    public string? CastingTime { get; set; }
+
     public string? Range { get; set; }
+
     public string? Area { get; set; }
+
     public string? Effect { get; set; }
+
     public string? Targets { get; set; }
+
     public string? Duration { get; set; }
-    [JsonPropertyName("saving_throw")] public string? SavingThrow { get; set; }
-    [JsonPropertyName("spell_resistance")] public string? SpellResistance { get; set; }
+
+    public string? SavingThrow { get; set; }
+
+    public string? SpellResistance { get; set; }
+
     public string? Sourcebook { get; set; }
-    public Dictionary<string, string> Classes { get; set; } = [];
-    public string Type { get; set; } = "Spell";
+
+    public Dictionary<string, string> Classes
+    {
+        get;
+        set;
+    } = [];
+
+    public string Type { get; set; } =
+        "Standard";
+
     public string Source { get; set; } = "";
+
     public bool Custom { get; set; }
 }
