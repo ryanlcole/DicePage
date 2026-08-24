@@ -28,6 +28,7 @@
   </div>
   <button class="header-icon-button" @onclick="Session.SaveAndToggleExportAsync" title="Save current map" aria-label="Save current map and show export options" aria-expanded="@Session.SaveMenuOpen"><span class="header-icon icon-save" aria-hidden="true"></span></button>
   <button class="header-icon-button" @onclick="Session.ToggleLoadMenu" title="Load" aria-label="Load options" aria-expanded="@Session.LoadMenuOpen"><span class="header-icon icon-load" aria-hidden="true"></span></button>
+  <a class="header-icon-button header-info-button" href="info.html" title="About, contact, legal and safety information" aria-label="About, contact, legal and safety information"><span aria-hidden="true">i</span></a>
   <button class="header-icon-button door-button @(Session.IsLoggedIn?"logged-in":"logged-out")" @onclick="Session.ToggleLoginAsync" title="@(Session.IsLoggedIn?"Log out":"Log in")" aria-label="@(Session.IsLoggedIn?"Log out":"Log in")">
    <span class="header-icon icon-exit" aria-hidden="true"></span>
   </button>
