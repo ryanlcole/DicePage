@@ -5,932 +5,310 @@
 
 @if(Session.CardBrowserOpen)
 {
-<section id="card-library"
-         class="tile-browser card-browser unified-card-library"
-         aria-label="Card library">
-
+<section id="card-library" class="tile-browser card-browser unified-card-library" aria-label="Card library">
  <header>
-  <div class="tile-browser-title">
-   <strong>Card library</strong>
-  </div>
-
+  <div class="tile-browser-title"><strong>Card library</strong></div>
   @if(Session.IsLoggedIn)
   {
-   <button class="card-create-toggle"
-           @onclick="ToggleTools"
-           aria-expanded="@_toolsOpen"
-           title="Card library actions"
-           aria-label="Card library actions">
-    +
-   </button>
+   <button class="card-create-toggle" @onclick="ToggleTools" aria-expanded="@_toolsOpen" title="Card library actions" aria-label="Card library actions">+</button>
   }
  </header>
 
  @if(!Session.IsLoggedIn)
  {
-  <p class="tile-browser-status">
-   Log in to use private and custom cards.
-  </p>
+  <p class="tile-browser-status">Log in to use private and custom cards.</p>
  }
  else if(Library.Loading)
  {
-  <p class="tile-browser-status">
-   Loading your private card library…
-  </p>
+  <p class="tile-browser-status">Loading your private card library…</p>
  }
  else
  {
   <div class="card-library-source-row">
-
-   <label>
-    Library
-    <select @bind="_source"
-            @bind:after="ResetNavigation">
-
-     <option value="Shaelvien">
-      Shaelvien
-     </option>
-
+   <label>Library
+    <select @bind="_source" @bind:after="ResetNavigation">
+     <option value="Universal">Universal</option>
+     <option value="Shaelvien">Shaelvien</option>
      @foreach(var libraryName in CustomLibraries)
      {
-      <option value="@libraryName">
-       @libraryName
-      </option>
+      <option value="@libraryName">@libraryName</option>
      }
-
     </select>
    </label>
-
-   <button class="card-filter-toggle"
-           @onclick="()=>_filtersOpen=!_filtersOpen"
-           aria-expanded="@_filtersOpen">
-    Filters
-   </button>
-
+   <button class="card-filter-toggle" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
   </div>
 
   <div class="card-path-bar">
-
    @if(_path.Count > 0)
    {
-    <button class="card-path-back"
-            @onclick="GoBack"
-            aria-label="Back one level">
-     ‹
-    </button>
+    <button class="card-path-back" @onclick="GoBack" aria-label="Back one level">‹</button>
    }
-
-   <div class="card-path-scroll"
-        aria-label="Card path">
-
-    <button class="card-path-segment"
-            @onclick="GoRoot">
-     @_source
-    </button>
-
-    @for(var i = 0; i < _path.Count; i++)
+   <div class="card-path-scroll" aria-label="Card path">
+    <button class="card-path-segment" @onclick="GoRoot">@_source</button>
+    @for(var i=0;i<_path.Count;i++)
     {
-     var index = i;
-
-     <span class="card-path-divider">
-      /
-     </span>
-
-     <button class="card-path-segment"
-             @onclick="()=>GoToDepth(index)">
-      @_path[i]
-     </button>
+     var index=i;
+     <span class="card-path-divider">/</span>
+     <button class="card-path-segment" @onclick="()=>GoToDepth(index)">@_path[i]</button>
     }
-
    </div>
-
   </div>
 
   @if(_toolsOpen)
   {
-   <div class="card-library-tools"
-        role="menu"
-        aria-label="Card library actions">
-
-    <button @onclick="OpenCreator">
-     Create custom card
-    </button>
-
-    <label>
-     <span>Import JSON</span>
-     <InputFile OnChange="ImportCustomAsync"
-                accept=".json,application/json" />
-    </label>
-
-    <a href="templates/custom-card-template.json"
-       download="shaelvien-custom-card-template.json">
-     Download template
-    </a>
-
-    <button class="card-tools-cancel"
-            @onclick="()=>_toolsOpen=false">
-     Cancel
-    </button>
-
+   <div class="card-library-tools" role="menu" aria-label="Card library actions">
+    <button @onclick="OpenCreator">Create custom card</button>
+    <label><span>Import JSON</span><InputFile OnChange="ImportCustomAsync" accept=".json,application/json" /></label>
+    <a href="templates/custom-card-template.json" download="shaelvien-custom-card-template.json">Download template</a>
+    <button class="card-tools-cancel" @onclick="()=>_toolsOpen=false">Cancel</button>
    </div>
   }
 
   <div class="@($"card-browser-filters{(_filtersOpen ? " open" : "")}")">
-
-   <label>
-    Type
-
-    <select @bind="_type"
-            @bind:after="ResetPage">
-
-     <option value="">
-      All types
-     </option>
-
-     @foreach(var type in Types)
-     {
-      <option value="@type">
-       @type
-      </option>
-     }
-
-    </select>
-   </label>
-
-   <label class="card-search-field">
-    Search
-
-    <input type="search"
-           placeholder="Name, property, or text"
-           @bind="_search"
-           @bind:event="oninput"
-           @bind:after="ResetPage" />
-   </label>
-
+   <label>Type<select @bind="_type" @bind:after="ResetPage"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
+   <label class="card-search-field">Search<input type="search" placeholder="Name, property, or text" @bind="_search" @bind:event="oninput" @bind:after="ResetPage" /></label>
   </div>
 
   <div class="card-library-workspace">
-
-   <div class="card-library-results"
-        aria-label="Card search results">
-
+   <div class="card-library-results" aria-label="Card search results">
     @foreach(var folder in PagedFolders)
     {
-     <button class="library-playing-card"
-             @onclick="()=>OpenFolder(folder)"
-             aria-label="@folder">
-
-      <span class="library-card-face">
-
-       <small>
-        Folder
-       </small>
-
-       <strong>
-        @folder
-       </strong>
-
-      </span>
-
+     <button class="library-playing-card" @onclick="()=>OpenFolder(folder)" aria-label="@folder">
+      <span class="library-card-face"><small>Folder</small><strong>@folder</strong></span>
      </button>
     }
 
     @foreach(var card in PagedLeafCards)
     {
-     <article class="library-playing-card"
-              draggable="true"
-              @ondragstart="()=>Library.BeginDrag(card)">
-
-      <button class="library-card-face"
-              @onclick="()=>_selected=card"
-              aria-label="@card.Name">
-
+     <article class="library-playing-card" draggable="@(!IsCharacterCard(card))" @ondragstart="()=>BeginCardDrag(card)">
+      <button class="library-card-face" @onclick="()=>OpenCard(card)" aria-label="@card.Name">
        @if(!string.IsNullOrWhiteSpace(card.ImageDataUrl))
        {
-        <img class="library-card-image"
-             src="@card.ImageDataUrl"
-             alt="" />
+        <img class="library-card-image" src="@card.ImageDataUrl" alt="" />
        }
-
-       @if(!string.IsNullOrWhiteSpace(card.Type))
-       {
-        <small>
-         @card.Type
-        </small>
-       }
-
-       <strong>
-        @card.Name
-       </strong>
-
+       @if(!string.IsNullOrWhiteSpace(card.Type)){<small>@card.Type</small>}
+       <strong>@card.Name</strong>
       </button>
-
-      <button class="library-card-add"
-              @onclick="()=>Library.AddToSpellbookAsync(card)">
-       Hand +
-      </button>
-
+      @if(!IsCharacterCard(card))
+      {
+       <button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Hand +</button>
+      }
+      else
+      {
+       <button class="library-card-add" @onclick="OpenCharacter">Open sheet</button>
+      }
      </article>
     }
 
-    @if(_page > 0)
+    @if(_page>0)
     {
-     <button class="library-playing-card library-page-card page-back"
-             @onclick="PreviousPage"
-             aria-label="Previous page">
-      <span>Previous</span>
-     </button>
+     <button class="library-playing-card library-page-card page-back" @onclick="PreviousPage" aria-label="Previous page"><span>Previous</span></button>
     }
-
     @if(HasNextPage)
     {
-     <button class="library-playing-card library-page-card page-next"
-             @onclick="NextPage"
-             aria-label="Next page">
-      <span>Next</span>
-     </button>
+     <button class="library-playing-card library-page-card page-next" @onclick="NextPage" aria-label="Next page"><span>Next</span></button>
     }
-
-    @if(!CurrentFolders.Any() && !CurrentLeafCards.Any())
+    @if(!CurrentFolders.Any()&&!CurrentLeafCards.Any())
     {
-     <p class="tile-browser-status card-library-empty">
-      No cards match this location and filter.
-     </p>
+     <p class="tile-browser-status card-library-empty">No cards match this location and filter.</p>
     }
-
    </div>
 
-   <aside class="character-spellbook-drop"
-          @ondragover:preventDefault="true"
-          @ondrop="Library.DropOnSpellbookAsync"
-          aria-label="Active character card drop area">
-
-    <header>
-     <strong>
-      Active character cards
-     </strong>
-
-     <small>
-      Drag cards here. The same cards appear on the character sheet.
-     </small>
-    </header>
-
+   <aside class="character-spellbook-drop" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync" aria-label="Active character card drop area">
+    <header><strong>Active character cards</strong><small>Drag cards here. The same cards appear on the character sheet.</small></header>
     <div class="spellbook-card-strip">
-
      @foreach(var card in Library.SpellbookCards)
      {
-      <button class="spellbook-mini-card"
-              @onclick="()=>_selected=card">
-
-       <strong>
-        @card.Name
-       </strong>
-
-       <small>
-        @card.Type
-       </small>
-
-      </button>
+      <button class="spellbook-mini-card" @onclick="()=>_selected=card"><strong>@card.Name</strong><small>@card.Type</small></button>
      }
-
     </div>
-
-    @if(!Library.SpellbookCards.Any())
-    {
-     <p>
-      Drop a card here.
-     </p>
-    }
-
+    @if(!Library.SpellbookCards.Any()){<p>Drop a card here.</p>}
    </aside>
-
   </div>
  }
 
- @if(!string.IsNullOrWhiteSpace(Library.Status))
- {
-  <output class="tile-browser-status">
-   @Library.Status
-  </output>
- }
-
+ @if(!string.IsNullOrWhiteSpace(Library.Status)){<output class="tile-browser-status">@Library.Status</output>}
 </section>
 }
 
 @if(_creating)
 {
- <div class="private-spell-modal custom-card-editor-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="custom-card-title"
-      @onclick="CancelCreator">
-
-  <article class="custom-card-editor-card"
-           @onclick:stopPropagation>
-
-   <button class="private-spell-close"
-           @onclick="CancelCreator"
-           aria-label="Cancel custom card">
-    ×
-   </button>
-
-   <h2 id="custom-card-title">
-    Create custom card
-   </h2>
-
+ <div class="private-spell-modal custom-card-editor-modal" role="dialog" aria-modal="true" aria-labelledby="custom-card-title" @onclick="CancelCreator">
+  <article class="custom-card-editor-card" @onclick:stopPropagation>
+   <button class="private-spell-close" @onclick="CancelCreator" aria-label="Cancel custom card">×</button>
+   <h2 id="custom-card-title">Create custom card</h2>
    <div class="custom-card-image">
-
-    @if(!string.IsNullOrWhiteSpace(_draft.ImageDataUrl))
-    {
-     <img src="@_draft.ImageDataUrl"
-          alt="Custom card preview" />
-    }
-    else
-    {
-     <span>
-      Card image
-     </span>
-    }
-
-    <label>
-
-     <strong>
-      @(string.IsNullOrWhiteSpace(_draft.ImageDataUrl)
-       ? "Add image"
-       : "Change image")
-     </strong>
-
-     <InputFile OnChange="LoadImageAsync"
-                accept="image/png,image/jpeg,image/webp" />
-
-    </label>
-
+    @if(!string.IsNullOrWhiteSpace(_draft.ImageDataUrl)){<img src="@_draft.ImageDataUrl" alt="Custom card preview" />}else{<span>Card image</span>}
+    <label><strong>@(string.IsNullOrWhiteSpace(_draft.ImageDataUrl)?"Add image":"Change image")</strong><InputFile OnChange="LoadImageAsync" accept="image/png,image/jpeg,image/webp" /></label>
    </div>
-
-   <label>
-    Library
-
-    <input @bind="_draft.LibraryName"
-           maxlength="80"
-           placeholder="Shaelvien" />
-   </label>
-
-   <label>
-    What do you call this?
-
-    <input @bind="_draft.Name"
-           maxlength="80" />
-   </label>
-
-   <label>
-    Type
-
-    <input @bind="_draft.Type"
-           maxlength="80"
-           placeholder="Character, Equipment, Magic..." />
-   </label>
-
-   <label>
-    Folder path
-
-    <input @bind="_draft.Category"
-           placeholder="Character Creation > Anatomy > Interface"
-           maxlength="240" />
-   </label>
-
-   <label class="custom-card-description">
-    Rules / notes
-
-    <textarea @bind="_draft.Description"
-              maxlength="2000">
-    </textarea>
-   </label>
-
-   @if(!string.IsNullOrWhiteSpace(_editorStatus))
-   {
-    <p class="custom-card-editor-status">
-     @_editorStatus
-    </p>
-   }
-
-   <footer>
-
-    <button class="custom-card-cancel"
-            @onclick="CancelCreator">
-     Cancel
-    </button>
-
-    <button class="custom-card-save"
-            @onclick="CreateCustomAsync"
-            disabled="@string.IsNullOrWhiteSpace(_draft.Name)">
-     Create card
-    </button>
-
-   </footer>
-
+   <label>Library<input @bind="_draft.LibraryName" maxlength="80" placeholder="Universal" /></label>
+   <label>What do you call this?<input @bind="_draft.Name" maxlength="80" /></label>
+   <label>Type<input @bind="_draft.Type" maxlength="80" placeholder="Character, Equipment, Magic..." /></label>
+   <label>Folder path<input @bind="_draft.Category" placeholder="Characters > Anatomy > Interface" maxlength="240" /></label>
+   <label class="custom-card-description">Rules / notes<textarea @bind="_draft.Description" maxlength="2000"></textarea></label>
+   @if(!string.IsNullOrWhiteSpace(_editorStatus)){<p class="custom-card-editor-status">@_editorStatus</p>}
+   <footer><button class="custom-card-cancel" @onclick="CancelCreator">Cancel</button><button class="custom-card-save" @onclick="CreateCustomAsync" disabled="@string.IsNullOrWhiteSpace(_draft.Name)">Create card</button></footer>
   </article>
-
  </div>
 }
 
 @if(_selected is not null)
 {
- <div class="private-spell-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="library-card-title"
-      @onclick="()=>_selected=null">
-
-  <article class="private-spell-sheet"
-           @onclick:stopPropagation>
-
-   <button class="private-spell-close"
-           @onclick="()=>_selected=null"
-           aria-label="Close card">
-    ×
-   </button>
-
-   @if(!string.IsNullOrWhiteSpace(_selected.ImageDataUrl))
-   {
-    <img class="private-card-detail-image"
-         src="@_selected.ImageDataUrl"
-         alt="" />
-   }
-
-   <span class="private-badge">
-    Private card
-   </span>
-
-   <h2 id="library-card-title">
-    @_selected.Name
-   </h2>
-
-   @if(!string.IsNullOrWhiteSpace(_selected.Type))
-   {
-    <p class="private-spell-meta">
-     @_selected.Type
-    </p>
-   }
-
-   <p class="private-spell-description">
-    @_selected.Description
-   </p>
-
-   <button class="card-detail-spellbook"
-           @onclick="()=>Library.AddToSpellbookAsync(_selected)">
-    Add to active character cards
-   </button>
-
+ <div class="private-spell-modal" role="dialog" aria-modal="true" aria-labelledby="library-card-title" @onclick="()=>_selected=null">
+  <article class="private-spell-sheet" @onclick:stopPropagation>
+   <button class="private-spell-close" @onclick="()=>_selected=null" aria-label="Close card">×</button>
+   @if(!string.IsNullOrWhiteSpace(_selected.ImageDataUrl)){<img class="private-card-detail-image" src="@_selected.ImageDataUrl" alt="" />}
+   <span class="private-badge">Private card</span>
+   <h2 id="library-card-title">@_selected.Name</h2>
+   @if(!string.IsNullOrWhiteSpace(_selected.Type)){<p class="private-spell-meta">@_selected.Type</p>}
+   <p class="private-spell-description">@_selected.Description</p>
+   <button class="card-detail-spellbook" @onclick="()=>Library.AddToSpellbookAsync(_selected)">Add to active character cards</button>
   </article>
-
  </div>
 }
 
 @code {
-
- const int CardsPerPage = 10;
-
+ const int CardsPerPage=10;
  LibraryCard? _selected;
-
- CardDraft _draft = new();
-
- string _search = "";
- string _source = "Shaelvien";
- string _type = "";
- string _editorStatus = "";
-
+ CardDraft _draft=new();
+ string _search="";
+ string _source="Universal";
+ string _type="";
+ string _editorStatus="";
  int _page;
-
  bool _creating;
  bool _filtersOpen;
  bool _toolsOpen;
+ readonly List<string> _path=[];
 
- readonly List<string> _path = [];
+ IEnumerable<LibraryCard> UniversalCards
+ {
+  get
+  {
+   yield return new LibraryCard
+   {
+    Id=$"universal-character-{Session.ActiveCharacterNumber}",
+    Name=string.IsNullOrWhiteSpace(Session.CharacterName)?"Character":Session.CharacterName,
+    Description=Session.CharacterDescription??"",
+    ImageDataUrl=Session.CharacterPortraitDataUrl??"",
+    Type="Character",
+    Source="Universal",
+    School="Characters",
+    Custom=false
+   };
+  }
+ }
 
- IEnumerable<string> CustomLibraries =>
-     Library.Cards
-         .Where(x =>
-             x.Custom &&
-             !x.Source.Equals(
-                 "Shaelvien",
-                 StringComparison.OrdinalIgnoreCase
-             ) &&
-             !x.Source.Equals(
-                 "Custom",
-                 StringComparison.OrdinalIgnoreCase
-             )
-         )
-         .Select(x => x.Source)
-         .Where(x => !string.IsNullOrWhiteSpace(x))
-         .Distinct(StringComparer.OrdinalIgnoreCase)
-         .OrderBy(x => x);
+ IEnumerable<string> CustomLibraries=>Library.Cards
+  .Where(x=>x.Custom&&!x.Source.Equals("Shaelvien",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Universal",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Custom",StringComparison.OrdinalIgnoreCase))
+  .Select(x=>x.Source).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
 
- IEnumerable<string> Types =>
-     Library.Cards
-         .Where(x =>
-             x.Source.Equals(
-                 _source,
-                 StringComparison.OrdinalIgnoreCase
-             )
-         )
-         .Select(x => x.Type)
-         .Where(x => !string.IsNullOrWhiteSpace(x))
-         .Distinct(StringComparer.OrdinalIgnoreCase)
-         .OrderBy(x => x);
+ IEnumerable<LibraryCard> AllSourceCards=>_source.Equals("Universal",StringComparison.OrdinalIgnoreCase)
+  ? UniversalCards.Concat(Library.Cards.Where(card=>card.Source.Equals("Universal",StringComparison.OrdinalIgnoreCase)))
+  : Library.Cards.Where(card=>card.Source.Equals(_source,StringComparison.OrdinalIgnoreCase));
 
- IEnumerable<LibraryCard> SourceCards =>
-     Library.Cards
-         .Where(card =>
-             card.Source.Equals(
-                 _source,
-                 StringComparison.OrdinalIgnoreCase
-             )
-             &&
-             (
-                 string.IsNullOrWhiteSpace(_search)
-                 ||
-                 card.Name.Contains(
-                     _search,
-                     StringComparison.OrdinalIgnoreCase
-                 )
-                 ||
-                 card.Description.Contains(
-                     _search,
-                     StringComparison.OrdinalIgnoreCase
-                 )
-                 ||
-                 card.School.Contains(
-                     _search,
-                     StringComparison.OrdinalIgnoreCase
-                 )
-             )
-             &&
-             (
-                 string.IsNullOrWhiteSpace(_type)
-                 ||
-                 card.Type.Equals(
-                     _type,
-                     StringComparison.OrdinalIgnoreCase
-                 )
-             )
-         );
+ IEnumerable<string> Types=>AllSourceCards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
 
- string CurrentPath =>
-     string.Join(" > ", _path);
+ IEnumerable<LibraryCard> SourceCards=>AllSourceCards.Where(card=>
+  (string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))
+  &&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase)));
+
+ string CurrentPath=>string.Join(" > ",_path);
 
  IEnumerable<string> CurrentFolders
  {
-     get
-     {
-         var depth = _path.Count;
-
-         return SourceCards
-             .Select(card => SplitPath(card.School))
-             .Where(parts =>
-                 parts.Length > depth &&
-                 PathStartsWith(parts, _path)
-             )
-             .Select(parts => parts[depth])
-             .Where(x => !string.IsNullOrWhiteSpace(x))
-             .Distinct(StringComparer.OrdinalIgnoreCase)
-             .OrderBy(x => x);
-     }
+  get
+  {
+   var depth=_path.Count;
+   return SourceCards.Select(card=>SplitPath(card.School)).Where(parts=>parts.Length>depth&&PathStartsWith(parts,_path)).Select(parts=>parts[depth]).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+  }
  }
 
  IEnumerable<LibraryCard> CurrentLeafCards
  {
-     get
-     {
-         var current = CurrentPath;
-
-         return SourceCards
-             .Where(card =>
-             {
-                 var school =
-                     (card.School ?? "").Trim();
-
-                 if(
-                     !school.Equals(
-                         current,
-                         StringComparison.OrdinalIgnoreCase
-                     )
-                 )
-                 {
-                     return false;
-                 }
-
-                 if(
-                     _path.Count > 0 &&
-                     card.Name.Equals(
-                         _path[^1],
-                         StringComparison.OrdinalIgnoreCase
-                     )
-                 )
-                 {
-                     return false;
-                 }
-
-                 return true;
-             })
-             .OrderBy(x => x.Name);
-     }
+  get
+  {
+   var current=CurrentPath;
+   return SourceCards.Where(card=>
+   {
+    var school=(card.School??"").Trim();
+    if(!school.Equals(current,StringComparison.OrdinalIgnoreCase))return false;
+    if(_path.Count>0&&card.Name.Equals(_path[^1],StringComparison.OrdinalIgnoreCase))return false;
+    return true;
+   }).OrderBy(x=>x.Name);
+  }
  }
 
  IEnumerable<object> CombinedPage
  {
-     get
-     {
-         var items = new List<object>();
-
-         items.AddRange(
-             CurrentFolders.Cast<object>()
-         );
-
-         items.AddRange(
-             CurrentLeafCards.Cast<object>()
-         );
-
-         return items
-             .Skip(_page * CardsPerPage)
-             .Take(CardsPerPage);
-     }
+  get
+  {
+   var items=new List<object>();
+   items.AddRange(CurrentFolders.Cast<object>());
+   items.AddRange(CurrentLeafCards.Cast<object>());
+   return items.Skip(_page*CardsPerPage).Take(CardsPerPage);
+  }
  }
 
- IEnumerable<string> PagedFolders =>
-     CombinedPage.OfType<string>();
+ IEnumerable<string> PagedFolders=>CombinedPage.OfType<string>();
+ IEnumerable<LibraryCard> PagedLeafCards=>CombinedPage.OfType<LibraryCard>();
+ int MatchCount=>CurrentFolders.Count()+CurrentLeafCards.Count();
+ bool HasNextPage=>(_page+1)*CardsPerPage<MatchCount;
 
- IEnumerable<LibraryCard> PagedLeafCards =>
-     CombinedPage.OfType<LibraryCard>();
+ protected override void OnInitialized(){Library.Changed+=LibraryChanged;Session.Changed+=SessionChanged;}
+ protected override async Task OnParametersSetAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();}
+ void LibraryChanged()=>_ = InvokeAsync(StateHasChanged);
+ void SessionChanged()=>_ = InvokeAsync(RefreshSessionAsync);
+ async Task RefreshSessionAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();StateHasChanged();}
+ public void Dispose(){Library.Changed-=LibraryChanged;Session.Changed-=SessionChanged;}
 
- int MatchCount =>
-     CurrentFolders.Count() +
-     CurrentLeafCards.Count();
+ static string[] SplitPath(string? value)=>(value??"").Split('>',StringSplitOptions.TrimEntries|StringSplitOptions.RemoveEmptyEntries);
+ static bool PathStartsWith(string[] parts,List<string> path){if(parts.Length<path.Count)return false;for(var i=0;i<path.Count;i++)if(!parts[i].Equals(path[i],StringComparison.OrdinalIgnoreCase))return false;return true;}
 
- bool HasNextPage =>
-     (_page + 1) * CardsPerPage <
-     MatchCount;
+ void ResetPage(){_page=0;_toolsOpen=false;}
+ void ResetNavigation(){_path.Clear();ResetPage();}
+ void NextPage(){if(HasNextPage)_page++;}
+ void PreviousPage(){if(_page>0)_page--;}
+ void ToggleTools()=>_toolsOpen=!_toolsOpen;
+ void OpenFolder(string folder){_path.Add(folder);_page=0;}
+ void GoBack(){if(_path.Count>0)_path.RemoveAt(_path.Count-1);_page=0;}
+ void GoRoot(){_path.Clear();_page=0;}
+ void GoToDepth(int index){while(_path.Count>index+1)_path.RemoveAt(_path.Count-1);_page=0;}
 
- protected override void OnInitialized()
+ bool IsCharacterCard(LibraryCard card)=>card.Id.StartsWith("universal-character-",StringComparison.Ordinal);
+ void BeginCardDrag(LibraryCard card){if(!IsCharacterCard(card))Library.BeginDrag(card);}
+ void OpenCard(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return;}_selected=card;}
+ void OpenCharacter(){Session.OpenMixer();Session.ToggleCardBrowser();}
+
+ void OpenCreator(){_toolsOpen=false;_editorStatus="";_draft=new(){LibraryName=_source,Category=CurrentPath};_creating=true;}
+ void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
+
+ async Task ImportCustomAsync(InputFileChangeEventArgs e)
  {
-     Library.Changed += LibraryChanged;
-     Session.Changed += SessionChanged;
+  _toolsOpen=false;
+  await using var stream=e.File.OpenReadStream(8*1024*1024);
+  await Library.ImportCustomAsync(stream);
+  _source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Universal";
+  ResetNavigation();
  }
 
- protected override async Task OnParametersSetAsync()
+ async Task LoadImageAsync(InputFileChangeEventArgs e)
  {
-     if(Session.IsLoggedIn)
-     {
-         await Library.EnsureLoadedAsync();
-     }
-     else
-     {
-         Library.Reset();
-     }
- }
-
- void LibraryChanged()
- {
-     _ = InvokeAsync(StateHasChanged);
- }
-
- void SessionChanged()
- {
-     _ = InvokeAsync(RefreshSessionAsync);
- }
-
- async Task RefreshSessionAsync()
- {
-     if(Session.IsLoggedIn)
-     {
-         await Library.EnsureLoadedAsync();
-     }
-     else
-     {
-         Library.Reset();
-     }
-
-     StateHasChanged();
- }
-
- public void Dispose()
- {
-     Library.Changed -= LibraryChanged;
-     Session.Changed -= SessionChanged;
- }
-
- static string[] SplitPath(string? value) =>
-     (value ?? "")
-         .Split(
-             '>',
-             StringSplitOptions.TrimEntries |
-             StringSplitOptions.RemoveEmptyEntries
-         );
-
- static bool PathStartsWith(
-     string[] parts,
-     List<string> path
- )
- {
-     if(parts.Length < path.Count)
-     {
-         return false;
-     }
-
-     for(var i = 0; i < path.Count; i++)
-     {
-         if(
-             !parts[i].Equals(
-                 path[i],
-                 StringComparison.OrdinalIgnoreCase
-             )
-         )
-         {
-             return false;
-         }
-     }
-
-     return true;
- }
-
- void ResetPage()
- {
-     _page = 0;
-     _toolsOpen = false;
- }
-
- void ResetNavigation()
- {
-     _path.Clear();
-     ResetPage();
- }
-
- void NextPage()
- {
-     if(HasNextPage)
-     {
-         _page++;
-     }
- }
-
- void PreviousPage()
- {
-     if(_page > 0)
-     {
-         _page--;
-     }
- }
-
- void ToggleTools()
- {
-     _toolsOpen = !_toolsOpen;
- }
-
- void OpenFolder(string folder)
- {
-     _path.Add(folder);
-     _page = 0;
- }
-
- void GoBack()
- {
-     if(_path.Count > 0)
-     {
-         _path.RemoveAt(
-             _path.Count - 1
-         );
-     }
-
-     _page = 0;
- }
-
- void GoRoot()
- {
-     _path.Clear();
-     _page = 0;
- }
-
- void GoToDepth(int index)
- {
-     while(_path.Count > index + 1)
-     {
-         _path.RemoveAt(
-             _path.Count - 1
-         );
-     }
-
-     _page = 0;
- }
-
- void OpenCreator()
- {
-     _toolsOpen = false;
-     _editorStatus = "";
-
-     _draft = new()
-     {
-         LibraryName = _source,
-         Category = CurrentPath
-     };
-
-     _creating = true;
- }
-
- void CancelCreator()
- {
-     _creating = false;
-     _editorStatus = "";
-     _draft = new();
- }
-
- async Task ImportCustomAsync(
-     InputFileChangeEventArgs e
- )
- {
-     _toolsOpen = false;
-
-     await using var stream =
-         e.File.OpenReadStream(
-             8 * 1024 * 1024
-         );
-
-     await Library.ImportCustomAsync(
-         stream
-     );
-
-     _source =
-         Library.Cards
-             .LastOrDefault(
-                 card => card.Custom
-             )
-             ?.Source
-         ?? "Shaelvien";
-
-     ResetNavigation();
- }
-
- async Task LoadImageAsync(
-     InputFileChangeEventArgs e
- )
- {
-     const long limit = 1_500_000;
-
-     if(e.File.Size > limit)
-     {
-         _editorStatus =
-             "Choose an image smaller than 1.5 MB.";
-
-         return;
-     }
-
-     await using var stream =
-         e.File.OpenReadStream(limit);
-
-     using var memory =
-         new MemoryStream();
-
-     await stream.CopyToAsync(memory);
-
-     var type =
-         string.IsNullOrWhiteSpace(
-             e.File.ContentType
-         )
-             ? "image/jpeg"
-             : e.File.ContentType;
-
-     _draft.ImageDataUrl =
-         $"data:{type};base64," +
-         Convert.ToBase64String(
-             memory.ToArray()
-         );
-
-     _editorStatus = "";
+  const long limit=1_500_000;
+  if(e.File.Size>limit){_editorStatus="Choose an image smaller than 1.5 MB.";return;}
+  await using var stream=e.File.OpenReadStream(limit);
+  using var memory=new MemoryStream();
+  await stream.CopyToAsync(memory);
+  var type=string.IsNullOrWhiteSpace(e.File.ContentType)?"image/jpeg":e.File.ContentType;
+  _draft.ImageDataUrl=$"data:{type};base64,{Convert.ToBase64String(memory.ToArray())}";
+  _editorStatus="";
  }
 
  async Task CreateCustomAsync()
  {
-     if(string.IsNullOrWhiteSpace(_draft.Name))
-     {
-         _editorStatus =
-             "Give the card a name.";
-
-         return;
-     }
-
-     await Library.CreateCustomAsync(
-         _draft
-     );
-
-     _source =
-         string.IsNullOrWhiteSpace(
-             _draft.LibraryName
-         )
-             ? "Shaelvien"
-             : _draft.LibraryName.Trim();
-
-     ResetNavigation();
-
-     _creating = false;
-     _draft = new();
-     _editorStatus = "";
+  if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}
+  await Library.CreateCustomAsync(_draft);
+  _source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Universal":_draft.LibraryName.Trim();
+  ResetNavigation();_creating=false;_draft=new();_editorStatus="";
  }
 }
