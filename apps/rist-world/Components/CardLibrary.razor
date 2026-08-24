@@ -5,62 +5,106 @@
 
 @if(Session.CardBrowserOpen)
 {
-<section id="card-library" class="tile-browser card-browser unified-card-library" aria-label="Card library">
+<section id="card-library"
+         class="tile-browser card-browser unified-card-library"
+         aria-label="Card library">
+
  <header>
-  <div class="tile-browser-title"><strong>Card library</strong></div>
+  <div class="tile-browser-title">
+   <strong>Card library</strong>
+  </div>
+
   @if(Session.IsLoggedIn)
   {
    <button class="card-create-toggle"
            @onclick="ToggleTools"
            aria-expanded="@_toolsOpen"
            title="Card library actions"
-           aria-label="Card library actions">+</button>
+           aria-label="Card library actions">
+    +
+   </button>
   }
  </header>
 
  @if(!Session.IsLoggedIn)
  {
-  <p class="tile-browser-status">Log in to use private and custom cards.</p>
+  <p class="tile-browser-status">
+   Log in to use private and custom cards.
+  </p>
  }
  else if(Library.Loading)
  {
-  <p class="tile-browser-status">Loading your private card library…</p>
+  <p class="tile-browser-status">
+   Loading your private card library…
+  </p>
  }
  else
  {
   <div class="card-library-source-row">
-   <label>Library
-    <select @bind="_source" @bind:after="ResetNavigation">
-     <option value="Shaelvien">Shaelvien</option>
+
+   <label>
+    Library
+    <select @bind="_source"
+            @bind:after="ResetNavigation">
+
+     <option value="Shaelvien">
+      Shaelvien
+     </option>
+
      @foreach(var libraryName in CustomLibraries)
      {
-      <option value="@libraryName">@libraryName</option>
+      <option value="@libraryName">
+       @libraryName
+      </option>
      }
+
     </select>
    </label>
 
    <button class="card-filter-toggle"
            @onclick="()=>_filtersOpen=!_filtersOpen"
-           aria-expanded="@_filtersOpen">Filters</button>
+           aria-expanded="@_filtersOpen">
+    Filters
+   </button>
+
   </div>
 
-  @if(_path.Count > 0)
-  {
-   <nav class="card-library-breadcrumbs" aria-label="Card path">
-    <button @onclick="GoRoot">Shaelvien</button>
+  <div class="card-path-bar">
+
+   @if(_path.Count > 0)
+   {
+    <button class="card-path-back"
+            @onclick="GoBack"
+            aria-label="Back one level">
+     ‹
+    </button>
+   }
+
+   <div class="card-path-scroll"
+        aria-label="Card path">
+
+    <button class="card-path-segment"
+            @onclick="GoRoot">
+     @_source
+    </button>
 
     @for(var i = 0; i < _path.Count; i++)
     {
      var index = i;
 
-     <span>›</span>
+     <span class="card-path-divider">
+      /
+     </span>
 
-     <button @onclick="()=>GoToDepth(index)">
+     <button class="card-path-segment"
+             @onclick="()=>GoToDepth(index)">
       @_path[i]
      </button>
     }
-   </nav>
-  }
+
+   </div>
+
+  </div>
 
   @if(_toolsOpen)
   {
@@ -87,6 +131,7 @@
             @onclick="()=>_toolsOpen=false">
      Cancel
     </button>
+
    </div>
   }
 
@@ -94,39 +139,40 @@
 
    <label>
     Type
-    <select @bind="_type" @bind:after="ResetPage">
-     <option value="">All types</option>
+
+    <select @bind="_type"
+            @bind:after="ResetPage">
+
+     <option value="">
+      All types
+     </option>
 
      @foreach(var type in Types)
      {
-      <option value="@type">@type</option>
+      <option value="@type">
+       @type
+      </option>
      }
+
     </select>
    </label>
 
    <label class="card-search-field">
     Search
+
     <input type="search"
            placeholder="Name, property, or text"
            @bind="_search"
            @bind:event="oninput"
            @bind:after="ResetPage" />
    </label>
+
   </div>
 
   <div class="card-library-workspace">
 
    <div class="card-library-results"
         aria-label="Card search results">
-
-    @if(_path.Count > 0)
-    {
-     <button class="library-playing-card library-page-card page-back"
-             @onclick="GoBack"
-             aria-label="Back one level">
-      <span>Back</span>
-     </button>
-    }
 
     @foreach(var folder in PagedFolders)
     {
@@ -135,8 +181,15 @@
              aria-label="@folder">
 
       <span class="library-card-face">
-       <small>Folder</small>
-       <strong>@folder</strong>
+
+       <small>
+        Folder
+       </small>
+
+       <strong>
+        @folder
+       </strong>
+
       </span>
 
      </button>
@@ -161,10 +214,15 @@
 
        @if(!string.IsNullOrWhiteSpace(card.Type))
        {
-        <small>@card.Type</small>
+        <small>
+         @card.Type
+        </small>
        }
 
-       <strong>@card.Name</strong>
+       <strong>
+        @card.Name
+       </strong>
+
       </button>
 
       <button class="library-card-add"
@@ -173,6 +231,15 @@
       </button>
 
      </article>
+    }
+
+    @if(_page > 0)
+    {
+     <button class="library-playing-card library-page-card page-back"
+             @onclick="PreviousPage"
+             aria-label="Previous page">
+      <span>Previous</span>
+     </button>
     }
 
     @if(HasNextPage)
@@ -199,7 +266,10 @@
           aria-label="Active character card drop area">
 
     <header>
-     <strong>Active character cards</strong>
+     <strong>
+      Active character cards
+     </strong>
+
      <small>
       Drag cards here. The same cards appear on the character sheet.
      </small>
@@ -212,8 +282,13 @@
       <button class="spellbook-mini-card"
               @onclick="()=>_selected=card">
 
-       <strong>@card.Name</strong>
-       <small>@card.Type</small>
+       <strong>
+        @card.Name
+       </strong>
+
+       <small>
+        @card.Type
+       </small>
 
       </button>
      }
@@ -222,7 +297,9 @@
 
     @if(!Library.SpellbookCards.Any())
     {
-     <p>Drop a card here.</p>
+     <p>
+      Drop a card here.
+     </p>
     }
 
    </aside>
@@ -253,7 +330,9 @@
 
    <button class="private-spell-close"
            @onclick="CancelCreator"
-           aria-label="Cancel custom card">×</button>
+           aria-label="Cancel custom card">
+    ×
+   </button>
 
    <h2 id="custom-card-title">
     Create custom card
@@ -268,10 +347,13 @@
     }
     else
     {
-     <span>Card image</span>
+     <span>
+      Card image
+     </span>
     }
 
     <label>
+
      <strong>
       @(string.IsNullOrWhiteSpace(_draft.ImageDataUrl)
        ? "Add image"
@@ -280,12 +362,14 @@
 
      <InputFile OnChange="LoadImageAsync"
                 accept="image/png,image/jpeg,image/webp" />
+
     </label>
 
    </div>
 
    <label>
     Library
+
     <input @bind="_draft.LibraryName"
            maxlength="80"
            placeholder="Shaelvien" />
@@ -293,12 +377,14 @@
 
    <label>
     What do you call this?
+
     <input @bind="_draft.Name"
            maxlength="80" />
    </label>
 
    <label>
     Type
+
     <input @bind="_draft.Type"
            maxlength="80"
            placeholder="Character, Equipment, Magic..." />
@@ -306,6 +392,7 @@
 
    <label>
     Folder path
+
     <input @bind="_draft.Category"
            placeholder="Character Creation > Anatomy > Interface"
            maxlength="240" />
@@ -313,8 +400,10 @@
 
    <label class="custom-card-description">
     Rules / notes
+
     <textarea @bind="_draft.Description"
-              maxlength="2000"></textarea>
+              maxlength="2000">
+    </textarea>
    </label>
 
    @if(!string.IsNullOrWhiteSpace(_editorStatus))
@@ -340,6 +429,7 @@
    </footer>
 
   </article>
+
  </div>
 }
 
@@ -356,7 +446,9 @@
 
    <button class="private-spell-close"
            @onclick="()=>_selected=null"
-           aria-label="Close card">×</button>
+           aria-label="Close card">
+    ×
+   </button>
 
    @if(!string.IsNullOrWhiteSpace(_selected.ImageDataUrl))
    {
@@ -390,6 +482,7 @@
    </button>
 
   </article>
+
  </div>
 }
 
@@ -676,6 +769,14 @@
      if(HasNextPage)
      {
          _page++;
+     }
+ }
+
+ void PreviousPage()
+ {
+     if(_page > 0)
+     {
+         _page--;
      }
  }
 
