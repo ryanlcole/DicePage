@@ -162,3 +162,12 @@
   --footer-sum-w:52px;
  }
 }
+
+/* Mobile browser-safe footer spacing.
+   Keep the dice rail above browser chrome and reserve a line underneath
+   for the site copyright notice. */
+@media(max-width:800px){
+ .dice-footer{
+  margin-bottom:calc(22px + env(safe-area-inset-bottom, 0px))!important;
+ }
+}
