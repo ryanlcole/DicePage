@@ -1,0 +1,234 @@
+/* Universal character sheet atlas pass.
+   Uses the two in-system character-sheet atlases as subtle material/chrome sources
+   while keeping controls readable and touch-safe. */
+
+.character-mixer.universal-sheet{
+  --paper:#f4ead5;
+  --paper-deep:#e9d9b8;
+  --ink:#584a37;
+  --gold:#b48a43;
+  --gold-dark:#80632f;
+  --blue:#83b9d9;
+  border-color:#a9823f!important;
+  background:linear-gradient(180deg,#f4ead8 0%,#eadbbb 100%)!important;
+  box-shadow:0 18px 52px #000b,inset 0 0 0 3px #fff6df,inset 0 0 0 6px #b28c4c!important;
+}
+
+.character-mixer.universal-sheet::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  inset:7px!important;
+  z-index:0!important;
+  border:1px solid #c6a669!important;
+  border-radius:17px!important;
+  background:
+    linear-gradient(#f7eeddf2,#f7eeddf2),
+    url("../assets/ui/character-sheet/controls-atlas.jpeg") center 7%/760px auto no-repeat!important;
+  background-blend-mode:screen,normal!important;
+  opacity:.78!important;
+  pointer-events:none!important;
+}
+
+.character-mixer .exact-sheet-toolbar,
+.character-mixer .exact-sheet-screen,
+.character-mixer.universal-sheet>.universal-layer-nav{
+  position:relative!important;
+  z-index:2!important;
+}
+
+.character-mixer .exact-sheet-toolbar{
+  border:1px solid #ad8645!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,#f9f0dc,#e9d9b8)!important;
+  box-shadow:inset 0 0 0 2px #fff6e2,0 1px 0 #8a6c38!important;
+}
+
+.character-mixer .exact-sheet-toolbar span{
+  color:#786548!important;
+  font-family:Georgia,serif!important;
+  font-weight:700!important;
+}
+
+.character-mixer .exact-sheet-toolbar button{
+  border:1px solid #b18b4e!important;
+  background:linear-gradient(180deg,#fff7e8,#eadbbd)!important;
+  color:#5d4b35!important;
+  box-shadow:inset 0 0 0 1px #fff!important;
+}
+
+.character-mixer .exact-sheet-screen{
+  border:1px solid #b69050!important;
+  border-radius:16px!important;
+  background:linear-gradient(180deg,#f8efdf 0%,#efe1c6 100%)!important;
+  box-shadow:inset 0 0 0 2px #fff7e7!important;
+  padding-bottom:72px!important;
+}
+
+/* Identity badge: circular portrait + framed name, matching the reference family. */
+.character-mixer .identity-badge{
+  border:1px solid #b08743!important;
+  background:linear-gradient(100deg,#ead9b5,#f8efdb 42%,#ead9b5)!important;
+  box-shadow:inset 0 0 0 2px #fff5de,0 2px 5px #7a5f2d33!important;
+}
+.character-mixer .exact-portrait{
+  border:2px solid #9d7739!important;
+  outline:2px solid #e8cf96!important;
+  background:radial-gradient(circle,#f8eed8 55%,#dbc28e)!important;
+  color:#7d6a4d!important;
+}
+.character-mixer .exact-name{
+  border:1px solid #b48c4d!important;
+  background:linear-gradient(180deg,#fffaf0,#efe0c2)!important;
+  color:#5b4c39!important;
+  box-shadow:inset 0 0 0 1px #fff!important;
+}
+.character-mixer .identity-badge-meta button{
+  border:1px solid #b48c4d!important;
+  background:#f7ecd6!important;
+}
+
+/* Pane chrome resembles the long framed strips in the supplied references. */
+.character-mixer .sheet-pane{
+  border:1px solid #ad8545!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,#f8efdc,#ead8b7)!important;
+  box-shadow:inset 0 0 0 2px #fff4df,0 2px 4px #6f542622!important;
+}
+.character-mixer .pane-toggle{
+  min-height:48px!important;
+  padding:8px 12px!important;
+  border:0!important;
+  background:linear-gradient(180deg,#f2e6ce,#e4d2ad)!important;
+  color:#594a37!important;
+}
+.character-mixer .pane-toggle h2{
+  font-family:Georgia,serif!important;
+  font-size:clamp(14px,4.1vw,19px)!important;
+  font-weight:700!important;
+  letter-spacing:.01em!important;
+}
+.character-mixer .pane-toggle img{
+  width:28px!important;
+  height:28px!important;
+  filter:drop-shadow(0 1px 1px #7d622f55)!important;
+}
+.character-mixer .sheet-pane.is-open .pane-toggle{
+  background:linear-gradient(180deg,#efe1c3,#ddc79a)!important;
+}
+.character-mixer .sheet-pane.is-open .pane-toggle img{
+  transform:rotate(180deg)!important;
+}
+.character-mixer .pane-content{
+  min-height:72px!important;
+  padding:10px!important;
+  background:linear-gradient(180deg,#fffaf0,#f6ead4)!important;
+  color:#5d4d38!important;
+  border-top:1px solid #d7bd88!important;
+}
+
+/* Empty Values/Trackers/Entries states must remain visible and usable. */
+.character-mixer .pane-content>div[style*="color:#aaa"]{
+  min-height:54px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:9px!important;
+  color:#756247!important;
+  font-size:11px!important;
+  text-align:center!important;
+}
+.character-mixer .pane-content>div[style*="color:#aaa"] button{
+  min-height:30px!important;
+  padding:4px 10px!important;
+  border:1px solid #a98243!important;
+  border-radius:16px!important;
+  background:linear-gradient(#fff8e8,#e7d2a8)!important;
+  color:#584833!important;
+  font-weight:700!important;
+}
+.character-mixer .values-pane.is-open .pane-content{
+  min-height:86px!important;
+  display:block!important;
+}
+
+.character-mixer textarea,
+.character-mixer input[type="text"],
+.character-mixer input[type="number"]{
+  border:1px solid #b28c4e!important;
+  border-radius:8px!important;
+  background:#fffaf0!important;
+  color:#574936!important;
+}
+.character-mixer textarea{padding:8px!important}
+
+/* Fixed five-icon dock: atlas-backed ornamental strip rather than a floating generic pill. */
+.character-mixer.universal-sheet>.universal-layer-nav{
+  position:absolute!important;
+  left:50%!important;
+  bottom:12px!important;
+  transform:translateX(-50%)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  width:max-content!important;
+  max-width:calc(100% - 34px)!important;
+  padding:7px 10px!important;
+  border:1px solid #a77d38!important;
+  border-radius:34px!important;
+  background:
+    linear-gradient(#f1dfbde8,#e3ca98e8),
+    url("../assets/ui/character-sheet/linked-atlas.jpeg") center 92%/660px auto no-repeat!important;
+  background-blend-mode:screen,normal!important;
+  box-shadow:inset 0 0 0 2px #fff0cf,0 4px 12px #0005!important;
+}
+.character-mixer .layer-nav-button{
+  flex:0 0 42px!important;
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  border:2px solid #9d7736!important;
+  outline:2px solid #ead09b!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 45% 38%,#fff8e8 0 48%,#dfc48e 72%,#b48b48 100%)!important;
+  color:#665139!important;
+  font-family:Georgia,serif!important;
+  font-size:18px!important;
+  box-shadow:inset 0 0 0 2px #fff4d6,0 2px 4px #5f452a55!important;
+}
+.character-mixer .layer-nav-button.active{
+  background:radial-gradient(circle at 45% 38%,#dff5ff 0 42%,#9fcbe3 62%,#6f9ebd 78%,#b48b48 100%)!important;
+  color:#3e5362!important;
+  border-color:#987032!important;
+  box-shadow:inset 0 0 0 2px #f7ffff,0 0 0 2px #d4b46f,0 0 9px #87c8ed99!important;
+}
+
+/* Spellbook/linked content should read as framed cards rather than plain white blocks. */
+.character-mixer .character-sheet-spellbook,
+.character-mixer .spellbook-pane .pane-content{
+  background:linear-gradient(180deg,#fff9ec,#efe0c2)!important;
+}
+.character-mixer .character-spell-card{
+  border:1px solid #b28b4a!important;
+  border-radius:12px!important;
+  background:#f6ead3!important;
+  box-shadow:inset 0 0 0 1px #fff!important;
+}
+
+@media(max-width:430px){
+  .character-mixer.universal-sheet>.universal-layer-nav{
+    bottom:10px!important;
+    gap:5px!important;
+    padding:6px 8px!important;
+  }
+  .character-mixer .layer-nav-button{
+    flex-basis:38px!important;
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    font-size:16px!important;
+  }
+  .character-mixer .pane-toggle{min-height:46px!important}
+  .character-mixer .pane-toggle h2{font-size:16px!important}
+}
