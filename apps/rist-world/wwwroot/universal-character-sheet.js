@@ -15,7 +15,14 @@
     return i < 0 ? 0 : i;
   }
 
-  function syncActive(nav, screen) {
+  function hiddenNav(sheet) {
+    return sheet.querySelector('.exact-page-arrows');
+  }
+
+  function syncActive(sheet) {
+    const screen = sheet.querySelector('.exact-sheet-screen');
+    const nav = sheet.querySelector('.universal-layer-nav');
+    if (!screen || !nav) return;
     const active = currentIndex(screen);
     nav.querySelectorAll('.layer-nav-button').forEach((button, index) => {
       button.classList.toggle('active', index === active);
@@ -28,16 +35,16 @@
     const step = () => {
       const sheet = document.querySelector('.character-mixer.universal-sheet');
       const screen = sheet?.querySelector('.exact-sheet-screen');
-      const nav = sheet?.querySelector('.exact-page-arrows');
-      if (!screen || !nav || guard++ > 8) return;
+      const sourceNav = sheet ? hiddenNav(sheet) : null;
+      if (!sheet || !screen || !sourceNav || guard++ > 8) return;
 
       const now = currentIndex(screen);
       if (now === target) {
-        syncActive(nav, screen);
+        syncActive(sheet);
         return;
       }
 
-      const next = nav.querySelector(':scope > .next');
+      const next = sourceNav.querySelector(':scope > .next');
       if (!next) return;
       next.click();
       setTimeout(step, 0);
@@ -45,35 +52,42 @@
     step();
   }
 
+  function buildNav(sheet) {
+    let nav = sheet.querySelector(':scope > .universal-layer-nav');
+    if (nav) return nav;
+
+    nav = document.createElement('nav');
+    nav.className = 'universal-layer-nav';
+    nav.setAttribute('aria-label', 'Character sheet layers');
+
+    views.forEach((view, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'layer-nav-button';
+      button.setAttribute('aria-label', view.label);
+      button.title = view.label;
+      button.innerHTML = `<span aria-hidden="true">${view.glyph}</span>`;
+      button.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        moveTo(index);
+      });
+      nav.appendChild(button);
+    });
+
+    sheet.appendChild(nav);
+    return nav;
+  }
+
   function decorate() {
     const sheet = document.querySelector('.character-mixer.universal-sheet');
     if (!sheet) return;
     const screen = sheet.querySelector('.exact-sheet-screen');
-    const nav = sheet.querySelector('.exact-page-arrows');
-    if (!screen || !nav) return;
+    const sourceNav = hiddenNav(sheet);
+    if (!screen || !sourceNav) return;
 
-    let buttons = nav.querySelectorAll('.layer-nav-button');
-    if (buttons.length !== views.length) {
-      nav.querySelectorAll('.layer-nav-button').forEach(x => x.remove());
-
-      views.forEach((view, index) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'layer-nav-button';
-        button.setAttribute('aria-label', view.label);
-        button.title = view.label;
-        button.innerHTML = `<span aria-hidden="true">${view.glyph}</span>`;
-        button.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          moveTo(index);
-        });
-        nav.appendChild(button);
-      });
-      buttons = nav.querySelectorAll('.layer-nav-button');
-    }
-
-    syncActive(nav, screen);
+    buildNav(sheet);
+    syncActive(sheet);
   }
 
   let queued = false;
