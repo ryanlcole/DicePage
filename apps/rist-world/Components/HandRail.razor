@@ -7,10 +7,6 @@
   <span class="player-tools-label">Hand</span>
   <div id="hand-slider" class="player-hand-strip desktop-arrow-slider"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#hand-slider',-1)" aria-label="Scroll hand left">‹</button>
    <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open deck or draw a random card"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
-   <button class="compact-hand-card character-hand-card approved" @onclick="Session.OpenMixer" aria-label="Open active character sheet">
-    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
-    else{<span class="drawer-glyph">CHAR</span>}
-   </button>
    @foreach(var card in Session.HandCards)
    {
     <div class="hand-card-wrap @card.ApprovalStatus">
@@ -46,16 +42,7 @@
 </section>
 @if(Session.HandOpen)
 {
-<section class="card-triple-drawer card-quad-drawer" aria-label="Character and card drawer">
- <div id="character-slider" class="card-drawer-row character-row desktop-arrow-slider" aria-label="Characters and companions"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#character-slider',-1)" aria-label="Scroll characters left">‹</button>
-  <button class="drawer-category-card" @onclick="Session.OpenMixer"><span class="category-card-back"></span><strong>Character</strong></button>
-  <button class="drawer-front character-front" @onclick="Session.OpenMixer" aria-label="Open active character">
-   @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
-   else{<span class="drawer-glyph">CHAR</span>}
-   <strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"Character":Session.CharacterName)</strong>
-  </button>
-  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#character-slider',1)" aria-label="Scroll characters right">›</button>
- </div>
+<section class="card-triple-drawer" aria-label="Card drawer">
  <div id="action-slider" class="card-drawer-row action-row desktop-arrow-slider" aria-label="Action cards"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#action-slider',-1)" aria-label="Scroll actions left">‹</button>
   <div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Action</strong></div>
   @foreach(var field in AvailableActionFields)
