@@ -1,27 +1,31 @@
-/* Universal character sheet: five visual layers with compact round navigation. */
+/* Universal character sheet: five visual layers with fixed round navigation. */
+
 .mixer-modal:has(.universal-sheet){
   background:#05090cba!important;
 }
+
 .character-mixer.universal-sheet{
+  position:relative!important;
   box-sizing:border-box!important;
-  width:min(92dvw,430px)!important;
+  width:min(94dvw,430px)!important;
   height:min(calc(100dvh - 220px),640px)!important;
   max-height:calc(100dvh - 220px)!important;
-  aspect-ratio:auto!important;
   padding:10px!important;
+  overflow:hidden!important;
   border:2px solid #b28a44!important;
   border-radius:22px!important;
   background:#e8dcc0!important;
   box-shadow:0 18px 52px #000b,inset 0 0 0 4px #f5ead1,inset 0 0 0 6px #aa8645!important;
 }
-.character-mixer.universal-sheet:before{
-  content:""!important;
-  inset:8px!important;
-  border:1px solid #c9aa69!important;
-  border-radius:16px!important;
-  background:#f1e7cf!important;
+
+.character-mixer.universal-sheet:before,
+.character-mixer.universal-sheet:after{
+  pointer-events:none!important;
 }
+
 .character-mixer .exact-sheet-toolbar{
+  position:relative!important;
+  z-index:3!important;
   box-sizing:border-box!important;
   height:38px!important;
   min-height:38px!important;
@@ -35,12 +39,15 @@
   border-radius:12px!important;
   background:#e6d9ba!important;
   color:#5a4935!important;
-  scrollbar-width:none;
+  scrollbar-width:none!important;
 }
+
 .character-mixer .exact-sheet-toolbar::-webkit-scrollbar{display:none}
+
 .character-mixer .exact-sheet-toolbar span{
-  flex:1 0 auto!important;
-  max-width:105px!important;
+  flex:1 1 auto!important;
+  min-width:58px!important;
+  max-width:96px!important;
   overflow:hidden!important;
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
@@ -48,12 +55,13 @@
   font-size:9px!important;
   letter-spacing:.04em!important;
 }
+
 .character-mixer .exact-sheet-toolbar button{
   flex:0 0 auto!important;
   box-sizing:border-box!important;
-  min-width:54px!important;
+  min-width:52px!important;
   height:28px!important;
-  padding:2px 8px!important;
+  padding:2px 7px!important;
   overflow:hidden!important;
   border:1px solid #b59458!important;
   border-radius:16px!important;
@@ -61,37 +69,69 @@
   color:#5a4935!important;
   font-size:10px!important;
   line-height:1!important;
+  text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
+
 .character-mixer .exact-sheet-screen{
+  position:relative!important;
+  z-index:2!important;
   box-sizing:border-box!important;
   height:calc(100% - 43px)!important;
-  padding:8px 8px 58px!important;
+  padding:8px 8px 64px!important;
   overflow-y:auto!important;
   overflow-x:hidden!important;
   border:1px solid #b59458!important;
   border-radius:14px!important;
   background:#efe3c8!important;
   color:#564834!important;
+  -webkit-overflow-scrolling:touch!important;
 }
+
+/* Remove legacy oversized decorative badge layers that push controls out of place. */
+.character-mixer .identity-badge,
+.character-mixer .identity-badge-fields,
+.character-mixer .identity-badge-meta,
+.character-mixer .exact-portrait,
+.character-mixer .exact-name{
+  background-image:none!important;
+}
+
+.character-mixer .identity-badge:before,
+.character-mixer .identity-badge:after,
+.character-mixer .identity-badge-fields:before,
+.character-mixer .identity-badge-fields:after,
+.character-mixer .identity-badge-meta:before,
+.character-mixer .identity-badge-meta:after{
+  content:none!important;
+  display:none!important;
+}
+
 .character-mixer .identity-badge{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  z-index:4!important;
   box-sizing:border-box!important;
-  position:sticky!important;
-  top:0!important;
-  z-index:8!important;
   display:grid!important;
   grid-template-columns:64px minmax(0,1fr)!important;
   align-items:center!important;
   gap:8px!important;
-  min-height:70px!important;
+  width:100%!important;
+  min-height:76px!important;
   margin:0 0 8px!important;
-  padding:5px 8px 5px 5px!important;
+  padding:6px 8px 6px 6px!important;
   overflow:hidden!important;
   border:1px solid #ae8d4e!important;
-  border-radius:36px 14px 14px 36px!important;
+  border-radius:38px 14px 14px 38px!important;
   background:#e8d8b7!important;
+  box-shadow:inset 0 0 0 2px #f4e9ce!important;
 }
+
 .character-mixer .exact-portrait{
+  position:relative!important;
+  inset:auto!important;
   box-sizing:border-box!important;
   width:62px!important;
   height:62px!important;
@@ -103,46 +143,67 @@
   border:3px double #a77f39!important;
   border-radius:50%!important;
   background:#ded0ae!important;
-  color:#9b8967!important;
+  color:#8d7b5b!important;
   font-size:9px!important;
+  line-height:1.15!important;
   text-align:center!important;
 }
-.character-mixer .exact-portrait img{width:100%!important;height:100%!important;object-fit:cover!important}
+
+.character-mixer .exact-portrait img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+}
+
 .character-mixer .identity-badge-fields{
+  position:relative!important;
+  inset:auto!important;
   box-sizing:border-box!important;
   min-width:0!important;
   width:100%!important;
   display:grid!important;
   align-content:center!important;
-  gap:4px!important;
+  gap:5px!important;
   overflow:hidden!important;
 }
+
 .character-mixer .exact-name{
+  position:relative!important;
+  inset:auto!important;
   box-sizing:border-box!important;
   width:100%!important;
   min-width:0!important;
   max-width:100%!important;
-  height:34px!important;
-  padding:4px 8px!important;
+  height:36px!important;
+  margin:0!important;
+  padding:5px 8px!important;
   overflow:hidden!important;
   border:1px solid #c8aa70!important;
-  border-radius:8px!important;
+  border-radius:9px!important;
   background:#f6edd9!important;
   color:#67563d!important;
   font-family:Georgia,serif!important;
-  font-size:clamp(12px,4.2vw,18px)!important;
+  font-size:clamp(13px,4.3vw,18px)!important;
   font-weight:700!important;
   line-height:1!important;
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
+
 .character-mixer .identity-badge-meta{
+  position:relative!important;
+  inset:auto!important;
   min-width:0!important;
+  width:100%!important;
+  min-height:24px!important;
   overflow:hidden!important;
 }
+
 .character-mixer .identity-badge-meta button{
+  box-sizing:border-box!important;
   max-width:100%!important;
   height:24px!important;
+  margin:0!important;
   padding:2px 8px!important;
   overflow:hidden!important;
   border:1px solid #b59458!important;
@@ -153,101 +214,124 @@
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
+
 .character-mixer .sheet-pane{
+  position:relative!important;
+  inset:auto!important;
   box-sizing:border-box!important;
   width:100%!important;
   margin:0 0 7px!important;
   overflow:hidden!important;
   border:1px solid #b39256!important;
-  border-radius:10px!important;
+  border-radius:11px!important;
   background:#f3e7cc!important;
   color:#564834!important;
 }
+
 .character-mixer .sheet-pane header,
 .character-mixer .pane-toggle{
   box-sizing:border-box!important;
   width:100%!important;
   min-width:0!important;
-  min-height:38px!important;
+  min-height:42px!important;
 }
+
 .character-mixer .pane-toggle{
   display:grid!important;
   grid-template-columns:minmax(0,1fr) 28px!important;
   align-items:center!important;
   gap:6px!important;
-  padding:5px 8px!important;
+  padding:6px 10px!important;
   overflow:hidden!important;
   border:0!important;
   background:#e7d9bb!important;
   color:#5c4b35!important;
   text-align:left!important;
 }
+
 .character-mixer .pane-toggle h2{
   min-width:0!important;
+  max-width:100%!important;
   margin:0!important;
   overflow:hidden!important;
   font-size:clamp(13px,4vw,18px)!important;
   font-weight:600!important;
-  line-height:1.1!important;
+  line-height:1.05!important;
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
+
 .character-mixer .pane-toggle img{
   width:26px!important;
   height:26px!important;
   object-fit:contain!important;
 }
+
 .character-mixer .pane-content{
   box-sizing:border-box!important;
   width:100%!important;
-  max-height:220px!important;
+  max-height:235px!important;
   padding:7px!important;
   overflow:auto!important;
 }
+
 .character-mixer textarea,
 .character-mixer input,
 .character-mixer select,
 .character-mixer button{
-  max-width:100%;
-}
-.character-mixer textarea{
   box-sizing:border-box!important;
+  max-width:100%!important;
+}
+
+.character-mixer textarea{
   width:100%!important;
 }
 
-/* Five-layer round navigation injected by universal-character-sheet.js. */
+/* Keep the original Blazor previous/next controls alive for navigation logic, but invisible. */
 .character-mixer .exact-page-arrows{
   position:absolute!important;
-  z-index:20!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  clip-path:inset(50%)!important;
+}
+
+/* Visible five-layer controls live directly on the sheet, outside the scrolling content. */
+.character-mixer.universal-sheet > .universal-layer-nav{
+  position:absolute!important;
+  z-index:50!important;
   left:50%!important;
-  right:auto!important;
-  bottom:8px!important;
+  bottom:14px!important;
   transform:translateX(-50%)!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   gap:7px!important;
   width:max-content!important;
+  max-width:calc(100% - 28px)!important;
   padding:5px 8px!important;
+  overflow:hidden!important;
   pointer-events:auto!important;
   border:1px solid #b59458!important;
   border-radius:28px!important;
-  background:#e6d9baf2!important;
+  background:#e6d9baf7!important;
   box-shadow:0 3px 10px #0005!important;
 }
-.character-mixer .exact-page-arrows>.back,
-.character-mixer .exact-page-arrows>.next{
-  display:none!important;
-}
+
 .character-mixer .layer-nav-button{
   box-sizing:border-box!important;
   flex:0 0 38px!important;
   width:38px!important;
   height:38px!important;
+  min-width:38px!important;
   display:grid!important;
   place-items:center!important;
   padding:0!important;
   overflow:hidden!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
   border:2px solid #a27c38!important;
   border-radius:50%!important;
   background:#f4e8c9!important;
@@ -258,16 +342,19 @@
   text-align:center!important;
   box-shadow:inset 0 0 0 2px #e0c990!important;
 }
+
 .character-mixer .layer-nav-button.active{
   background:#5d4b35!important;
   color:#f7e7ba!important;
   border-color:#d0ad63!important;
   box-shadow:inset 0 0 0 2px #8d713d,0 0 0 2px #f3ddb0!important;
 }
+
 .character-mixer .layer-nav-button span{
   display:block!important;
   max-width:26px!important;
   overflow:hidden!important;
+  pointer-events:none!important;
   white-space:nowrap!important;
 }
 
@@ -278,11 +365,45 @@
     max-height:calc(100dvh - 214px)!important;
     padding:8px!important;
   }
-  .character-mixer .exact-sheet-toolbar span{max-width:78px!important;font-size:8px!important}
-  .character-mixer .exact-sheet-toolbar button{min-width:48px!important;padding-inline:6px!important;font-size:9px!important}
-  .character-mixer .identity-badge{grid-template-columns:58px minmax(0,1fr)!important;min-height:64px!important}
-  .character-mixer .exact-portrait{width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important}
-  .character-mixer .exact-name{font-size:clamp(12px,4.6vw,17px)!important}
-  .character-mixer .exact-page-arrows{gap:5px!important;padding:4px 6px!important}
-  .character-mixer .layer-nav-button{flex-basis:34px!important;width:34px!important;height:34px!important;font-size:15px!important}
+
+  .character-mixer .exact-sheet-toolbar span{
+    max-width:76px!important;
+    font-size:8px!important;
+  }
+
+  .character-mixer .exact-sheet-toolbar button{
+    min-width:47px!important;
+    padding-inline:6px!important;
+    font-size:9px!important;
+  }
+
+  .character-mixer .identity-badge{
+    grid-template-columns:58px minmax(0,1fr)!important;
+    min-height:70px!important;
+  }
+
+  .character-mixer .exact-portrait{
+    width:56px!important;
+    height:56px!important;
+    min-width:56px!important;
+    min-height:56px!important;
+  }
+
+  .character-mixer .exact-name{
+    font-size:clamp(12px,4.6vw,17px)!important;
+  }
+
+  .character-mixer.universal-sheet > .universal-layer-nav{
+    bottom:11px!important;
+    gap:5px!important;
+    padding:4px 6px!important;
+  }
+
+  .character-mixer .layer-nav-button{
+    flex-basis:34px!important;
+    width:34px!important;
+    height:34px!important;
+    min-width:34px!important;
+    font-size:15px!important;
+  }
 }
