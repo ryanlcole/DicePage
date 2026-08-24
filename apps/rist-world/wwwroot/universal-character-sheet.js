@@ -1,10 +1,10 @@
 (() => {
   const views = [
-    { key: 'profile', label: 'Profile', glyph: '◉' },
-    { key: 'entries', label: 'Entries', glyph: '✦' },
-    { key: 'equipment', label: 'Equipment', glyph: '⚒' },
-    { key: 'linked', label: 'Linked', glyph: '⛓' },
-    { key: 'spellbook', label: 'Cards', glyph: '▣' }
+    { key: 'profile', label: 'Profile', icon: 'profile' },
+    { key: 'entries', label: 'Entries', icon: 'entries' },
+    { key: 'equipment', label: 'Equipment', icon: 'equipment' },
+    { key: 'linked', label: 'Linked', icon: 'linked' },
+    { key: 'spellbook', label: 'Cards', icon: 'cards' }
   ];
 
   function currentIndex(screen) {
@@ -64,9 +64,10 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'layer-nav-button';
+      button.dataset.icon = view.icon;
       button.setAttribute('aria-label', view.label);
       button.title = view.label;
-      button.innerHTML = `<span aria-hidden="true">${view.glyph}</span>`;
+      button.innerHTML = '<span aria-hidden="true"></span>';
       button.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
