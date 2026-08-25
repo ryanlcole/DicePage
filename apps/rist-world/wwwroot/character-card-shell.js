@@ -25,12 +25,10 @@
   };
 
   const METALS = {
-    gold:'#b38a48',
-    silver:'#9e9e9e',
-    bronze:'#8f6337',
-    obsidian:'#2b2a31',
-    none:'transparent'
+    gold:'#b38a48', silver:'#9e9e9e', bronze:'#8f6337', obsidian:'#2b2a31', none:'transparent'
   };
+
+  function cloneTheme(theme){return {...theme,colors:[...(theme.colors||DEFAULT_THEME.colors)]};}
 
   function openPortraitEditor(sheet){
     const portraitButton = [...sheet.querySelectorAll('.identity-badge-meta button')]
@@ -67,31 +65,20 @@
     const full=clean.length===3?clean.split('').map(x=>x+x).join(''):clean.padEnd(6,'0');
     return [0,2,4].map(i=>parseInt(full.slice(i,i+2),16)/255);
   }
-  function rgbToHex(rgb){
-    return '#'+rgb.map(v=>Math.round(Math.max(0,Math.min(1,v))*255).toString(16).padStart(2,'0')).join('');
-  }
+  function rgbToHex(rgb){return '#'+rgb.map(v=>Math.round(Math.max(0,Math.min(1,v))*255).toString(16).padStart(2,'0')).join('');}
   function additiveLight(colors){
-    // Treat selected hues as transmitted gemstone light, not mixed paint.
-    // Screen/additive combination keeps multiple colors luminous instead of muddy.
     const out=[0,0,0];
-    colors.forEach(hex=>{
-      const c=hexToRgb(hex);
-      for(let i=0;i<3;i++) out[i]=1-(1-out[i])*(1-c[i]);
-    });
+    colors.forEach(hex=>{const c=hexToRgb(hex);for(let i=0;i<3;i++)out[i]=1-(1-out[i])*(1-c[i]);});
     return rgbToHex(out);
   }
-  function tint(hex, amount){
-    const c=hexToRgb(hex); return rgbToHex(c.map(v=>v+(1-v)*amount));
-  }
-  function shade(hex, amount){
-    const c=hexToRgb(hex); return rgbToHex(c.map(v=>v*(1-amount)));
-  }
+  function tint(hex, amount){const c=hexToRgb(hex);return rgbToHex(c.map(v=>v+(1-v)*amount));}
+  function shade(hex, amount){const c=hexToRgb(hex);return rgbToHex(c.map(v=>v*(1-amount)));}
 
   function loadTheme(){
-    try { return {...DEFAULT_THEME,...JSON.parse(localStorage.getItem('rist-character-theme')||'{}')}; }
-    catch { return {...DEFAULT_THEME}; }
+    try { const stored=JSON.parse(localStorage.getItem('rist-character-theme')||'{}'); return cloneTheme({...DEFAULT_THEME,...stored,colors:stored.colors||DEFAULT_THEME.colors}); }
+    catch { return cloneTheme(DEFAULT_THEME); }
   }
-  function saveTheme(theme){ try{localStorage.setItem('rist-character-theme',JSON.stringify(theme));}catch{} }
+  function saveTheme(theme){try{localStorage.setItem('rist-character-theme',JSON.stringify(theme));}catch{}}
 
   function themeGradient(theme){
     const colors=theme.colors.slice(0,Math.max(1,theme.colorCount));
@@ -126,125 +113,79 @@
   function fieldStorageKey(key){return `rist-character-shell-field:${key}`;}
   function buildFields(page){
     return (PAGE_FIELDS[page]||[]).map(([label,key],i)=>`
-      <label class="ccs-field ${i===2||i===3?'wide':''}">
-        <span>${label}</span>
-        ${i>=2?`<textarea data-field-key="${page}.${key}" rows="2"></textarea>`:`<input data-field-key="${page}.${key}" type="text">`}
-      </label>`).join('');
+      <label class="ccs-field ${i===2||i===3?'wide':''}"><span>${label}</span>${i>=2?`<textarea data-field-key="${page}.${key}" rows="2"></textarea>`:`<input data-field-key="${page}.${key}" type="text">`}</label>`).join('');
   }
-
   function loadFields(shell){
     shell.querySelectorAll('[data-field-key]').forEach(el=>{
       try{el.value=localStorage.getItem(fieldStorageKey(el.dataset.fieldKey))||'';}catch{}
       el.addEventListener('input',()=>{try{localStorage.setItem(fieldStorageKey(el.dataset.fieldKey),el.value);}catch{}});
     });
   }
-
   function renderPage(shell,key){
-    shell.dataset.page=key;
-    shell.querySelector('.ccs-page-fields').innerHTML=buildFields(key);
-    loadFields(shell);
+    shell.dataset.page=key; shell.querySelector('.ccs-page-fields').innerHTML=buildFields(key); loadFields(shell);
     shell.querySelectorAll('.ccs-nav-button').forEach(x=>x.classList.toggle('active',x.dataset.key===key));
   }
 
   function buildThemeEditor(shell){
     const modal=shell.querySelector('.ccs-theme-modal');
     const form=modal.querySelector('.ccs-theme-controls');
-    const theme=loadTheme();
-    applyTheme(shell,theme);
+    let savedTheme=loadTheme();
+    let draftTheme=cloneTheme(savedTheme);
+    applyTheme(shell,savedTheme);
 
     const syncControls=()=>{
-      form.querySelector('[name=font]').value=theme.font;
-      form.querySelector('[name=count]').value=theme.colorCount;
-      form.querySelector('[name=pattern]').value=theme.pattern;
-      form.querySelector('[name=frame]').value=theme.frame;
-      form.querySelectorAll('[data-gem-color]').forEach((input,i)=>{input.value=theme.colors[i];input.closest('label').hidden=i>=theme.colorCount;});
-      form.querySelectorAll('[name=whitespace]').forEach(x=>x.checked=x.value===theme.whitespace);
+      form.querySelector('[name=font]').value=draftTheme.font;
+      form.querySelector('[name=count]').value=draftTheme.colorCount;
+      form.querySelector('[name=pattern]').value=draftTheme.pattern;
+      form.querySelector('[name=frame]').value=draftTheme.frame;
+      form.querySelectorAll('[data-gem-color]').forEach((input,i)=>{input.value=draftTheme.colors[i];input.closest('label').hidden=i>=draftTheme.colorCount;});
+      form.querySelectorAll('[name=whitespace]').forEach(x=>x.checked=x.value===draftTheme.whitespace);
     };
-    const update=()=>{applyTheme(shell,theme);saveTheme(theme);syncControls();};
+    const preview=()=>{applyTheme(shell,draftTheme);syncControls();};
+    const open=()=>{savedTheme=loadTheme();draftTheme=cloneTheme(savedTheme);syncControls();applyTheme(shell,draftTheme);modal.hidden=false;requestAnimationFrame(()=>{modal.querySelector('.ccs-theme-panel').scrollTop=0;});};
+    const cancel=()=>{draftTheme=cloneTheme(savedTheme);applyTheme(shell,savedTheme);modal.hidden=true;};
+    const apply=()=>{savedTheme=cloneTheme(draftTheme);saveTheme(savedTheme);applyTheme(shell,savedTheme);modal.hidden=true;};
 
     form.addEventListener('input',e=>{
       const t=e.target;
-      if(t.name==='font')theme.font=t.value;
-      else if(t.name==='count')theme.colorCount=Math.max(1,Math.min(4,Number(t.value)||1));
-      else if(t.name==='pattern')theme.pattern=t.value;
-      else if(t.name==='frame')theme.frame=t.value;
-      else if(t.name==='whitespace')theme.whitespace=t.value;
-      else if(t.dataset.gemColor!==undefined)theme.colors[Number(t.dataset.gemColor)]=t.value;
-      update();
+      if(t.name==='font')draftTheme.font=t.value;
+      else if(t.name==='count')draftTheme.colorCount=Math.max(1,Math.min(4,Number(t.value)||1));
+      else if(t.name==='pattern')draftTheme.pattern=t.value;
+      else if(t.name==='frame')draftTheme.frame=t.value;
+      else if(t.name==='whitespace')draftTheme.whitespace=t.value;
+      else if(t.dataset.gemColor!==undefined)draftTheme.colors[Number(t.dataset.gemColor)]=t.value;
+      preview();
     });
     form.addEventListener('change',e=>form.dispatchEvent(new Event('input',{bubbles:false})));
-    modal.querySelector('.ccs-theme-close')?.addEventListener('click',()=>modal.hidden=true);
-    modal.addEventListener('click',e=>{if(e.target===modal)modal.hidden=true;});
+    modal.querySelector('.ccs-theme-close')?.addEventListener('click',cancel);
+    modal.querySelector('.ccs-theme-cancel')?.addEventListener('click',cancel);
+    modal.querySelector('.ccs-theme-apply')?.addEventListener('click',apply);
+    modal.addEventListener('click',e=>{if(e.target===modal)cancel();});
+    shell.querySelector('.ccs-theme-trigger')?.addEventListener('click',open);
     syncControls();
   }
 
   function build(sheet){
     if (!sheet || sheet.querySelector(':scope > .character-card-shell')) return;
     const shell=document.createElement('div');
-    shell.className='character-card-shell';
-    shell.setAttribute('aria-label','Universal character card');
+    shell.className='character-card-shell'; shell.setAttribute('aria-label','Universal character card');
     shell.innerHTML=`
-      <div class="ccs-topbar">
-        <div class="ccs-back" aria-hidden="true"></div>
-        <div class="ccs-titleplate"></div>
-        <button class="ccs-theme-trigger" type="button" aria-label="Character sheet appearance">
-          <img src="assets/ui/character-sheet/theme-wheel.jpeg" alt="" onerror="this.hidden=true">
-          <span aria-hidden="true"></span>
-        </button>
-        <button class="ccs-close" type="button" aria-label="Close character card"></button>
-      </div>
-      <div class="ccs-identity">
-        <button class="ccs-portrait-frame" type="button" aria-label="Edit character portrait">
-          <div class="ccs-portrait-inner"><img class="ccs-portrait-photo" alt="Character portrait" hidden><span class="ccs-portrait-empty" aria-hidden="true"></span></div>
-          <span class="ccs-portrait-edit" aria-hidden="true">✎</span>
-        </button>
-        <div class="ccs-nameplate"></div>
-      </div>
+      <div class="ccs-topbar"><div class="ccs-back" aria-hidden="true"></div><div class="ccs-titleplate"></div><button class="ccs-theme-trigger" type="button" aria-label="Character sheet appearance"><img src="assets/ui/character-sheet/theme-wheel.jpeg" alt="" onerror="this.hidden=true"><span aria-hidden="true"></span></button><button class="ccs-close" type="button" aria-label="Close character card"></button></div>
+      <div class="ccs-identity"><button class="ccs-portrait-frame" type="button" aria-label="Edit character portrait"><div class="ccs-portrait-inner"><img class="ccs-portrait-photo" alt="Character portrait" hidden><span class="ccs-portrait-empty" aria-hidden="true"></span></div><span class="ccs-portrait-edit" aria-hidden="true">✎</span></button><div class="ccs-nameplate"></div></div>
       <div class="ccs-page-fields"></div>
-      <div class="ccs-symbol-row">
-        <div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div>
-      </div>
-      <div class="ccs-card-grid">
-        ${Array.from({length:6},()=>`<div class="ccs-mini-card"><div class="ccs-mini-title"></div><div class="ccs-mini-circle"></div><div class="ccs-mini-dots"><i></i><i></i><i></i></div></div>`).join('')}
-      </div>
-      <div class="ccs-lower-bars">
-        ${Array.from({length:2},()=>`<div class="ccs-meter"><button class="ccs-minus" type="button" aria-label="Decrease"></button><div class="ccs-meter-track"><i></i><i></i><i></i><i></i><i></i></div><button class="ccs-plus" type="button" aria-label="Increase"></button></div>`).join('')}
-      </div>
+      <div class="ccs-symbol-row"><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div><div class="ccs-small-medallion"></div></div>
+      <div class="ccs-card-grid">${Array.from({length:6},()=>`<div class="ccs-mini-card"><div class="ccs-mini-title"></div><div class="ccs-mini-circle"></div><div class="ccs-mini-dots"><i></i><i></i><i></i></div></div>`).join('')}</div>
+      <div class="ccs-lower-bars">${Array.from({length:2},()=>`<div class="ccs-meter"><button class="ccs-minus" type="button" aria-label="Decrease"></button><div class="ccs-meter-track"><i></i><i></i><i></i><i></i><i></i></div><button class="ccs-plus" type="button" aria-label="Increase"></button></div>`).join('')}</div>
       <nav class="ccs-nav" aria-label="Character card sections">${ICONS.map(([label,key],i)=>`<button type="button" class="ccs-nav-button ${i===0?'active':''}" data-key="${key}" aria-label="${label}"><span class="ccs-nav-icon ${key}"></span></button>`).join('')}</nav>
-
-      <div class="ccs-theme-modal" hidden>
-        <section class="ccs-theme-panel" role="dialog" aria-modal="true" aria-label="Character sheet appearance">
-          <header><strong>Appearance</strong><button class="ccs-theme-close" type="button" aria-label="Close appearance editor">×</button></header>
-          <div class="ccs-theme-wheel-large"><img src="assets/ui/character-sheet/theme-wheel.jpeg" alt="Color wheel" onerror="this.hidden=true"><span aria-hidden="true"></span></div>
-          <div class="ccs-theme-preview"><div class="ccs-preview-card"><span>Live preview</span><strong>Character Card</strong><p>Gemstone light passes through the selected colors.</p></div></div>
-          <div class="ccs-theme-controls">
-            <label>Font color<input name="font" type="color"></label>
-            <label>Gem colors<select name="count"><option value="1">1 color</option><option value="2">2 colors</option><option value="3">3 colors</option><option value="4">4 colors</option></select></label>
-            <div class="ccs-color-picks">${[0,1,2,3].map(i=>`<label>Color ${i+1}<input data-gem-color="${i}" type="color"></label>`).join('')}</div>
-            <label>Fade pattern<select name="pattern"><option value="soft">Soft fade</option><option value="radial">Radiant center</option><option value="diagonal">Diagonal</option><option value="bands">Bands</option><option value="facets">Faceted</option></select></label>
-            <label>Object frames<select name="frame"><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option><option value="obsidian">Obsidian</option><option value="none">None</option></select></label>
-            <fieldset class="ccs-whitespace"><legend>Whitespace / center</legend><label><input name="whitespace" type="radio" value="default">Default</label><label><input name="whitespace" type="radio" value="black">Black</label><label><input name="whitespace" type="radio" value="white">White</label></fieldset>
-          </div>
-        </section>
-      </div>`;
+      <div class="ccs-theme-modal" hidden><section class="ccs-theme-panel" role="dialog" aria-modal="true" aria-label="Character sheet appearance"><header><strong>Appearance</strong><button class="ccs-theme-close" type="button" aria-label="Cancel appearance changes">×</button></header><div class="ccs-theme-wheel-large"><img src="assets/ui/character-sheet/theme-wheel.jpeg" alt="Color wheel" onerror="this.hidden=true"><span aria-hidden="true"></span></div><div class="ccs-theme-preview"><div class="ccs-preview-card"><span>Live preview</span><strong>Character Card</strong><p>Gemstone light passes through the selected colors.</p></div></div><div class="ccs-theme-controls"><label>Font color<input name="font" type="color"></label><label>Gem colors<select name="count"><option value="1">1 color</option><option value="2">2 colors</option><option value="3">3 colors</option><option value="4">4 colors</option></select></label><div class="ccs-color-picks">${[0,1,2,3].map(i=>`<label>Color ${i+1}<input data-gem-color="${i}" type="color"></label>`).join('')}</div><label>Fade pattern<select name="pattern"><option value="soft">Soft fade</option><option value="radial">Radiant center</option><option value="diagonal">Diagonal</option><option value="bands">Bands</option><option value="facets">Faceted</option></select></label><label>Object frames<select name="frame"><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option><option value="obsidian">Obsidian</option><option value="none">None</option></select></label><fieldset class="ccs-whitespace"><legend>Whitespace / center</legend><label><input name="whitespace" type="radio" value="default">Default</label><label><input name="whitespace" type="radio" value="black">Black</label><label><input name="whitespace" type="radio" value="white">White</label></fieldset></div><footer class="ccs-theme-actions"><button class="ccs-theme-cancel" type="button">Cancel</button><button class="ccs-theme-apply" type="button">Apply</button></footer></section></div>`;
 
     shell.querySelector('.ccs-close')?.addEventListener('click',()=>sheet.querySelector('.exact-sheet-toolbar button:last-child')?.click());
     shell.querySelector('.ccs-portrait-frame')?.addEventListener('click',()=>openPortraitEditor(sheet));
-    shell.querySelector('.ccs-theme-trigger')?.addEventListener('click',()=>shell.querySelector('.ccs-theme-modal').hidden=false);
     shell.querySelectorAll('.ccs-nav-button').forEach(btn=>btn.addEventListener('click',()=>renderPage(shell,btn.dataset.key)));
-    sheet.appendChild(shell);
-    renderPage(shell,'profile');
-    buildThemeEditor(shell);
-    syncPortrait(sheet,shell);
+    sheet.appendChild(shell); renderPage(shell,'profile'); buildThemeEditor(shell); syncPortrait(sheet,shell);
   }
 
-  function decorate(){
-    document.querySelectorAll('.character-mixer.universal-sheet').forEach(sheet=>{
-      build(sheet); const shell=sheet.querySelector(':scope > .character-card-shell'); if(shell)syncPortrait(sheet,shell);
-    });
-  }
-  const observer=new MutationObserver(decorate);
-  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
-  document.addEventListener('DOMContentLoaded',decorate);
-  requestAnimationFrame(decorate);
+  function decorate(){document.querySelectorAll('.character-mixer.universal-sheet').forEach(sheet=>{build(sheet);const shell=sheet.querySelector(':scope > .character-card-shell');if(shell)syncPortrait(sheet,shell);});}
+  const observer=new MutationObserver(decorate); observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+  document.addEventListener('DOMContentLoaded',decorate); requestAnimationFrame(decorate);
 })();
