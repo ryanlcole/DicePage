@@ -45,12 +45,13 @@
  const stage=document.getElementById('portrait-stage');
  const toggle=document.getElementById('d20-toggle');
  const objectUrls=[];
+ const rawRoot='https://raw.githubusercontent.com/ryanlcole/DicePage/live-alpha-rist-blazor-world/apps/rist-world/wwwroot/assets/profile/';
 
- async function loadB64Webp(path){
-   const response=await fetch(path,{cache:'no-store'});
-   if(!response.ok) throw new Error(`${path}: ${response.status}`);
+ async function loadB64Webp(file){
+   const response=await fetch(rawRoot+file,{cache:'no-store'});
+   if(!response.ok) throw new Error(`${file}: ${response.status}`);
    const encoded=(await response.text()).replace(/\s+/g,'');
-   if(!encoded.startsWith('UklG')) throw new Error(`${path}: invalid WebP data`);
+   if(!encoded.startsWith('UklG')) throw new Error(`${file}: invalid WebP data`);
    const binary=atob(encoded);
    const bytes=new Uint8Array(binary.length);
    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
@@ -60,8 +61,8 @@
  }
 
  const [gmUrl,creatorUrl]=await Promise.all([
-   loadB64Webp('./assets/profile/gamemaster.webp.b64?v=2'),
-   loadB64Webp('./assets/profile/ryan-cutout.webp.b64?v=2')
+   loadB64Webp('gamemaster.webp.b64'),
+   loadB64Webp('ryan-cutout.webp.b64')
  ]);
 
  let showingCreator=false;
