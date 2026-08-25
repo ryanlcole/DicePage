@@ -5,7 +5,7 @@
 <title>About ReLiC GameMaster</title>
 <link rel="stylesheet" href="legal.css?v=1">
 <style>
-.profile-card{border:2px solid #8a6b33;border-radius:22px;padding:16px;background:linear-gradient(#efe3c9,#d8c093);color:#4e402e;box-shadow:inset 0 0 0 3px #fff4d9}.profile-hero{display:grid;grid-template-columns:minmax(140px,260px) 1fr;gap:18px;align-items:center}.portrait-stage{min-height:330px;border:2px solid #a07c40;border-radius:24px;background:radial-gradient(circle,#18242b,#071016 72%);display:grid;place-items:center;overflow:hidden;position:relative}.portrait-stage img{width:100%;height:100%;max-height:360px;object-fit:contain;display:block}.portrait-stage.creator img{filter:drop-shadow(0 10px 14px #0008)}.portrait-error{display:none;color:#d8bd7e;padding:18px;text-align:center;font:600 15px/1.4 system-ui}.portrait-stage.failed img{display:none}.portrait-stage.failed .portrait-error{display:block}.d20-toggle{margin:12px auto 0;width:76px;height:76px;border:2px solid #a77d39;border-radius:50%;background:radial-gradient(circle,#d9f5ff,#7eb9d8 55%,#17364a 58%,#10222d);color:#f6e2a9;font:700 18px Georgia;display:grid;place-items:center;box-shadow:0 4px 14px #0008;cursor:pointer}.bio h1{margin:.2rem 0}.bio p{font-size:1.05rem}.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}.legal-grid a{display:block;padding:12px;border:1px solid #80662f;border-radius:12px;background:#111c24;color:#f2cf72;text-decoration:none}.safety-link{border-color:#c5923e!important;background:#2a2112!important}.contact{margin-top:18px;padding:14px;border:1px solid #80662f;border-radius:14px;background:#101920;color:#eee}@media(max-width:680px){.profile-hero{grid-template-columns:1fr}.portrait-stage{min-height:300px}}
+.profile-card{border:2px solid #8a6b33;border-radius:22px;padding:16px;background:linear-gradient(#efe3c9,#d8c093);color:#493a28;box-shadow:inset 0 0 0 3px #fff4d9}.profile-hero{display:grid;grid-template-columns:minmax(140px,260px) 1fr;gap:18px;align-items:center}.portrait-stage{min-height:330px;border:2px solid #a07c40;border-radius:24px;background:radial-gradient(circle,#18242b,#071016 72%);display:grid;place-items:center;overflow:hidden;position:relative}.portrait-stage img{width:100%;height:100%;max-height:360px;object-fit:contain;display:block}.portrait-stage.creator img{filter:drop-shadow(0 10px 14px #0008)}.portrait-error{display:none;color:#e4c77e;padding:18px;text-align:center;font:700 15px/1.4 system-ui}.portrait-stage.failed img{display:none}.portrait-stage.failed .portrait-error{display:block}.d20-toggle{margin:12px auto 0;width:76px;height:76px;border:2px solid #a77d39;border-radius:50%;background:radial-gradient(circle,#d9f5ff,#7eb9d8 55%,#17364a 58%,#10222d);color:#f6e2a9;font:700 18px Georgia;display:grid;place-items:center;box-shadow:0 4px 14px #0008;cursor:pointer}.bio h1{margin:.2rem 0;color:#3d3022}.bio p{font-size:1.05rem;color:#493a28}.bio p strong{color:#3a2d20}.bio .small{color:#66533b!important;font-weight:600}.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}.legal-grid a{display:block;padding:12px;border:1px solid #80662f;border-radius:12px;background:#111c24;color:#f2cf72;text-decoration:none}.safety-link{border-color:#c5923e!important;background:#2a2112!important}.contact{margin-top:18px;padding:14px;border:1px solid #80662f;border-radius:14px;background:#101920;color:#eee}@media(max-width:680px){.profile-hero{grid-template-columns:1fr}.portrait-stage{min-height:300px}}
 </style>
 </head>
 <body>
@@ -15,7 +15,7 @@
   <div>
    <div id="portrait-stage" class="portrait-stage">
     <img id="profile-photo" alt="ReLiC GameMaster portrait">
-    <div class="portrait-error" role="status">Portrait could not be loaded.</div>
+    <div id="portrait-error" class="portrait-error" role="status">Portrait could not be loaded.</div>
    </div>
    <button id="d20-toggle" class="d20-toggle" type="button" aria-label="Show Ryan L. Cole">d20</button>
   </div>
@@ -24,7 +24,7 @@
    <p><strong>Creator of ReLiCGameMaster, Shaelvien, and RIST.</strong></p>
    <p>Ryan L. Cole builds tabletop worlds, systems, and tools around a simple goal: give GameMasters and players more freedom to create, discover, and tell stories together. Shaelvien is the shared-world setting, while RIST is the recursive tabletop framework being built to support layered maps, cards, characters, dice, tokens, sprites, encounters, and collaborative worldbuilding.</p>
    <p>The project focuses on keeping complex tabletop ideas understandable and usable: information can be discovered in layers, objects can be represented differently by scale, and players can define names, identities, abilities, anatomy, equipment, and language through play instead of being forced into a single predefined mold.</p>
-   <p class="small">The GameMaster portrait is shown first. Press the d20 to reveal the creator portrait.</p>
+   <p class="small">The GameMaster portrait is shown first. Press the d20 to reveal the creator portrait. Press it again to return to the GameMaster.</p>
   </div>
  </div>
 </section>
@@ -43,43 +43,62 @@
 (async()=>{
  const photo=document.getElementById('profile-photo');
  const stage=document.getElementById('portrait-stage');
+ const errorBox=document.getElementById('portrait-error');
  const toggle=document.getElementById('d20-toggle');
  const objectUrls=[];
- const rawRoot='https://raw.githubusercontent.com/ryanlcole/DicePage/live-alpha-rist-blazor-world/apps/rist-world/wwwroot/assets/profile/';
+ const rawBase='https://raw.githubusercontent.com/ryanlcole/DicePage/live-alpha-rist-blazor-world/apps/rist-world/wwwroot/assets/profile/';
 
- async function loadB64Webp(file){
-   const response=await fetch(rawRoot+file,{cache:'no-store'});
-   if(!response.ok) throw new Error(`${file}: ${response.status}`);
+ async function loadB64Image(path){
+   const response=await fetch(rawBase+path,{cache:'no-store',mode:'cors'});
+   if(!response.ok) throw new Error(`${path}: ${response.status}`);
    const encoded=(await response.text()).replace(/\s+/g,'');
-   if(!encoded.startsWith('UklG')) throw new Error(`${file}: invalid WebP data`);
    const binary=atob(encoded);
+   if(binary.length<12) throw new Error(`${path}: empty image`);
+   const signature=binary.slice(0,4);
+   let type='image/webp';
+   if(signature==='RIFF') type='image/webp';
+   else if(binary.charCodeAt(0)===0xff&&binary.charCodeAt(1)===0xd8) type='image/jpeg';
+   else if(signature==='\x89PNG') type='image/png';
+   else throw new Error(`${path}: invalid image data`);
    const bytes=new Uint8Array(binary.length);
    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-   const url=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));
+   const url=URL.createObjectURL(new Blob([bytes],{type}));
    objectUrls.push(url);
    return url;
  }
 
- const [gmUrl,creatorUrl]=await Promise.all([
-   loadB64Webp('gamemaster.webp.b64'),
-   loadB64Webp('ryan-cutout.webp.b64')
- ]);
-
+ let gmUrl=null;
+ let creatorUrl=null;
  let showingCreator=false;
+
+ try{gmUrl=await loadB64Image('gamemaster.webp.b64');}
+ catch(error){console.error('GameMaster portrait failed',error);}
+
+ try{creatorUrl=await loadB64Image('ryan-cutout.webp.b64');}
+ catch(error){console.error('Creator portrait failed',error);}
+
  function draw(){
-   stage.classList.remove('failed');
-   photo.src=showingCreator?creatorUrl:gmUrl;
-   photo.alt=showingCreator?'Ryan L. Cole':'ReLiC GameMaster';
    stage.classList.toggle('creator',showingCreator);
+   stage.classList.remove('failed');
+   const selected=showingCreator?creatorUrl:gmUrl;
+   if(selected){
+     photo.src=selected;
+     photo.alt=showingCreator?'Ryan L. Cole':'ReLiC GameMaster';
+   }else{
+     photo.removeAttribute('src');
+     errorBox.textContent=showingCreator?'Creator portrait could not be loaded.':'GameMaster portrait could not be loaded.';
+     stage.classList.add('failed');
+   }
    toggle.setAttribute('aria-label',showingCreator?'Show GameMaster portrait':'Show Ryan L. Cole');
  }
- photo.addEventListener('error',()=>stage.classList.add('failed'));
- toggle.addEventListener('click',()=>{showingCreator=!showingCreator;draw()});
+
+ photo.addEventListener('error',()=>{
+   errorBox.textContent=showingCreator?'Creator portrait could not be loaded.':'GameMaster portrait could not be loaded.';
+   stage.classList.add('failed');
+ });
+ toggle.addEventListener('click',()=>{showingCreator=!showingCreator;draw();});
  draw();
  window.addEventListener('pagehide',()=>objectUrls.forEach(URL.revokeObjectURL),{once:true});
-})().catch(error=>{
- console.error('Profile portrait load failed',error);
- document.getElementById('portrait-stage')?.classList.add('failed');
-});
+})();
 </script>
 </body></html>
