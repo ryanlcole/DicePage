@@ -5,26 +5,84 @@
 <title>About ReLiC GameMaster</title>
 <link rel="stylesheet" href="legal.css?v=1">
 <style>
-.profile-card{border:2px solid #8a6b33;border-radius:22px;padding:16px;background:linear-gradient(#efe3c9,#d8c093);color:#493a28;box-shadow:inset 0 0 0 3px #fff4d9}.profile-hero{display:grid;grid-template-columns:minmax(140px,260px) 1fr;gap:18px;align-items:center}.portrait-stage{min-height:330px;border:2px solid #a07c40;border-radius:24px;background:radial-gradient(circle,#18242b,#071016 72%);display:grid;place-items:center;overflow:hidden;position:relative}.portrait-stage img{width:100%;height:100%;max-height:360px;object-fit:contain;display:block}.portrait-stage.creator img{filter:drop-shadow(0 10px 14px #0008)}.portrait-error{display:none;color:#e4c77e;padding:18px;text-align:center;font:700 15px/1.4 system-ui}.portrait-stage.failed img{display:none}.portrait-stage.failed .portrait-error{display:block}.d20-toggle{margin:12px auto 0;width:76px;height:76px;border:2px solid #a77d39;border-radius:50%;background:radial-gradient(circle,#d9f5ff,#7eb9d8 55%,#17364a 58%,#10222d);color:#f6e2a9;font:700 18px Georgia;display:grid;place-items:center;box-shadow:0 4px 14px #0008;cursor:pointer}.bio h1{margin:.2rem 0;color:#3d3022}.bio p{font-size:1.05rem;color:#493a28}.bio p strong{color:#3a2d20}.bio .small{color:#66533b!important;font-weight:600}.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}.legal-grid a{display:block;padding:12px;border:1px solid #80662f;border-radius:12px;background:#111c24;color:#f2cf72;text-decoration:none}.safety-link{border-color:#c5923e!important;background:#2a2112!important}.contact{margin-top:18px;padding:14px;border:1px solid #80662f;border-radius:14px;background:#101920;color:#eee}@media(max-width:680px){.profile-hero{grid-template-columns:1fr}.portrait-stage{min-height:300px}}
+.profile-card{border:2px solid #8a6b33;border-radius:22px;padding:16px;background:linear-gradient(#efe3c9,#d8c093);color:#493a28;box-shadow:inset 0 0 0 3px #fff4d9}.profile-hero{display:grid;grid-template-columns:minmax(140px,260px) 1fr;gap:18px;align-items:start}.portrait-column{position:sticky;top:18px}.portrait-stage{min-height:330px;border:2px solid #a07c40;border-radius:24px;background:radial-gradient(circle,#18242b,#071016 72%);display:grid;place-items:center;overflow:hidden;position:relative}.portrait-stage img{width:100%;height:100%;max-height:360px;object-fit:contain;display:block}.portrait-stage.creator img{filter:drop-shadow(0 10px 14px #0008)}.portrait-error{display:none;color:#e4c77e;padding:18px;text-align:center;font:700 15px/1.4 system-ui}.portrait-stage.failed img{display:none}.portrait-stage.failed .portrait-error{display:block}.d20-toggle{margin:12px auto 0;width:76px;height:76px;border:2px solid #a77d39;border-radius:50%;background:radial-gradient(circle,#d9f5ff,#7eb9d8 55%,#17364a 58%,#10222d);color:#f6e2a9;font:700 18px Georgia;display:grid;place-items:center;box-shadow:0 4px 14px #0008;cursor:pointer}.bio-panel h1{margin:.2rem 0;color:#3d3022}.bio-panel h2{margin:1.45rem 0 .45rem;color:#3d3022;font:700 1.25rem Georgia,serif}.bio-panel p{font-size:1.05rem;line-height:1.6;color:#493a28}.bio-panel p strong{color:#3a2d20}.bio-panel .small{color:#66533b!important;font-weight:600}.bio-panel[hidden]{display:none!important}.creator-bio{padding-bottom:4px}.creator-bio .research-note{padding:12px 14px;border:1px solid #9c7a3b;border-radius:12px;background:#f5ead2;color:#493a28}.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}.legal-grid a{display:block;padding:12px;border:1px solid #80662f;border-radius:12px;background:#111c24;color:#f2cf72;text-decoration:none}.safety-link{border-color:#c5923e!important;background:#2a2112!important}.contact{margin-top:18px;padding:14px;border:1px solid #80662f;border-radius:14px;background:#101920;color:#eee}@media(max-width:680px){.profile-hero{grid-template-columns:1fr}.portrait-column{position:static}.portrait-stage{min-height:300px}.bio-panel p{font-size:1rem;line-height:1.55}}
 </style>
 </head>
 <body>
 <a class="back" href="./">← Return to RIST WORLD</a>
 <section class="profile-card">
  <div class="profile-hero">
-  <div>
+  <div class="portrait-column">
    <div id="portrait-stage" class="portrait-stage">
     <img id="profile-photo" alt="ReLiC GameMaster portrait">
     <div id="portrait-error" class="portrait-error" role="status">Portrait could not be loaded.</div>
    </div>
    <button id="d20-toggle" class="d20-toggle" type="button" aria-label="Show Ryan L. Cole">d20</button>
   </div>
-  <div class="bio">
-   <h1>Ryan L. Cole</h1>
-   <p><strong>Creator of ReLiCGameMaster, Shaelvien, and RIST.</strong></p>
-   <p>Ryan L. Cole builds tabletop worlds, systems, and tools around a simple goal: give GameMasters and players more freedom to create, discover, and tell stories together. Shaelvien is the shared-world setting, while RIST is the recursive tabletop framework being built to support layered maps, cards, characters, dice, tokens, sprites, encounters, and collaborative worldbuilding.</p>
-   <p>The project focuses on keeping complex tabletop ideas understandable and usable: information can be discovered in layers, objects can be represented differently by scale, and players can define names, identities, abilities, anatomy, equipment, and language through play instead of being forced into a single predefined mold.</p>
-   <p class="small">The GameMaster portrait is shown first. Press the d20 to reveal the creator portrait. Press it again to return to the GameMaster.</p>
+
+  <div>
+   <div id="gamemaster-bio" class="bio-panel">
+    <h1>Ryan L. Cole</h1>
+    <p><strong>Creator of ReLiCGameMaster, Shaelvien, and RIST.</strong></p>
+    <p>Ryan L. Cole builds tabletop worlds, systems, and tools around a simple goal: give GameMasters and players more freedom to create, discover, and tell stories together. Shaelvien is the shared-world setting, while RIST is the recursive tabletop framework being built to support layered maps, cards, characters, dice, tokens, sprites, encounters, and collaborative worldbuilding.</p>
+    <p>The project focuses on keeping complex tabletop ideas understandable and usable: information can be discovered in layers, objects can be represented differently by scale, and players can define names, identities, abilities, anatomy, equipment, and language through play instead of being forced into a single predefined mold.</p>
+    <p class="small">The GameMaster portrait is shown first. Press the d20 to reveal Ryan's portrait and professional biography. Press it again to return.</p>
+   </div>
+
+   <article id="creator-bio" class="bio-panel creator-bio" hidden>
+    <h1>Ryan Leigh Cole</h1>
+    <p><strong>Professional Biography</strong></p>
+
+    <h2>An Unconventional Technical Career</h2>
+    <p>Ryan Leigh Cole is an information-systems specialist, data analyst, systems thinker, and independent software creator whose career developed through an unconventional route. He studied Computer Engineering Technology at York Technical College in Rock Hill, South Carolina, and later Computer Technology at Midlands Technical College. Cole reports earning Dean's List recognition and being close to completing his degree when family responsibilities required him to leave school.</p>
+    <p>Before joining the South Carolina Commission on Indigent Defense (SCCID), Cole worked through a temporary staffing agency in a receptionist assignment for approximately three months. His technical ability was recognized during that period, and he was recommended for database work. He then formally joined SCCID as a Database Specialist.</p>
+    <p>Cole's South Carolina public-defense technology career spanned approximately twelve years: roughly ten years with SCCID followed by approximately two years with the Greenville County / 13th Circuit Public Defender's Office.</p>
+
+    <h2>From Database Specialist to Systems Translator</h2>
+    <p>At SCCID, Cole initially worked alongside database developer David Newhouse of the Spangenberg Group on reports and troubleshooting. He also worked with Wingard Graphics to define operational needs for the public-facing side of SCCID's information environment. His responsibilities grew into the difficult space between law and technology: attorneys and administrators understood legal practice, developers and vendors understood implementation, and Cole increasingly translated between them.</p>
+    <p>His surviving professional résumé documents technical advisement, procurement requirements, job-shadowing for database needs, process flowcharts, statewide data-collection standards, database and website change requirements, SQL and Access reporting, deployment, troubleshooting, training, and liaison work with South Carolina state technology personnel. Official state records independently identify Ryan Cole as SCCID's Database Specialist and associate him with case-management and data-collection technology objectives.</p>
+
+    <h2>Statewide Case Management and Standardization</h2>
+    <p>The statewide public-defender case-management environment became one of the defining projects of Cole's SCCID years. South Carolina legislative records document SCCID's decision to unify Defender Data so information from all 16 judicial circuits could be standardized and accessible statewide. The same official record identifies Ryan Cole as SCCID's Database Specialist with statewide system access.</p>
+    <p>The Fifth Judicial Circuit presented an important challenge because its existing local Access-based system contained useful functionality and institutional knowledge, including collateral-consequence information. Cole recalls working with the vendor, users, and leadership toward a more universal statewide database with only the local customization that was genuinely necessary. The goal was not standardization for its own sake, but trustworthy statewide information without discarding valuable domain knowledge.</p>
+
+    <h2>Mapping the Boundary of State Appellate Defense</h2>
+    <p>For SCCID Appellate Defense, Cole worked closely with attorneys to map the complete workflow handled by the state appellate division. He developed a comprehensive flowchart covering the state appellate-defense process.</p>
+    <p>The flowchart deliberately stopped when a matter would leave the state appellate system and move into the federal system. SCCID Appellate Defense handled state appeals, not federal proceedings, and the federal path did not provide a sufficiently consistent or conclusive continuation to model as part of the state workflow. Cole therefore treated that transition as the boundary of the system rather than forcing an uncertain external process into the model.</p>
+    <p>The process analysis supported broader database and document-workflow improvements. Cole recalls helping move new-document handling toward scanning and electronic processing while limiting printing to material that actually needed to be sent outside the electronic environment.</p>
+
+    <h2>Paperless Operations, Data Quality, and Decision Support</h2>
+    <p>Cole also worked on modernization of SCCID administrative information systems. He describes moving an Access-based environment toward the state's SQL Server infrastructure while preserving a familiar Access front end where useful, and connecting scanning and batch-processing workflows with state administrative systems.</p>
+    <p>As the information environment became more consistent, his work increasingly involved data governance and analytics. Cole developed a methodology intended to make public-defense and prosecution workload more comparable by using charges as a common analytical basis. He recalls that the resulting analysis supported SCCID's position that public defenders handled approximately 80 percent of criminal cases and was used during the state funding process before House Ways and Means. A multimillion-dollar increase in public-defender funding followed. Cole recalls the amount may have been approximately $4.7 million, but the exact appropriation and the relationship between the analysis and the funding outcome are being verified against legislative records.</p>
+    <p>Cole also reports creating a desk manual for circuit judges containing expert-witness and cost information to assist judges in evaluating the reasonableness of funding requests. For Capital Defense, he helped establish electronic document-management practices using Westlaw-related tools. These specific project details remain targets for primary-source verification.</p>
+
+    <h2>Training, Technical Judgment, and the Credential Ceiling</h2>
+    <p>Cole trained public defenders and private or contract attorneys, created audiovisual tutorials and written manuals, and provided operational and technical support. Archived SCCID training material independently identifies Ryan Cole as a registration and technical contact.</p>
+    <p>His compensation progressed as his responsibilities grew. Cole recalls earning approximately $20,800 during his temporary-agency period and approximately $30,800 when formally hired at SCCID. State adjustments followed, and he recalls a later raise associated with the statewide-system work bringing his compensation to roughly $42,000. Greenville later hired him at approximately $50,000, and he recalls ending his public-defense career at approximately $55,000. These figures are preserved as personal recollection pending payroll-record verification and are not used on his résumé.</p>
+    <p>Despite that progression, formal educational requirements constrained raises and advancement. One episode illustrates both the credential problem and Cole's technical judgment. Leadership offered to fund a web-development certification if he would then assume responsibility for the organization's website from the outside vendor. Cole explained that the website depended on multiple disciplines—including marketing, photography, database development, and web development—and that certifying one employee would not replace a multidisciplinary team.</p>
+
+    <h2>Greenville County Public Defender</h2>
+    <p>Cole moved from SCCID to the Greenville County / 13th Circuit Public Defender's Office as an Information Specialist, a move that also provided a substantial compensation increase.</p>
+    <p>There he refined database and reporting processes, developed a small database and workflow for digitizing historical case files stored in a warehouse, and worked with interns to scan and label records before completing remaining work himself. He also developed a triage approach for case distribution and produced information for leadership to use in appointment and workload decisions. Useful reporting improvements could also feed back into broader state practices.</p>
+
+    <h2>National and Interstate Context</h2>
+    <p>Cole recalls preparing a comprehensive document describing South Carolina's indigent-defense system that was sent to Washington, D.C., for consideration in broader discussions, and participating in meetings with defense-system leaders from other states who were evaluating information-system approaches. Public records independently establish that South Carolina's indigent-defense data and technology practices participated in broader state and national discussions, although the recipient and specific use of Cole's particular document remain to be identified.</p>
+    <p>This distinction is intentional: the biography preserves Cole's first-person account while separating it from what has already been independently documented.</p>
+
+    <h2>The Next Chapter</h2>
+    <p>After his public-defense career, Cole turned toward independent technology development and entrepreneurship.</p>
+    <p>Through ReLiCGameMaster, he is developing Shaelvien, a persistent recursive tabletop/software platform involving layered world representation, data-driven simulation, software architecture, and artificial intelligence.</p>
+    <p>The two chapters share a common theme. Cole's government work repeatedly required him to observe complicated human processes, identify their information relationships, establish usable definitions, translate between subject-matter experts and technologists, and build systems around those realities. His current software work applies the same systems-oriented instincts in a different domain.</p>
+    <p>Cole is preparing to return to formal education with artificial intelligence and advanced computing among the areas under consideration. For him, returning to college is not the beginning of a technology career. It is an opportunity to remove a credential barrier from an established career and add contemporary AI and software-engineering tools to an existing foundation.</p>
+
+    <h2>Family and Historical Roots</h2>
+    <p>Cole's family history reaches deeply into Maine and New England. His father, Donald Alfred Cole Sr., worked in the paper industry, including as a supercalendar operator at Bowater. His maternal grandfather, Waldo Clyde Preble, was an engineer and artist whose career included Great Northern Paper. The family also preserves traditions of military service.</p>
+    <p>On the Cole side, family history traces ancestry to Samuel Cole, associated with Cole's Inn, an early Boston ordinary. On the Preble side, the family identifies a relationship to Commodore Edward Preble. These genealogical relationships are being treated as family history until the generation-by-generation chains are documented. The family's account of Donald Winthrop Cole's Purple Heart and related military stories likewise awaits service records or photographs of the medals held by Cole's historian brother.</p>
+    <p>The approach is intentionally evidence-first: preserve the family and professional history, clearly distinguish recollection from documentation, and strengthen the record as primary sources are recovered.</p>
+
+    <h2>Research Status</h2>
+    <p class="research-note">This biography combines Ryan Cole's first-person account, a surviving professional résumé, and independently located South Carolina government records. Exact employment dates, compensation, the precise public-defender appropriation, the circuit-judge expert-witness manual, the Washington submission, academic honors, genealogy, and military history remain subjects for documentary verification.</p>
+   </article>
   </div>
  </div>
 </section>
@@ -45,6 +103,8 @@
  const stage=document.getElementById('portrait-stage');
  const errorBox=document.getElementById('portrait-error');
  const toggle=document.getElementById('d20-toggle');
+ const gmBio=document.getElementById('gamemaster-bio');
+ const creatorBio=document.getElementById('creator-bio');
  const objectUrls=[];
  const rawBase='https://raw.githubusercontent.com/ryanlcole/DicePage/live-alpha-rist-blazor-world/apps/rist-world/wwwroot/assets/profile/';
 
@@ -73,30 +133,31 @@
 
  try{gmUrl=await loadB64Image('gamemaster.webp.b64');}
  catch(error){console.error('GameMaster portrait failed',error);}
-
  try{creatorUrl=await loadB64Image('ryan-cutout.webp.b64');}
  catch(error){console.error('Creator portrait failed',error);}
 
  function draw(){
    stage.classList.toggle('creator',showingCreator);
    stage.classList.remove('failed');
+   gmBio.hidden=showingCreator;
+   creatorBio.hidden=!showingCreator;
    const selected=showingCreator?creatorUrl:gmUrl;
    if(selected){
      photo.src=selected;
-     photo.alt=showingCreator?'Ryan L. Cole':'ReLiC GameMaster';
+     photo.alt=showingCreator?'Ryan Leigh Cole':'ReLiC GameMaster';
    }else{
      photo.removeAttribute('src');
      errorBox.textContent=showingCreator?'Creator portrait could not be loaded.':'GameMaster portrait could not be loaded.';
      stage.classList.add('failed');
    }
-   toggle.setAttribute('aria-label',showingCreator?'Show GameMaster portrait':'Show Ryan L. Cole');
+   toggle.setAttribute('aria-label',showingCreator?'Show GameMaster portrait and introduction':'Show Ryan Leigh Cole portrait and professional biography');
  }
 
  photo.addEventListener('error',()=>{
    errorBox.textContent=showingCreator?'Creator portrait could not be loaded.':'GameMaster portrait could not be loaded.';
    stage.classList.add('failed');
  });
- toggle.addEventListener('click',()=>{showingCreator=!showingCreator;draw();});
+ toggle.addEventListener('click',()=>{showingCreator=!showingCreator;draw();window.scrollTo({top:0,behavior:'smooth'});});
  draw();
  window.addEventListener('pagehide',()=>objectUrls.forEach(URL.revokeObjectURL),{once:true});
 })();
