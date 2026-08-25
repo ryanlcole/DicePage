@@ -11,9 +11,12 @@
   background:#f0e5cf!important;
   box-shadow:0 18px 52px #000b!important;
 }
-.character-mixer.universal-sheet>.exact-sheet-toolbar,
-.character-mixer.universal-sheet>.exact-sheet-screen,
-.character-mixer.universal-sheet>.universal-layer-nav{position:absolute!important;width:1px!important;height:1px!important;margin:0!important;padding:0!important;opacity:0!important;overflow:hidden!important;pointer-events:none!important;clip-path:inset(50%)!important}
+/* Fail-safe: keep the Blazor character sheet visible until the JS card shell
+   actually exists. If the enhancement script fails, users still get the
+   universal sheet instead of a blank modal. */
+.character-mixer.universal-sheet:has(> .character-card-shell)>.exact-sheet-toolbar,
+.character-mixer.universal-sheet:has(> .character-card-shell)>.exact-sheet-screen,
+.character-mixer.universal-sheet:has(> .character-card-shell)>.universal-layer-nav{position:absolute!important;width:1px!important;height:1px!important;margin:0!important;padding:0!important;opacity:0!important;overflow:hidden!important;pointer-events:none!important;clip-path:inset(50%)!important}
 
 .character-card-shell{
  --paper:#f7efdf;--paper2:#ead9b8;--gold:#b38a48;--gold2:#7e6234;--blue:#bfe8ff;
