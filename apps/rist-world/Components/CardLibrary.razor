@@ -278,7 +278,7 @@
  bool IsCharacterCard(LibraryCard card)=>card.Id.StartsWith("universal-character-",StringComparison.Ordinal);
  void BeginCardDrag(LibraryCard card){if(!IsCharacterCard(card))Library.BeginDrag(card);}
  void OpenCard(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return;}_selected=card;}
- void OpenCharacter(){Session.OpenMixer();Session.ToggleCardBrowser();}
+ void OpenCharacter()=>Session.OpenCharacterFromLibrary();
 
  void OpenCreator(){_toolsOpen=false;_editorStatus="";_draft=new(){LibraryName=_source,Category=CurrentPath};_creating=true;}
  void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
