@@ -1,7 +1,6 @@
 (() => {
   const pending = () => document.getElementById('pending-packet');
   const status = () => document.getElementById('pending-packet-status');
-  const app = () => document.getElementById('app');
   let timer = 0;
   let dotsTimer = 0;
   let dots = 0;
@@ -31,11 +30,11 @@
   const scheduleRetry = () => {
     if (stopped) return;
     clearTimeout(timer);
-    timer = window.setTimeout(loadRequiredPackets, randomDelay());
+    timer = window.setTimeout(checkRequiredPackets, randomDelay());
   };
 
-  const json = async (url, cache = 'no-store') => {
-    const response = await fetch(url, { cache, credentials: 'same-origin' });
+  const json = async url => {
+    const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
     if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
     return response.json();
   };
@@ -49,53 +48,56 @@
 
   const collectFrameworkFiles = (value, output) => {
     if (!value) return;
-    if (Array.isArray(value)) {
-      value.forEach(item => collectFrameworkFiles(item, output));
-      return;
-    }
+    if (Array.isArray(value)) { value.forEach(item => collectFrameworkFiles(item, output)); return; }
     if (typeof value !== 'object') return;
     for (const [key, child] of Object.entries(value)) {
-      if (/\.(?:dll|wasm|webcil|js|json|dat|pdb)$/i.test(key)) output.add(key);
+      if (/\.(?:dll|wasm|webcil|js|json|dat)$/i.test(key)) output.add(key);
       collectFrameworkFiles(child, output);
     }
   };
 
-  const frameworkUrl = name => {
-    if (/^(?:https?:)?\/\//i.test(name) || name.startsWith('./') || name.startsWith('/')) return name;
-    return `./_framework/${name.replace(/^_framework\//, '')}`;
-  };
+  const frameworkUrl = name => /^(?:https?:)?\/\//i.test(name) || name.startsWith('./') || name.startsWith('/')
+    ? name
+    : `./_framework/${name.replace(/^_framework\//, '')}`;
 
   const waitForApp = async () => {
-    const deadline = Date.now() + 30000;
+    const deadline = Date.now() + 45000;
     while (Date.now() < deadline) {
-      const root = app();
+      const root = document.getElementById('app');
       if (root && root.children.length > 0) return true;
-      await new Promise(resolve => setTimeout(resolve, 120));
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
     return false;
   };
 
-  const fetchAll = async urls => {
-    let loaded = 0;
+  const available = async url => {
+    let response = await fetch(url, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' });
+    if (response.ok) return true;
+    if (response.status === 405) {
+      response = await fetch(url, { method: 'GET', cache: 'no-store', credentials: 'same-origin', headers: { Range: 'bytes=0-0' } });
+      return response.ok || response.status === 206;
+    }
+    return false;
+  };
+
+  const verifyAll = async urls => {
+    let ready = 0;
     const total = urls.length;
-    setStatus(`Receiving ${loaded} of ${total} items`);
     let cursor = 0;
-    const workers = Array.from({ length: Math.min(4, Math.max(1, total)) }, async () => {
+    setStatus(`${ready} of ${total} items ready`);
+    const workers = Array.from({ length: Math.min(6, Math.max(1, total)) }, async () => {
       while (cursor < total) {
-        const index = cursor++;
-        const url = urls[index];
-        const response = await fetch(url, { cache: 'force-cache', credentials: 'same-origin' });
-        if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
-        await response.arrayBuffer();
-        loaded += 1;
-        setStatus(`Receiving ${loaded} of ${total} items`);
+        const url = urls[cursor++];
+        if (!await available(url)) throw new Error(`${url} unavailable`);
+        ready += 1;
+        setStatus(`${ready} of ${total} items ready`);
       }
     });
     await Promise.all(workers);
     return total;
   };
 
-  async function loadRequiredPackets() {
+  async function checkRequiredPackets() {
     if (running || stopped) return;
     running = true;
     if (!navigator.onLine) {
@@ -115,39 +117,19 @@
       ]);
       const framework = new Set();
       collectFrameworkFiles(boot.resources || boot, framework);
-
       const urls = new Set([
         './data/asset-config.json',
         './data/atlas-public.json',
-        './data/cards-public.json',
-        './data/maps/index.json'
+        './data/cards-public.json'
       ]);
       framework.forEach(name => urls.add(frameworkUrl(name)));
-
-      // The packet count is the actual expected initial asset set, including
-      // every asset currently registered in the public library. The site stays
-      // covered by Pending Packet until each one is available in browser cache.
       for (const asset of Array.isArray(atlas) ? atlas : []) {
         const url = localUrl(asset?.image);
         if (url) urls.add(url);
       }
-
-      const manifestUrl = config.worldMapManifestUrl;
-      if (manifestUrl) {
-        const resolvedManifest = localUrl(manifestUrl);
-        urls.add(resolvedManifest);
-        const manifest = await json(`${resolvedManifest}?packet=${stamp}`);
-        for (const tile of manifest.tiles || []) {
-          const url = localUrl(tile?.image);
-          if (url) urls.add(url);
-        }
-      }
-
-      const list = [...urls];
-      const total = await fetchAll(list);
+      const total = await verifyAll([...urls]);
       setStatus(`${total} of ${total} items ready — opening RIST WORLD`);
-      const ready = await waitForApp();
-      if (!ready) throw new Error('App did not finish starting');
+      if (!await waitForApp()) throw new Error('App did not finish starting');
       stopped = true;
       clearTimeout(timer);
       clearInterval(dotsTimer);
@@ -164,9 +146,9 @@
   window.addEventListener('offline', () => setStatus('Offline — waiting for connection'));
   window.addEventListener('online', () => {
     clearTimeout(timer);
-    timer = window.setTimeout(loadRequiredPackets, 800);
+    timer = window.setTimeout(checkRequiredPackets, 800);
   });
 
   startDots();
-  loadRequiredPackets();
+  checkRequiredPackets();
 })();
