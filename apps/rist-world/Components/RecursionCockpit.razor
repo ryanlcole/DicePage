@@ -1,0 +1,32 @@
+@implements IDisposable
+@inject WorldSession Session
+
+<aside class="recursion-cockpit" data-recursion-layer="@Session.ViewportLayer" aria-label="Recursive world layers">
+    <div class="recursion-cockpit-frame" aria-hidden="true"></div>
+    <div class="recursion-layer-strip" role="toolbar" aria-label="Viewing layer">
+        @foreach (var layer in WorldSession.RecursionLayers)
+        {
+            <button type="button"
+                    class="recursion-layer-button @(Session.ViewportLayer==layer?"active":"")"
+                    data-layer="@layer"
+                    title="View @Pretty(layer) layer"
+                    aria-pressed="@(Session.ViewportLayer==layer)"
+                    @onclick="()=>Session.SetViewportLayer(layer)">
+                <span>@Short(layer)</span>
+            </button>
+        }
+    </div>
+    <output class="recursion-layer-readout"><strong>@Pretty(Session.ViewportLayer)</strong><span>viewport</span></output>
+</aside>
+
+@code {
+    protected override void OnInitialized()=>Session.Changed+=Changed;
+    void Changed()=>_=InvokeAsync(StateHasChanged);
+    public void Dispose()=>Session.Changed-=Changed;
+    static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
+    static string Short(string layer)=>layer switch
+    {
+        "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","SITE"=>"S","ROOM"=>"RM",
+        "ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT","WEATHER"=>"WX",_=>"?"
+    };
+}
