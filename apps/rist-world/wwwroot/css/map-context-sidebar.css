@@ -100,6 +100,7 @@
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+.map-context-item .context-set{color:#e74b4b!important;font-weight:800!important;text-shadow:0 0 5px #8b101055}
 .map-context-item[data-context="utc"] time{color:#fff0ad}
 @media(max-width:520px){
   .map-shell.map-context-ready{grid-template-columns:minmax(0,1fr) 70px!important;gap:4px!important}
