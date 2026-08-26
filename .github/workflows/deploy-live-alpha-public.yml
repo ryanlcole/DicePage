@@ -28,6 +28,21 @@ jobs:
           dotnet-version: '10.0.x'
       - run: python apps/rist-world/prepare_public_data.py
       - run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+      - name: Optimize public card back
+        run: |
+          CARD="build/rist/wwwroot/assets/cards/shaelvien_card_back.jpg"
+          if [ -f "$CARD" ]; then
+            if command -v magick >/dev/null 2>&1; then
+              magick "$CARD" -auto-orient -resize '420x420>' -strip -sampling-factor 4:2:0 -interlace Plane -quality 58 "$CARD.optimized.jpg"
+              mv "$CARD.optimized.jpg" "$CARD"
+            elif command -v convert >/dev/null 2>&1; then
+              convert "$CARD" -auto-orient -resize '420x420>' -strip -sampling-factor 4:2:0 -interlace Plane -quality 58 "$CARD.optimized.jpg"
+              mv "$CARD.optimized.jpg" "$CARD"
+            else
+              echo "ImageMagick unavailable; keeping original card back."
+            fi
+            ls -lh "$CARD"
+          fi
       - name: Assemble GitHub Pages site
         run: |
           mkdir -p dist/app
