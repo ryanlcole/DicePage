@@ -1,9 +1,13 @@
+@implements IDisposable
 @inject WorldSession Session
-<div class="rist"><WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /></div>
+<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor")"><WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /></div>
 @code{
  protected override async Task OnInitializedAsync()
  {
+  Session.Changed+=SessionChanged;
   await Session.InitializeAsync();
   await Session.LoadThirdPartyStarterAssetsAsync();
  }
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=SessionChanged;
 }
