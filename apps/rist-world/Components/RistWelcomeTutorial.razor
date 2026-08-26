@@ -5,28 +5,36 @@
     <div class="rist-tutorial-shell" role="dialog" aria-modal="true" aria-label="RIST tutorial">
         <div class="rist-tutorial-tabletop" aria-hidden="true"></div>
         <section class="rist-tutorial-card">
-            <div class="rist-tutorial-intro">
-                <div class="rist-tutorial-prefix">Welcome to the</div>
-                <div class="rist-tutorial-wordcycle" aria-label="Recursive Immersive Sandbox Tabletop, also known as RIST">
-                    <span style="--i:0">Recursive</span>
-                    <span style="--i:1">Immersive</span>
-                    <span style="--i:2">Sandbox</span>
-                    <span style="--i:3">Tabletop</span>
-                    <span style="--i:4">a.k.a.</span>
-                    <span style="--i:5">RIST</span>
+            @if(Session.TutorialStep == "welcome")
+            {
+                <div class="rist-tutorial-intro">
+                    <div class="rist-tutorial-prefix">Welcome to the</div>
+                    <div class="rist-tutorial-wordcycle" aria-label="Recursive Immersive Sandbox Tabletop, also known as RIST">
+                        <span style="--i:0">Recursive</span><span style="--i:1">Immersive</span><span style="--i:2">Sandbox</span><span style="--i:3">Tabletop</span><span style="--i:4">a.k.a.</span><span style="--i:5">RIST</span>
+                    </div>
                 </div>
-            </div>
-            <nav class="rist-tutorial-options" aria-label="Choose how to begin">
-                <button @onclick='()=>Choose("MMO Worldbuilder")'>MMO Worldbuilder</button>
-                <button @onclick='()=>Choose("Sandbox Worldbuilder")'>Sandbox Worldbuilder</button>
-                <button @onclick='()=>Choose("MMO Player")'>MMO Player</button>
-                <button @onclick='()=>Choose("Sandbox Player")'>Sandbox Player</button>
-                <button class="skip" @onclick="Session.SkipTutorial">Skip tutorial</button>
-            </nav>
+                <nav class="rist-tutorial-options" aria-label="Choose how to begin">
+                    <button @onclick='()=>Choose("MMO Worldbuilder")'>MMO Worldbuilder</button>
+                    <button @onclick='()=>Choose("Sandbox Worldbuilder")'>Sandbox Worldbuilder</button>
+                    <button @onclick='()=>Choose("MMO Player")'>MMO Player</button>
+                    <button @onclick='()=>Choose("Sandbox Player")'>Sandbox Player</button>
+                </nav>
+            }
+            else if(Session.TutorialStep == "map-source")
+            {
+                <div class="rist-tutorial-intro compact">
+                    <div class="rist-tutorial-prefix">Every world needs somewhere to begin.</div>
+                    <div class="rist-tutorial-map-question">How would you like to create your first map?</div>
+                </div>
+                <nav class="rist-tutorial-options map-source" aria-label="Choose how to create a map">
+                    <button @onclick='()=>Session.ChooseTutorialMapSource("attach")'>Attach / Import Map</button>
+                    <button class="tutorial-primary" @onclick='()=>Session.ChooseTutorialMapSource("paint")'>Draw / Paint Map</button>
+                    <button @onclick='()=>Session.ChooseTutorialMapSource("random")'>Random Map</button>
+                </nav>
+                <div class="rist-tutorial-hint">Choose Draw / Paint Map to learn the map studio.</div>
+            }
         </section>
     </div>
 }
 
-@code {
-    private void Choose(string path) => Session.ChooseTutorialPath(path);
-}
+@code { private void Choose(string path) => Session.ChooseTutorialPath(path); }
