@@ -1,13 +1,12 @@
 from pathlib import Path
 import json
 import shutil
-from urllib.request import Request, urlopen
 
 root = Path(__file__).resolve().parents[2]
 tactical = root / 'apps' / 'tactical'
 web = root / 'apps' / 'rist-world' / 'wwwroot'
 (web / 'assets' / 'atlas').mkdir(parents=True, exist_ok=True)
-(web / 'assets' / 'world').mkdir(parents=True, exist_ok=True)
+(web / 'assets' / 'tiles').mkdir(parents=True, exist_ok=True)
 (web / 'data').mkdir(parents=True, exist_ok=True)
 
 registry = json.loads((tactical / 'data' / 'atlas' / 'atlas_asset_registry.json').read_text())
@@ -61,83 +60,29 @@ for asset in tile_registry.get('assets', []):
         'author': asset.get('author', 'Shaelvien')
     })
 
-# Owner-provided sprite sheets added directly to the RIST public asset library.
-# These remain as source sheets so the directional ordering is preserved for
-# the sprite builder; individual frames can be generated from the sheet later.
 static_sprite_sheets = [
-    {
-        'id': 'sprite-sheet-directional-humanoids',
-        'name': 'Directional Humanoids',
-        'image': 'assets/spritesheets/directional-humanoids.webp',
-        'layer': 'UNIVERSAL',
-        'directory': 'Sprites',
-        'folder': 'Directional Tokens',
-        'author': 'Shaelvien / owner-provided sprites'
-    },
-    {
-        'id': 'sprite-sheet-magic-coins',
-        'name': 'Magic Coin Sprites',
-        'image': 'assets/spritesheets/magic-coins.webp',
-        'layer': 'UNIVERSAL',
-        'directory': 'Sprites',
-        'folder': 'Coins',
-        'author': 'Shaelvien / owner-provided sprites'
-    },
-    {
-        'id': 'sprite-sheet-directional-creatures-a',
-        'name': 'Directional Creatures A',
-        'image': 'assets/spritesheets/directional-creatures-a.webp',
-        'layer': 'UNIVERSAL',
-        'directory': 'Sprites',
-        'folder': 'Directional Tokens',
-        'author': 'Shaelvien / owner-provided sprites'
-    },
-    {
-        'id': 'sprite-sheet-directional-dragons',
-        'name': 'Directional Dragons',
-        'image': 'assets/spritesheets/directional-dragons.webp',
-        'layer': 'UNIVERSAL',
-        'directory': 'Sprites',
-        'folder': 'Directional Tokens',
-        'author': 'Shaelvien / owner-provided sprites'
-    },
-    {
-        'id': 'sprite-sheet-directional-creatures-b',
-        'name': 'Directional Creatures B',
-        'image': 'assets/spritesheets/directional-creatures-b.webp',
-        'layer': 'UNIVERSAL',
-        'directory': 'Sprites',
-        'folder': 'Directional Tokens',
-        'author': 'Shaelvien / owner-provided sprites'
-    }
+    {'id':'sprite-sheet-directional-humanoids','name':'Directional Humanoids','image':'assets/spritesheets/directional-humanoids.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
+    {'id':'sprite-sheet-magic-coins','name':'Magic Coin Sprites','image':'assets/spritesheets/magic-coins.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Coins','author':'Shaelvien / owner-provided sprites'},
+    {'id':'sprite-sheet-directional-creatures-a','name':'Directional Creatures A','image':'assets/spritesheets/directional-creatures-a.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
+    {'id':'sprite-sheet-directional-dragons','name':'Directional Dragons','image':'assets/spritesheets/directional-dragons.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
+    {'id':'sprite-sheet-directional-creatures-b','name':'Directional Creatures B','image':'assets/spritesheets/directional-creatures-b.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'}
 ]
 for asset in static_sprite_sheets:
     if (web / asset['image']).exists():
         rows.append(asset)
 
-(web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
-
-# Verify the canonical AWS-hosted world map during every build and retain a
-# packaged Pages copy as a backup artifact.
-world_source = 'https://d2d6rnm6fnsp89.cloudfront.net/worlds/naeja/world.png?v=20260813-refresh'
-request = Request(world_source, headers={'User-Agent': 'RIST-Pages-Build/1.0'})
-with urlopen(request, timeout=30) as response:
-    world_bytes = response.read()
-if not world_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
-    raise SystemExit('World map CDN source is not a PNG')
-if len(world_bytes) < 100000:
-    raise SystemExit(f'World map CDN source unexpectedly small: {len(world_bytes)}')
-(web / 'assets' / 'world' / 'naeja.png').write_bytes(world_bytes)
-
-# Runtime uses the verified CDN URL directly. This removes browser-relative
-# path ambiguity while preserving the packaged same-origin copy above.
+(web / 'data' / 'atlas-public.json').write_text(json.dumps(rows, separators=(',', ':')))
 (web / 'data' / 'asset-config.json').write_text(json.dumps({
-    'worldMapUrl': world_source
-}))
+    'mapMode': 'procedural',
+    'worldColumns': 800,
+    'worldRows': 600,
+    'defaultMap': 'random-world',
+    'regions': ['verdant-reach', 'ember-basin', 'frost-march']
+}, separators=(',', ':')))
 
 cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
 (web / 'data' / 'cards-public.json').write_text(json.dumps([
     {'id': c['cardId'], 'name': c.get('name', 'Card'), 'type': c.get('cardType', 'card'), 'text': c.get('text', '')}
     for c in cards
-]))
-print(f'atlas={len(rows)} cards={len(cards)} world=cdn-runtime+pages-backup bytes={len(world_bytes)}')
+], separators=(',', ':')))
+print(f'atlas={len(rows)} cards={len(cards)} world=procedural-800x600 regions=3')
