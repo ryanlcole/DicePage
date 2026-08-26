@@ -1,2 +1,2 @@
-RIST WORLD LIVE ALPHA
-Endemar 2026-08-22 17:18 ET
+RIST WORLD live alpha build marker
+9d8cc7169adab84ae0346d6ae696f54611493849
