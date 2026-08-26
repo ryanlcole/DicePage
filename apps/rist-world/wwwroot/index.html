@@ -35,10 +35,10 @@
   <link rel="stylesheet" href="css/map-packets.css?v=1">
   <style>
     html,body{min-height:100%;background:#071118}
-    .pending-packet{min-height:100dvh;box-sizing:border-box;display:grid;place-content:center;gap:8px;padding:32px;text-align:center;background:#071118;color:#efd184;font-family:system-ui,-apple-system,sans-serif}
+    .pending-packet{position:fixed;inset:0;z-index:2147483600;min-height:100dvh;box-sizing:border-box;display:grid;place-content:center;gap:8px;padding:32px;text-align:center;background:#071118;color:#efd184;font-family:system-ui,-apple-system,sans-serif}
     .pending-packet strong{font:700 clamp(22px,6vw,34px)/1.1 Georgia,serif;letter-spacing:.02em}
     .pending-packet b{font-size:16px;letter-spacing:.08em;text-transform:uppercase}
-    .pending-packet span{min-height:1.4em;color:#c8b787;font-size:13px}
+    .pending-packet span{min-height:1.4em;color:#c8b787;font-size:13px;font-variant-numeric:tabular-nums}
     .site-copyright-notice{position:fixed;left:8px;right:8px;bottom:calc(3px + env(safe-area-inset-bottom,0px));z-index:2147483000;pointer-events:none;color:#c2a565;font:600 7px/1.15 system-ui,-apple-system,sans-serif;letter-spacing:.025em;text-align:center;opacity:.78;text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     @media (min-width:801px){.site-copyright-notice{font-size:9px;left:10px;right:10px;bottom:5px}}
   </style>
@@ -48,11 +48,11 @@
     <div id="pending-packet" class="pending-packet" role="status" aria-live="polite">
       <strong>RIST WORLD</strong>
       <b>Pending Packet</b>
-      <span id="pending-packet-status">Downloading app…</span>
+      <span id="pending-packet-status">Counting required items…</span>
     </div>
   </div>
   <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
-  <script src="pending-packet.js?v=1"></script>
+  <script src="pending-packet.js?v=2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./pending-packet-sw.js').catch(() => {}));
