@@ -1,0 +1,32 @@
+@inject WorldSession Session
+
+@if(Session.IsLoggedIn && Session.TutorialWelcomeOpen)
+{
+    <div class="rist-tutorial-shell" role="dialog" aria-modal="true" aria-label="RIST tutorial">
+        <div class="rist-tutorial-tabletop" aria-hidden="true"></div>
+        <section class="rist-tutorial-card">
+            <div class="rist-tutorial-intro">
+                <div class="rist-tutorial-prefix">Welcome to the</div>
+                <div class="rist-tutorial-wordcycle" aria-label="Recursive Immersive Sandbox Tabletop, also known as RIST">
+                    <span style="--i:0">Recursive</span>
+                    <span style="--i:1">Immersive</span>
+                    <span style="--i:2">Sandbox</span>
+                    <span style="--i:3">Tabletop</span>
+                    <span style="--i:4">a.k.a.</span>
+                    <span style="--i:5">RIST</span>
+                </div>
+            </div>
+            <nav class="rist-tutorial-options" aria-label="Choose how to begin">
+                <button @onclick='()=>Choose("MMO Worldbuilder")'>MMO Worldbuilder</button>
+                <button @onclick='()=>Choose("Sandbox Worldbuilder")'>Sandbox Worldbuilder</button>
+                <button @onclick='()=>Choose("MMO Player")'>MMO Player</button>
+                <button @onclick='()=>Choose("Sandbox Player")'>Sandbox Player</button>
+                <button class="skip" @onclick="Session.SkipTutorial">Skip tutorial</button>
+            </nav>
+        </section>
+    </div>
+}
+
+@code {
+    private void Choose(string path) => Session.ChooseTutorialPath(path);
+}
