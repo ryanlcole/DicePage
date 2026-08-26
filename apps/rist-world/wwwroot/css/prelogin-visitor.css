@@ -1,0 +1,46 @@
+/* Logged-out visitor mode: browsing/navigation remains available, game/world mutation waits for Discord auth. */
+.rist.auth-visitor .topbar .finite-set>*{pointer-events:none!important;filter:saturate(.55);opacity:.56}
+.rist.auth-visitor .topbar .finite-set>.header-info-button,
+.rist.auth-visitor .topbar .finite-set>.door-button{pointer-events:auto!important;filter:none;opacity:1}
+
+/* Rail navigation remains usable before login. */
+.rist.auth-visitor .rail-scroll-arrow{pointer-events:auto!important;opacity:1!important;filter:none!important}
+
+/* Map remains explorable: pan, pinch/wheel, keyboard navigation and zoom buttons work. */
+.rist.auth-visitor .map{pointer-events:auto!important}
+.rist.auth-visitor .desktop-map-zoom,
+.rist.auth-visitor .desktop-map-zoom button{pointer-events:auto!important;opacity:1!important;filter:none!important}
+
+/* World objects are view-only so their gestures fall through to map navigation. */
+.rist.auth-visitor .map .tile-cell,
+.rist.auth-visitor .map .piece,
+.rist.auth-visitor .map .placed-pin,
+.rist.auth-visitor .map .pin-label-callout,
+.rist.auth-visitor .map .map-zone-label,
+.rist.auth-visitor .locked-tile-menu,
+.rist.auth-visitor .region-player-picker,
+.rist.auth-visitor .recursive-region-actions{pointer-events:none!important}
+
+/* No asset, card, character, dice, chat, MMO-build or editing actions before login. */
+.rist.auth-visitor .tile-browser,
+.rist.auth-visitor .staging-tray,
+.rist.auth-visitor .pallet,
+.rist.auth-visitor .hand-rail button:not(.rail-scroll-arrow),
+.rist.auth-visitor .public-card-rail button:not(.rail-scroll-arrow),
+.rist.auth-visitor .dice-footer button:not(.rail-scroll-arrow),
+.rist.auth-visitor .dice-footer input,
+.rist.auth-visitor .dice-footer select,
+.rist.auth-visitor .chat-composer,
+.rist.auth-visitor .chat-composer *,
+.rist.auth-visitor .character-mixer,
+.rist.auth-visitor .mmo-zone-actions,
+.rist.auth-visitor .recursion-cockpit button,
+.rist.auth-visitor .recursion-cockpit input,
+.rist.auth-visitor .recursion-cockpit select{pointer-events:none!important;filter:saturate(.55);opacity:.56}
+
+/* Collapsing/expanding the right context rail is navigation and remains available. */
+.rist.auth-visitor .map-context-sidebar .map-context-item{pointer-events:none!important}
+.rist.auth-visitor .map-context-sidebar .map-context-toggle{pointer-events:auto!important;opacity:1!important;filter:none!important}
+
+/* Communicate visitor mode without covering the tabletop. */
+.rist.auth-visitor .door-button{box-shadow:0 0 0 1px #c2a56566 inset,0 0 8px #c2a56533}
