@@ -1,33 +1,27 @@
 @inject WorldSession Session
+<div class="home-footer-stack">
 <footer id="footer-slider" class="footer dice-footer circular-rail desktop-arrow-slider" data-circular-rail aria-label="Dice tray">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#footer-slider',-1)" aria-label="Scroll dice left" title="Scroll left">‹</button>
  <div class="circular-set dice-circular-set">
-   <button class="footer-chat-button @(Session.ChatComposerOpen||Session.DialogueOpen?"active":"")" @onclick="Session.ToggleChatComposer" aria-expanded="@(Session.ChatComposerOpen||Session.DialogueOpen)" aria-label="Open dialogue chat"><span>Chat</span></button>
    @foreach(var die in Session.DiceSet)
    {
     if(die.Key=="d5-bonus")
     {
      <div class="die-control d5-control bonus-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.BonusD5Value" aria-label="Bonus D5 value">@for(var i=1;i<=5;i++){<option value="@i">+@i</option>}</select>
-      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" aria-label="Roll selected bonus die" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)">
-       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-      </button>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected bonus":"Add selected bonus die to open bag")" aria-label="Roll selected bonus die" @onclick="()=>DieClick(die.Key,Session.BonusD5Value)"><span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span></button>
      </div>
     }
     else if(die.Key=="d5-penalty")
     {
      <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
       <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
-      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" aria-label="Roll selected penalty die" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)">
-       <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-      </button>
+      <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" aria-label="Roll selected penalty die" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)"><span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span></button>
      </div>
     }
     else
     {
-     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" aria-label="Roll @die.Label" @onclick="()=>DieClick(die.Key,null)">
-      <span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span>
-     </button>
+     <button class="die-button" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)" title="@(Session.EditingHandCard is null?$"Roll {die.Label}":$"Add {die.Label} to open bag")" aria-label="Roll @die.Label" @onclick="()=>DieClick(die.Key,null)"><span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span></button>
     }
    }
    <div class="sum" aria-label="Dice total"><span>SUM</span><span>@Session.Total</span></div>
@@ -36,27 +30,34 @@
  </div>
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#footer-slider',1)" aria-label="Scroll dice right" title="Scroll right">›</button>
 </footer>
-@if(Session.ChatComposerOpen)
-{
- <div class="dialogue-scrim" @onclick="Session.CloseChat">
-  <section class="dialogue-composer" role="dialog" aria-modal="true" aria-label="Write dialogue" @onclick:stopPropagation="true">
-   <div class="dialogue-portrait">
-    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
-    else{<span class="dialogue-card-back" aria-hidden="true"></span>}
+
+<section class="home-inline-chat @(_chatExpanded?"expanded":"")" aria-label="Chat" @onclick="ExpandChat">
+ <div class="home-chat-text-region">
+  @if(_chatExpanded)
+  {
+   <div class="home-chat-transcript" aria-live="polite">
+    @foreach(var message in _history)
+    {
+     <article><strong>@message.Speaker</strong><p>@message.Text</p></article>
+    }
+    @if(_history.Count==0 && !string.IsNullOrWhiteSpace(Session.DialogueText))
+    {
+     <article><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></article>
+    }
    </div>
-   <label><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?" autofocus></textarea></label>
-   <div class="dialogue-actions"><button @onclick="Session.CloseChat">Cancel</button><button class="primary" @onclick="Session.SendChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Say it</button></div>
-  </section>
+  }
+  <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?" @onclick:stopPropagation="false"></textarea></label>
  </div>
-}
+ <button class="home-chat-send" @onclick="SendInlineChat" @onclick:stopPropagation="true" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
+ @if(_chatExpanded){<button class="home-chat-collapse" @onclick="CollapseChat" @onclick:stopPropagation="true" aria-label="Collapse chat">⌄</button>}
+</section>
+</div>
+
 @if(Session.DialogueOpen)
 {
  <div class="dialogue-scrim dialogue-playback" @onclick="Session.AdvanceDialogue">
   <section class="rpg-dialogue-box" role="dialog" aria-modal="true" aria-live="polite" aria-label="Dialogue from @Session.DialogueSpeaker" @onclick:stopPropagation="true">
-   <div class="dialogue-portrait">
-    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
-    else{<span class="dialogue-card-back" aria-hidden="true"></span>}
-   </div>
+   <div class="dialogue-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}else{<span class="dialogue-card-back" aria-hidden="true"></span>}</div>
    <div class="dialogue-copy"><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></div>
    <button class="dialogue-next" @onclick="Session.AdvanceDialogue">Next</button>
   </section>
@@ -64,12 +65,11 @@
 }
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
+ readonly List<(string Speaker,string Text)> _history=[];
+ bool _chatExpanded;
+ void ExpandChat()=>_chatExpanded=true;
+ void CollapseChat(){_chatExpanded=false;}
+ void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();_chatExpanded=true;}
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollAsync(key,magnitude);}
- static string DieSpriteStyle(DiceSpec die,int frame)
- {
-  var col=frame%die.Columns;var row=frame/die.Columns;
-  var x=die.Columns<=1?0:col*100.0/(die.Columns-1);
-  var y=die.Rows<=1?0:row*100.0/(die.Rows-1);
-  return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-3');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";
- }
+ static string DieSpriteStyle(DiceSpec die,int frame){var col=frame%die.Columns;var row=frame/die.Columns;var x=die.Columns<=1?0:col*100.0/(die.Columns-1);var y=die.Rows<=1?0:row*100.0/(die.Rows-1);return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-3');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";}
 }
