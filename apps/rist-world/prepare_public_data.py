@@ -60,6 +60,61 @@ for asset in tile_registry.get('assets', []):
         'folder': folder.replace('_', ' ').title(),
         'author': asset.get('author', 'Shaelvien')
     })
+
+# Owner-provided sprite sheets added directly to the RIST public asset library.
+# These remain as source sheets so the directional ordering is preserved for
+# the sprite builder; individual frames can be generated from the sheet later.
+static_sprite_sheets = [
+    {
+        'id': 'sprite-sheet-directional-humanoids',
+        'name': 'Directional Humanoids',
+        'image': 'assets/spritesheets/directional-humanoids.webp',
+        'layer': 'UNIVERSAL',
+        'directory': 'Sprites',
+        'folder': 'Directional Tokens',
+        'author': 'Shaelvien / owner-provided sprites'
+    },
+    {
+        'id': 'sprite-sheet-magic-coins',
+        'name': 'Magic Coin Sprites',
+        'image': 'assets/spritesheets/magic-coins.webp',
+        'layer': 'UNIVERSAL',
+        'directory': 'Sprites',
+        'folder': 'Coins',
+        'author': 'Shaelvien / owner-provided sprites'
+    },
+    {
+        'id': 'sprite-sheet-directional-creatures-a',
+        'name': 'Directional Creatures A',
+        'image': 'assets/spritesheets/directional-creatures-a.webp',
+        'layer': 'UNIVERSAL',
+        'directory': 'Sprites',
+        'folder': 'Directional Tokens',
+        'author': 'Shaelvien / owner-provided sprites'
+    },
+    {
+        'id': 'sprite-sheet-directional-dragons',
+        'name': 'Directional Dragons',
+        'image': 'assets/spritesheets/directional-dragons.webp',
+        'layer': 'UNIVERSAL',
+        'directory': 'Sprites',
+        'folder': 'Directional Tokens',
+        'author': 'Shaelvien / owner-provided sprites'
+    },
+    {
+        'id': 'sprite-sheet-directional-creatures-b',
+        'name': 'Directional Creatures B',
+        'image': 'assets/spritesheets/directional-creatures-b.webp',
+        'layer': 'UNIVERSAL',
+        'directory': 'Sprites',
+        'folder': 'Directional Tokens',
+        'author': 'Shaelvien / owner-provided sprites'
+    }
+]
+for asset in static_sprite_sheets:
+    if (web / asset['image']).exists():
+        rows.append(asset)
+
 (web / 'data' / 'atlas-public.json').write_text(json.dumps(rows))
 
 # Verify the canonical AWS-hosted world map during every build and retain a
