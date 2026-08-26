@@ -35,39 +35,30 @@
   <link rel="stylesheet" href="css/map-packets.css?v=2">
   <style>
     html,body{min-height:100%;background:#071118}
-    .pending-packet{position:fixed;inset:0;z-index:2147483600;min-height:100dvh;box-sizing:border-box;display:grid;place-content:center;gap:8px;padding:32px;text-align:center;background:#071118;color:#efd184;font-family:system-ui,-apple-system,sans-serif}
-    .pending-packet strong{font:700 clamp(22px,6vw,34px)/1.1 Georgia,serif;letter-spacing:.02em}
-    .pending-packet b{font-size:16px;letter-spacing:.08em;text-transform:uppercase}
-    .pending-packet span{min-height:1.4em;color:#c8b787;font-size:13px;font-variant-numeric:tabular-nums}
+    #app{min-height:100dvh;background:#071118}
     .site-copyright-notice{position:fixed;left:8px;right:8px;bottom:calc(3px + env(safe-area-inset-bottom,0px));z-index:2147483000;pointer-events:none;color:#c2a565;font:600 7px/1.15 system-ui,-apple-system,sans-serif;letter-spacing:.025em;text-align:center;opacity:.78;text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     @media (min-width:801px){.site-copyright-notice{font-size:9px;left:10px;right:10px;bottom:5px}}
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="pending-packet" class="pending-packet" role="status" aria-live="polite">
-      <strong>RIST WORLD</strong>
-      <b>Pending Packet</b>
-      <span id="pending-packet-status">Starting RIST WORLD…</span>
-    </div>
-  </div>
+  <div id="app"></div>
   <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
 
-  <!-- Tier 0: tiny status monitor. It never blocks or duplicates downloads. -->
-  <script src="pending-packet.js?v=4"></script>
   <script>
+    // Pending Packet is disabled for now. Remove any previously installed
+    // startup service worker so old cached loading shells cannot intercept the app.
     if ('serviceWorker' in navigator) {
-      addEventListener('load', () => navigator.serviceWorker.register('./pending-packet-sw.js').catch(() => {}));
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const registration of registrations) registration.unregister().catch(() => {});
+      }).catch(() => {});
     }
   </script>
 
-  <!-- Tier 1: only code required to boot and render the usable Blazor shell. -->
+  <!-- Core boot path. -->
   <script src="rist.js?v=20260823-auth-recovery-2"></script>
   <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 
-  <!-- Tier 2: map/editor/appearance enhancements are loaded only AFTER the app
-       is usable. This keeps a fresh browser from competing for bandwidth and
-       memory during WebAssembly startup. -->
+  <!-- Optional systems load after the shell has had first access to bandwidth. -->
   <script>
     (() => {
       const modules = [
@@ -85,7 +76,6 @@
       const load = () => {
         if (started) return;
         started = true;
-        window.ristPendingPacket?.status?.('Loading visible tools');
         for (const src of modules) {
           const script = document.createElement('script');
           script.src = src;
@@ -94,8 +84,6 @@
         }
       };
       addEventListener('rist:app-ready', load, { once: true });
-      // Fail-safe: if an older browser misses the custom event, optional tools
-      // still arrive shortly after startup rather than disappearing entirely.
       setTimeout(load, 5000);
     })();
   </script>
