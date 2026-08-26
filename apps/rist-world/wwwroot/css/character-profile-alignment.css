@@ -1,4 +1,4 @@
-.reference-value-tile .tile-label{top:8%!important;height:18%!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0 5%!important}
+.reference-value-tile .tile-label{top:12%!important;height:18%!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0 5%!important}
 .reference-value-tile .tile-number{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important}
 .reference-value-tile .tile-circle-text{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important}
 .reference-tracker .tracker-center{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;justify-content:center;gap:5px;padding:0 5%;text-align:center}
