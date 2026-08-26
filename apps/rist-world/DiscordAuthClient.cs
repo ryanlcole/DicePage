@@ -138,7 +138,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     }
 
     public sealed record AuthConfig(string ApiBaseUrl);
-    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix);
+    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix, string? Email = null);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
