@@ -10,7 +10,7 @@
   const y=Math.max(-halfY,Math.min(halfY,(.5-((cy-sr.top)/sr.height))*rows*scale.distance));
   return {x,y,unit:scale.unit};
  }
- function item(label,value,key){const d=document.createElement('div');d.className='map-context-item';d.dataset.context=key;const s=document.createElement('strong');s.textContent=label;const v=key==='utc'?document.createElement('time'):document.createElement('span');v.textContent=value;d.append(s,v);return d}
+ function item(label,value,key){const d=document.createElement('div');d.className='map-context-item';d.dataset.context=key;const s=document.createElement('strong');s.textContent=label;const v=key==='utc'?document.createElement('time'):document.createElement('span');v.textContent=value;if(value==='SET')v.classList.add('context-set');d.append(s,v);return d}
  function ensure(){
   document.querySelectorAll('.map-shell').forEach(shell=>{
    const map=shell.querySelector(':scope > .map');if(!map)return;
@@ -19,7 +19,7 @@
    if(!coord){coord=document.createElement('div');coord.className='map-current-coordinates';coord.setAttribute('aria-label','Current map coordinates');map.appendChild(coord)}
    if(!shell.querySelector(':scope > .map-context-sidebar')){
     const rail=document.createElement('aside');rail.className='map-context-sidebar';rail.setAttribute('aria-label','World context');
-    rail.append(item('Weather','Unset','weather'),item('Astronomy','Unset','astronomy'),item('Calendar','Unset','calendar'),item('Game Clock','Unset','game'),item('UTC Clock','--:--:--','utc'));
+    rail.append(item('STARS','SET','stars'),item('SKY','SET','sky'),item('CAL','SET','cal'),item('UGC','SET','ugc'),item('UTC','--:--:--','utc'));
     shell.appendChild(rail);
    }
    const c=visibleCenter(map);coord.textContent=`${fmt(c.x)}, ${fmt(c.y)}${c.unit?` ${c.unit}`:''}`;
