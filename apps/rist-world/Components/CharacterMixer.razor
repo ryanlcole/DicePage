@@ -4,246 +4,180 @@
 @inject WorldSession Session
 @inject PrivateCardLibrary Library
 @inject IJSRuntime JS
+
 @if(Session.MixerOpen)
 {
-<div class="mixer-modal" @onclick="CloseSheet">
-<section class="character-mixer universal-sheet" data-board-static="true" @onclick:stopPropagation="true">
- <div class="exact-sheet-toolbar"><span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>@if(Session.CharacterEditMode){<button @onclick="Session.NewCharacter">New</button><button @onclick="Session.DeleteCharacter">Delete</button>}else{<button @onclick="()=>Session.OpenCharacterEditMode()">Edit</button>}<button @onclick="Session.CloseMixer">Close</button></div>
- <div class="exact-sheet-screen exact-@_sheetView.ToLowerInvariant()">
- <section class="identity-badge">
-  <div class="exact-portrait character-portrait">@if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="Character portrait"/>}else{<span>No portrait</span>}</div>
-  <div class="identity-badge-fields"><input class="exact-name" aria-label="Character name" placeholder="Character name" @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)"/><div class="identity-badge-meta">@if(Session.CharacterEditMode){<button @onclick="()=>_portraitEditing=true" title="Edit portrait">Portrait</button>}</div></div>
- </section>
- @if(_sheetView=="Profile")
- {
-  <section class='sheet-pane values-pane @PaneClass("values")'><header><button class="pane-toggle" @onclick='()=>TogglePane("values")'><h2>Values</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("values")){<div class="pane-content">@if(Session.CharacterFields.Any(f=>WorldSession.IsAttributeField(f))){foreach(var f in Session.CharacterFields.Where(f=>WorldSession.IsAttributeField(f))){@Plate(f,true)}}else{<div style="padding:7px;font-size:11px;color:#aaa">No attributes. @if(Session.CharacterEditMode){<button @onclick="AddAttribute">Add attribute</button>}</div>}</div>}</section>
-  <section class='sheet-pane trackers-pane @PaneClass("trackers")'><header><button class="pane-toggle" @onclick='()=>TogglePane("trackers")'><h2>Trackers</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("trackers")){<div class="pane-content">@if(Session.CharacterFields.Any(f=>WorldSession.IsTrackerField(f))){foreach(var f in Session.CharacterFields.Where(f=>WorldSession.IsTrackerField(f))){<article><div class="control-identity-row"><strong>@f.Name</strong></div><div class="pool-track"><label><input type="range" min="0" max="@f.Max" value="@f.Current" @onchange="e=>Session.SetTrackerCurrent(f,int.TryParse(e.Value?.ToString(),out var v)?v:0)" readonly="@(!Session.CharacterEditMode)"/><span>@f.Current / @f.Max</span></label>@if(Session.CharacterEditMode){<div style="display:flex;gap:5px;margin-top:2px"><label>Max:<input type="number" value="@f.Max" @onchange="e=>Session.SetTrackerMaximum(f,int.TryParse(e.Value?.ToString(),out var v)?v:1)" style="width:50px"/></label><button @onclick="()=>Session.DeleteCharacterControl(f)">Del</button></div>}</div></article>}}else{<div style="padding:7px;font-size:11px;color:#aaa">No trackers. @if(Session.CharacterEditMode){<button @onclick="AddTracker">Add tracker</button>}</div>}</div>}</section>
-  <section class='sheet-pane profile-notes-pane @PaneClass("profile-notes")'><header><button class="pane-toggle" @onclick='()=>TogglePane("profile-notes")'><h2>Profile notes</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("profile-notes")){<div class="pane-content"><textarea @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" aria-label="Character description" style="min-height:80px;width:100%"></textarea></div>}</section>
- }
- else if(_sheetView is "Rules" or "Entries")
- {
-  <section class='sheet-pane entries-pane @PaneClass("entries")'><header><button class="pane-toggle" @onclick='()=>TogglePane("entries")'><h2>Entries</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("entries")){<div class="pane-content">@if(Session.CharacterFields.Any(f=>WorldSession.IsFlareField(f))){foreach(var f in Session.CharacterFields.Where(f=>WorldSession.IsFlareField(f))){<article style="padding:4px"><strong>@f.Name</strong>@if(Session.CharacterEditMode){<button @onclick="()=>Session.DeleteCharacterControl(f)">Del</button>}</article>}}else{<div style="padding:7px;font-size:11px;color:#aaa">No entries. @if(Session.CharacterEditMode){<button @onclick="AddFlare">Add entry</button>}</div>}</div>}</section>
-  <section class='sheet-pane notes-pane @PaneClass("notes")'><header><button class="pane-toggle" @onclick='()=>TogglePane("notes")'><h2>Notes &amp; records</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("notes")){<div class="pane-content"><textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" aria-label="Character notes" style="min-height:80px;width:100%"></textarea></div>}</section>
-  <section class='sheet-pane growth-pane @PaneClass("growth")'><header><button class="pane-toggle" @onclick='()=>TogglePane("growth")'><h2>Growth</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("growth")){<div class="pane-content"><textarea placeholder="Track growth and milestones" readonly="@(!Session.CharacterEditMode)" aria-label="Growth tracking" style="min-height:80px;width:100%"></textarea></div>}</section>
- }
- else if(_sheetView=="Equipment")
- {
-  <section class='sheet-pane equipment-pane @PaneClass("equipment")'><header><button class="pane-toggle" @onclick='()=>TogglePane("equipment")'><h2>Equipment</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("equipment")){<div class="pane-content"><textarea placeholder="List equipment and gear" readonly="@(!Session.CharacterEditMode)" aria-label="Equipment list" style="min-height:80px;width:100%"></textarea></div>}</section>
-  <section class='sheet-pane containers-pane @PaneClass("containers")'><header><button class="pane-toggle" @onclick='()=>TogglePane("containers")'><h2>Containers</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("containers")){<div class="pane-content"><textarea placeholder="Track containers and capacity" readonly="@(!Session.CharacterEditMode)" aria-label="Container tracking" style="min-height:80px;width:100%"></textarea></div>}</section>
-  <section class='sheet-pane equipment-notes-pane @PaneClass("equipment-notes")'><header><button class="pane-toggle" @onclick='()=>TogglePane("equipment-notes")'><h2>Inventory notes</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("equipment-notes")){<div class="pane-content"><textarea placeholder="Inventory notes" readonly="@(!Session.CharacterEditMode)" aria-label="Inventory notes" style="min-height:80px;width:100%"></textarea></div>}</section>
- }
- else if(_sheetView=="Linked")
- {
-  <section class='sheet-pane linked-pane @PaneClass("linked")'><header><button class="pane-toggle" @onclick='()=>TogglePane("linked")'><h2>Linked asset</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("linked")){<div class="pane-content"><textarea placeholder="Link to related asset or campaign" readonly="@(!Session.CharacterEditMode)" aria-label="Linked asset" style="min-height:80px;width:100%"></textarea></div>}</section>
-  <section class='sheet-pane locations-pane @PaneClass("locations")'><header><button class="pane-toggle" @onclick='()=>TogglePane("locations")'><h2>Locations</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("locations")){<div class="pane-content"><textarea placeholder="Known locations" readonly="@(!Session.CharacterEditMode)" aria-label="Locations" style="min-height:80px;width:100%"></textarea></div>}</section>
-  <section class='sheet-pane asset-notes-pane @PaneClass("asset-notes")'><header><button class="pane-toggle" @onclick='()=>TogglePane("asset-notes")'><h2>Damage &amp; conditions</h2><img src="assets/ui/character-sheet/page-arrow.png" alt=""/></button></header>@if(PaneIsOpen("asset-notes")){<div class="pane-content"><textarea placeholder="Damage, conditions, and status effects" readonly="@(!Session.CharacterEditMode)" aria-label="Damage and conditions" style="min-height:80px;width:100%"></textarea></div>}</section>
- }
- else if(_sheetView=="Spellbook")
- {
-  <section class='sheet-pane spellbook-pane is-open' @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
-   <header><h2>Spellbook</h2><small>Private cards attached to this character</small></header>
-   <div class="character-sheet-spellbook">
-    @foreach(var card in Library.SpellbookCards)
+ <div class="native-character-modal" role="dialog" aria-modal="true" aria-label="Universal character sheet" @onclick="CloseSheet">
+  <section class="native-character-sheet" @onclick:stopPropagation="true">
+   <header class="native-character-toolbar">
+    <span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>
+    <div>
+     @if(Session.CharacterEditMode)
+     {
+      <button type="button" @onclick="Session.NewCharacter">New</button>
+      <button type="button" @onclick="Session.DeleteCharacter">Delete</button>
+      <button type="button" @onclick="Session.SaveCharacter">Done</button>
+     }
+     else
+     {
+      <button type="button" @onclick="Session.OpenCharacterEditMode">Edit</button>
+     }
+     <button type="button" @onclick="Session.CloseMixer">Close</button>
+    </div>
+   </header>
+
+   <div class="native-character-scroll">
+    <section class="native-character-identity">
+     <button type="button" class="native-character-portrait" @onclick="OpenPortraitEditor" aria-label="Edit portrait">
+      @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+      {
+       <img src="@Session.CharacterPortraitDataUrl" alt="Character portrait" />
+      }
+      else
+      {
+       <span>No portrait</span>
+      }
+     </button>
+     <div class="native-character-nameplate">
+      <label>Character name
+       <input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" placeholder="Character name" />
+      </label>
+      <label>Identity / concept
+       <input @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Identity, concept, role, or archetype" />
+      </label>
+     </div>
+    </section>
+
+    @if(_page==0)
     {
-     <article class="character-spell-card">
-      <button @onclick="()=>_spellCard=card"><small>@card.School</small><strong>@card.Name</strong></button>
-      @if(Session.CharacterEditMode){<button class="remove-spell-card" @onclick="()=>Library.RemoveFromSpellbookAsync(card)" aria-label="@($"Remove {card.Name} from spellbook")">×</button>}
-     </article>
+     <section class="native-character-page" aria-label="Profile page">
+      <h2>Profile</h2>
+      <label>Description<textarea @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Description"></textarea></label>
+      <label>Profile notes<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Notes"></textarea></label>
+     </section>
     }
-    @if(!Library.SpellbookCards.Any()){<p>Open the Card Library from the header, then add or drag cards to this spellbook.</p>}
+    else if(_page==1)
+    {
+     <section class="native-character-page" aria-label="Values and trackers page">
+      <div class="native-page-heading"><h2>Values &amp; Trackers</h2>@if(Session.CharacterEditMode){<div><button @onclick="()=>Session.AddCharacterControl(\"Attributes\")">+ Value</button><button @onclick="()=>Session.AddCharacterControl(\"Trackers\")">+ Tracker</button></div>}</div>
+      <div class="native-field-grid">
+       @foreach(var field in Session.CharacterFields.Where(f=>WorldSession.IsAttributeField(f)||WorldSession.IsTrackerField(f)))
+       {
+        <article class="native-field-card">
+         <strong>@field.Name</strong>
+         @if(WorldSession.IsAttributeField(field))
+         {
+          <label>Value<input type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetAttribute(field,e)" /></label>
+         }
+         else
+         {
+          <label>Current<input type="number" min="0" max="@field.Max" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetTracker(field,e)" /></label>
+          <label>Maximum<input type="number" min="1" value="@field.Max" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetTrackerMax(field,e)" /></label>
+         }
+         @if(Session.CharacterEditMode){<button class="native-delete-field" @onclick="()=>Session.DeleteCharacterControl(field)">Remove</button>}
+        </article>
+       }
+       @if(!Session.CharacterFields.Any(f=>WorldSession.IsAttributeField(f)||WorldSession.IsTrackerField(f)))
+       {<p class="native-empty">No values or trackers yet.</p>}
+      </div>
+     </section>
+    }
+    else if(_page==2)
+    {
+     <section class="native-character-page" aria-label="Entries page">
+      <div class="native-page-heading"><h2>Entries</h2>@if(Session.CharacterEditMode){<button @onclick="()=>Session.AddCharacterControl(\"Flare\")">+ Entry</button>}</div>
+      <div class="native-field-grid">
+       @foreach(var field in Session.CharacterFields.Where(f=>WorldSession.IsFlareField(f)))
+       {
+        <article class="native-field-card"><strong>@field.Name</strong><p>@field.Description</p>@if(Session.CharacterEditMode){<button class="native-delete-field" @onclick="()=>Session.DeleteCharacterControl(field)">Remove</button>}</article>
+       }
+       @if(!Session.CharacterFields.Any(f=>WorldSession.IsFlareField(f))){<p class="native-empty">No entries yet.</p>}
+      </div>
+      <label>Rules / abilities / records<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Rules, abilities, languages, feats, records, and other system-specific entries"></textarea></label>
+     </section>
+    }
+    else if(_page==3)
+    {
+     <section class="native-character-page" aria-label="Equipment page">
+      <h2>Equipment &amp; Anatomy</h2>
+      <label>Equipment<textarea @bind="_equipment" readonly="@(!Session.CharacterEditMode)" placeholder="Equipment, armor, weapons, carried items, containers"></textarea></label>
+      <label>Anatomy / form<textarea @bind="_anatomy" readonly="@(!Session.CharacterEditMode)" placeholder="Anatomy, body configuration, adaptations, movement, form"></textarea></label>
+      <label>Conditions<textarea @bind="_conditions" readonly="@(!Session.CharacterEditMode)" placeholder="Damage, conditions, status effects"></textarea></label>
+     </section>
+    }
+    else
+    {
+     <section class="native-character-page native-spellbook-page" aria-label="Linked cards and spellbook page" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
+      <h2>Linked Cards / Spellbook</h2>
+      <p class="native-page-help">Cards linked to the active character appear here.</p>
+      <div class="native-linked-cards">
+       @foreach(var card in Library.SpellbookCards)
+       {
+        <article><strong>@card.Name</strong><small>@card.Type</small>@if(Session.CharacterEditMode){<button @onclick="()=>Library.RemoveFromSpellbookAsync(card)">Remove</button>}</article>
+       }
+       @if(!Library.SpellbookCards.Any()){<p class="native-empty">No linked cards yet. Add them from the Card Library.</p>}
+      </div>
+      <label>Linked assets / locations<textarea @bind="_linked" readonly="@(!Session.CharacterEditMode)" placeholder="Linked assets, locations, companions, vehicles, campaign references"></textarea></label>
+     </section>
+    }
    </div>
+
+   <nav class="native-character-nav" aria-label="Character sheet pages">
+    @for(var i=0;i<PageLabels.Length;i++)
+    {
+     var index=i;
+     <button type="button" class="@(_page==index?\"active\":\"\")" @onclick="()=>_page=index" aria-label="@PageLabels[index]" title="@PageLabels[index]"><span>@PageGlyphs[index]</span><small>@PageLabels[index]</small></button>
+    }
+   </nav>
   </section>
- }
- else
- {
-  <textarea class="exact-notes-page" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" aria-label="Character notes"></textarea>
- }
- <nav class="exact-page-arrows" aria-label="Character sheet pages"><button class="back" @onclick="PreviousSheet" aria-label="Previous character sheet page"><img src="assets/ui/character-sheet/page-arrow-left.png" alt=""/></button><button class="next" @onclick="NextSheet" aria-label="Next character sheet page"><img src="assets/ui/character-sheet/page-arrow-right.png" alt=""/></button></nav>
  </div>
-</section></div>
-
-@if(_spellCard is not null)
-{
- <div class="private-spell-modal" @onclick="()=>_spellCard=null"><article class="private-spell-sheet" @onclick:stopPropagation><button class="private-spell-close" @onclick="()=>_spellCard=null">×</button><span class="private-badge">Character spellbook</span><h2>@_spellCard.Name</h2><p class="private-spell-meta">@_spellCard.School</p><p class="private-spell-description">@_spellCard.Description</p></article></div>
-}
-
-@if(_nameplateField is not null)
-{
- <div class="field-editor-modal" @onclick="CancelNameplate"><section class="field-editor nameplate-editor" style="@AccentStyle(_nameplateField)" @onclick:stopPropagation="true"><header><strong>Nameplate</strong><button @onclick="CancelNameplate">×</button></header><div class="form-section"><label>Name:</label><input @bind="_nameplateName"/></div><div class="form-section"><label>Code:</label><div style="display:flex;gap:3px"><input @bind="_nameplateCode" style="flex:1"/><button @onclick="ResetNameplateCode">Reset</button></div></div><div class="form-section"><label>Description:</label><textarea @bind="_nameplateDescription" style="min-height:60px"></textarea></div><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="CancelNameplate">Cancel</button><button @onclick="ApplyNameplate">Apply</button></footer></section></div>
-}
-
-@if(_cardField is not null)
-{
- <div class="field-editor-modal card-editor-modal" @onclick="CloseCardEditor"><section class="field-editor card-detail-editor" style="@AccentStyle(_cardField)" @onclick:stopPropagation="true"><header><strong>Card details</strong><button @onclick="CloseCardEditor">×</button></header><div class="form-section"><label>Name:</label><input @bind="_cardField.Name"/></div><div class="form-section"><label>Description:</label><textarea @bind="_cardField.Description" style="min-height:60px"></textarea></div><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="CloseCardEditor">Cancel</button><button @onclick="CloseCardEditor">Done</button></footer></section></div>
 }
 
 @if(_portraitEditing)
 {
- <div class="portrait-editor-modal" @onclick="CancelPortrait"><section class="portrait-editor" @onclick:stopPropagation="true"><header><strong>Edit portrait</strong><button @onclick="CancelPortrait">×</button></header>@if(string.IsNullOrWhiteSpace(_portraitSource)){<div class="portrait-upload-area"><label for="portrait-file-input">Choose image:</label><InputFile id="portrait-file-input" OnChange="LoadPortraitEditor"/></div>}else{<div class="portrait-editor-controls"><div class="portrait-crop"><img src="@_portraitSource" alt="Portrait to crop"/></div><div class="portrait-adjustments"><label>Zoom: <input type="range" min="1" max="3" step="0.1" value="@_portraitZoom" @onchange="e=>_portraitZoom=double.TryParse(e.Value?.ToString(),out var v)?v:1"/></label><label>X: <input type="range" min="0" max="100" value="@_portraitX" @onchange="e=>_portraitX=int.TryParse(e.Value?.ToString(),out var v)?v:50"/></label><label>Y: <input type="range" min="0" max="100" value="@_portraitY" @onchange="e=>_portraitY=int.TryParse(e.Value?.ToString(),out var v)?v:50"/></label></div></div>}</section><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="CancelPortrait">Cancel</button>@if(!string.IsNullOrWhiteSpace(_portraitSource)){<button @onclick="ApplyPortrait">Apply crop</button>}</footer></div>
+ <div class="portrait-editor-modal" role="dialog" aria-modal="true" @onclick="CancelPortrait">
+  <section class="portrait-editor" @onclick:stopPropagation="true">
+   <header><strong>Edit portrait</strong><button @onclick="CancelPortrait">×</button></header>
+   @if(string.IsNullOrWhiteSpace(_portraitSource))
+   {
+    <div class="portrait-upload-area"><InputFile OnChange="LoadPortraitEditor" accept="image/png,image/jpeg,image/webp" /></div>
+   }
+   else
+   {
+    <div class="portrait-editor-controls">
+     <div class="portrait-crop"><img src="@_portraitSource" alt="Portrait preview" style="transform:scale(@_portraitZoom);object-position:@_portraitX% @_portraitY%" /></div>
+     <div class="portrait-adjustments">
+      <label>Zoom <input type="range" min="1" max="3" step="0.05" @bind="_portraitZoom" /></label>
+      <label>X <input type="range" min="0" max="100" @bind="_portraitX" /></label>
+      <label>Y <input type="range" min="0" max="100" @bind="_portraitY" /></label>
+     </div>
+    </div>
+   }
+   <footer><button @onclick="CancelPortrait">Cancel</button>@if(!string.IsNullOrWhiteSpace(_portraitSource)){<button @onclick="ApplyPortrait">Apply</button>}</footer>
+  </section>
+ </div>
 }
 
-@if(Session.EditingDiceField is not null)
-{
- var bagField=Session.EditingDiceField;
- <div class="dicebag-modal sheet-bag-modal" @onclick="Session.CloseFieldDiceBag"><section class="dicebag-workspace dicebag-form" @onclick:stopPropagation="true"><header class="dicebag-title"><div class="dicebag-subject">@bagField.Name dice</div><button @onclick="Session.CloseFieldDiceBag">×</button></header><div class="dicebag-editor">@if(Session.DiceSet.Count > 0){<div class="dice-options">@foreach(var die in Session.DiceSet){<article><strong>@die.Label</strong><div><input type="number" min="0" max="20" value="@Session.DiceBagCount(bagField,die.Key)" @onchange="e=>Session.SetDiceBagCount(bagField,die.Key,int.TryParse(e.Value?.ToString(),out var v)?v:0)"/></div></article>}}</div>}</div><footer style="display:flex;gap:5px;justify-content:flex-end"><button @onclick="Session.CloseFieldDiceBag">Done</button></footer></section></div>
-}
-}
-@code{
- static readonly (string Name,string Hex)[] Colors=[("red","#c7493a"),("orange","#e9852c"),("gold","#d9a82f"),("yellow","#f0d85c"),("lime","#9bc84a"),("green","#58a765"),("teal","#41aaa4"),("cyan","#5eb3d6"),("blue","#4a90e2"),("purple","#b19cd9"),("pink","#ff69b4"),("white","#ffffff")];
- static readonly string[] SheetViews=["Profile","Entries","Equipment","Linked","Spellbook"];
- readonly HashSet<string> _openPanes=[];
- string _portraitSource=""; bool _portraitEditing; double _portraitZoom=1; int _portraitX=50; int _portraitY=50; string _sheetView="Profile";
- CharacterField? _nameplateField; CharacterField? _cardField; LibraryCard? _spellCard; string _nameplateName=""; string _nameplateCode=""; string _nameplateDescription="";
- 
- protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+@code {
+ static readonly string[] PageLabels=["Profile","Values","Entries","Equipment","Linked"];
+ static readonly string[] PageGlyphs=["●","✦","⚒","♙","▣"];
+ int _page;
+ bool _portraitEditing;
+ string _portraitSource="";
+ double _portraitZoom=1;
+ int _portraitX=50,_portraitY=50;
+ string _equipment="",_anatomy="",_conditions="",_linked="";
+
+ protected override void OnInitialized(){Session.Changed+=SessionChanged;}
  protected override async Task OnParametersSetAsync(){if(Session.MixerOpen&&Session.IsLoggedIn)await Library.EnsureLoadedAsync();}
- 
- void SessionChanged()=>_ = InvokeAsync(async ()=>{await LoadPaneStates();await InvokeAsync(StateHasChanged);});
- 
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=SessionChanged;
- 
- async Task LoadPaneStates()
- {
-  _openPanes.Clear();
-  if(Session.CharacterCount > 0)
-  {
-   try
-   {
-    var charId=Session.ActiveCharacterNumber.ToString();
-    var storedState=await JS.InvokeAsync<string>("localStorage.getItem",$"rist-pane-states-{charId}");
-    if(!string.IsNullOrWhiteSpace(storedState))
-    {
-     var panes=storedState.Split(',',System.StringSplitOptions.RemoveEmptyEntries);
-     foreach(var pane in panes)
-     {
-      _openPanes.Add(pane);
-     }
-    }
-   }
-   catch
-   {
-    // localStorage not available or parse error; silently fail and use defaults
-   }
-  }
- }
- 
- async Task SavePaneStates()
- {
-  if(Session.CharacterCount > 0)
-  {
-   try
-   {
-    var charId=Session.ActiveCharacterNumber.ToString();
-    var state=string.Join(",",_openPanes);
-    await JS.InvokeVoidAsync("localStorage.setItem",$"rist-pane-states-{charId}",state);
-   }
-   catch
-   {
-    // localStorage not available; silently fail
-   }
-  }
- }
- 
- void CloseSheet(){Session.CloseFieldDiceBag();_nameplateField=null;_cardField=null;Session.CloseMixer();}
- 
- bool InHand(CharacterField f)=>Session.IsFieldInHand(f);
- 
- void SetView(string view)=>_sheetView=view;
- 
- string ViewClass(string view)=>_sheetView==view?"active":"";
- 
- void GoProfile()=>SetView("Profile");
- 
- void GoRules()=>SetView("Rules");
- 
- void GoEntries()=>SetView("Entries");
- 
- void GoEquipment()=>SetView("Equipment");
- 
- void GoLinked()=>SetView("Linked");
- 
- void GoNotes()=>SetView("Notes");
- 
- void StepSheet(int delta){var index=Array.IndexOf(SheetViews,_sheetView);if(index<0)index=0;_sheetView=SheetViews[(index+delta+SheetViews.Length)%SheetViews.Length];}
- 
- void PreviousSheet()=>StepSheet(-1);
- 
- void NextSheet()=>StepSheet(1);
- 
- async Task TogglePane(string pane)
- {
-  if(!_openPanes.Add(pane))
-   _openPanes.Remove(pane);
-  await SavePaneStates();
- }
- 
- bool PaneIsOpen(string pane)=>_openPanes.Contains(pane);
- 
- string PaneClass(string pane)=>_openPanes.Contains(pane)?"is-open":"is-collapsed";
- 
- void AddAttribute()=>Session.AddCharacterControl("Attributes");
- 
- void AddTracker()=>Session.AddCharacterControl("Trackers");
- 
- void AddLimit()=>Session.AddCharacterControl("Limits");
- 
- void AddSkill()=>Session.AddCharacterControl("Skills");
- 
- void AddFlare()=>Session.AddCharacterControl("Flare");
- 
- void OpenNameplate(CharacterField f){_nameplateField=f;_nameplateName=f.Name;_nameplateCode=string.IsNullOrWhiteSpace(f.ShortName)?CharacterField.AutoShortName(f.Name):f.ShortName;_nameplateDescription=f.NameplateDescription;}
- 
- void CancelNameplate()=>_nameplateField=null;
- 
- void ResetNameplateCode(){if(_nameplateField is null)return;_nameplateCode=CharacterField.AutoShortName(_nameplateName);}
- 
- void ApplyNameplate(){if(_nameplateField is null||!Session.CharacterEditMode)return;Session.RenameCharacterField(_nameplateField,_nameplateName);if(string.IsNullOrWhiteSpace(_nameplateCode))Session.ResetFieldShortName(_nameplateField);else Session.SetFieldShortName(_nameplateField,_nameplateCode);Session.SetFieldNameplateDescription(_nameplateField,_nameplateDescription);_nameplateField=null;}
- 
- void OpenCardEditor(CharacterField f)=>_cardField=f;
- 
- void CloseCardEditor()=>_cardField=null;
- 
- void AddCardToHand(CharacterField f){Session.ShowFieldHand(f);}
- 
- void OpenDiceBag(CharacterField f){if(WorldSession.IsAttributeField(f))f.DiceBag.RemoveAll(x=>x.DieKey is "d5-bonus" or "d5-penalty");Session.EditFieldDiceBag(f);}
- 
- RenderFragment Plate(CharacterField f,bool attribute)=>b=>{var seq=0;b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class",$"compact-field-control {(attribute?"attribute-compact":"")}");b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class","control-identity-row");b.OpenElement(seq++,"button");b.AddAttribute(seq++,"type","button");b.AddAttribute(seq++,"class","nameplate-code-button");b.AddAttribute(seq++,"title",$"Code: {f.ShortName}");if(Session.CharacterEditMode)b.AddAttribute(seq++,"@onclick",new Action(()=>OpenNameplate(f)));b.AddContent(seq++,f.ShortName);b.CloseElement();b.OpenElement(seq++,"strong");b.AddAttribute(seq++,"title",f.Description);b.AddContent(seq++,f.Name);b.CloseElement();b.CloseElement();if(attribute){b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class","attribute-readouts");if(Session.CharacterEditMode){b.OpenElement(seq++,"label");b.AddAttribute(seq++,"title","Base value");b.OpenElement(seq++,"input");b.AddAttribute(seq++,"type","number");b.AddAttribute(seq++,"value",f.BaseValue);b.AddAttribute(seq++,"@onchange",new Action<ChangeEventArgs>(e=>SetAttributeBase(f,e)));b.CloseElement();b.CloseElement();}b.OpenElement(seq++,"label");b.OpenElement(seq++,"input");b.AddAttribute(seq++,"type","range");b.AddAttribute(seq++,"min","-10");b.AddAttribute(seq++,"max","10");b.AddAttribute(seq++,"value",f.Current);b.AddAttribute(seq++,"@onchange",new Action<ChangeEventArgs>(e=>SetAttribute(f,e)));if(!Session.CharacterEditMode)b.AddAttribute(seq++,"readonly","readonly");b.CloseElement();b.OpenElement(seq++,"span");b.AddContent(seq++,$"{f.BaseValue:+0;-0;+0}{f.Current:+0;-0;+0}");b.CloseElement();b.CloseElement();b.CloseElement();}else{b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class","pool-scale");var pctLabel=(int)Math.Round(TrackerPct(f));b.AddContent(seq++,$"{pctLabel}%");b.CloseElement();b.OpenElement(seq++,"label");b.AddAttribute(seq++,"class","pool-track");b.AddAttribute(seq++,"style",ControlStyle(f));b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class","vertical-slider-shell");b.OpenElement(seq++,"input");b.AddAttribute(seq++,"type","range");b.AddAttribute(seq++,"min","0");b.AddAttribute(seq++,"max",f.Max);b.AddAttribute(seq++,"value",f.Current);b.AddAttribute(seq++,"@onchange",new Action<ChangeEventArgs>(e=>Session.SetTrackerCurrent(f,int.TryParse(e.Value?.ToString(),out var v)?v:0)));b.CloseElement();b.CloseElement();b.CloseElement();b.OpenElement(seq++,"span");b.AddContent(seq++,$"{f.Current} / {f.Max}");b.CloseElement();b.CloseElement();}if(Session.CharacterEditMode){b.OpenElement(seq++,"div");b.AddAttribute(seq++,"class","control-tools-row");b.OpenElement(seq++,"button");b.AddAttribute(seq++,"@onclick",new Action(()=>OpenCardEditor(f)));b.AddContent(seq++,"Details");b.CloseElement();b.OpenElement(seq++,"button");b.AddAttribute(seq++,"@onclick",new Action(()=>{if(InHand(f))Session.HideFieldHand(f);else AddCardToHand(f);}));b.AddContent(seq++,InHand(f)?"Hide":"Show");b.CloseElement();if(WorldSession.IsTrackerField(f)){b.OpenElement(seq++,"button");b.AddAttribute(seq++,"@onclick",new Action(()=>OpenDiceBag(f)));b.AddContent(seq++,"Dice");b.CloseElement();}b.OpenElement(seq++,"button");b.AddAttribute(seq++,"@onclick",new Action(()=>Session.DeleteCharacterControl(f)));b.AddContent(seq++,"Del");b.CloseElement();b.CloseElement();}};
- 
- RenderFragment ModDice(CharacterField f)=>b=>{var parts=ModifierDice(f.Current);b.OpenElement(0,"div");b.AddAttribute(1,"class","mod-dice-set");if(parts.Count==0){b.OpenElement(2,"span");b.AddAttribute(3,"class","mod-dice-none");b.AddContent(4,"—");b.CloseElement();}else{var seq=2;foreach(var die in parts){b.OpenElement(seq++,"span");b.AddAttribute(seq++,"class","mod-die");b.AddAttribute(seq++,"title",die>0?$"+{die}":$"{die}");var dieEmoji=(die>=5)?$"d{die}":die>0?"🟢":"🔴";b.AddContent(seq++,dieEmoji);b.CloseElement();}}b.CloseElement();};
- 
- RenderFragment DiceBagSummary(CharacterField f)=>b=>{b.OpenElement(0,"div");b.AddAttribute(1,"class","bag-dice-row");var s=2;foreach(var entry in f.DiceBag.Where(x=>x.DieKey is not "d5-bonus" and not "d5-penalty")){var die=Session.Dice(entry.DieKey);if(die is not null){b.OpenElement(s++,"span");b.AddAttribute(s++,"class","die-badge");b.AddContent(s++,$"{entry.Count}×{die.Label}");b.CloseElement();}}b.CloseElement();};
- 
- RenderFragment ColorControls(CharacterField f)=>b=>{if(!Session.CharacterEditMode)return;b.OpenElement(0,"div");b.AddAttribute(1,"class","color-swatches expanded-colors");var i=2;foreach(var c in Colors){b.OpenElement(i++,"button");b.AddAttribute(i++,"type","button");b.AddAttribute(i++,"style",$"background:{c.Hex}");b.AddAttribute(i++,"title",c.Name);b.AddAttribute(i++,"@onclick",new Action(()=>Session.SetFieldColor(f,c.Hex)));b.CloseElement();}b.CloseElement();};
- 
- void SetAttribute(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttribute(f,v);}
- 
- void SetAttributeBase(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttributeBase(f,v);}
- 
- double AttributePct(CharacterField f)=>Math.Clamp((f.Current+10)*5.0,0,100);
- 
- double TrackerPct(CharacterField f)=>Math.Clamp(100.0*f.Current/Math.Max(f.Max,1),0,100);
- 
- string ControlStyle(CharacterField f)=>$"--control-width:{Math.Clamp(190+(f.ShortName?.Length??3)*5,220,340)}px;--field-accent:{AccentHex(f.Color)}";
- 
- string AccentStyle(CharacterField f)=>$"--field-accent:{AccentHex(f.Color)}";
- 
- string AccentHex(string color)=>Colors.FirstOrDefault(x=>x.Name==color).Hex;
- 
- int EditableBagCount(CharacterField f)=>f.DiceBag.Where(x=>x.DieKey is not "d5-bonus" and not "d5-penalty").Sum(x=>x.Count);
- 
- IEnumerable<DiceSpec> EditableDiceSet(CharacterField f)=>Session.DiceSet.Where(d=>d.Key is not "d5-bonus" and not "d5-penalty");
- 
- List<int> ModifierDice(int modifier){var result=new List<int>();var sign=Math.Sign(modifier);var remaining=Math.Abs(Math.Clamp(modifier,-10,10));while(remaining>0){var value=Math.Min(5,remaining);result.Add(sign*value);remaining-=value;}return result;}
- 
- static string DieSpriteStyle(DiceSpec die,int frame){var col=frame%die.Columns;var row=frame/die.Columns;var x=die.Columns<=1?0:col*100.0/(die.Columns-1);var y=die.Rows<=1?0:row*100.0/(die.Rows-1);return $"background-position:{-x}% {-y}%;background-size:{die.Columns*100}% {die.Rows*100}%";}
- 
- IEnumerable<int> ScaleLabels(int max){max=Math.Max(max,1);yield return max;yield return (int)Math.Round(max*.8);yield return (int)Math.Round(max*.6);yield return (int)Math.Round(max*.4);yield return (int)Math.Round(max*.2);yield return 0;}
- 
- async Task LoadPortraitEditor(InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(8*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);_portraitSource=$"data:image/{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";_portraitZoom=1;_portraitX=50;_portraitY=50;}
- 
+ void CloseSheet(){Session.CloseFieldDiceBag();Session.CloseMixer();}
+ void OpenPortraitEditor(){if(!Session.CharacterEditMode)return;_portraitSource="";_portraitZoom=1;_portraitX=50;_portraitY=50;_portraitEditing=true;}
+ async Task LoadPortraitEditor(InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(8*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);_portraitSource=$"data:{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";}
  void CancelPortrait(){_portraitEditing=false;_portraitSource="";}
- 
- async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortrait(result);_portraitEditing=false;_portraitSource="";}
- 
- async Task UploadFieldImage(CharacterField field,InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(3*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);var dataUrl=$"data:image/{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";Session.SetCharacterFieldImage(field,dataUrl);}
+ async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortrait(result);CancelPortrait();}
+ void SetAttribute(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttribute(f,v);}
+ void SetTracker(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerCurrent(f,v);}
+ void SetTrackerMax(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerMaximum(f,v);}
 }
