@@ -1,14 +1,13 @@
-/* Grid stays exactly where the tabletop already placed it. Coordinates live around the viewport, not inside cells. */
-.world-stage{position:relative}
+/* Coordinates surround the viewport. Square grid remains the original tabletop grid. */
+.world-stage{position:absolute;inset:0}
 .rist-grid-overlay{display:none!important}
+.map:has(.grid.hex)::before{display:none!important;content:none!important}
 
-/* Preserve the existing square grid. Correct flat-top hex pattern is used only in Hex mode. */
-.map:has(.grid.hex)::before{
- display:block!important;
- content:"";position:absolute;inset:0;z-index:7;pointer-events:none;opacity:.9;
- background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='69.282' viewBox='0 0 120 69.282'%3E%3Cg fill='none' stroke-linejoin='round'%3E%3Cpath d='M0 34.641 20 0h40l20 34.641-20 34.641H20zM60 34.641 80 0h40l20 34.641-20 34.641H80z' stroke='%23070b0f' stroke-width='3.2'/%3E%3Cpath d='M0 34.641 20 0h40l20 34.641-20 34.641H20zM60 34.641 80 0h40l20 34.641-20 34.641H80z' stroke='%23e7c56b' stroke-width='1.25'/%3E%3C/g%3E%3C/svg%3E");
- background-size:12% 10.657%;background-position:0 0;
-}
+/* Hex is drawn as real SVG polygons by grid-coordinate-system.js. */
+.grid.hex{background:none!important}
+.rist-hex-grid{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;overflow:hidden;opacity:.52}
+.rist-hex-grid polygon{fill:none;stroke:#f1d26f;stroke-width:1;vector-effect:non-scaling-stroke}
+.rist-hex-grid .hex-shadow{stroke:#05080b;stroke-width:2.5;opacity:.65}
 
 .rist-coordinate-frame{position:absolute;inset:0;z-index:18;pointer-events:none;overflow:visible;color:#f3d88e;font:600 8px/1 system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px #000,0 0 2px #000}
 .rist-coordinate-axis{position:absolute;pointer-events:none}
@@ -23,14 +22,6 @@
 .left .rist-coordinate-tick{left:2px;transform:translateY(-50%) rotate(180deg)}
 .right .rist-coordinate-tick{right:2px}
 .rist-coordinate-tick.zero{color:#fff7d1;font-weight:900;opacity:1}
-.rist-coordinate-frame::after{content:"0";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none}
-
-/* Painting canvas gets the same world-style coordinate frame without altering its drawing grid. */
 .rist-art-studio main{position:relative}
 .rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}
-
-@media(max-width:800px){
- .rist-coordinate-frame{font-size:7px}
- .rist-coordinate-axis.top,.rist-coordinate-axis.bottom{left:9px;right:9px}
- .rist-coordinate-axis.left,.rist-coordinate-axis.right{top:9px;bottom:9px;width:22px}
-}
+@media(max-width:800px){.rist-coordinate-frame{font-size:7px}.rist-coordinate-axis.top,.rist-coordinate-axis.bottom{left:9px;right:9px}.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:9px;bottom:9px;width:22px}}
