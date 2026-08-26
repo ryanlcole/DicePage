@@ -1,5 +1,5 @@
-const CACHE = 'rist-pending-packet-v1';
-const SHELL = ['./', './index.html', './pending-packet.js'];
+const CACHE = 'rist-pending-packet-v2';
+const SHELL = ['./', './index.html', './pending-packet.js?v=3'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -19,7 +19,6 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.mode !== 'navigate') return;
-
   event.respondWith(
     fetch(event.request)
       .catch(async () => {
