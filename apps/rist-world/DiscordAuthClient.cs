@@ -12,7 +12,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     private string? _sessionToken;
 
     public bool IsConfigured => Uri.TryCreate(_apiBaseUrl, UriKind.Absolute, out _);
+    public string OwnerDiscordUserId { get; private set; } = "";
     public AuthProfile? Profile { get; private set; }
+    public bool IsOwnerDiscordAccount => Profile is not null && !string.IsNullOrWhiteSpace(OwnerDiscordUserId) && string.Equals(Profile.UserId, OwnerDiscordUserId, StringComparison.Ordinal);
 
     public async Task<AuthProfile?> InitializeAsync()
     {
@@ -20,6 +22,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         {
             var config = await http.GetFromJsonAsync<AuthConfig>("auth-config.json");
             _apiBaseUrl = config?.ApiBaseUrl?.TrimEnd('/') ?? "";
+            OwnerDiscordUserId = config?.OwnerDiscordUserId?.Trim() ?? "";
             _sessionToken = await js.InvokeAsync<string?>("ristAuth.captureSession", _apiBaseUrl);
         }
         catch
@@ -53,7 +56,6 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             }
             catch
             {
-                // Preserve the browser session on transient mobile/network failures.
                 Profile = null;
                 return null;
             }
@@ -137,8 +139,8 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("ristAuth.clearSession");
     }
 
-    public sealed record AuthConfig(string ApiBaseUrl);
-    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix, string? Email = null);
+    public sealed record AuthConfig(string ApiBaseUrl, string? OwnerDiscordUserId = null);
+    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
