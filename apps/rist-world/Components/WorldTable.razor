@@ -1,3 +1,9 @@
 @inject WorldSession Session
 <div class="rist"><WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /></div>
-@code{protected override async Task OnInitializedAsync()=>await Session.InitializeAsync();}
+@code{
+ protected override async Task OnInitializedAsync()
+ {
+  await Session.InitializeAsync();
+  await Session.LoadThirdPartyStarterAssetsAsync();
+ }
+}
