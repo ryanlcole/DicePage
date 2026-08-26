@@ -13,6 +13,18 @@
  function pause(open){document.body.classList.toggle('rist-start-open',open);document.dispatchEvent(new CustomEvent(open?'rist:pause':'rist:resume',{detail:{source:'start-menu'}}))}
  function showHome(panel){panel.innerHTML=`<h1 class="rist-start-title">START</h1><div class="rist-start-grid">${Object.keys(sections).map(x=>`<button type="button" class="rist-start-button" data-start-section="${x}">${x}</button>`).join('')}</div><button type="button" class="rist-start-exit" data-start-exit>Exit</button>`}
  function showSection(panel,name){panel.innerHTML=`<section class="rist-start-sub">${sections[name]}<button type="button" class="rist-start-back" data-start-back>Back</button><button type="button" class="rist-start-exit" data-start-exit>Exit</button></section>`}
- function ensure(){if(document.querySelector('.rist-start-overlay'))return;const open=document.createElement('button');open.type='button';open.className='rist-start-settings-button';open.setAttribute('aria-label','Start settings');open.title='Start / Settings';open.textContent='⚙';const overlay=document.createElement('div');overlay.className='rist-start-overlay';overlay.hidden=true;overlay.innerHTML='<div class="rist-start-panel" role="dialog" aria-modal="true" aria-label="Start menu"></div>';document.body.append(open,overlay);const panel=overlay.querySelector('.rist-start-panel');showHome(panel);open.onclick=()=>{showHome(panel);overlay.hidden=false;pause(true)};overlay.addEventListener('click',e=>{const section=e.target.closest('[data-start-section]');if(section){showSection(panel,section.dataset.startSection);return}if(e.target.closest('[data-start-back]')){showHome(panel);return}if(e.target.closest('[data-start-exit]')){overlay.hidden=true;pause(false)}});addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden){overlay.hidden=true;pause(false)}})}
+ let overlay=null,panel=null;
+ function ensure(){
+  if(overlay&&document.body.contains(overlay))return;
+  overlay=document.querySelector('.rist-start-overlay');
+  if(!overlay){overlay=document.createElement('div');overlay.className='rist-start-overlay';overlay.hidden=true;overlay.innerHTML='<div class="rist-start-panel" role="dialog" aria-modal="true" aria-label="Start menu"></div>';document.body.appendChild(overlay)}
+  panel=overlay.querySelector('.rist-start-panel');showHome(panel);
+  if(overlay.dataset.wired)return;overlay.dataset.wired='1';
+  overlay.addEventListener('click',e=>{const section=e.target.closest('[data-start-section]');if(section){showSection(panel,section.dataset.startSection);return}if(e.target.closest('[data-start-back]')){showHome(panel);return}if(e.target.closest('[data-start-exit]'))close()});
+ }
+ function open(){ensure();showHome(panel);overlay.hidden=false;pause(true)}
+ function close(){if(!overlay)return;overlay.hidden=true;pause(false)}
+ window.RistStartMenu={open,close};
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay&&!overlay.hidden)close()});
  document.addEventListener('DOMContentLoaded',ensure);setTimeout(ensure,0);
 })();
