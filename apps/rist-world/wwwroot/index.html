@@ -27,12 +27,13 @@
   <link rel="stylesheet" href="css/character-universal.css?v=universal-badge-1">
   <link rel="stylesheet" href="css/rail-final.css?v=20260823-card-library-4">
   <link rel="stylesheet" href="css/mobile-horizontal-rails.css?v=1">
-  <link rel="stylesheet" href="css/character-native.css?v=3">
+  <link rel="stylesheet" href="css/character-native.css?v=4">
   <link rel="stylesheet" href="css/shaelvien-cursors.css?v=1">
   <link rel="stylesheet" href="css/art-studio.css?v=4">
   <link rel="stylesheet" href="css/info-legal.css?v=1">
   <link rel="stylesheet" href="css/grid-coordinate-system.css?v=3">
   <link rel="stylesheet" href="css/map-packets.css?v=2">
+  <link rel="stylesheet" href="css/home-layout-v2.css?v=1">
   <style>
     html,body{min-height:100%;background:#071118}
     #app{min-height:100dvh;background:#071118}
@@ -43,22 +44,15 @@
 <body>
   <div id="app"></div>
   <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
-
   <script>
-    // Pending Packet is disabled for now. Remove any previously installed
-    // startup service worker so old cached loading shells cannot intercept the app.
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
         for (const registration of registrations) registration.unregister().catch(() => {});
       }).catch(() => {});
     }
   </script>
-
-  <!-- Core boot path. -->
   <script src="rist.js?v=20260823-auth-recovery-2"></script>
   <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-
-  <!-- Optional systems load after the shell has had first access to bandwidth. -->
   <script>
     (() => {
       const modules = [
@@ -68,6 +62,7 @@
         'portrait-editor-live.js?v=1',
         'cursors-haptics.js?v=1',
         'art-studio.js?v=4',
+        'card-appearance.js?v=2',
         'grid-coordinate-system.js?v=4',
         'sprite-creator.js?v=1',
         'header-info.js?v=1'
