@@ -32,15 +32,18 @@ jobs:
         run: |
           CARD="build/rist/wwwroot/assets/cards/shaelvien_card_back.jpg"
           if [ -f "$CARD" ]; then
-            if command -v magick >/dev/null 2>&1; then
-              magick "$CARD" -auto-orient -resize '420x420>' -strip -sampling-factor 4:2:0 -interlace Plane -quality 58 "$CARD.optimized.jpg"
-              mv "$CARD.optimized.jpg" "$CARD"
-            elif command -v convert >/dev/null 2>&1; then
-              convert "$CARD" -auto-orient -resize '420x420>' -strip -sampling-factor 4:2:0 -interlace Plane -quality 58 "$CARD.optimized.jpg"
-              mv "$CARD.optimized.jpg" "$CARD"
-            else
-              echo "ImageMagick unavailable; keeping original card back."
-            fi
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends imagemagick >/dev/null
+            convert "$CARD" \
+              -auto-orient \
+              -resize '420x420>' \
+              -strip \
+              -sampling-factor 4:2:0 \
+              -interlace Plane \
+              -quality 56 \
+              "$CARD.optimized.jpg"
+            mv "$CARD.optimized.jpg" "$CARD"
+            echo "Optimized card back:"
             ls -lh "$CARD"
           fi
       - name: Assemble GitHub Pages site
