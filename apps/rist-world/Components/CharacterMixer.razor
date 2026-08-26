@@ -36,15 +36,20 @@
                         <span class="portrait-pencil" aria-hidden="true"></span>
                     </button>
                     <input class="profile-name" @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" placeholder="Character name" aria-label="Character name" />
-                    <textarea class="profile-concept" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Identity / concept" aria-label="Identity or concept"></textarea>
+                    <input class="profile-concept" @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Identity / concept" aria-label="Identity or concept" />
                     <textarea class="profile-description" @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Description" aria-label="Description"></textarea>
 
                     <div class="profile-value-tiles" aria-label="Values">
                         @foreach (var field in Session.CharacterFields.Where(WorldSession.IsAttributeField).Take(6))
                         {
                             <article class="reference-value-tile">
-                                <input class="tile-label" value="@field.Name" readonly aria-label="Value name" />
-                                <input class="tile-number" type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttribute(field,e)" aria-label="@field.Name value" />
+                                <input class="tile-label" value="@field.Name" readonly="@(!Session.CharacterEditMode)" @onchange="e => RenameValueField(field,e)" placeholder="Name" aria-label="Value name" />
+                                <input class="tile-number" type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttribute(field,e)" placeholder="0" aria-label="@field.Name value" />
+                                <div class="tile-circle-row" aria-label="@field.Name details">
+                                    <input class="tile-circle-text" type="number" value="@field.BaseValue" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttributeBase(field,e)" placeholder="0" title="Base value" aria-label="@field.Name base value" />
+                                    <input class="tile-circle-text" type="text" value="@field.ShortName" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetShortName(field,e)" maxlength="3" placeholder="ID" title="Short name" aria-label="@field.Name short name" />
+                                    <input class="tile-circle-text" type="number" value="@field.Max" readonly placeholder="Max" title="Maximum" aria-label="@field.Name maximum" />
+                                </div>
                             </article>
                         }
                     </div>
@@ -179,7 +184,10 @@
     async Task LoadPortraitEditor(InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(8*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);_portraitSource=$"data:{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";}
     void CancelPortrait(){_portraitEditing=false;_portraitSource="";}
     async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortrait(result);CancelPortrait();}
+    void RenameValueField(CharacterField f,ChangeEventArgs e)=>Session.RenameCharacterField(f,e.Value?.ToString()??"");
     void SetAttribute(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttribute(f,v);}
+    void SetAttributeBase(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttributeBase(f,v);}
+    void SetShortName(CharacterField f,ChangeEventArgs e)=>Session.SetFieldShortName(f,e.Value?.ToString()??"");
     void SetTracker(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerCurrent(f,v);}
     void StepTracker(CharacterField f,int delta)=>Session.SetTrackerCurrent(f,Math.Clamp(f.Current+delta,0,Math.Max(f.Max,0)));
 }
