@@ -1,2 +1,2 @@
 RIST WORLD live alpha build marker
-4b46407ded2144b557dd3686bf23ade4ce27430a
+6eb09d02842b47c228d96acf62633b36086e215a
