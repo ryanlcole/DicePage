@@ -1,0 +1,8 @@
+.reference-value-tile .tile-label{top:8%!important;height:18%!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0 5%!important}
+.reference-value-tile .tile-number{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important}
+.reference-value-tile .tile-circle-text{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important}
+.reference-tracker .tracker-center{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;justify-content:center;gap:5px;padding:0 5%;text-align:center}
+.reference-tracker .tracker-name{min-width:0;width:100%;height:100%;border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:var(--character-font)!important;text-align:center!important;font:700 clamp(8px,2.4vw,15px)/1 Georgia,serif!important;padding:0!important}
+.reference-tracker output{display:block!important;min-width:max-content!important;text-align:center!important}
+.reference-bottom-nav button,.reference-bottom-nav button:hover,.reference-bottom-nav button:focus,.reference-bottom-nav button:active{background:transparent!important;box-shadow:none!important;outline:0!important;-webkit-tap-highlight-color:transparent!important}
+.reference-bottom-nav button.active::after{content:""!important;position:absolute!important;inset:16%!important;border-radius:50%!important;border:2px solid #6fbfff!important;box-shadow:none!important;background:transparent!important;pointer-events:none!important}
