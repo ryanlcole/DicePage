@@ -12,8 +12,8 @@
   const overlay = pending();
   if (overlay && overlay.parentElement?.id === 'app') document.body.appendChild(overlay);
 
-  const setStatus = (text) => {
-    baseStatus = text.replace(/\.*$/, '');
+  const setStatus = text => {
+    baseStatus = String(text).replace(/\.*$/, '');
     const node = status();
     if (node) node.textContent = `${baseStatus}${'.'.repeat(dots)}`;
   };
@@ -38,6 +38,13 @@
     const response = await fetch(url, { cache, credentials: 'same-origin' });
     if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
     return response.json();
+  };
+
+  const localUrl = value => {
+    const text = String(value || '');
+    if (!text) return '';
+    if (/^(?:https?:)?\/\//i.test(text) || text.startsWith('/') || text.startsWith('./')) return text;
+    return `./${text}`;
   };
 
   const collectFrameworkFiles = (value, output) => {
@@ -100,8 +107,12 @@
 
     try {
       setStatus('Counting required items');
-      const config = await json(`./data/asset-config.json?packet=${Date.now()}`);
-      const boot = await json(`./_framework/blazor.boot.json?packet=${Date.now()}`);
+      const stamp = Date.now();
+      const [config, boot, atlas] = await Promise.all([
+        json(`./data/asset-config.json?packet=${stamp}`),
+        json(`./_framework/blazor.boot.json?packet=${stamp}`),
+        json(`./data/atlas-public.json?packet=${stamp}`)
+      ]);
       const framework = new Set();
       collectFrameworkFiles(boot.resources || boot, framework);
 
@@ -113,12 +124,22 @@
       ]);
       framework.forEach(name => urls.add(frameworkUrl(name)));
 
+      // The packet count is the actual expected initial asset set, including
+      // every asset currently registered in the public library. The site stays
+      // covered by Pending Packet until each one is available in browser cache.
+      for (const asset of Array.isArray(atlas) ? atlas : []) {
+        const url = localUrl(asset?.image);
+        if (url) urls.add(url);
+      }
+
       const manifestUrl = config.worldMapManifestUrl;
       if (manifestUrl) {
-        urls.add(`./${manifestUrl.replace(/^\.\//, '')}`);
-        const manifest = await json(`./${manifestUrl.replace(/^\.\//, '')}?packet=${Date.now()}`);
+        const resolvedManifest = localUrl(manifestUrl);
+        urls.add(resolvedManifest);
+        const manifest = await json(`${resolvedManifest}?packet=${stamp}`);
         for (const tile of manifest.tiles || []) {
-          if (tile?.image) urls.add(`./${String(tile.image).replace(/^\.\//, '')}`);
+          const url = localUrl(tile?.image);
+          if (url) urls.add(url);
         }
       }
 
