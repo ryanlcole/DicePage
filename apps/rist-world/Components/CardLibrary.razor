@@ -1,7 +1,9 @@
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
 @implements IDisposable
 @inject WorldSession Session
 @inject PrivateCardLibrary Library
+@inject IJSRuntime JS
 
 @if(Session.CardBrowserOpen)
 {
@@ -73,15 +75,15 @@
    <div class="card-library-results" aria-label="Card search results">
     @foreach(var folder in PagedFolders)
     {
-     <button class="library-playing-card" @onclick="()=>OpenFolder(folder)" aria-label="@folder">
-      <span class="library-card-face"><small>Folder</small><strong>@folder</strong></span>
+     <button class="library-playing-card library-folder-card" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder directory">
+      <span class="library-card-face"><small>Directory</small><strong>@folder</strong></span>
      </button>
     }
 
     @foreach(var card in PagedLeafCards)
     {
-     <article class="library-playing-card" draggable="@(!IsCharacterCard(card))" @ondragstart="()=>BeginCardDrag(card)">
-      <button class="library-card-face" @onclick="()=>OpenCard(card)" aria-label="@card.Name">
+     <article class="library-playing-card" draggable="@CanDrag(card)" @ondragstart="()=>BeginCardDrag(card)">
+      <button class="library-card-face" @onclick="()=>OpenCardAsync(card)" aria-label="@card.Name">
        @if(!string.IsNullOrWhiteSpace(card.ImageDataUrl))
        {
         <img class="library-card-image" src="@card.ImageDataUrl" alt="" />
@@ -89,13 +91,17 @@
        @if(!string.IsNullOrWhiteSpace(card.Type)){<small>@card.Type</small>}
        <strong>@card.Name</strong>
       </button>
-      @if(!IsCharacterCard(card))
+      @if(IsCharacterCard(card))
       {
-       <button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Hand +</button>
+       <button class="library-card-add" @onclick="OpenCharacter">Open sheet</button>
+      }
+      else if(IsMapCard(card))
+      {
+       <button class="library-card-add" @onclick="()=>LoadMapAsync(card)">Load map</button>
       }
       else
       {
-       <button class="library-card-add" @onclick="OpenCharacter">Open sheet</button>
+       <button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Hand +</button>
       }
      </article>
     }
@@ -196,8 +202,17 @@
     School="Characters",
     Custom=false
    };
+   yield return MapCard("random-world","Random World Map","World map");
+   yield return MapCard("verdant-reach","Verdant Reach","Region map");
+   yield return MapCard("ember-basin","Ember Basin","Region map");
+   yield return MapCard("frost-march","Frost March","Region map");
   }
  }
+
+ static LibraryCard MapCard(string id,string name,string type)=>new()
+ {
+  Id=$"universal-map-{id}",Name=name,Description="Recursive procedural map.",Type=type,Source="Universal",School="Maps",Custom=false
+ };
 
  IEnumerable<string> CustomLibraries=>Library.Cards
   .Where(x=>x.Custom&&!x.Source.Equals("Shaelvien",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Universal",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Custom",StringComparison.OrdinalIgnoreCase))
@@ -208,11 +223,7 @@
   : Library.Cards.Where(card=>card.Source.Equals(_source,StringComparison.OrdinalIgnoreCase));
 
  IEnumerable<string> Types=>AllSourceCards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
-
- IEnumerable<LibraryCard> SourceCards=>AllSourceCards.Where(card=>
-  (string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))
-  &&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase)));
-
+ IEnumerable<LibraryCard> SourceCards=>AllSourceCards.Where(card=>(string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))&&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase)));
  string CurrentPath=>string.Join(" > ",_path);
 
  IEnumerable<string> CurrentFolders
@@ -223,7 +234,6 @@
    return SourceCards.Select(card=>SplitPath(card.School)).Where(parts=>parts.Length>depth&&PathStartsWith(parts,_path)).Select(parts=>parts[depth]).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
   }
  }
-
  IEnumerable<LibraryCard> CurrentLeafCards
  {
   get
@@ -238,18 +248,13 @@
    }).OrderBy(x=>x.Name);
   }
  }
-
  IEnumerable<object> CombinedPage
  {
   get
   {
-   var items=new List<object>();
-   items.AddRange(CurrentFolders.Cast<object>());
-   items.AddRange(CurrentLeafCards.Cast<object>());
-   return items.Skip(_page*CardsPerPage).Take(CardsPerPage);
+   var items=new List<object>();items.AddRange(CurrentFolders.Cast<object>());items.AddRange(CurrentLeafCards.Cast<object>());return items.Skip(_page*CardsPerPage).Take(CardsPerPage);
   }
  }
-
  IEnumerable<string> PagedFolders=>CombinedPage.OfType<string>();
  IEnumerable<LibraryCard> PagedLeafCards=>CombinedPage.OfType<LibraryCard>();
  int MatchCount=>CurrentFolders.Count()+CurrentLeafCards.Count();
@@ -264,7 +269,6 @@
 
  static string[] SplitPath(string? value)=>(value??"").Split('>',StringSplitOptions.TrimEntries|StringSplitOptions.RemoveEmptyEntries);
  static bool PathStartsWith(string[] parts,List<string> path){if(parts.Length<path.Count)return false;for(var i=0;i<path.Count;i++)if(!parts[i].Equals(path[i],StringComparison.OrdinalIgnoreCase))return false;return true;}
-
  void ResetPage(){_page=0;_toolsOpen=false;}
  void ResetNavigation(){_path.Clear();ResetPage();}
  void NextPage(){if(HasNextPage)_page++;}
@@ -276,39 +280,20 @@
  void GoToDepth(int index){while(_path.Count>index+1)_path.RemoveAt(_path.Count-1);_page=0;}
 
  bool IsCharacterCard(LibraryCard card)=>card.Id.StartsWith("universal-character-",StringComparison.Ordinal);
- void BeginCardDrag(LibraryCard card){if(!IsCharacterCard(card))Library.BeginDrag(card);}
- void OpenCard(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return;}_selected=card;}
+ bool IsMapCard(LibraryCard card)=>card.Id.StartsWith("universal-map-",StringComparison.Ordinal);
+ bool CanDrag(LibraryCard card)=>!IsCharacterCard(card)&&!IsMapCard(card);
+ void BeginCardDrag(LibraryCard card){if(CanDrag(card))Library.BeginDrag(card);}
+ async Task OpenCardAsync(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return;}if(IsMapCard(card)){await LoadMapAsync(card);return;}_selected=card;}
  void OpenCharacter()=>Session.OpenCharacterFromLibrary();
+ async Task LoadMapAsync(LibraryCard card)
+ {
+  var id=card.Id["universal-map-".Length..];
+  await JS.InvokeVoidAsync("ristProceduralMap.load",id);
+ }
 
  void OpenCreator(){_toolsOpen=false;_editorStatus="";_draft=new(){LibraryName=_source,Category=CurrentPath};_creating=true;}
  void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
-
- async Task ImportCustomAsync(InputFileChangeEventArgs e)
- {
-  _toolsOpen=false;
-  await using var stream=e.File.OpenReadStream(8*1024*1024);
-  await Library.ImportCustomAsync(stream);
-  _source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Universal";
-  ResetNavigation();
- }
-
- async Task LoadImageAsync(InputFileChangeEventArgs e)
- {
-  const long limit=1_500_000;
-  if(e.File.Size>limit){_editorStatus="Choose an image smaller than 1.5 MB.";return;}
-  await using var stream=e.File.OpenReadStream(limit);
-  using var memory=new MemoryStream();
-  await stream.CopyToAsync(memory);
-  var type=string.IsNullOrWhiteSpace(e.File.ContentType)?"image/jpeg":e.File.ContentType;
-  _draft.ImageDataUrl=$"data:{type};base64,{Convert.ToBase64String(memory.ToArray())}";
-  _editorStatus="";
- }
-
- async Task CreateCustomAsync()
- {
-  if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}
-  await Library.CreateCustomAsync(_draft);
-  _source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Universal":_draft.LibraryName.Trim();
-  ResetNavigation();_creating=false;_draft=new();_editorStatus="";
- }
+ async Task ImportCustomAsync(InputFileChangeEventArgs e){_toolsOpen=false;await using var stream=e.File.OpenReadStream(8*1024*1024);await Library.ImportCustomAsync(stream);_source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Universal";ResetNavigation();}
+ async Task LoadImageAsync(InputFileChangeEventArgs e){const long limit=1_500_000;if(e.File.Size>limit){_editorStatus="Choose an image smaller than 1.5 MB.";return;}await using var stream=e.File.OpenReadStream(limit);using var memory=new MemoryStream();await stream.CopyToAsync(memory);var type=string.IsNullOrWhiteSpace(e.File.ContentType)?"image/jpeg":e.File.ContentType;_draft.ImageDataUrl=$"data:{type};base64,{Convert.ToBase64String(memory.ToArray())}";_editorStatus="";}
+ async Task CreateCustomAsync(){if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}await Library.CreateCustomAsync(_draft);_source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Universal":_draft.LibraryName.Trim();ResetNavigation();_creating=false;_draft=new();_editorStatus="";}
 }
