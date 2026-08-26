@@ -1,13 +1,13 @@
 (()=>{
- const hosts=new WeakMap();
+ const states=new WeakMap();
  const maps={
   'random-world':{name:'Random World',cols:800,rows:600,seed:()=>Math.floor(Math.random()*2147483646)+1,kind:'world'},
   'verdant-reach':{name:'Verdant Reach',cols:320,rows:240,seed:170041,kind:'region'},
   'ember-basin':{name:'Ember Basin',cols:320,rows:240,seed:824911,kind:'region'},
   'frost-march':{name:'Frost March',cols:320,rows:240,seed:510337,kind:'region'}
  };
+ const CHUNK=64, HALO=1;
  let current={id:'random-world',seed:maps['random-world'].seed()};
- const raf=()=>new Promise(r=>requestAnimationFrame(r));
  const hash=(x,y,s)=>{let n=(x*374761393+y*668265263+s*1442695041)|0;n=(n^(n>>>13))*1274126177;n^=n>>>16;return (n>>>0)/4294967295};
  const fade=t=>t*t*(3-2*t);
  function valueNoise(x,y,scale,seed){
@@ -23,8 +23,7 @@
   const heat=valueNoise(x,y,77,seed+307)*.65+(1-Math.abs(ny*1.5))*.35;
   return {height,wet,heat};
  }
- const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
- const mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+ const lerp=(a,b,t)=>Math.round(a+(b-a)*t),mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
  function colorOf(t,kind){
   const ocean=[17,77,92],deep=[8,46,68],sand=[151,123,70],grass=[67,104,55],forest=[38,76,49],dry=[133,104,53],rock=[92,88,72],snow=[190,205,202],ember=[122,67,39],frost=[94,139,151];
   if(t.height<.39)return mix(deep,ocean,Math.max(0,Math.min(1,(t.height-.18)/.21)));
@@ -36,52 +35,78 @@
   if(t.height>.89)base=mix(base,snow,(t.height-.89)/.11);
   return base;
  }
- async function render(host,id,seedOverride){
-  const def=maps[id]||maps['random-world'];
-  const seed=seedOverride??(typeof def.seed==='function'?def.seed():def.seed);
-  current={id,seed};
-  const token={cancel:false};
-  const old=hosts.get(host);if(old)old.cancel=true;hosts.set(host,token);
-  host.className='base map-tile-map procedural-map loading';
-  host.dataset.mapId=id;host.dataset.mapColumns=def.cols;host.dataset.mapRows=def.rows;host.dataset.mapSeed=seed;
+ function makeChunk(state,cx,cy){
+  const {host,def,seed}=state,x0=cx*CHUNK,y0=cy*CHUNK,w=Math.min(CHUNK,def.cols-x0),h=Math.min(CHUNK,def.rows-y0);
   const canvas=document.createElement('canvas');
-  canvas.className='procedural-map-canvas';canvas.width=def.cols;canvas.height=def.rows;canvas.setAttribute('aria-label',`${def.name}, ${def.cols} by ${def.rows} tiles`);
-  host.replaceChildren(canvas);
-  const ctx=canvas.getContext('2d',{alpha:false});
-  const image=ctx.createImageData(def.cols,def.rows),data=image.data;
-  let p=0;
-  for(let y=0;y<def.rows;y++){
-   if(token.cancel)return;
-   for(let x=0;x<def.cols;x++){
-    const c=colorOf(terrain(x,y,def.cols,def.rows,seed,def.kind),def.kind);data[p++]=c[0];data[p++]=c[1];data[p++]=c[2];data[p++]=255;
-   }
-   if(y%24===23){ctx.putImageData(image,0,0,0,0,def.cols,y+1);await raf();}
+  canvas.className='procedural-map-chunk';canvas.width=w;canvas.height=h;
+  canvas.style.position='absolute';canvas.style.left=`${x0/def.cols*100}%`;canvas.style.top=`${y0/def.rows*100}%`;canvas.style.width=`${w/def.cols*100}%`;canvas.style.height=`${h/def.rows*100}%`;
+  const ctx=canvas.getContext('2d',{alpha:false}),image=ctx.createImageData(w,h),data=image.data;let p=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+   const c=colorOf(terrain(x0+x,y0+y,def.cols,def.rows,seed,def.kind),def.kind);
+   data[p++]=c[0];data[p++]=c[1];data[p++]=c[2];data[p++]=255;
   }
-  ctx.putImageData(image,0,0);
-  host.classList.remove('loading');host.classList.add('ready');
-  const status=document.querySelector('.map>.status');if(status)status.textContent=`${def.name} • ${def.kind.toUpperCase()} • ${def.cols}×${def.rows} tiles • drag • pinch`;
+  ctx.putImageData(image,0,0);host.appendChild(canvas);return canvas;
  }
- function scan(){
-  document.querySelectorAll('.map-tile-map').forEach(host=>{if(!hosts.has(host))render(host,current.id,current.seed)});
-  installCards();
+ function visibleBounds(state){
+  const hostRect=state.host.getBoundingClientRect(),view=(state.host.closest('.map')||state.host.parentElement)?.getBoundingClientRect();
+  if(!view||hostRect.width<=0||hostRect.height<=0)return null;
+  const left=Math.max(view.left,hostRect.left),right=Math.min(view.right,hostRect.right),top=Math.max(view.top,hostRect.top),bottom=Math.min(view.bottom,hostRect.bottom);
+  if(right<=left||bottom<=top)return null;
+  const x0=Math.max(0,Math.floor((left-hostRect.left)/hostRect.width*state.def.cols));
+  const x1=Math.min(state.def.cols-1,Math.ceil((right-hostRect.left)/hostRect.width*state.def.cols));
+  const y0=Math.max(0,Math.floor((top-hostRect.top)/hostRect.height*state.def.rows));
+  const y1=Math.min(state.def.rows-1,Math.ceil((bottom-hostRect.top)/hostRect.height*state.def.rows));
+  return {x0,x1,y0,y1};
  }
+ function refresh(state){
+  state.raf=0;if(!state.host.isConnected)return;
+  const b=visibleBounds(state);if(!b)return;
+  const maxCx=Math.ceil(state.def.cols/CHUNK)-1,maxCy=Math.ceil(state.def.rows/CHUNK)-1;
+  const c0=Math.max(0,Math.floor(b.x0/CHUNK)-HALO),c1=Math.min(maxCx,Math.floor(b.x1/CHUNK)+HALO),r0=Math.max(0,Math.floor(b.y0/CHUNK)-HALO),r1=Math.min(maxCy,Math.floor(b.y1/CHUNK)+HALO);
+  const needed=new Set();
+  for(let cy=r0;cy<=r1;cy++)for(let cx=c0;cx<=c1;cx++){
+   const key=`${cx}:${cy}`;needed.add(key);
+   if(!state.active.has(key))state.active.set(key,makeChunk(state,cx,cy));
+  }
+  for(const [key,node] of state.active)if(!needed.has(key)){
+   node.width=1;node.height=1;node.remove();state.active.delete(key);
+  }
+  state.host.classList.remove('loading');state.host.classList.add('ready');
+  state.host.dataset.loadedChunks=state.active.size;
+ }
+ function schedule(state){if(!state.raf)state.raf=requestAnimationFrame(()=>refresh(state))}
+ function attachViewListeners(state){
+  const map=state.host.closest('.map');
+  state.cleanup=[];
+  const listen=(target,event,fn,opts)=>{target?.addEventListener(event,fn,opts);state.cleanup.push(()=>target?.removeEventListener(event,fn,opts))};
+  const update=()=>schedule(state);
+  ['pointermove','pointerup','wheel','touchmove'].forEach(e=>listen(map,e,update,{passive:true}));
+  listen(window,'resize',update,{passive:true});listen(window,'orientationchange',update,{passive:true});
+  const ro=new ResizeObserver(update);ro.observe(state.host);if(map)ro.observe(map);state.cleanup.push(()=>ro.disconnect());
+ }
+ function render(host,id,seedOverride){
+  const old=states.get(host);if(old){old.cleanup?.forEach(fn=>fn());if(old.raf)cancelAnimationFrame(old.raf)}
+  const def=maps[id]||maps['random-world'],seed=seedOverride??(typeof def.seed==='function'?def.seed():def.seed);
+  current={id,seed};host.className='base map-tile-map procedural-map loading';
+  host.dataset.mapId=id;host.dataset.mapColumns=def.cols;host.dataset.mapRows=def.rows;host.dataset.mapSeed=seed;
+  host.replaceChildren();
+  const state={host,def,seed,active:new Map(),raf:0,cleanup:[]};states.set(host,state);attachViewListeners(state);schedule(state);
+  const status=document.querySelector('.map>.status');if(status)status.textContent=`${def.name} • ${def.kind.toUpperCase()} • ${def.cols}×${def.rows} tiles • visible packets only • drag • pinch`;
+ }
+ function scan(){document.querySelectorAll('.map-tile-map').forEach(host=>{if(!states.has(host))render(host,current.id,current.seed)});installCards()}
  function mapCard(id,label,type){
   const b=document.createElement('button');b.type='button';b.className='library-playing-card rist-map-card';b.dataset.mapId=id;b.setAttribute('aria-label',label);
   b.innerHTML=`<span class="library-card-face"><small>${type}</small><strong>${label}</strong></span>`;
-  b.addEventListener('click',()=>{document.querySelectorAll('.map-tile-map').forEach(h=>render(h,id));});
-  return b;
+  b.addEventListener('click',()=>document.querySelectorAll('.map-tile-map').forEach(h=>render(h,id)));return b;
  }
  function installCards(){
   const lib=document.querySelector('#card-library');if(!lib)return;
   const select=lib.querySelector('.card-library-source-row select');if(!select||select.value!=='Universal')return;
   const results=lib.querySelector('.card-library-results');if(!results||results.querySelector('.rist-map-card'))return;
-  results.append(mapCard('random-world','Random World Map','World map'));
-  results.append(mapCard('verdant-reach','Verdant Reach','Region map'));
-  results.append(mapCard('ember-basin','Ember Basin','Region map'));
-  results.append(mapCard('frost-march','Frost March','Region map'));
+  results.append(mapCard('random-world','Random World Map','World map'),mapCard('verdant-reach','Verdant Reach','Region map'),mapCard('ember-basin','Ember Basin','Region map'),mapCard('frost-march','Frost March','Region map'));
  }
  const observer=new MutationObserver(scan);
  function start(){observer.observe(document.documentElement,{subtree:true,childList:true});scan()}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
- window.ristProceduralMap={load:(id)=>document.querySelectorAll('.map-tile-map').forEach(h=>render(h,id)),regenerate:()=>document.querySelectorAll('.map-tile-map').forEach(h=>render(h,'random-world'))};
+ window.ristProceduralMap={load:id=>document.querySelectorAll('.map-tile-map').forEach(h=>render(h,id)),regenerate:()=>document.querySelectorAll('.map-tile-map').forEach(h=>render(h,'random-world'))};
 })();
