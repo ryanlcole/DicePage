@@ -133,9 +133,12 @@
     <div class="portrait-editor-modal" role="dialog" aria-modal="true" @onclick="CancelPortrait">
         <section class="portrait-editor" @onclick:stopPropagation="true">
             <header><strong>Edit portrait</strong><button @onclick="CancelPortrait" aria-label="Close">×</button></header>
-            <div id="portrait-art-target" class="portrait-upload-area">
-                <InputFile OnChange="LoadPortraitEditor" accept="image/png,image/jpeg,image/webp" />
-                <button type="button" class="portrait-draw" @onclick="OpenDrawPaint">Draw / Paint</button>
+            <div id="portrait-art-target" class="portrait-upload-area portrait-icon-actions">
+                <label class="portrait-attachment-icon" title="Attach portrait image" aria-label="Attach portrait image">
+                    <span aria-hidden="true">📎</span>
+                    <InputFile OnChange="LoadPortraitEditor" accept="image/png,image/jpeg,image/webp" />
+                </label>
+                <button type="button" class="portrait-draw portrait-paint-icon" @onclick="OpenDrawPaint" title="Draw or paint portrait" aria-label="Draw or paint portrait"><span aria-hidden="true">🎨</span></button>
             </div>
             @if (!string.IsNullOrWhiteSpace(_portraitSource))
             {
