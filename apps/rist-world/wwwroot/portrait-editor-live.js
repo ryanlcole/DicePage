@@ -19,8 +19,10 @@
    const z=clamp(parseFloat(zoom.value)||1,1,3);
    const xp=clamp(parseFloat(x.value)||50,0,100);
    const yp=clamp(parseFloat(y.value)||50,0,100);
-   const dx=((xp-50)/100)*crop.clientWidth;
-   const dy=((yp-50)/100)*crop.clientHeight;
+   // Full slider travel now moves the source image a complete crop diameter
+   // in either direction instead of stopping at half a diameter.
+   const dx=((xp-50)/50)*crop.clientWidth;
+   const dy=((yp-50)/50)*crop.clientHeight;
    img.style.transform=`translate(${dx}px,${dy}px) scale(${z})`;
   };
   ranges.forEach(r=>r.addEventListener('input',render,{passive:true}));
