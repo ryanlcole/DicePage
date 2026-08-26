@@ -58,7 +58,10 @@
                         {
                             <div class="reference-tracker">
                                 <button type="button" @onclick="() => StepTracker(field,-1)" aria-label="Decrease @field.Name"></button>
-                                <output>@field.Name · @field.Current / @field.Max</output>
+                                <div class="tracker-center">
+                                    <input class="tracker-name" value="@field.Name" readonly="@(!Session.CharacterEditMode)" @onchange="e => RenameValueField(field,e)" aria-label="Tracker name" />
+                                    <output>@field.Current / @field.Max</output>
+                                </div>
                                 <button type="button" @onclick="() => StepTracker(field,1)" aria-label="Increase @field.Name"></button>
                             </div>
                         }
