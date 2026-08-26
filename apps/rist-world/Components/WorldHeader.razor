@@ -4,6 +4,7 @@
 <header id="header-slider" class="topbar header-rail finite-rail icon-header desktop-arrow-slider" aria-label="Tabletop controls">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll controls left" title="Scroll left">‹</button>
  <div class="finite-set header-circular-set">
+  <button type="button" class="header-icon-button header-mmo-button" onclick="window.RistMMO?.toggle?.()" aria-pressed="false" title="GM local mode — editable personal map" aria-label="Toggle Shaelvien MMO mode">MMO</button>
   <div class="control icon-select-control table-mode-control @Session.TableMode" title="@Session.TableModeLabel">
    <span class="header-icon icon-encounter" aria-hidden="true"></span>
    <label class="sr-only" for="table-mode">Table mode</label>
