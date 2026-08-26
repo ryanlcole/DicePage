@@ -5,16 +5,15 @@
 <header id="header-slider" class="topbar header-rail finite-rail icon-header desktop-arrow-slider" aria-label="Tabletop controls">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll controls left" title="Scroll left">‹</button>
  <div class="finite-set header-circular-set">
+  <button class="header-icon-button door-button login-door-first @(Session.IsLoggedIn?"logged-in":"logged-out login-pulse")" @onclick="DoorClicked" title="@(Session.IsLoggedIn?"Log out":"Log in with Discord")" aria-label="@(Session.IsLoggedIn?"Log out":"Log in with Discord")">
+   <span class="header-icon icon-exit" aria-hidden="true"></span>
+  </button>
   <button type="button" class="header-icon-button header-mmo-button" data-shaelvien-ai-authority="@(Auth.IsOwnerDiscordAccount?"true":"false")" onclick="window.RistMMO?.toggle?.()" aria-pressed="false" title="GM local mode — editable personal map" aria-label="Toggle Shaelvien MMO mode">MMO</button>
   <div class="control icon-select-control table-mode-control @Session.TableMode" title="@Session.TableModeLabel">
    <span class="header-icon icon-encounter" aria-hidden="true"></span>
    <label class="sr-only" for="table-mode">Table mode</label>
    <select id="table-mode" value="@Session.TableMode" @onchange="ModeChanged" aria-label="Table mode">
-    <option value="worldbuilder">Worldbuilder</option>
-    <option value="forge">Forge</option>
-    <option value="test">Test</option>
-    <option value="encounter">Encounter</option>
-    <option value="play">Let's Roll!</option>
+    <option value="worldbuilder">Worldbuilder</option><option value="forge">Forge</option><option value="test">Test</option><option value="encounter">Encounter</option><option value="play">Let's Roll!</option>
    </select>
   </div>
   <div class="control asset-type-control icon-select-control"><span class="header-icon icon-assets" aria-hidden="true"></span><label class="sr-only">Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
@@ -23,52 +22,39 @@
   <div class="control icon-select-control compact-select"><span class="header-icon icon-role" aria-hidden="true"></span><label class="sr-only">Role</label><select @bind="Session.Role" @bind:after="Session.Notify" aria-label="Role">@if(Session.CanManageCurrentMap){<option value="GM">GM</option>}<option value="PC">PC</option></select></div>
   <div class="control icon-select-control compact-select"><span class="header-icon icon-grid-@Session.GridStyle" aria-hidden="true"></span><label class="sr-only">Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive" aria-label="Grid"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
   <div class="control unit-control icon-select-control compact-select"><span class="header-icon icon-scale" aria-hidden="true"></span><label class="sr-only">Units per square</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive" aria-label="Units per square"><option value="mi">mi</option><option value="km">km</option><option value="m">m</option><option value="yd">yd</option><option value="ft">ft</option></select></div>
-  <div class="scale-stack">
-   <label class="sr-only" for="grid-distance">Amount per square</label>
-   <input id="grid-distance" type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" aria-label="Amount per square" />
-   <output>@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output>
-  </div>
+  <div class="scale-stack"><label class="sr-only" for="grid-distance">Amount per square</label><input id="grid-distance" type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" aria-label="Amount per square" /><output>@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output></div>
   <button class="header-icon-button" @onclick="Session.SaveAndToggleExportAsync" title="Save current map" aria-label="Save current map and show export options" aria-expanded="@Session.SaveMenuOpen"><span class="header-icon icon-save" aria-hidden="true"></span></button>
   <button class="header-icon-button" @onclick="Session.ToggleLoadMenu" title="Load" aria-label="Load options" aria-expanded="@Session.LoadMenuOpen"><span class="header-icon icon-load" aria-hidden="true"></span></button>
   <a class="header-icon-button header-info-button" href="info.html" title="About, contact, legal and safety information" aria-label="About, contact, legal and safety information"><span aria-hidden="true">i</span></a>
   <button type="button" class="header-icon-button header-settings-button" onclick="window.RistStartMenu?.open?.()" title="Start / Settings" aria-label="Start / Settings"><span aria-hidden="true">⚙</span></button>
-  <button class="header-icon-button door-button @(Session.IsLoggedIn?"logged-in":"logged-out")" @onclick="Session.ToggleLoginAsync" title="@(Session.IsLoggedIn?"Log out":"Log in")" aria-label="@(Session.IsLoggedIn?"Log out":"Log in")">
-   <span class="header-icon icon-exit" aria-hidden="true"></span>
-  </button>
  </div>
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#header-slider',1)" aria-label="Scroll controls right" title="Scroll right">›</button>
- @if(Session.SaveMenuOpen)
- {
-  <section class="header-action-menu save-menu" aria-label="Export map options">
-   <strong>Export map</strong>
-   <button @onclick="Session.DownloadMapAsync">Download RIST map</button>
-   @if(Session.IsLoggedIn){<button @onclick="Session.SaveRistAsync">Save RIST to private AWS storage</button>}
-   <button @onclick="Session.ShareMapAsync">Export to Files / Drive / Share</button>
-   @if(!string.IsNullOrWhiteSpace(Session.PrivateStorageStatus)){<output class="storage-status">@Session.PrivateStorageStatus</output>}
-   <a href="privacy.html" target="_blank" rel="noopener">Privacy and data use</a>
-   @if(Session.IsLoggedIn){<button class="danger-action" @onclick="Session.DeletePrivateAccountAsync">Delete private storage and session</button>}
-  </section>
- }
- @if(Session.LoadMenuOpen)
- {
-  <section class="header-action-menu load-menu" aria-label="Load map options">
-   <label class="map-file-load">Load map file<InputFile OnChange="LoadMapFile" accept=".ristmap,.json,application/json" /></label>
-   <button @onclick="Session.LoadAsync">Load browser save</button>
-   <button>Load as Shaelvien Graphics</button>
-   @if(Session.IsLoggedIn)
-   {
-    <button title="Private campaign map storage">Campaign maps</button>
-    <button @onclick="Session.ToggleTileBrowser">Custom tiles and tilesets</button>
-    <button @onclick="Session.OpenMixer">Characters and cards</button>
-   }
-  </section>
- }
+ @if(Session.SaveMenuOpen){<section class="header-action-menu save-menu" aria-label="Export map options"><strong>Export map</strong><button @onclick="Session.DownloadMapAsync">Download RIST map</button>@if(Session.IsLoggedIn){<button @onclick="Session.SaveRistAsync">Save RIST to private AWS storage</button>}<button @onclick="Session.ShareMapAsync">Export to Files / Drive / Share</button>@if(!string.IsNullOrWhiteSpace(Session.PrivateStorageStatus)){<output class="storage-status">@Session.PrivateStorageStatus</output>}<a href="privacy.html" target="_blank" rel="noopener">Privacy and data use</a>@if(Session.IsLoggedIn){<button class="danger-action" @onclick="Session.DeletePrivateAccountAsync">Delete private storage and session</button>}</section>}
+ @if(Session.LoadMenuOpen){<section class="header-action-menu load-menu" aria-label="Load map options"><label class="map-file-load">Load map file<InputFile OnChange="LoadMapFile" accept=".ristmap,.json,application/json" /></label><button @onclick="Session.LoadAsync">Load browser save</button><button>Load as Shaelvien Graphics</button>@if(Session.IsLoggedIn){<button title="Private campaign map storage">Campaign maps</button><button @onclick="Session.ToggleTileBrowser">Custom tiles and tilesets</button><button @onclick="Session.OpenMixer">Characters and cards</button>}</section>}
 </header>
+@if(_loginPromptOpen && !Session.IsLoggedIn)
+{
+ <div class="discord-login-overlay" role="dialog" aria-modal="true" aria-label="Log in with Discord" @onclick="CloseLoginPrompt">
+  <section class="discord-login-card" @onclick:stopPropagation="true">
+   <button class="discord-login-close" @onclick="CloseLoginPrompt" aria-label="Close login">×</button>
+   <div class="discord-brand-mark" aria-hidden="true">
+    <svg viewBox="0 0 127.14 96.36" role="img"><path d="M107.7 8.1A105.2 105.2 0 0 0 81.5 0a72.1 72.1 0 0 0-3.4 7A97.7 97.7 0 0 0 49 7 72.4 72.4 0 0 0 45.5 0 105.9 105.9 0 0 0 19.3 8.2C2.7 32.8-1.8 56.8.4 80.5A105.7 105.7 0 0 0 32.5 96.4a77.7 77.7 0 0 0 6.9-9.4 68.7 68.7 0 0 1-10.8-5.2l2.7-2.1c20.8 9.6 43.4 9.6 63.9 0l2.8 2.1A69.3 69.3 0 0 1 87 87a77 77 0 0 0 6.9 9.4 105.3 105.3 0 0 0 32.1-15.9c2.7-27.5-4.6-51.3-18.3-72.4ZM42.5 65.7c-6.3 0-11.4-5.8-11.4-12.9s5-12.9 11.4-12.9c6.4 0 11.5 5.8 11.4 12.9 0 7.1-5 12.9-11.4 12.9Zm42.1 0c-6.3 0-11.4-5.8-11.4-12.9s5-12.9 11.4-12.9c6.4 0 11.5 5.8 11.4 12.9 0 7.1-5 12.9-11.4 12.9Z"/></svg>
+   </div>
+   <h2>Enter RIST with Discord</h2>
+   <p>Discord identifies your account so RIST can load the correct permissions, private storage, characters, campaigns, and tutorial path.</p>
+   <button class="discord-login-primary" @onclick="ContinueDiscordLogin">Continue with Discord</button>
+   <button class="discord-login-cancel" @onclick="CloseLoginPrompt">Cancel</button>
+  </section>
+ </div>
+}
 @code{
+ bool _loginPromptOpen;
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
- void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ void SessionChanged(){if(Session.IsLoggedIn)_loginPromptOpen=false;_ = InvokeAsync(StateHasChanged);}
  public void Dispose()=>Session.Changed-=SessionChanged;
- void StageAsset(){if(Session.PieceKind=="tile"){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();return;}Session.StagePiece(Session.PieceKind);}
+ async Task DoorClicked(){if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}_loginPromptOpen=true;}
+ void CloseLoginPrompt()=>_loginPromptOpen=false;
+ async Task ContinueDiscordLogin(){_loginPromptOpen=false;await Session.ToggleLoginAsync();}
  void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
  void ModeChanged(ChangeEventArgs e)=>Session.SetTableMode(e.Value?.ToString()??"worldbuilder");
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
