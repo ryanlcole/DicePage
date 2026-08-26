@@ -44,11 +44,11 @@
                         {
                             <article class="reference-value-tile">
                                 <input class="tile-label" value="@field.Name" readonly="@(!Session.CharacterEditMode)" @onchange="e => RenameValueField(field,e)" placeholder="Name" aria-label="Value name" />
-                                <input class="tile-number" type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttribute(field,e)" placeholder="0" aria-label="@field.Name value" />
+                                <input class="tile-number" type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttribute(field,e)" placeholder="Value" aria-label="@field.Name value" />
                                 <div class="tile-circle-row" aria-label="@field.Name details">
-                                    <input class="tile-circle-text" type="number" value="@field.BaseValue" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttributeBase(field,e)" placeholder="0" title="Base value" aria-label="@field.Name base value" />
+                                    <input class="tile-circle-text" type="number" value="@field.BaseValue" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttributeBase(field,e)" placeholder="Base" title="Base value" aria-label="@field.Name base value" />
                                     <input class="tile-circle-text" type="text" value="@field.ShortName" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetShortName(field,e)" maxlength="3" placeholder="ID" title="Short name" aria-label="@field.Name short name" />
-                                    <input class="tile-circle-text" type="number" value="@field.Max" readonly placeholder="Max" title="Maximum" aria-label="@field.Name maximum" />
+                                    <input class="tile-circle-text" type="number" value="@field.Max" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttributeMax(field,e)" placeholder="Max" title="Maximum" aria-label="@field.Name maximum" />
                                 </div>
                             </article>
                         }
@@ -100,9 +100,9 @@
                 else if (_page == 3)
                 {
                     <input class="equipment-title" value="Equipment & Anatomy" readonly aria-label="Page title" />
-                    <textarea class="equipment-slots-text" @bind="_equipment" readonly="@(!Session.CharacterEditMode)" placeholder="Equipment, armor, weapons, carried items and containers" aria-label="Equipment"></textarea>
-                    <textarea class="equipment-anatomy" @bind="_anatomy" readonly="@(!Session.CharacterEditMode)" placeholder="Anatomy, body configuration, adaptations and movement" aria-label="Anatomy"></textarea>
-                    <textarea class="equipment-notes" @bind="_conditions" readonly="@(!Session.CharacterEditMode)" placeholder="Conditions, damage and notes" aria-label="Conditions"></textarea>
+                    <textarea class="equipment-slots-text" @bind="Session.CharacterEquipment" readonly="@(!Session.CharacterEditMode)" placeholder="Equipment, armor, weapons, carried items and containers" aria-label="Equipment"></textarea>
+                    <textarea class="equipment-anatomy" @bind="Session.CharacterAnatomy" readonly="@(!Session.CharacterEditMode)" placeholder="Anatomy, body configuration, adaptations and movement" aria-label="Anatomy"></textarea>
+                    <textarea class="equipment-notes" @bind="Session.CharacterConditions" readonly="@(!Session.CharacterEditMode)" placeholder="Conditions, damage and notes" aria-label="Conditions"></textarea>
                 }
                 else
                 {
@@ -113,7 +113,7 @@
                             <article><strong>@card.Name</strong><small>@card.Type</small></article>
                         }
                     </section>
-                    <textarea class="linked-notes" @bind="_linked" readonly="@(!Session.CharacterEditMode)" placeholder="Linked locations, companions, vehicles, cards and campaign references" aria-label="Linked notes"></textarea>
+                    <textarea class="linked-notes" @bind="Session.CharacterLinkedNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Linked locations, companions, vehicles, cards and campaign references" aria-label="Linked notes"></textarea>
                 }
 
                 <nav class="reference-bottom-nav" aria-label="Character sheet pages">
@@ -164,12 +164,8 @@
     double _portraitZoom=1;
     int _portraitX=50;
     int _portraitY=50;
-    string _equipment="";
-    string _anatomy="";
-    string _conditions="";
-    string _linked="";
 
-    protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+    protected override void OnInitialized(){Session.EnsureCharacterSheetFields();Session.Changed+=SessionChanged;}
     protected override async Task OnParametersSetAsync(){if(Session.MixerOpen&&Session.IsLoggedIn)await Library.EnsureLoadedAsync();}
     void SessionChanged()=>_=InvokeAsync(StateHasChanged);
     public void Dispose()=>Session.Changed-=SessionChanged;
@@ -187,6 +183,7 @@
     void RenameValueField(CharacterField f,ChangeEventArgs e)=>Session.RenameCharacterField(f,e.Value?.ToString()??"");
     void SetAttribute(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttribute(f,v);}
     void SetAttributeBase(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttributeBase(f,v);}
+    void SetAttributeMax(CharacterField f,ChangeEventArgs e){if(!Session.CharacterEditMode)return;if(int.TryParse(e.Value?.ToString(),out var v)){f.Max=Math.Clamp(v,0,999999);Session.Notify();}}
     void SetShortName(CharacterField f,ChangeEventArgs e)=>Session.SetFieldShortName(f,e.Value?.ToString()??"");
     void SetTracker(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerCurrent(f,v);}
     void StepTracker(CharacterField f,int delta)=>Session.SetTrackerCurrent(f,Math.Clamp(f.Current+delta,0,Math.Max(f.Max,0)));

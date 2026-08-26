@@ -11,6 +11,10 @@ public sealed partial class WorldSession
         public string Description { get; set; } = "";
         public string Background { get; set; } = "";
         public string Notes { get; set; } = "";
+        public string Equipment { get; set; } = "";
+        public string Anatomy { get; set; } = "";
+        public string Conditions { get; set; } = "";
+        public string LinkedNotes { get; set; } = "";
         public string Portrait { get; set; } = "";
         public List<CharacterField> Fields { get; set; } = [];
         public List<string> HandFieldIds { get; set; } = [];
@@ -36,6 +40,7 @@ public sealed partial class WorldSession
         _characterSlots.Add(new());
         _activeCharacterIndex = _characterSlots.Count - 1;
         LoadCharacterSlot(_characterSlots[_activeCharacterIndex]);
+        EnsureCharacterSheetFields();
         CharacterEditMode = true;
         Notify();
     }
@@ -46,6 +51,7 @@ public sealed partial class WorldSession
         _characterSlots.RemoveAt(_activeCharacterIndex);
         _activeCharacterIndex = Math.Min(_activeCharacterIndex, _characterSlots.Count - 1);
         LoadCharacterSlot(_characterSlots[_activeCharacterIndex]);
+        EnsureCharacterSheetFields();
         CharacterEditMode = false;
         EditingHandCard = null;
         EditingDiceField = null;
@@ -59,6 +65,7 @@ public sealed partial class WorldSession
         _activeCharacterIndex = (_activeCharacterIndex + delta) % _characterSlots.Count;
         if (_activeCharacterIndex < 0) _activeCharacterIndex += _characterSlots.Count;
         LoadCharacterSlot(_characterSlots[_activeCharacterIndex]);
+        EnsureCharacterSheetFields();
         EditingHandCard = null;
         EditingDiceField = null;
         DraggedDieKey = null;
@@ -77,6 +84,10 @@ public sealed partial class WorldSession
         slot.Description = CharacterDescription;
         slot.Background = CharacterBackground;
         slot.Notes = CharacterNotes;
+        slot.Equipment = CharacterEquipment;
+        slot.Anatomy = CharacterAnatomy;
+        slot.Conditions = CharacterConditions;
+        slot.LinkedNotes = CharacterLinkedNotes;
         slot.Portrait = _characterPortraitDataUrl;
         slot.Fields = CharacterFields.Select(CloneField).ToList();
         slot.HandFieldIds = HandCards.Select(card => card.Field.Id).Distinct().ToList();
@@ -91,6 +102,10 @@ public sealed partial class WorldSession
         CharacterDescription = slot.Description;
         CharacterBackground = slot.Background;
         CharacterNotes = slot.Notes;
+        CharacterEquipment = slot.Equipment;
+        CharacterAnatomy = slot.Anatomy;
+        CharacterConditions = slot.Conditions;
+        CharacterLinkedNotes = slot.LinkedNotes;
         _characterPortraitDataUrl = slot.Portrait;
         CharacterFields.Clear();
         CharacterFields.AddRange(slot.Fields.Select(CloneField));
