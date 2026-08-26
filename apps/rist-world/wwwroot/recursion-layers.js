@@ -1,64 +1,35 @@
 (()=>{
  const order=['WORLD','REGION','LOCAL','SITE','ROOM','ENCOUNTER','OBJECT','CONTAINER','CONTENTS','WEATHER'];
+ const normalize=v=>{const x=String(v||'WORLD').trim().toUpperCase();if(x==='ZONE'||x==='CONTINENT')return'REGION';if(x==='AREA')return'LOCAL';if(x==='TACTICAL'||x==='INSTANCE')return'ENCOUNTER';if(x==='UNIVERSAL'||!order.includes(x))return'WORLD';return x};
  const rank=l=>Math.max(0,order.indexOf(normalize(l)));
- const normalize=v=>{
-  const x=String(v||'WORLD').trim().toUpperCase();
-  if(x==='ZONE'||x==='CONTINENT')return 'REGION';
-  if(x==='AREA')return 'LOCAL';
-  if(x==='TACTICAL'||x==='INSTANCE')return 'ENCOUNTER';
-  if(x==='UNIVERSAL'||!order.includes(x))return 'WORLD';
-  return x;
- };
+ const zoomLayer=z=>z<1.8?'WORLD':z<4.5?'REGION':z<10?'LOCAL':z<20?'SITE':z<38?'ROOM':z<70?'ENCOUNTER':z<130?'OBJECT':z<260?'CONTAINER':z<520?'CONTENTS':'WEATHER';
+ const opacityFor=(nativeRank,viewRank)=>{const d=viewRank-nativeRank;if(d<0)return 0;if(d===0)return 1;if(d===1)return .62;if(d===2)return .34;return .16};
  const pieceLayer=el=>el.classList.contains('rolling-stock')?'REGION':el.classList.contains('mini')?'ENCOUNTER':el.classList.contains('bit')?'OBJECT':'LOCAL';
- let catalog=[],scheduled=false;
- const stored=()=>{try{return JSON.parse(localStorage.getItem('rist.recursion.native.v1')||'{}')}catch{return {}}};
+ let catalog=[],scheduled=false,tiltX=0,tiltY=0,rightDrag=null,orientationWired=false;
+ const stored=()=>{try{return JSON.parse(localStorage.getItem('rist.recursion.native.v2')||'{}')}catch{return {}}};
  const remembered=stored();
- const saveRemembered=()=>{try{localStorage.setItem('rist.recursion.native.v1',JSON.stringify(remembered))}catch{}};
- const current=()=>normalize(document.querySelector('.recursion-cockpit')?.dataset.recursionLayer||'WORLD');
- const fingerprint=el=>{
-  const img=el.querySelector('img');
-  const src=img?.getAttribute('src')||'';
-  return [el.getAttribute('aria-label')||'',src,el.style.left||'',el.style.top||''].join('|');
- };
- const atlasLayer=el=>{
-  const img=el.querySelector('img');
-  const src=img?.getAttribute('src')||'';
-  const name=el.getAttribute('aria-label')||'';
-  const hit=catalog.find(x=>(x.image&&src&&String(x.image).split('?')[0]===src.split('?')[0])||(x.name&&name&&x.name===name));
-  if(hit&&String(hit.layer||'').toUpperCase()!=='UNIVERSAL')return normalize(hit.layer);
-  const key=fingerprint(el);
-  if(remembered[key])return normalize(remembered[key]);
-  const layer=current();remembered[key]=layer;saveRemembered();return layer;
- };
+ const saveRemembered=()=>{try{localStorage.setItem('rist.recursion.native.v2',JSON.stringify(remembered))}catch{}};
+ const map=()=>document.querySelector('.map');
+ const stage=()=>document.querySelector('.world-stage');
+ const zoom=()=>Math.max(.1,parseFloat(map()?.dataset.zoom||'1')||1);
+ const current=()=>zoomLayer(zoom());
+ const fingerprint=el=>{const img=el.querySelector('img'),src=img?.getAttribute('src')||'';return[el.getAttribute('aria-label')||'',src].join('|')};
+ const inferredByScale=el=>{const m=map(),r=el.getBoundingClientRect(),mr=m?.getBoundingClientRect();if(!mr?.width)return'WORLD';const ratio=r.width/mr.width;if(ratio<=.006)return'LOCAL';if(ratio<=.035)return'REGION';return'WORLD'};
+ const atlasLayer=el=>{const img=el.querySelector('img'),src=img?.getAttribute('src')||'',name=el.getAttribute('aria-label')||'';const hit=catalog.find(x=>(x.image&&src&&String(x.image).split('?')[0]===src.split('?')[0])||(x.name&&name&&x.name===name));if(hit&&String(hit.layer||'').toUpperCase()!=='UNIVERSAL')return normalize(hit.layer);const key=fingerprint(el);if(remembered[key])return normalize(remembered[key]);const layer=inferredByScale(el);remembered[key]=layer;saveRemembered();return layer};
  const roofish=el=>/roof|ceiling|canopy|overhang/i.test(el.getAttribute('aria-label')||'');
- const overlaps=(a,b)=>{const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();const x=ar.left+ar.width/2,y=ar.top+ar.height/2;return x>=br.left&&x<=br.right&&y>=br.top&&y<=br.bottom};
- function classify(){
-  scheduled=false;
-  const view=current(),viewRank=rank(view);
-  const tiles=[...document.querySelectorAll('.tile-cell')];
-  const blockers=[];
-  for(const el of tiles){const layer=atlasLayer(el);el.dataset.nativeLayer=layer;if(roofish(el)){el.dataset.weatherBlocker='true';blockers.push(el)}}
-  for(const el of tiles){
-   const layer=normalize(el.dataset.nativeLayer);let visible=layer==='WEATHER'?viewRank<=rank('ROOM'):rank(layer)<=viewRank;
-   if(visible&&layer==='WEATHER'&&blockers.some(b=>b!==el&&overlaps(el,b)))visible=false;
-   el.toggleAttribute('data-recursion-hidden',!visible);
-  }
-  for(const el of document.querySelectorAll('.piece')){
-   const layer=pieceLayer(el);el.dataset.nativeLayer=layer;el.toggleAttribute('data-recursion-hidden',rank(layer)>viewRank);
-  }
-  for(const el of document.querySelectorAll('.tray-item')){
-   let layer=el.classList.contains('tile')?atlasLayer(el):pieceLayer(el);el.dataset.nativeLayer=layer;el.title=`${el.title||'Place asset'} Native layer: ${layer}.`;
-  }
-  document.documentElement.dataset.ristViewportLayer=view;
- }
- const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(classify)};
- async function loadCatalog(){
-  const urls=['data/atlas-public.json','assets/drive-tiles/catalog.json'];
-  for(const url of urls){try{const r=await fetch(url,{cache:'no-store'});if(r.ok){const rows=await r.json();if(Array.isArray(rows))catalog.push(...rows)}}catch{}}
-  schedule();
- }
- const observer=new MutationObserver(schedule);
- function start(){observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-recursion-layer','style']});loadCatalog();schedule()}
+ const overlaps=(a,b)=>{const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect(),x=ar.left+ar.width/2,y=ar.top+ar.height/2;return x>=br.left&&x<=br.right&&y>=br.top&&y<=br.bottom};
+ function applyDepth(el,layer,viewRank){const r=rank(layer),opacity=opacityFor(r,viewRank);el.dataset.nativeLayer=layer;el.style.setProperty('--rist-layer-depth',String(r));el.style.setProperty('--rist-layer-opacity',String(opacity));el.toggleAttribute('data-recursion-ahead',r>viewRank);el.toggleAttribute('data-recursion-deep',viewRank-r>2)}
+ function classify(){scheduled=false;const view=current(),viewRank=rank(view),tiles=[...document.querySelectorAll('.tile-cell')],blockers=[];for(const el of tiles){const layer=atlasLayer(el);applyDepth(el,layer,viewRank);if(roofish(el)){el.dataset.weatherBlocker='true';blockers.push(el)}}for(const el of tiles){const layer=normalize(el.dataset.nativeLayer);let hidden=rank(layer)>viewRank+1;if(layer==='WEATHER'&&blockers.some(b=>b!==el&&overlaps(el,b)))hidden=true;el.toggleAttribute('data-recursion-hidden',hidden)}for(const el of document.querySelectorAll('.piece')){const layer=pieceLayer(el);applyDepth(el,layer,viewRank);el.toggleAttribute('data-recursion-hidden',rank(layer)>viewRank+1)}for(const el of document.querySelectorAll('.tray-item')){const layer=el.classList.contains('tile')?atlasLayer(el):pieceLayer(el);el.dataset.nativeLayer=layer;el.title=(el.title||'Place asset').replace(/ Native layer:.*$/,'')+` Native layer: ${layer}.`}
+  const m=map();if(m){m.dataset.recursionLayer=view;m.style.setProperty('--rist-recursion-rank',String(viewRank))}document.documentElement.dataset.ristViewportLayer=view;applyTilt()}
+ const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(classify)}};
+ function applyTilt(){const s=stage();if(!s)return;s.style.setProperty('--rist-tilt-x',`${tiltX.toFixed(2)}deg`);s.style.setProperty('--rist-tilt-y',`${tiltY.toFixed(2)}deg`)}
+ const setTilt=(x,y)=>{tiltX=Math.max(-10,Math.min(10,x));tiltY=Math.max(-12,Math.min(12,y));applyTilt()};
+ function wireRightTilt(){const m=map();if(!m||m.dataset.ristTiltWired)return;m.dataset.ristTiltWired='1';m.addEventListener('contextmenu',e=>e.preventDefault());m.addEventListener('pointerdown',e=>{if(e.button!==2)return;rightDrag={x:e.clientX,y:e.clientY,tx:tiltX,ty:tiltY};m.setPointerCapture?.(e.pointerId);e.preventDefault()});m.addEventListener('pointermove',e=>{if(!rightDrag||(e.buttons&2)!==2)return;setTilt(rightDrag.tx-(e.clientY-rightDrag.y)*.08,rightDrag.ty+(e.clientX-rightDrag.x)*.08);e.preventDefault()});const end=e=>{if(rightDrag){rightDrag=null;e.preventDefault()}};m.addEventListener('pointerup',end);m.addEventListener('pointercancel',end)}
+ async function enableOrientation(){if(orientationWired)return;try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const p=await DeviceOrientationEvent.requestPermission();if(p!=='granted')return}}catch{return}orientationWired=true;addEventListener('deviceorientation',e=>{if(e.gamma==null||e.beta==null)return;setTilt((e.beta-45)*.10,e.gamma*.12)},{passive:true})}
+ function wireOrientation(){const m=map();if(!m||m.dataset.ristOrientationWired)return;m.dataset.ristOrientationWired='1';m.addEventListener('pointerdown',()=>{enableOrientation()},{once:true,passive:true})}
+ async function loadCatalog(){for(const url of ['data/atlas-public.json','assets/drive-tiles/catalog.json']){try{const r=await fetch(url,{cache:'no-store'});if(r.ok){const rows=await r.json();if(Array.isArray(rows))catalog.push(...rows)}}catch{}}schedule()}
+ const observer=new MutationObserver(()=>{wireRightTilt();wireOrientation();schedule()});
+ function start(){observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-zoom','style']});wireRightTilt();wireOrientation();loadCatalog();schedule()}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  addEventListener('resize',schedule,{passive:true});addEventListener('orientationchange',schedule,{passive:true});
 })();
