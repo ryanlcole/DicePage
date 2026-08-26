@@ -5,179 +5,269 @@
 @inject PrivateCardLibrary Library
 @inject IJSRuntime JS
 
-@if(Session.MixerOpen)
+@if (Session.MixerOpen)
 {
- <div class="native-character-modal" role="dialog" aria-modal="true" aria-label="Universal character sheet" @onclick="CloseSheet">
-  <section class="native-character-sheet" @onclick:stopPropagation="true">
-   <header class="native-character-toolbar">
-    <span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>
-    <div>
-     @if(Session.CharacterEditMode)
-     {
-      <button type="button" @onclick="Session.NewCharacter">New</button>
-      <button type="button" @onclick="Session.DeleteCharacter">Delete</button>
-      <button type="button" @onclick="Session.SaveCharacter">Done</button>
-     }
-     else
-     {
-      <button type="button" @onclick="Session.OpenCharacterEditMode">Edit</button>
-     }
-     <button type="button" @onclick="Session.CloseMixer">Close</button>
+    <div class="native-character-modal" role="dialog" aria-modal="true" aria-label="Universal character sheet" @onclick="CloseSheet">
+        <section class="native-character-sheet" @onclick:stopPropagation="true">
+            <header class="native-character-toolbar">
+                <span>CHAR @Session.ActiveCharacterNumber / @Session.CharacterCount</span>
+                <div>
+                    @if (Session.CharacterEditMode)
+                    {
+                        <button type="button" @onclick="Session.NewCharacter">New</button>
+                        <button type="button" @onclick="Session.DeleteCharacter">Delete</button>
+                        <button type="button" @onclick="Session.SaveCharacter">Done</button>
+                    }
+                    else
+                    {
+                        <button type="button" @onclick="Session.OpenCharacterEditMode">Edit</button>
+                    }
+                    <button type="button" @onclick="Session.CloseMixer">Close</button>
+                </div>
+            </header>
+
+            <div class="native-character-scroll">
+                <section class="native-character-identity">
+                    <button type="button" class="native-character-portrait" @onclick="OpenPortraitEditor" aria-label="Edit portrait">
+                        @if (!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+                        {
+                            <img src="@Session.CharacterPortraitDataUrl" alt="Character portrait" />
+                        }
+                        else
+                        {
+                            <span>No portrait</span>
+                        }
+                    </button>
+                    <div class="native-character-nameplate">
+                        <label>
+                            Character name
+                            <input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" placeholder="Character name" />
+                        </label>
+                        <label>
+                            Identity / concept
+                            <input @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Identity, concept, role, or archetype" />
+                        </label>
+                    </div>
+                </section>
+
+                @if (_page == 0)
+                {
+                    <section class="native-character-page" aria-label="Profile page">
+                        <h2>Profile</h2>
+                        <label>Description<textarea @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Description"></textarea></label>
+                        <label>Profile notes<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Notes"></textarea></label>
+                    </section>
+                }
+                else if (_page == 1)
+                {
+                    <section class="native-character-page" aria-label="Values and trackers page">
+                        <div class="native-page-heading">
+                            <h2>Values &amp; Trackers</h2>
+                            @if (Session.CharacterEditMode)
+                            {
+                                <div><button @onclick="AddAttribute">+ Value</button><button @onclick="AddTracker">+ Tracker</button></div>
+                            }
+                        </div>
+                        <div class="native-field-grid">
+                            @foreach (var field in Session.CharacterFields.Where(f => WorldSession.IsAttributeField(f) || WorldSession.IsTrackerField(f)))
+                            {
+                                <article class="native-field-card">
+                                    <strong>@field.Name</strong>
+                                    @if (WorldSession.IsAttributeField(field))
+                                    {
+                                        <label>Value<input type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetAttribute(field, e)" /></label>
+                                    }
+                                    else
+                                    {
+                                        <label>Current<input type="number" min="0" max="@field.Max" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetTracker(field, e)" /></label>
+                                        <label>Maximum<input type="number" min="1" value="@field.Max" readonly="@(!Session.CharacterEditMode)" @onchange="e => SetTrackerMax(field, e)" /></label>
+                                    }
+                                    @if (Session.CharacterEditMode)
+                                    {
+                                        <button class="native-delete-field" @onclick="() => Session.DeleteCharacterControl(field)">Remove</button>
+                                    }
+                                </article>
+                            }
+                            @if (!Session.CharacterFields.Any(f => WorldSession.IsAttributeField(f) || WorldSession.IsTrackerField(f)))
+                            {
+                                <p class="native-empty">No values or trackers yet.</p>
+                            }
+                        </div>
+                    </section>
+                }
+                else if (_page == 2)
+                {
+                    <section class="native-character-page" aria-label="Entries page">
+                        <div class="native-page-heading">
+                            <h2>Entries</h2>
+                            @if (Session.CharacterEditMode)
+                            {
+                                <button @onclick="AddEntry">+ Entry</button>
+                            }
+                        </div>
+                        <div class="native-field-grid">
+                            @foreach (var field in Session.CharacterFields.Where(f => WorldSession.IsFlareField(f)))
+                            {
+                                <article class="native-field-card">
+                                    <strong>@field.Name</strong>
+                                    <p>@field.Description</p>
+                                    @if (Session.CharacterEditMode)
+                                    {
+                                        <button class="native-delete-field" @onclick="() => Session.DeleteCharacterControl(field)">Remove</button>
+                                    }
+                                </article>
+                            }
+                            @if (!Session.CharacterFields.Any(f => WorldSession.IsFlareField(f)))
+                            {
+                                <p class="native-empty">No entries yet.</p>
+                            }
+                        </div>
+                        <label>Rules / abilities / records<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Rules, abilities, languages, feats, records, and system-specific entries"></textarea></label>
+                    </section>
+                }
+                else if (_page == 3)
+                {
+                    <section class="native-character-page" aria-label="Equipment page">
+                        <h2>Equipment &amp; Anatomy</h2>
+                        <label>Equipment<textarea @bind="_equipment" readonly="@(!Session.CharacterEditMode)" placeholder="Equipment, armor, weapons, carried items, containers"></textarea></label>
+                        <label>Anatomy / form<textarea @bind="_anatomy" readonly="@(!Session.CharacterEditMode)" placeholder="Anatomy, body configuration, adaptations, movement, form"></textarea></label>
+                        <label>Conditions<textarea @bind="_conditions" readonly="@(!Session.CharacterEditMode)" placeholder="Damage, conditions, status effects"></textarea></label>
+                    </section>
+                }
+                else
+                {
+                    <section class="native-character-page native-spellbook-page" aria-label="Linked cards and spellbook page" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
+                        <h2>Linked Cards / Spellbook</h2>
+                        <p class="native-page-help">Cards linked to the active character appear here.</p>
+                        <div class="native-linked-cards">
+                            @foreach (var card in Library.SpellbookCards)
+                            {
+                                <article>
+                                    <strong>@card.Name</strong>
+                                    <small>@card.Type</small>
+                                    @if (Session.CharacterEditMode)
+                                    {
+                                        <button @onclick="() => Library.RemoveFromSpellbookAsync(card)">Remove</button>
+                                    }
+                                </article>
+                            }
+                            @if (!Library.SpellbookCards.Any())
+                            {
+                                <p class="native-empty">No linked cards yet. Add them from the Card Library.</p>
+                            }
+                        </div>
+                        <label>Linked assets / locations<textarea @bind="_linked" readonly="@(!Session.CharacterEditMode)" placeholder="Linked assets, locations, companions, vehicles, campaign references"></textarea></label>
+                    </section>
+                }
+            </div>
+
+            <nav class="native-character-nav" aria-label="Character sheet pages">
+                @for (var i = 0; i < PageLabels.Length; i++)
+                {
+                    var index = i;
+                    <button type="button" class="@NavClass(index)" @onclick="() => SelectPage(index)" aria-label="@PageLabels[index]" title="@PageLabels[index]">
+                        <span>@PageGlyphs[index]</span><small>@PageLabels[index]</small>
+                    </button>
+                }
+            </nav>
+        </section>
     </div>
-   </header>
-
-   <div class="native-character-scroll">
-    <section class="native-character-identity">
-     <button type="button" class="native-character-portrait" @onclick="OpenPortraitEditor" aria-label="Edit portrait">
-      @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
-      {
-       <img src="@Session.CharacterPortraitDataUrl" alt="Character portrait" />
-      }
-      else
-      {
-       <span>No portrait</span>
-      }
-     </button>
-     <div class="native-character-nameplate">
-      <label>Character name
-       <input @bind="Session.CharacterName" readonly="@(!Session.CharacterEditMode)" placeholder="Character name" />
-      </label>
-      <label>Identity / concept
-       <input @bind="Session.CharacterBackground" readonly="@(!Session.CharacterEditMode)" placeholder="Identity, concept, role, or archetype" />
-      </label>
-     </div>
-    </section>
-
-    @if(_page==0)
-    {
-     <section class="native-character-page" aria-label="Profile page">
-      <h2>Profile</h2>
-      <label>Description<textarea @bind="Session.CharacterDescription" readonly="@(!Session.CharacterEditMode)" placeholder="Description"></textarea></label>
-      <label>Profile notes<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Notes"></textarea></label>
-     </section>
-    }
-    else if(_page==1)
-    {
-     <section class="native-character-page" aria-label="Values and trackers page">
-      <div class="native-page-heading"><h2>Values &amp; Trackers</h2>@if(Session.CharacterEditMode){<div><button @onclick="()=>Session.AddCharacterControl(\"Attributes\")">+ Value</button><button @onclick="()=>Session.AddCharacterControl(\"Trackers\")">+ Tracker</button></div>}</div>
-      <div class="native-field-grid">
-       @foreach(var field in Session.CharacterFields.Where(f=>WorldSession.IsAttributeField(f)||WorldSession.IsTrackerField(f)))
-       {
-        <article class="native-field-card">
-         <strong>@field.Name</strong>
-         @if(WorldSession.IsAttributeField(field))
-         {
-          <label>Value<input type="number" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetAttribute(field,e)" /></label>
-         }
-         else
-         {
-          <label>Current<input type="number" min="0" max="@field.Max" value="@field.Current" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetTracker(field,e)" /></label>
-          <label>Maximum<input type="number" min="1" value="@field.Max" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetTrackerMax(field,e)" /></label>
-         }
-         @if(Session.CharacterEditMode){<button class="native-delete-field" @onclick="()=>Session.DeleteCharacterControl(field)">Remove</button>}
-        </article>
-       }
-       @if(!Session.CharacterFields.Any(f=>WorldSession.IsAttributeField(f)||WorldSession.IsTrackerField(f)))
-       {<p class="native-empty">No values or trackers yet.</p>}
-      </div>
-     </section>
-    }
-    else if(_page==2)
-    {
-     <section class="native-character-page" aria-label="Entries page">
-      <div class="native-page-heading"><h2>Entries</h2>@if(Session.CharacterEditMode){<button @onclick="()=>Session.AddCharacterControl(\"Flare\")">+ Entry</button>}</div>
-      <div class="native-field-grid">
-       @foreach(var field in Session.CharacterFields.Where(f=>WorldSession.IsFlareField(f)))
-       {
-        <article class="native-field-card"><strong>@field.Name</strong><p>@field.Description</p>@if(Session.CharacterEditMode){<button class="native-delete-field" @onclick="()=>Session.DeleteCharacterControl(field)">Remove</button>}</article>
-       }
-       @if(!Session.CharacterFields.Any(f=>WorldSession.IsFlareField(f))){<p class="native-empty">No entries yet.</p>}
-      </div>
-      <label>Rules / abilities / records<textarea @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Rules, abilities, languages, feats, records, and other system-specific entries"></textarea></label>
-     </section>
-    }
-    else if(_page==3)
-    {
-     <section class="native-character-page" aria-label="Equipment page">
-      <h2>Equipment &amp; Anatomy</h2>
-      <label>Equipment<textarea @bind="_equipment" readonly="@(!Session.CharacterEditMode)" placeholder="Equipment, armor, weapons, carried items, containers"></textarea></label>
-      <label>Anatomy / form<textarea @bind="_anatomy" readonly="@(!Session.CharacterEditMode)" placeholder="Anatomy, body configuration, adaptations, movement, form"></textarea></label>
-      <label>Conditions<textarea @bind="_conditions" readonly="@(!Session.CharacterEditMode)" placeholder="Damage, conditions, status effects"></textarea></label>
-     </section>
-    }
-    else
-    {
-     <section class="native-character-page native-spellbook-page" aria-label="Linked cards and spellbook page" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
-      <h2>Linked Cards / Spellbook</h2>
-      <p class="native-page-help">Cards linked to the active character appear here.</p>
-      <div class="native-linked-cards">
-       @foreach(var card in Library.SpellbookCards)
-       {
-        <article><strong>@card.Name</strong><small>@card.Type</small>@if(Session.CharacterEditMode){<button @onclick="()=>Library.RemoveFromSpellbookAsync(card)">Remove</button>}</article>
-       }
-       @if(!Library.SpellbookCards.Any()){<p class="native-empty">No linked cards yet. Add them from the Card Library.</p>}
-      </div>
-      <label>Linked assets / locations<textarea @bind="_linked" readonly="@(!Session.CharacterEditMode)" placeholder="Linked assets, locations, companions, vehicles, campaign references"></textarea></label>
-     </section>
-    }
-   </div>
-
-   <nav class="native-character-nav" aria-label="Character sheet pages">
-    @for(var i=0;i<PageLabels.Length;i++)
-    {
-     var index=i;
-     <button type="button" class="@(_page==index?\"active\":\"\")" @onclick="()=>_page=index" aria-label="@PageLabels[index]" title="@PageLabels[index]"><span>@PageGlyphs[index]</span><small>@PageLabels[index]</small></button>
-    }
-   </nav>
-  </section>
- </div>
 }
 
-@if(_portraitEditing)
+@if (_portraitEditing)
 {
- <div class="portrait-editor-modal" role="dialog" aria-modal="true" @onclick="CancelPortrait">
-  <section class="portrait-editor" @onclick:stopPropagation="true">
-   <header><strong>Edit portrait</strong><button @onclick="CancelPortrait">×</button></header>
-   @if(string.IsNullOrWhiteSpace(_portraitSource))
-   {
-    <div class="portrait-upload-area"><InputFile OnChange="LoadPortraitEditor" accept="image/png,image/jpeg,image/webp" /></div>
-   }
-   else
-   {
-    <div class="portrait-editor-controls">
-     <div class="portrait-crop"><img src="@_portraitSource" alt="Portrait preview" style="transform:scale(@_portraitZoom);object-position:@_portraitX% @_portraitY%" /></div>
-     <div class="portrait-adjustments">
-      <label>Zoom <input type="range" min="1" max="3" step="0.05" @bind="_portraitZoom" /></label>
-      <label>X <input type="range" min="0" max="100" @bind="_portraitX" /></label>
-      <label>Y <input type="range" min="0" max="100" @bind="_portraitY" /></label>
-     </div>
+    <div class="portrait-editor-modal" role="dialog" aria-modal="true" @onclick="CancelPortrait">
+        <section class="portrait-editor" @onclick:stopPropagation="true">
+            <header><strong>Edit portrait</strong><button @onclick="CancelPortrait">×</button></header>
+            @if (string.IsNullOrWhiteSpace(_portraitSource))
+            {
+                <div class="portrait-upload-area"><InputFile OnChange="LoadPortraitEditor" accept="image/png,image/jpeg,image/webp" /></div>
+            }
+            else
+            {
+                <div class="portrait-editor-controls">
+                    <div class="portrait-crop"><img src="@_portraitSource" alt="Portrait preview" /></div>
+                    <div class="portrait-adjustments">
+                        <label>Zoom <input type="range" min="1" max="3" step="0.05" @bind="_portraitZoom" /></label>
+                        <label>X <input type="range" min="0" max="100" @bind="_portraitX" /></label>
+                        <label>Y <input type="range" min="0" max="100" @bind="_portraitY" /></label>
+                    </div>
+                </div>
+            }
+            <footer>
+                <button @onclick="CancelPortrait">Cancel</button>
+                @if (!string.IsNullOrWhiteSpace(_portraitSource))
+                {
+                    <button @onclick="ApplyPortrait">Apply</button>
+                }
+            </footer>
+        </section>
     </div>
-   }
-   <footer><button @onclick="CancelPortrait">Cancel</button>@if(!string.IsNullOrWhiteSpace(_portraitSource)){<button @onclick="ApplyPortrait">Apply</button>}</footer>
-  </section>
- </div>
 }
 
 @code {
- static readonly string[] PageLabels=["Profile","Values","Entries","Equipment","Linked"];
- static readonly string[] PageGlyphs=["●","✦","⚒","♙","▣"];
- int _page;
- bool _portraitEditing;
- string _portraitSource="";
- double _portraitZoom=1;
- int _portraitX=50,_portraitY=50;
- string _equipment="",_anatomy="",_conditions="",_linked="";
+    static readonly string[] PageLabels = ["Profile", "Values", "Entries", "Equipment", "Linked"];
+    static readonly string[] PageGlyphs = ["●", "✦", "⚒", "♙", "▣"];
+    int _page;
+    bool _portraitEditing;
+    string _portraitSource = "";
+    double _portraitZoom = 1;
+    int _portraitX = 50;
+    int _portraitY = 50;
+    string _equipment = "";
+    string _anatomy = "";
+    string _conditions = "";
+    string _linked = "";
 
- protected override void OnInitialized(){Session.Changed+=SessionChanged;}
- protected override async Task OnParametersSetAsync(){if(Session.MixerOpen&&Session.IsLoggedIn)await Library.EnsureLoadedAsync();}
- void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
- public void Dispose()=>Session.Changed-=SessionChanged;
- void CloseSheet(){Session.CloseFieldDiceBag();Session.CloseMixer();}
- void OpenPortraitEditor(){if(!Session.CharacterEditMode)return;_portraitSource="";_portraitZoom=1;_portraitX=50;_portraitY=50;_portraitEditing=true;}
- async Task LoadPortraitEditor(InputFileChangeEventArgs e){var f=e.File;if(f is null)return;await using var s=f.OpenReadStream(8*1024*1024);using var m=new MemoryStream();await s.CopyToAsync(m);_portraitSource=$"data:{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";}
- void CancelPortrait(){_portraitEditing=false;_portraitSource="";}
- async Task ApplyPortrait(){if(string.IsNullOrWhiteSpace(_portraitSource))return;var result=await JS.InvokeAsync<string>("ristCropPortrait",_portraitSource,_portraitZoom,_portraitX,_portraitY,512);Session.SetCharacterPortrait(result);CancelPortrait();}
- void SetAttribute(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetAttribute(f,v);}
- void SetTracker(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerCurrent(f,v);}
- void SetTrackerMax(CharacterField f,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var v))Session.SetTrackerMaximum(f,v);}
+    protected override void OnInitialized() => Session.Changed += SessionChanged;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Session.MixerOpen && Session.IsLoggedIn) await Library.EnsureLoadedAsync();
+    }
+    void SessionChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Session.Changed -= SessionChanged;
+    void CloseSheet() { Session.CloseFieldDiceBag(); Session.CloseMixer(); }
+    void SelectPage(int index) => _page = Math.Clamp(index, 0, PageLabels.Length - 1);
+    string NavClass(int index) => _page == index ? "active" : "";
+    void AddAttribute() => Session.AddCharacterControl("Attributes");
+    void AddTracker() => Session.AddCharacterControl("Trackers");
+    void AddEntry() => Session.AddCharacterControl("Flare");
+    void OpenPortraitEditor()
+    {
+        if (!Session.CharacterEditMode) return;
+        _portraitSource = "";
+        _portraitZoom = 1;
+        _portraitX = 50;
+        _portraitY = 50;
+        _portraitEditing = true;
+    }
+    async Task LoadPortraitEditor(InputFileChangeEventArgs e)
+    {
+        var f = e.File;
+        if (f is null) return;
+        await using var s = f.OpenReadStream(8 * 1024 * 1024);
+        using var m = new MemoryStream();
+        await s.CopyToAsync(m);
+        _portraitSource = $"data:{f.ContentType};base64,{Convert.ToBase64String(m.ToArray())}";
+    }
+    void CancelPortrait() { _portraitEditing = false; _portraitSource = ""; }
+    async Task ApplyPortrait()
+    {
+        if (string.IsNullOrWhiteSpace(_portraitSource)) return;
+        var result = await JS.InvokeAsync<string>("ristCropPortrait", _portraitSource, _portraitZoom, _portraitX, _portraitY, 512);
+        Session.SetCharacterPortrait(result);
+        CancelPortrait();
+    }
+    void SetAttribute(CharacterField f, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v)) Session.SetAttribute(f, v);
+    }
+    void SetTracker(CharacterField f, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v)) Session.SetTrackerCurrent(f, v);
+    }
+    void SetTrackerMax(CharacterField f, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v)) Session.SetTrackerMaximum(f, v);
+    }
 }
