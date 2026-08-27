@@ -1,6 +1,6 @@
 @inject WorldSession Session
 <div class="home-footer-stack">
-<footer id="footer-slider" class="footer dice-footer circular-rail desktop-arrow-slider" data-circular-rail aria-label="Dice tray">
+<footer id="footer-slider" class="footer dice-footer circular-rail desktop-arrow-slider" aria-label="Dice tray">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#footer-slider',-1)" aria-label="Scroll dice left" title="Scroll left">‹</button>
  <div class="circular-set dice-circular-set">
    @foreach(var die in Session.DiceSet)
@@ -25,33 +25,51 @@
     }
    }
    <div class="sum" aria-label="Dice total"><span>SUM</span><span>@Session.Total</span></div>
-   <button class="clear-dice" @onclick="Session.ClearRolls">Clear dice</button>
+   <button type="button" class="history-scroll-button roll-history-toggle" @onclick="()=>_rollHistoryOpen=true" aria-label="Open roll history" title="Roll history"><span aria-hidden="true">📜</span></button>
+   <button class="clear-dice" @onclick="Session.ClearRollsWithHistory">Clear dice</button>
    @foreach(var c in Session.Cards){<button class="card" @onclick="()=>Session.ShowCard(c)">@c.Name</button>}
  </div>
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#footer-slider',1)" aria-label="Scroll dice right" title="Scroll right">›</button>
 </footer>
 
-<section class="home-inline-chat @(_chatExpanded?"expanded":"")" aria-label="Chat" @onclick="ExpandChat">
- <div class="home-chat-text-region">
-  @if(_chatExpanded)
-  {
-   <div class="home-chat-transcript" aria-live="polite">
-    @foreach(var message in _history)
-    {
-     <article><strong>@message.Speaker</strong><p>@message.Text</p></article>
-    }
-    @if(_history.Count==0 && !string.IsNullOrWhiteSpace(Session.DialogueText))
-    {
-     <article><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></article>
-    }
-   </div>
-  }
-  <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?" @onclick:stopPropagation="false"></textarea></label>
- </div>
- <button class="home-chat-send" @onclick="SendInlineChat" @onclick:stopPropagation="true" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
- @if(_chatExpanded){<button class="home-chat-collapse" @onclick="CollapseChat" @onclick:stopPropagation="true" aria-label="Collapse chat">⌄</button>}
+<section class="home-inline-chat" aria-label="Chat">
+ <button type="button" class="history-scroll-button chat-history-toggle" @onclick="()=>_chatHistoryOpen=true" aria-label="Open chat history" title="Chat history"><span aria-hidden="true">📜</span></button>
+ <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?"></textarea></label>
+ <button class="home-chat-send" @onclick="SendInlineChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
 </section>
 </div>
+
+@if(_chatHistoryOpen)
+{
+ <div class="history-scroll-scrim" @onclick="()=>_chatHistoryOpen=false">
+  <section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Chat history" @onclick:stopPropagation="true">
+   <header><strong>Chat History</strong><button @onclick="()=>_chatHistoryOpen=false" aria-label="Close chat history">×</button></header>
+   <div class="history-scroll-body">
+    @foreach(var message in _history){<article class="chat-history-entry"><strong>@message.Speaker</strong><p>@message.Text</p></article>}
+    @if(_history.Count==0){<p class="history-empty">No chat messages yet.</p>}
+   </div>
+  </section>
+ </div>
+}
+@if(_rollHistoryOpen)
+{
+ <div class="history-scroll-scrim" @onclick="()=>_rollHistoryOpen=false">
+  <section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Roll history" @onclick:stopPropagation="true">
+   <header><strong>Roll History</strong><button @onclick="()=>_rollHistoryOpen=false" aria-label="Close roll history">×</button></header>
+   <div class="history-scroll-body roll-history-body">
+    @foreach(var batch in Session.RollHistoryBatches)
+    {
+     <article class="roll-history-entry">
+      <strong>@batch.CharacterName</strong>
+      @if(batch.CardNames.Count>0){<small>Card: @string.Join(", ",batch.CardNames)</small>}
+      <p>@batch.Equation</p>
+     </article>
+    }
+    @if(Session.RollHistoryBatches.Count==0){<p class="history-empty">No rolls yet.</p>}
+   </div>
+  </section>
+ </div>
+}
 
 @if(Session.DialogueOpen)
 {
@@ -66,10 +84,9 @@
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 @code{
  readonly List<(string Speaker,string Text)> _history=[];
- bool _chatExpanded;
- void ExpandChat()=>_chatExpanded=true;
- void CollapseChat(){_chatExpanded=false;}
- void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();_chatExpanded=true;}
- async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollAsync(key,magnitude);}
+ bool _chatHistoryOpen;
+ bool _rollHistoryOpen;
+ void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();}
+ async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollWithHistoryAsync(key,magnitude);}
  static string DieSpriteStyle(DiceSpec die,int frame){var col=frame%die.Columns;var row=frame/die.Columns;var x=die.Columns<=1?0:col*100.0/(die.Columns-1);var y=die.Rows<=1?0:row*100.0/(die.Rows-1);return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-3');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";}
 }
