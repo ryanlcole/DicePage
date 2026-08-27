@@ -57,7 +57,16 @@ jobs:
       - name: Deploy authority platform through CloudFormation execution role
         env:
           OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
+        shell: bash
         run: |
+          set -euo pipefail
+          PARAMS=(
+            "IdentityTableName=$IDENTITY_TABLE"
+            "FrontendOrigin=https://ryanlcole.github.io"
+          )
+          if [ -n "${OWNER_USER_ID:-}" ]; then
+            PARAMS+=("OwnerUserId=$OWNER_USER_ID")
+          fi
           sam deploy \
             --template-file infra/aws/rist-platform.yml \
             --stack-name "$STACK_NAME" \
@@ -67,10 +76,7 @@ jobs:
             --role-arn "$CFN_EXECUTION_ROLE_ARN" \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset \
-            --parameter-overrides \
-              IdentityTableName="$IDENTITY_TABLE" \
-              FrontendOrigin="https://ryanlcole.github.io" \
-              OwnerUserId="$OWNER_USER_ID"
+            --parameter-overrides "${PARAMS[@]}"
 
       - name: Export client authority config
         run: |
