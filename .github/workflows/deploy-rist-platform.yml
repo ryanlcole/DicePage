@@ -21,6 +21,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-platform
   AUTH_STACK: rist-discord-storage
+  PRODUCTION_ORIGIN: https://relicgamemaster.com
 
 jobs:
   validate-and-deploy:
@@ -62,7 +63,7 @@ jobs:
           set -euo pipefail
           PARAMS=(
             "IdentityTableName=$IDENTITY_TABLE"
-            "FrontendOrigin=https://ryanlcole.github.io"
+            "FrontendOrigin=$PRODUCTION_ORIGIN"
           )
           if [ -n "${OWNER_USER_ID:-}" ]; then
             PARAMS+=("OwnerUserId=$OWNER_USER_ID")
