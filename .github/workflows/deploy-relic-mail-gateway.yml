@@ -1,0 +1,90 @@
+name: Deploy ReLiC Mail Gateway
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/relic-mail-gateway.yml'
+      - 'infra/aws/relic-mail/**'
+      - '.github/workflows/deploy-relic-mail-gateway.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  STACK_NAME: relic-mail-gateway
+  DOMAIN_NAME: relicgamemaster.com
+  SUPPORT_ADDRESS: query@relicgamemaster.com
+  SUPPORT_GMAIL: relic.gamemaster@gmail.com
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate mail gateway template
+        run: sam validate --lint --template-file infra/aws/relic-mail-gateway.yml
+
+      - name: Compile gateway handler
+        run: python -m py_compile infra/aws/relic-mail/functions/gateway/app.py
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy secure mail gateway
+        run: |
+          sam deploy \
+            --template-file infra/aws/relic-mail-gateway.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              DomainName="$DOMAIN_NAME" \
+              SupportAddress="$SUPPORT_ADDRESS" \
+              SupportGmail="$SUPPORT_GMAIL"
+
+      - name: Activate ReLiC SES receipt rule set
+        run: aws ses set-active-receipt-rule-set --rule-set-name relic-mail-gateway
+
+      - name: Verify deployed resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='MailBucketName'].OutputValue" --output text)
+          TABLE=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='TicketTableName'].OutputValue" --output text)
+          FUNCTION=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='GatewayFunctionName'].OutputValue" --output text)
+          test -n "$BUCKET"
+          test -n "$TABLE"
+          test -n "$FUNCTION"
+          aws s3api get-bucket-encryption --bucket "$BUCKET" >/dev/null
+          aws s3api get-bucket-lifecycle-configuration --bucket "$BUCKET" >/dev/null
+          aws dynamodb describe-time-to-live --table-name "$TABLE" >/dev/null
+          aws lambda get-function --function-name "$FUNCTION" >/dev/null
+          aws ses describe-active-receipt-rule-set >/tmp/relic-active-rule.json
+          grep -q 'relic-mail-gateway' /tmp/relic-active-rule.json
+          echo "ReLiC mail gateway resources verified."
+
+      - name: Print DNS activation requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "MX: @ -> 10 inbound-smtp.${AWS_REGION}.amazonaws.com"
+          aws sesv2 get-email-identity --email-identity "$DOMAIN_NAME" \
+            --query '{Verified:VerifiedForSendingStatus,DkimStatus:DkimAttributes.Status,DkimTokens:DkimAttributes.Tokens}' \
+            --output json
+          aws sesv2 get-account \
+            --query '{ProductionAccessEnabled:ProductionAccessEnabled,SendingEnabled:SendingEnabled}' \
+            --output json
