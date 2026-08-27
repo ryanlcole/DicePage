@@ -16,22 +16,19 @@
   <style>
     .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}
     .relic-story-banner{position:relative;aspect-ratio:2/1;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);box-shadow:none}
-    .story-complete{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s ease;background:#02070a}
-    .story-scenes{position:absolute;inset:0 0 22% 0;display:grid;grid-template-columns:repeat(5,1fr);overflow:hidden}
-    .story-scene-window{position:relative;overflow:hidden;opacity:0;transition:opacity .75s ease;background:#02070a}
-    .story-scene-window img{position:absolute;top:0;width:500%;height:auto;max-width:none;object-fit:fill;filter:none;transform:translateX(calc(var(--scene-index) * -20%));will-change:opacity}
-    .story-mark{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:94%;text-align:center;opacity:0;transition:opacity .75s ease;color:#ead8b6;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2rem,6vw,5rem);font-weight:600;line-height:.95;text-shadow:0 3px 28px rgba(0,0,0,.95);white-space:nowrap}
-    .story-mark small{display:block;margin-top:.45rem;color:#88bac9;font-size:clamp(.7rem,1.6vw,1rem);font-weight:400;letter-spacing:.08em}
-    .relic-story-banner[data-phase="remember"] .scene-remember,
-    .relic-story-banner[data-phase="exist"] .scene-exist,
-    .relic-story-banner[data-phase="live"] .scene-live,
-    .relic-story-banner[data-phase="imagine"] .scene-imagine,
-    .relic-story-banner[data-phase="create"] .scene-create{opacity:1}
-    .relic-story-banner[data-phase]:not([data-phase="final"]) .story-mark{opacity:1}
-    .relic-story-banner[data-phase="final"] .story-complete{opacity:1}
-    .relic-story-banner[data-phase="final"] .story-scenes,.relic-story-banner[data-phase="final"] .story-mark{opacity:0}
-    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-scenes{inset:0 0 24% 0}.story-mark{bottom:7%;font-size:clamp(1.7rem,7.5vw,3rem)}}
-    @media(prefers-reduced-motion:reduce){.story-scenes,.story-mark{display:none}.story-complete{opacity:1!important}}
+    .story-scenes{position:absolute;inset:0 0 25% 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:hidden}
+    .story-scene-window{position:relative;overflow:hidden;opacity:0;transition:opacity .68s ease;background:#02070a}
+    .story-scene-window svg{display:block;width:100%;height:100%;overflow:hidden}
+    .story-scene-window image{width:360px;height:180px}
+    .story-mark-stack{position:absolute;left:3%;right:3%;bottom:1.8%;height:24%;display:grid;place-items:center;pointer-events:none}
+    .story-mark-tile{grid-area:1/1;width:100%;height:100%;display:grid;place-items:center;opacity:0;transition:opacity .62s ease}
+    .story-mark-tile svg{display:block;width:100%;height:100%;overflow:visible}
+    .story-mark-tile image{width:360px;height:180px}
+    .story-scene-window.active,.story-mark-tile.active{opacity:1}
+    .relic-story-banner.finalizing .story-scene-window{opacity:1}
+    .footer-relic-logo{width:92px!important;height:92px!important;object-fit:cover!important;object-position:left center!important;padding:7px;border-radius:18px;background:rgba(8,17,23,.28)!important;opacity:.82;mix-blend-mode:screen;border:1px solid rgba(224,197,141,.2);box-shadow:0 0 18px rgba(106,193,220,.24),0 0 34px rgba(224,197,141,.2);filter:drop-shadow(0 0 8px rgba(106,193,220,.38)) drop-shadow(0 0 18px rgba(224,197,141,.25))}
+    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-scenes{inset:0 0 27% 0}.story-mark-stack{left:4%;right:4%;bottom:1%;height:26%}.footer-relic-logo{width:82px!important;height:82px!important}}
+    @media(prefers-reduced-motion:reduce){.story-scene-window{opacity:1!important}.story-mark-tile{opacity:0!important}.story-mark-tile[data-mark="final"]{opacity:1!important}}
   </style>
 </head>
 <body>
@@ -45,16 +42,33 @@
   </header>
 
   <main>
-    <section class="relic-story-banner" data-phase="remember" aria-label="Remember. Exist. Live. Imagine. Create.">
-      <img class="story-complete" src="/relic-story-banner.svg" alt="Remember, exist, Live, imagine, Create — ReLiCGameMaster">
+    <section class="relic-story-banner" aria-label="Remember. Exist. Live. Imagine. Create.">
       <div class="story-scenes" aria-hidden="true">
-        <div class="story-scene-window scene-remember" style="--scene-index:0"><img src="/relic-story-banner.svg" alt=""></div>
-        <div class="story-scene-window scene-exist" style="--scene-index:1"><img src="/relic-story-banner.svg" alt=""></div>
-        <div class="story-scene-window scene-live" style="--scene-index:2"><img src="/relic-story-banner.svg" alt=""></div>
-        <div class="story-scene-window scene-imagine" style="--scene-index:3"><img src="/relic-story-banner.svg" alt=""></div>
-        <div class="story-scene-window scene-create" style="--scene-index:4"><img src="/relic-story-banner.svg" alt=""></div>
+        <div class="story-scene-window" data-scene="0">
+          <svg viewBox="0 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
+        </div>
+        <div class="story-scene-window" data-scene="1">
+          <svg viewBox="72 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
+        </div>
+        <div class="story-scene-window" data-scene="2">
+          <svg viewBox="144 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
+        </div>
+        <div class="story-scene-window" data-scene="3">
+          <svg viewBox="216 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
+        </div>
+        <div class="story-scene-window" data-scene="4">
+          <svg viewBox="288 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
+        </div>
       </div>
-      <div class="story-mark" aria-hidden="true"><span id="relic-story-mark">R</span><small>ReLiC powering Shaelvien</small></div>
+
+      <div class="story-mark-stack" aria-hidden="true">
+        <div class="story-mark-tile" data-mark="0"><svg viewBox="7 134 30 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+        <div class="story-mark-tile" data-mark="1"><svg viewBox="41 134 31 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+        <div class="story-mark-tile" data-mark="2"><svg viewBox="73 134 43 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+        <div class="story-mark-tile" data-mark="3"><svg viewBox="108 134 48 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+        <div class="story-mark-tile" data-mark="4"><svg viewBox="150 133 57 45" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+        <div class="story-mark-tile" data-mark="final"><svg viewBox="236 128 124 52" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
+      </div>
     </section>
 
     <section class="hero" aria-labelledby="hero-title">
@@ -91,31 +105,49 @@
     <section class="final-cta" aria-labelledby="final-title"><p class="eyebrow">Enter the Table</p><h2 id="final-title">Shaelvien is becoming playable now.</h2><p>Development is moving toward persistent friends-and-family testing, Kickstarter, and public testing.</p><a class="primary-button" href="/Game/index.html">Game Now</a></section>
   </main>
 
-  <footer><img src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="" aria-hidden="true"><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>
+  <footer><img class="footer-relic-logo" src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="ReLiCGameMaster"><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>
 
   <script>
     (() => {
       const banner = document.querySelector('.relic-story-banner');
-      const mark = document.getElementById('relic-story-mark');
-      if (!banner || !mark || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const phases = [
-        {name:'remember', mark:'R', hold:2400},
-        {name:'exist', mark:'Re', hold:2400},
-        {name:'live', mark:'ReLi', hold:2400},
-        {name:'imagine', mark:'ReLiC', hold:2400},
-        {name:'create', mark:'ReLiCGameMaster', hold:3000},
-        {name:'final', mark:'ReLiCGameMaster', hold:5200}
-      ];
-      let index = 0;
-      const run = () => {
-        const phase = phases[index];
-        banner.dataset.phase = phase.name;
-        mark.textContent = phase.mark;
-        window.setTimeout(() => {
-          index = (index + 1) % phases.length;
-          run();
-        }, phase.hold);
+      const scenes = [...document.querySelectorAll('.story-scene-window')];
+      const marks = [...document.querySelectorAll('.story-mark-tile')];
+      if (!banner || !scenes.length || !marks.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const sleep = ms => new Promise(resolve => window.setTimeout(resolve, ms));
+      const clear = () => {
+        banner.classList.remove('finalizing');
+        scenes.forEach(scene => scene.classList.remove('active'));
+        marks.forEach(mark => mark.classList.remove('active'));
       };
+
+      const run = async () => {
+        while (true) {
+          for (let i = 0; i < 5; i += 1) {
+            clear();
+            scenes[i].classList.add('active');
+            await sleep(650);
+            marks[i].classList.add('active');
+            await sleep(1350);
+            scenes[i].classList.remove('active');
+            await sleep(350);
+            marks[i].classList.remove('active');
+            await sleep(350);
+          }
+
+          clear();
+          banner.classList.add('finalizing');
+          await sleep(750);
+          const finalMark = marks.find(mark => mark.dataset.mark === 'final');
+          if (finalMark) finalMark.classList.add('active');
+          await sleep(4200);
+          scenes.forEach(scene => scene.classList.remove('active'));
+          banner.classList.remove('finalizing');
+          if (finalMark) finalMark.classList.remove('active');
+          await sleep(900);
+        }
+      };
+
       run();
     })();
   </script>
