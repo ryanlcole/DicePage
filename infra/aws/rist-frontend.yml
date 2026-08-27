@@ -1,6 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: RIST production frontend hosting on private S3 + CloudFront + AWS WAF
 
+Parameters:
+  DomainName:
+    Type: String
+    Default: ''
+    Description: Optional production apex domain such as relicgamemaster.com
+  CertificateArn:
+    Type: String
+    Default: ''
+    Description: Optional us-east-1 ACM certificate covering the apex and www host
+
+Conditions:
+  HasCustomDomain: !And
+    - !Not [!Equals [!Ref DomainName, '']]
+    - !Not [!Equals [!Ref CertificateArn, '']]
+
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
@@ -121,6 +136,16 @@ Resources:
         IPV6Enabled: true
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
+        Aliases: !If
+          - HasCustomDomain
+          - [!Ref DomainName, !Sub 'www.${DomainName}']
+          - !Ref AWS::NoValue
+        ViewerCertificate: !If
+          - HasCustomDomain
+          - AcmCertificateArn: !Ref CertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
         WebACLId: !GetAtt FrontendWebAcl.Arn
         Origins:
           - Id: frontend
@@ -168,7 +193,12 @@ Outputs:
     Value: !Ref FrontendBucket
   FrontendDistributionId:
     Value: !Ref FrontendDistribution
+  FrontendDistributionDomainName:
+    Value: !GetAtt FrontendDistribution.DomainName
   FrontendBaseUrl:
     Value: !Sub 'https://${FrontendDistribution.DomainName}/'
   FrontendWebAclArn:
     Value: !GetAtt FrontendWebAcl.Arn
+  ProductionDomain:
+    Condition: HasCustomDomain
+    Value: !Sub 'https://${DomainName}/'
