@@ -7,6 +7,7 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - 'apps/rist-world/**'
+      - 'site/relic-home/**'
       - 'infra/aws/rist-frontend.yml'
       - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-frontend-aws.yml'
@@ -77,30 +78,63 @@ jobs:
             fi
           fi
 
-      - name: Publish compiled frontend to private S3 origin
+      - name: Publish company site, game, and Launcher to private S3 origin
         shell: bash
         run: |
+          set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
-          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/" \
+
+          # RIST WORLD is an isolated application surface. Keeping its relative
+          # base href means the exact PLC build can move under /Game/ unchanged.
+          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
+            --exclude 'Launcher/*' \
             --cache-control 'public,max-age=86400' \
             --only-show-errors
-          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/index.html" \
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
-          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/authority-config.json" \
+          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
 
-      - name: Invalidate and verify AWS frontend
+          # Launcher remains a root-level authenticated control surface.
+          aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" \
+            --delete \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --only-show-errors
+
+          # The public company website owns the domain root.
+          aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/relic-home.css "s3://${BUCKET}/relic-home.css" \
+            --cache-control 'public,max-age=3600' \
+            --content-type 'text/css; charset=utf-8' \
+            --only-show-errors
+
+      - name: Invalidate and verify AWS frontend surfaces
         shell: bash
         run: |
+          set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "$URL"
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
+          grep -q 'Game Now' /tmp/relic-home.html
+          grep -q 'ReLiCGameMaster' /tmp/relic-home.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'RistPLC' /tmp/rist-index.html
-          echo "AWS frontend verified at $URL"
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/launcher-index.html "${URL}Launcher/index.html"
+          grep -q 'QAStaging' /tmp/launcher-index.html
+
+          echo "ReLiCGameMaster home verified at $URL"
+          echo "RIST WORLD verified at ${URL}Game/index.html"
+          echo "Launcher verified at ${URL}Launcher/index.html"
