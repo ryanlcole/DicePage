@@ -22,6 +22,8 @@ env:
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   FRONTEND_STACK: rist-frontend
   PLATFORM_STACK: rist-platform
+  PRODUCTION_DOMAIN: relicgamemaster.com
+  PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
 
 jobs:
   build-and-deploy:
@@ -57,6 +59,9 @@ jobs:
             --stack-name "$FRONTEND_STACK" \
             --region "$AWS_REGION" \
             --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --parameter-overrides \
+              DomainName="$PRODUCTION_DOMAIN" \
+              CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
             --no-fail-on-empty-changeset; then
             echo "CloudFormation deployment failed. Recent failed resource events:"
             aws cloudformation describe-stack-events \
