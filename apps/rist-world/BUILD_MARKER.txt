@@ -1,2 +1,2 @@
-RIST WORLD live alpha build marker
-656f1485a952e74e51218c70d1e505477bb6158f
+RIST WORLD live alpha
+AWS authority foundation build: dedf6836
