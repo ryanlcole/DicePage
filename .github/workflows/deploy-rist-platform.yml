@@ -87,3 +87,5 @@ jobs:
           name: rist-authority-config
           path: authority-config.json
           retention-days: 7
+
+# Deployment trigger: OIDC trust repaired 2026-08-27
