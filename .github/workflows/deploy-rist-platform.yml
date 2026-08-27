@@ -1,0 +1,68 @@
+name: Deploy RIST AWS Platform
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-platform.yml'
+      - '.github/workflows/deploy-rist-platform.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  STACK_NAME: rist-platform
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-sam@v2
+      - name: Validate platform template
+        run: sam validate --lint --template-file infra/aws/rist-platform.yml
+      - name: Require deployment variables
+        env:
+          IDENTITY_TABLE: ${{ vars.RIST_IDENTITY_TABLE }}
+        run: |
+          if [ -z "$IDENTITY_TABLE" ]; then
+            echo 'Repository variable RIST_IDENTITY_TABLE must contain the deployed Discord auth IdentityTable name.'
+            exit 1
+          fi
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy authority platform
+        env:
+          IDENTITY_TABLE: ${{ vars.RIST_IDENTITY_TABLE }}
+          OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
+        run: |
+          sam deploy \
+            --template-file infra/aws/rist-platform.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              IdentityTableName="$IDENTITY_TABLE" \
+              FrontendOrigin="https://ryanlcole.github.io" \
+              OwnerUserId="$OWNER_USER_ID"
+      - name: Export client authority config
+        run: |
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='AuthorityApiBaseUrl'].OutputValue" --output text)
+          WS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='RealtimeWebSocketUrl'].OutputValue" --output text)
+          printf '{"apiBaseUrl":"%s","realtimeUrl":"%s"}\n' "$API" "$WS" > authority-config.json
+          cat authority-config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rist-authority-config
+          path: authority-config.json
+          retention-days: 7

@@ -1,0 +1,447 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Shaelvien RIST server-authoritative MMO and user-state platform
+
+Parameters:
+  IdentityTableName:
+    Type: String
+    Description: Existing Discord auth/session DynamoDB table from rist-discord-storage stack
+  FrontendOrigin:
+    Type: String
+    Default: https://ryanlcole.github.io
+  OwnerUserId:
+    Type: String
+    Default: ''
+    Description: Optional RIST internal user UUID with platform-owner authority
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 15
+    MemorySize: 256
+    Tracing: Active
+
+Resources:
+  UserDataKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Description: RIST private user and world data key
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RootAdministration
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: '*'
+
+  UserDataKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/rist-user-data
+      TargetKeyId: !Ref UserDataKey
+
+  UserDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration: { Status: Enabled }
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt UserDataKey.Arn
+            BucketKeyEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref FrontendOrigin]
+            AllowedMethods: [GET, POST]
+            AllowedHeaders: ['*']
+            ExposedHeaders: [ETag]
+            MaxAge: 300
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload: { DaysAfterInitiation: 1 }
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt UserDataKey.Arn
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+
+  WorldStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt UserDataKey.Arn
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+
+  MembershipsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt UserDataKey.Arn
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+
+  AuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt UserDataKey.Arn
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+
+  RealtimeTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt UserDataKey.Arn
+
+  AuthorityApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref FrontendOrigin]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, OPTIONS]
+        MaxAge: 300
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 100
+        ThrottlingRateLimit: 50
+
+  AuthorityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Environment:
+        Variables:
+          IDENTITY_TABLE: !Ref IdentityTableName
+          USERS_TABLE: !Ref UsersTable
+          WORLD_TABLE: !Ref WorldStateTable
+          MEMBERSHIPS_TABLE: !Ref MembershipsTable
+          AUDIT_TABLE: !Ref AuditTable
+          REALTIME_TABLE: !Ref RealtimeTable
+          USER_DATA_BUCKET: !Ref UserDataBucket
+          USER_DATA_KEY_ARN: !GetAtt UserDataKey.Arn
+          OWNER_USER_ID: !Ref OwnerUserId
+          FRONTEND_ORIGIN: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
+        - DynamoDBCrudPolicy: { TableName: !Ref UsersTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref MembershipsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref AuditTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref RealtimeTable }
+        - S3CrudPolicy: { BucketName: !Ref UserDataBucket }
+        - Statement:
+            - Effect: Allow
+              Action: [kms:Encrypt, kms:Decrypt, kms:GenerateDataKey]
+              Resource: !GetAtt UserDataKey.Arn
+      Events:
+        Me:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/me, Method: GET }
+        EntityGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/entity, Method: GET }
+        EntityMutate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/mutate, Method: POST }
+        MembershipGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/membership, Method: GET }
+        MembershipGrant:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/membership/grant, Method: POST }
+        RealtimeTicket:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /realtime/ticket, Method: POST }
+        StorageUpload:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /userdata/upload, Method: POST }
+        StorageDownload:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /userdata/download, Method: GET }
+      InlineCode: |
+        import boto3, hashlib, json, os, secrets, time, urllib.parse, uuid
+        from decimal import Decimal
+
+        ddb = boto3.resource('dynamodb')
+        identity = ddb.Table(os.environ['IDENTITY_TABLE'])
+        users = ddb.Table(os.environ['USERS_TABLE'])
+        world = ddb.Table(os.environ['WORLD_TABLE'])
+        memberships = ddb.Table(os.environ['MEMBERSHIPS_TABLE'])
+        audit = ddb.Table(os.environ['AUDIT_TABLE'])
+        realtime = ddb.Table(os.environ['REALTIME_TABLE'])
+        s3 = boto3.client('s3')
+        bucket = os.environ['USER_DATA_BUCKET']
+        kms_key = os.environ['USER_DATA_KEY_ARN']
+        owner_user_id = os.environ.get('OWNER_USER_ID','').strip()
+        origin = os.environ['FRONTEND_ORIGIN'].rstrip('/')
+
+        def response(status, body=None):
+            return {'statusCode': status, 'headers': {
+                'access-control-allow-origin': origin,
+                'access-control-allow-headers': 'authorization,content-type',
+                'access-control-allow-methods': 'GET,POST,OPTIONS',
+                'cache-control': 'no-store', 'content-type': 'application/json'
+            }, 'body': '' if body is None else json.dumps(body, separators=(',',':'), default=str)}
+
+        def auth(event):
+            header = (event.get('headers') or {}).get('authorization','')
+            if not header.lower().startswith('bearer '): return None
+            raw = header.split(' ',1)[1].strip()
+            digest = hashlib.sha256(raw.encode()).hexdigest()
+            item = identity.get_item(Key={'pk':'session#'+digest}).get('Item')
+            if not item or int(item.get('expiresAt',0)) <= int(time.time()): return None
+            return {'userId':str(item['userId']), 'displayName':item.get('username','RIST user')}
+
+        def body(event):
+            return json.loads(event.get('body') or '{}')
+
+        def membership(world_id, user_id):
+            return memberships.get_item(Key={'pk':'WORLD#'+world_id,'sk':'USER#'+user_id}).get('Item')
+
+        def can_manage(world_id, user_id):
+            if owner_user_id and user_id == owner_user_id: return True
+            item = membership(world_id,user_id)
+            return bool(item and item.get('role') in ('owner','GM'))
+
+        def audit_write(world_id, user_id, action, entity_id='', details=None):
+            now = int(time.time()*1000)
+            audit.put_item(Item={'pk':'WORLD#'+world_id,'sk':f'{now:013d}#{uuid.uuid4()}',
+                'userId':user_id,'action':action,'entityId':entity_id,'details':details or {},'createdAt':now})
+
+        def safe_id(value, label):
+            value = str(value or '').strip()
+            if not value or len(value)>160 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-' for c in value):
+                raise ValueError('Invalid '+label)
+            return value
+
+        def handler(event, context):
+            method = event['requestContext']['http']['method']
+            path = event['rawPath']
+            if method == 'OPTIONS': return response(204)
+            session = auth(event)
+            if not session: return response(401,{'error':'Authentication required'})
+            user_id = session['userId']
+            q = event.get('queryStringParameters') or {}
+            now = int(time.time())
+
+            if method=='GET' and path=='/authority/me':
+                users.put_item(Item={'pk':'USER#'+user_id,'sk':'PROFILE','displayName':session['displayName'],'lastSeenAt':now})
+                return response(200,{'userId':user_id,'displayName':session['displayName'],'platformOwner':bool(owner_user_id and user_id==owner_user_id)})
+
+            if method=='GET' and path=='/world/membership':
+                world_id=safe_id(q.get('worldId'),'worldId')
+                return response(200, membership(world_id,user_id) or {'worldId':world_id,'role':'none'})
+
+            if method=='POST' and path=='/world/membership/grant':
+                req=body(event); world_id=safe_id(req.get('worldId'),'worldId'); target=safe_id(req.get('userId'),'userId'); role=req.get('role')
+                if role not in ('viewer','player','GM','owner'): return response(400,{'error':'Invalid role'})
+                existing=membership(world_id,user_id)
+                if not ((owner_user_id and user_id==owner_user_id) or (existing and existing.get('role')=='owner')):
+                    return response(403,{'error':'Owner authority required'})
+                memberships.put_item(Item={'pk':'WORLD#'+world_id,'sk':'USER#'+target,'worldId':world_id,'userId':target,'role':role,'updatedAt':now})
+                audit_write(world_id,user_id,'membership.grant',details={'target':target,'role':role})
+                return response(200,{'ok':True})
+
+            if method=='GET' and path=='/world/entity':
+                world_id=safe_id(q.get('worldId'),'worldId'); entity_id=safe_id(q.get('entityId'),'entityId')
+                if not membership(world_id,user_id) and not (owner_user_id and user_id==owner_user_id): return response(403,{'error':'World access required'})
+                item=world.get_item(Key={'pk':'WORLD#'+world_id,'sk':'ENTITY#'+entity_id},ConsistentRead=True).get('Item')
+                return response(200,item or {'worldId':world_id,'entityId':entity_id,'missing':True})
+
+            if method=='POST' and path=='/world/mutate':
+                req=body(event); world_id=safe_id(req.get('worldId'),'worldId'); entity_id=safe_id(req.get('entityId'),'entityId')
+                expected=int(req.get('expectedVersion',0)); payload=req.get('payload') or {}; action=str(req.get('action') or 'update')[:80]
+                key={'pk':'WORLD#'+world_id,'sk':'ENTITY#'+entity_id}
+                current=world.get_item(Key=key,ConsistentRead=True).get('Item')
+                own_entity=bool(current and current.get('ownerUserId')==user_id)
+                if not (can_manage(world_id,user_id) or own_entity): return response(403,{'error':'Server authority denied mutation'})
+                actual=int(current.get('version',0)) if current else 0
+                if actual!=expected: return response(409,{'error':'Version conflict','actualVersion':actual,'entity':current})
+                new_version=actual+1
+                item={**key,'worldId':world_id,'entityId':entity_id,'version':new_version,'updatedAt':now,'updatedBy':user_id,'state':payload}
+                if current and current.get('ownerUserId'): item['ownerUserId']=current['ownerUserId']
+                elif req.get('ownerUserId')==user_id or can_manage(world_id,user_id): item['ownerUserId']=str(req.get('ownerUserId') or user_id)
+                world.put_item(Item=item,ConditionExpression='attribute_not_exists(#v) OR #v = :expected',ExpressionAttributeNames={'#v':'version'},ExpressionAttributeValues={':expected':Decimal(expected)})
+                audit_write(world_id,user_id,action,entity_id,{'version':new_version})
+                return response(200,item)
+
+            if method=='POST' and path=='/realtime/ticket':
+                req=body(event); world_id=safe_id(req.get('worldId'),'worldId')
+                if not membership(world_id,user_id) and not (owner_user_id and user_id==owner_user_id): return response(403,{'error':'World access required'})
+                ticket=secrets.token_urlsafe(32); expires=now+120
+                realtime.put_item(Item={'pk':'TICKET#'+ticket,'userId':user_id,'worldId':world_id,'expiresAt':expires})
+                return response(200,{'ticket':ticket,'expiresAt':expires})
+
+            if method=='POST' and path=='/userdata/upload':
+                req=body(event); raw=str(req.get('key') or '').replace('\\','/').strip('/')
+                if not raw or '..' in raw.split('/') or len(raw)>512: return response(400,{'error':'Invalid key'})
+                key='users/'+user_id+'/'+raw; content_type=req.get('contentType') or 'application/octet-stream'
+                post=s3.generate_presigned_post(Bucket=bucket,Key=key,Fields={'Content-Type':content_type,'x-amz-server-side-encryption':'aws:kms','x-amz-server-side-encryption-aws-kms-key-id':kms_key},Conditions=[{'Content-Type':content_type},{'x-amz-server-side-encryption':'aws:kms'},{'x-amz-server-side-encryption-aws-kms-key-id':kms_key},['content-length-range',1,52428800]],ExpiresIn=300)
+                return response(200,post)
+
+            if method=='GET' and path=='/userdata/download':
+                raw=urllib.parse.unquote(q.get('key') or '').replace('\\','/').strip('/')
+                if not raw or '..' in raw.split('/') or len(raw)>512: return response(400,{'error':'Invalid key'})
+                url=s3.generate_presigned_url('get_object',Params={'Bucket':bucket,'Key':'users/'+user_id+'/'+raw},ExpiresIn=300)
+                return response(200,{'url':url})
+
+            return response(404,{'error':'Not found'})
+
+  RealtimeConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Environment:
+        Variables:
+          REALTIME_TABLE: !Ref RealtimeTable
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref RealtimeTable }
+      InlineCode: |
+        import boto3, json, os, time
+        table=boto3.resource('dynamodb').Table(os.environ['REALTIME_TABLE'])
+        def handler(event, context):
+            connection=event['requestContext']['connectionId']
+            route=event['requestContext']['routeKey']
+            if route=='$connect':
+                ticket=(event.get('queryStringParameters') or {}).get('ticket','')
+                key={'pk':'TICKET#'+ticket}; item=table.get_item(Key=key).get('Item')
+                if item: table.delete_item(Key=key)
+                if not item or int(item.get('expiresAt',0))<=int(time.time()): return {'statusCode':401}
+                table.put_item(Item={'pk':'CONNECTION#'+connection,'userId':item['userId'],'worldId':item['worldId'],'expiresAt':int(time.time())+86400})
+                return {'statusCode':200}
+            if route=='$disconnect':
+                table.delete_item(Key={'pk':'CONNECTION#'+connection}); return {'statusCode':200}
+            return {'statusCode':200}
+
+  RealtimeApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: rist-realtime
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: '$request.body.action'
+
+  RealtimeConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref RealtimeApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RealtimeConnectFunction.Arn}/invocations
+
+  RealtimeConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RealtimeApi
+      RouteKey: '$connect'
+      AuthorizationType: NONE
+      Target: !Sub integrations/${RealtimeConnectIntegration}
+
+  RealtimeDisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RealtimeApi
+      RouteKey: '$disconnect'
+      AuthorizationType: NONE
+      Target: !Sub integrations/${RealtimeConnectIntegration}
+
+  RealtimeDefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RealtimeApi
+      RouteKey: '$default'
+      AuthorizationType: NONE
+      Target: !Sub integrations/${RealtimeConnectIntegration}
+
+  RealtimeDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn: [RealtimeConnectRoute, RealtimeDisconnectRoute, RealtimeDefaultRoute]
+    Properties: { ApiId: !Ref RealtimeApi }
+
+  RealtimeStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref RealtimeApi
+      StageName: live
+      DeploymentId: !Ref RealtimeDeployment
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 100
+        ThrottlingRateLimit: 50
+
+  RealtimeInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref RealtimeConnectFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RealtimeApi}/*
+
+Outputs:
+  AuthorityApiBaseUrl:
+    Value: !Sub https://${AuthorityApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  RealtimeWebSocketUrl:
+    Value: !Sub wss://${RealtimeApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/live
+  UserDataBucketName:
+    Value: !Ref UserDataBucket
+  UserDataKeyArn:
+    Value: !GetAtt UserDataKey.Arn
+  UsersTableName: { Value: !Ref UsersTable }
+  WorldStateTableName: { Value: !Ref WorldStateTable }
+  MembershipsTableName: { Value: !Ref MembershipsTable }
+  AuditTableName: { Value: !Ref AuditTable }

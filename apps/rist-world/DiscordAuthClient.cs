@@ -15,6 +15,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public string OwnerDiscordUserId { get; private set; } = "";
     public AuthProfile? Profile { get; private set; }
     public bool IsOwnerDiscordAccount => Profile is not null && !string.IsNullOrWhiteSpace(OwnerDiscordUserId) && string.Equals(Profile.UserId, OwnerDiscordUserId, StringComparison.Ordinal);
+    internal string? SessionToken => _sessionToken;
 
     public async Task<AuthProfile?> InitializeAsync()
     {
