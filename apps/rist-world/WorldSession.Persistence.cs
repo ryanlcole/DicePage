@@ -2,6 +2,8 @@ using System.Text.Json;
 namespace RistWorld;
 public sealed partial class WorldSession
 {
+ const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ string _lastPrivateSnapshot="";
  object SavePayload()=>new{Format="RISTMAP",Version=1,Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
@@ -9,15 +11,48 @@ public sealed partial class WorldSession
  public async Task SaveRistAsync()
  {
   if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
+  await SavePrivateCheckpointAsync(showSuccess:true);
+ }
+ async Task SavePrivateCheckpointAsync(bool showSuccess)
+ {
   try
   {
-   var safeName=string.Concat(MapName.Select(ch=>char.IsLetterOrDigit(ch)||ch is '-' or '_'?ch:'-')).Trim('-');
-   if(string.IsNullOrWhiteSpace(safeName))safeName="map";
-   await auth.UploadTextAsync($"maps/{safeName}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.ristmap",ExportMapJson(),"application/json");
-   PrivateStorageStatus="Saved to your private AWS storage.";
+   var json=ExportMapJson();
+   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
+   await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
+   _lastPrivateSnapshot=json;
+   if(showSuccess)PrivateStorageStatus="Shaelvien progress synced to your private AWS storage.";
   }
   catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
+  if(showSuccess)Notify();
+ }
+ public async Task LoadPrivateCheckpointAsync()
+ {
+  if(!IsLoggedIn)return;
+  try
+  {
+   var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
+   if(saved is null)
+   {
+    _lastPrivateSnapshot=ExportMapJson();
+    PrivateStorageStatus="Private AWS storage ready. New Shaelvien world will sync automatically.";
+    Notify();return;
+   }
+   var json=JsonSerializer.Serialize(saved);
+   LoadMapJson(json);
+   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
+   _lastPrivateSnapshot=ExportMapJson();
+   PrivateStorageStatus="Shaelvien progress restored from your private AWS storage.";
+  }
+  catch(Exception ex){PrivateStorageStatus="Private restore failed; using local world: "+ex.Message;}
   Notify();
+ }
+ public async Task AutoSavePrivateAsync()
+ {
+  if(!IsLoggedIn)return;
+  var json=ExportMapJson();
+  if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
+  await SavePrivateCheckpointAsync(showSuccess:false);
  }
  public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
