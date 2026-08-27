@@ -100,9 +100,24 @@ An inbound message is represented as separate controlled objects rather than one
 - Ticket codes must be unguessable, rate-limited, scoped to a single support thread, and invalidated when the support conversation closes or expires.
 - Support relay messages remain subject to the 30-day transient-message policy unless deliberately saved/exported into a separate support record system.
 
+### Mandatory support redaction gate
+
+Before any support text, link annotation, attachment-derived text, quoted reply, filename-derived text, or other content projection is exposed to `relic.gamemaster@gmail.com`, ReLiC must apply a deterministic redaction pass. The encrypted authoritative original remains protected inside AWS and is not altered by this support-side projection.
+
+- Any nine-digit numeric sequence must be redacted, including common punctuation/spacing variants that still represent a nine-digit value.
+- Numerical words that express or reconstruct a nine-digit numeric value must be redacted as well; normalization must occur before redaction so simple spelling or separator changes do not bypass the rule.
+- All dates found in message content, attachment-derived text, quoted content, filenames, or extracted link labels must be redacted except the authoritative message send timestamp and receive timestamp presented as metadata.
+- All addresses must be redacted from support-visible content. This includes postal/street addresses and email addresses, plus address-like contact strings when confidently detected.
+- The user's originating address, reply-to address, forwarding address, and any address embedded in quoted headers must never be exposed to the Gmail support mailbox.
+- Allowed exceptions are limited to ReLiC-generated metadata needed to operate the ticket and official ReLiCGameMaster business contact information.
+- ReLiCGameMaster's own approved business email, postal, telephone, domain, and other official contact data may remain visible where operationally necessary.
+- Metadata exceptions do not permit copying otherwise-redacted user content into metadata fields. Metadata must be generated from trusted transport/system records rather than scraped from message text.
+- Redaction occurs before support forwarding, before searchable indexing of the Gmail-side projection, and again on Gmail replies before any quoted/support-side content is relayed back to the user.
+- Redaction failures fail closed: if the sanitizer cannot confidently produce a safe support projection, the message remains quarantined for ReLiC-side review rather than being forwarded to Gmail.
+
 Intended flow:
 
-External user -> `query@relicgamemaster.com` -> SES/security pipeline -> encrypted ReLiC ticket -> safe projection forwarded to `relic.gamemaster@gmail.com` with ticket code -> Gmail reply containing ticket code -> ReLiC validates/resolves ticket -> relay to originating user without exposing the user's address to Gmail.
+External user -> `query@relicgamemaster.com` -> SES/security pipeline -> encrypted ReLiC ticket -> mandatory redaction gate -> safe projection forwarded to `relic.gamemaster@gmail.com` with ticket code -> Gmail reply containing ticket code -> ReLiC validates/resolves ticket -> reply redaction/sanitization -> relay to originating user without exposing the user's address to Gmail.
 
 ## Outbound authorization
 
