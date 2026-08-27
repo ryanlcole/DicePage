@@ -10,6 +10,7 @@ public partial class WorldMap:IDisposable
  [Inject] public WorldSession Session{get;set;}=default!;
  [Inject] public IJSRuntime JS{get;set;}=default!;
  readonly MapGestureState G=new();
+ static readonly double[] ZoomStops=[.5,.75,1,1.25,1.5,2,2.5,3,4,5];
  ElementReference MapElement;
  AtlasTile? AtlasDragging;
  StagedAsset? TrayDragging;
@@ -184,22 +185,32 @@ public partial class WorldMap:IDisposable
   finally{ImportingTileset=false;StateHasChanged();}
  }
  static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
-
+ static double NearestZoom(double value)
+ {
+  var clamped=Math.Clamp(value,ZoomStops[0],ZoomStops[^1]);
+  var best=ZoomStops[0];var bestDelta=Math.Abs(clamped-best);
+  foreach(var stop in ZoomStops){var delta=Math.Abs(clamped-stop);if(delta<bestDelta){best=stop;bestDelta=delta;}}
+  return best;
+ }
+ double StepZoom(int direction)
+ {
+  var current=NearestZoom(G.Zoom);var index=Array.IndexOf(ZoomStops,current);
+  return ZoomStops[Math.Clamp(index+Math.Sign(direction),0,ZoomStops.Length-1)];
+ }
  async Task ZoomAt(double? clientX,double? clientY,double targetZoom)
  {
-  var next=Math.Clamp(targetZoom,.5,5);
+  var next=NearestZoom(targetZoom);
   if(Math.Abs(next-G.Zoom)<.0001)return;
   var pan=await JS.InvokeAsync<double[]>("ristWorld.zoomPan",MapElement,clientX,clientY,G.PanX,G.PanY,G.Zoom,next);
   if(pan.Length>=2){G.PanX=pan[0];G.PanY=pan[1];}
   G.Zoom=next;Session.ViewZoom=G.Zoom;Session.Notify();
  }
- async Task ZoomIn()=>await ZoomAt(null,null,G.Zoom*1.2);
- async Task ZoomOut()=>await ZoomAt(null,null,G.Zoom/1.2);
+ async Task ZoomIn()=>await ZoomAt(null,null,StepZoom(1));
+ async Task ZoomOut()=>await ZoomAt(null,null,StepZoom(-1));
  async Task Wheel(WheelEventArgs e)
  {
-  if(Dragging)return;
-  var factor=Math.Exp(-e.DeltaY*.0015);
-  await ZoomAt(e.ClientX,e.ClientY,G.Zoom*factor);
+  if(Dragging||Math.Abs(e.DeltaY)<.01)return;
+  await ZoomAt(e.ClientX,e.ClientY,StepZoom(e.DeltaY<0?1:-1));
  }
  async Task KeyDown(KeyboardEventArgs e)
  {
@@ -219,8 +230,8 @@ public partial class WorldMap:IDisposable
    case "arrowright":case "d":G.PanX-=step;break;
    case "arrowup":case "w":G.PanY+=step;break;
    case "arrowdown":case "s":G.PanY-=step;break;
-   case "+":case "=":await ZoomAt(null,null,G.Zoom*1.2);return;
-   case "-":case "_":await ZoomAt(null,null,G.Zoom/1.2);return;
+   case "+":case "=":await ZoomAt(null,null,StepZoom(1));return;
+   case "-":case "_":await ZoomAt(null,null,StepZoom(-1));return;
    case "0":G.PanX=0;G.PanY=0;G.Zoom=1;Session.ViewZoom=1;Session.Notify();return;
    default:return;
   }
@@ -243,7 +254,7 @@ public partial class WorldMap:IDisposable
   return Task.CompletedTask;
  }
  void Pan(PointerEventArgs e){var dx=e.ClientX-G.LastX;var dy=e.ClientY-G.LastY;if(Math.Abs(dx)+Math.Abs(dy)>1){G.PanX+=dx;G.PanY+=dy;G.Moved=true;}G.LastX=e.ClientX;G.LastY=e.ClientY;}
- void Pinch(){var d=G.Distance();if(G.LastDistance>0){G.Zoom=Math.Clamp(G.Zoom*(d/G.LastDistance),.5,5);Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;}G.LastDistance=d;}
+ void Pinch(){var d=G.Distance();if(G.LastDistance>0){var next=NearestZoom(G.Zoom*(d/G.LastDistance));if(Math.Abs(next-G.Zoom)>.0001){G.Zoom=next;Session.ViewZoom=G.Zoom;Session.Notify();}G.Moved=true;}G.LastDistance=d;}
  async Task Up(PointerEventArgs e)
  {
   var held=TileHoldTriggered;CancelTileHold();TileHoldTriggered=false;if(held)return;
