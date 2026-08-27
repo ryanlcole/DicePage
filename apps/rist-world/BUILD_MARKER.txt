@@ -1,2 +1,2 @@
 RIST WORLD live alpha
-AWS authority foundation build: dedf6836
+AWS authority foundation build: c50b4399
