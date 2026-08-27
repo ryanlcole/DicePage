@@ -48,13 +48,22 @@ jobs:
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
 
       - name: Deploy protected frontend origin and CloudFront through execution role
+        shell: bash
         run: |
-          aws cloudformation deploy \
+          set -euo pipefail
+          if ! aws cloudformation deploy \
             --template-file infra/aws/rist-frontend.yml \
             --stack-name "$FRONTEND_STACK" \
             --region "$AWS_REGION" \
             --role-arn "$CFN_EXECUTION_ROLE_ARN" \
-            --no-fail-on-empty-changeset
+            --no-fail-on-empty-changeset; then
+            echo "CloudFormation deployment failed. Recent failed resource events:"
+            aws cloudformation describe-stack-events \
+              --stack-name "$FRONTEND_STACK" \
+              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
+              --output table || true
+            exit 1
+          fi
 
       - name: Inject deployed authority endpoints when available
         shell: bash
