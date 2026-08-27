@@ -93,3 +93,5 @@ jobs:
           aws sesv2 get-account \
             --query '{ProductionAccessEnabled:ProductionAccessEnabled,SendingEnabled:SendingEnabled}' \
             --output json
+
+# Secure execution-role deployment trigger: 2026-08-27
