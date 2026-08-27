@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>ReLiC Release Launcher</title>
+  <link rel="stylesheet" href="launcher.css">
+</head>
+<body>
+  <main class="launcher-shell" aria-live="polite">
+    <header class="launcher-header">
+      <div>
+        <p class="eyebrow">ReLiCGameMaster</p>
+        <h1>Release Launcher</h1>
+        <p id="identityLine" class="identity-line">Checking Discord session…</p>
+      </div>
+      <div id="systemBadge" class="system-badge waiting">AUTH CHECK</div>
+    </header>
+
+    <nav class="stage-tabs" aria-label="Release environments">
+      <button class="stage-tab active" data-stage="Testing">Testing</button>
+      <button class="stage-tab" data-stage="QATest">QATest</button>
+      <button class="stage-tab" data-stage="Staging">Staging</button>
+      <button class="stage-tab" data-stage="QAStaging">QAStaging</button>
+    </nav>
+
+    <section class="stage-panel">
+      <div class="stage-title-row">
+        <div>
+          <p class="stage-kicker">Current environment</p>
+          <h2 id="stageTitle">Testing</h2>
+        </div>
+        <span id="stageState" class="state-pill">Unknown</span>
+      </div>
+
+      <div class="metrics-grid">
+        <article><span>Artifact</span><strong id="artifactId">—</strong></article>
+        <article><span>Health</span><strong id="healthState">—</strong></article>
+        <article><span>Tests</span><strong id="testState">—</strong></article>
+        <article><span>Deployed</span><strong id="deployedAt">—</strong></article>
+      </div>
+
+      <section class="release-notes">
+        <h3>Release status</h3>
+        <p id="releaseStatus">Waiting for authenticated release-control authority.</p>
+      </section>
+
+      <div class="actions">
+        <button id="revokeButton" class="action-button revoke" disabled>Revoke</button>
+        <button id="promoteButton" class="action-button promote" disabled>Promote</button>
+      </div>
+      <p class="action-hint" id="actionHint">Promotion controls remain locked until AWS validates the Discord session and release-control API.</p>
+    </section>
+
+    <section class="pipeline" aria-label="Promotion pipeline">
+      <span>Testing</span><i>→</i><span>QATest</span><i>→</i><span>Staging</span><i>→</i><span>QAStaging</span><i>→</i><strong>Live</strong>
+    </section>
+  </main>
+
+  <script src="../rist.js"></script>
+  <script src="launcher.js"></script>
+</body>
+</html>
