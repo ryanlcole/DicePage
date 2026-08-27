@@ -8,6 +8,7 @@ on:
     paths:
       - 'infra/aws/relic-mail-gateway.yml'
       - 'infra/aws/relic-mail/**'
+      - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-relic-mail-gateway.yml'
 
 permissions:
@@ -17,6 +18,8 @@ permissions:
 env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: relic-mail-gateway
   DOMAIN_NAME: relicgamemaster.com
   SUPPORT_ADDRESS: query@relicgamemaster.com
@@ -42,13 +45,15 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy secure mail gateway
+      - name: Deploy secure mail gateway through CloudFormation execution role
         run: |
           sam deploy \
             --template-file infra/aws/relic-mail-gateway.yml \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
-            --resolve-s3 \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
