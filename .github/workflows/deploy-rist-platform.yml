@@ -17,6 +17,7 @@ env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
   STACK_NAME: rist-platform
+  AUTH_API_BASE: https://pvdxm8ht5e.execute-api.us-east-1.amazonaws.com
 
 jobs:
   validate-and-deploy:
@@ -24,24 +25,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/setup-sam@v2
+
       - name: Validate platform template
         run: sam validate --lint --template-file infra/aws/rist-platform.yml
-      - name: Require deployment variables
-        env:
-          IDENTITY_TABLE: ${{ vars.RIST_IDENTITY_TABLE }}
-        run: |
-          if [ -z "$IDENTITY_TABLE" ]; then
-            echo 'Repository variable RIST_IDENTITY_TABLE must contain the deployed Discord auth IdentityTable name.'
-            exit 1
-          fi
+
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Discover deployed Discord identity table
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH_STACK=$(aws cloudformation describe-stacks \
+            --query "Stacks[?Outputs[?OutputKey=='ApiBaseUrl' && OutputValue=='${AUTH_API_BASE}']].StackName | [0]" \
+            --output text)
+          if [ -z "$AUTH_STACK" ] || [ "$AUTH_STACK" = "None" ]; then
+            echo "Could not locate the deployed Discord auth stack from ${AUTH_API_BASE}."
+            exit 1
+          fi
+          IDENTITY_TABLE=$(aws cloudformation describe-stack-resource \
+            --stack-name "$AUTH_STACK" \
+            --logical-resource-id IdentityTable \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          if [ -z "$IDENTITY_TABLE" ] || [ "$IDENTITY_TABLE" = "None" ]; then
+            echo "Discord auth stack found, but IdentityTable could not be resolved."
+            exit 1
+          fi
+          echo "AUTH_STACK=$AUTH_STACK" >> "$GITHUB_ENV"
+          echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
+          echo "Using auth stack $AUTH_STACK"
+
       - name: Deploy authority platform
         env:
-          IDENTITY_TABLE: ${{ vars.RIST_IDENTITY_TABLE }}
           OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
         run: |
           sam deploy \
@@ -55,12 +74,14 @@ jobs:
               IdentityTableName="$IDENTITY_TABLE" \
               FrontendOrigin="https://ryanlcole.github.io" \
               OwnerUserId="$OWNER_USER_ID"
+
       - name: Export client authority config
         run: |
           API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='AuthorityApiBaseUrl'].OutputValue" --output text)
           WS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='RealtimeWebSocketUrl'].OutputValue" --output text)
           printf '{"apiBaseUrl":"%s","realtimeUrl":"%s"}\n' "$API" "$WS" > authority-config.json
           cat authority-config.json
+
       - uses: actions/upload-artifact@v4
         with:
           name: rist-authority-config
