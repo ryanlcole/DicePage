@@ -14,20 +14,18 @@
   <link rel="canonical" href="https://relicgamemaster.com/">
   <link rel="stylesheet" href="/relic-home.css">
   <style>
-    .brand img{height:54px;object-fit:contain;object-position:left center;background:#081117}
+    .site-header{justify-content:center}
+    .site-header nav{width:100%;justify-content:center}
     .relic-story-banner{position:relative;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);box-shadow:none}
     .relic-story-banner .story-art{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:contain;object-position:center;background:#02070a}
     .relic-story-banner .story-sweep{position:absolute;inset:0 auto 0 -42%;width:34%;z-index:2;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(107,183,202,.04) 18%,rgba(236,205,145,.18) 50%,rgba(106,193,220,.06) 74%,transparent);filter:blur(4px);mix-blend-mode:screen;animation:storyArtSweep 10.5s ease-in-out infinite}
     @keyframes storyArtSweep{0%,8%{left:-42%;opacity:0}16%{opacity:1}82%{opacity:1}94%,100%{left:108%;opacity:0}}
-    @media(max-width:760px){.brand{width:min(240px,56vw)}.brand img{height:44px}.relic-story-banner .story-art{width:100%;height:auto;object-fit:contain}}
+    @media(max-width:760px){.site-header{padding-top:12px;padding-bottom:12px}.site-header nav{gap:18px}.relic-story-banner .story-art{width:100%;height:auto;object-fit:contain}}
     @media(prefers-reduced-motion:reduce){.relic-story-banner .story-sweep{animation:none;display:none}}
   </style>
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="/" aria-label="ReLiCGameMaster home">
-      <img src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="ReLiCGameMaster">
-    </a>
     <nav aria-label="Primary navigation">
       <a href="#about">About</a>
       <a href="#rist">RIST</a>
