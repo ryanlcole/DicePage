@@ -92,3 +92,5 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "$URL"
           grep -q 'RistPLC' /tmp/rist-index.html
           echo "AWS frontend verified at $URL"
+
+# Deployment trigger: OIDC trust repaired 2026-08-27
