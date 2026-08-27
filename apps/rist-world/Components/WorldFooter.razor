@@ -34,7 +34,7 @@
 
 <section class="home-inline-chat" aria-label="Chat">
  <button type="button" class="history-scroll-button chat-history-toggle" @onclick="()=>_chatHistoryOpen=true" aria-label="Open chat history" title="Chat history"><span aria-hidden="true">📜</span></button>
- <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="What do you say?"></textarea></label>
+ <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="@ChatPrompt"></textarea></label>
  <button class="home-chat-send" @onclick="SendInlineChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
 </section>
 </div>
@@ -86,6 +86,7 @@
  readonly List<(string Speaker,string Text)> _history=[];
  bool _chatHistoryOpen;
  bool _rollHistoryOpen;
+ string ChatPrompt=>$"{Session.DialogueSpeaker} Says";
  void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();}
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollWithHistoryAsync(key,magnitude);}
  static string DieSpriteStyle(DiceSpec die,int frame){var col=frame%die.Columns;var row=frame/die.Columns;var x=die.Columns<=1?0:col*100.0/(die.Columns-1);var y=die.Rows<=1?0:row*100.0/(die.Rows-1);return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=normalized-3');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";}
