@@ -18,7 +18,7 @@ ReLiC does not use a conventional mailbox model. Internet email is treated as a 
 Every inbound message must pass through a staged trust pipeline before it is exposed to a receiver:
 
 1. Amazon SES receives the message for `relicgamemaster.com`.
-2. Preserve the original transport/security metadata needed for audit and verification.
+2. Preserve only the minimum transport/security metadata needed to perform immediate verification and a content-free audit outcome.
 3. Evaluate the actual authenticated sending infrastructure rather than trusting the visible From header:
    - SPF
    - DKIM
@@ -27,22 +27,32 @@ Every inbound message must pass through a staged trust pipeline before it is exp
    - DKIM signing domain
    - sending IP reputation
    - domain reputation and age where reliable data is available
-4. Extract link domains and assess them independently against reputable threat-intelligence / phishing / malware sources.
+4. Extract link domains and assess them independently against reputable threat-intelligence / phishing / malware sources without automatically opening user-supplied links.
 5. Content fact-checking, including sources such as Snopes when relevant, is a separate signal from sender authentication and technical reputation.
-6. Attachments enter quarantine first and are identified by generated immutable IDs and cryptographic hashes.
+6. Attachments are scanned/validated in an isolated ephemeral processing path. They are not retained in a user-accessible quarantine.
 7. Remote images, tracking pixels, executable content, scripts, automatic link previews, and automatic remote fetches are disabled by default.
 8. Render message text only after sanitization.
-9. Classify messages as trusted, suspicious/quarantined, or blocked based on multiple independent signals. Sender identity confidence and content confidence are separate scores.
+9. Messages that pass required security and policy checks may proceed. Messages that fail required checks, contain disallowed dangerous content, or cannot be safely validated are immediately destroyed rather than quarantined.
 
 No single reputation provider or fact-checking site is the sole authority for message safety.
+
+## Fail-closed immediate destruction
+
+- ReLiC has no quarantine mailbox, quarantine review queue, spam folder, administrator recovery queue, or user-accessible holding area for rejected mail.
+- If an inbound message fails mandatory sender/security checks, malware/attachment checks, mandatory redaction rules, or any other fail-closed safety gate, its message content is immediately destroyed.
+- If a processor cannot confidently determine that the message can proceed safely, the result is destruction, not retention for later review.
+- Destruction includes raw MIME/body content, normalized text, attachments, extracted content, transient encrypted payload objects, temporary processing objects, retrieval tokens, and message-specific cryptographic material.
+- Ephemeral plaintext or temporary scan artifacts must be removed at the end of processing and must never be written to persistent logs.
+- A minimal content-free audit event may record that a message was rejected/destroyed, the processing timestamp, rule/category that caused rejection, and non-content operational identifiers needed for abuse/rate-limit controls. It must not retain enough information to reconstruct the message.
+- The system must not forward rejected content to Gmail, Discord, the receiver, administrators, analytics, backups, or any other recovery destination.
 
 ## Encryption doctrine
 
 ### Inbound
 
 - A received message must be encrypted as early as practical in the ingestion pipeline.
-- Persistent message content must not be stored as plaintext.
-- Raw messages, normalized text, attachments, extracted structured content, and sensitive metadata are stored encrypted.
+- Persistent accepted-message content must not be stored as plaintext.
+- Raw accepted messages, normalized text, attachments, extracted structured content, and sensitive metadata are stored encrypted.
 - Use AWS KMS-backed envelope encryption: a unique data-encryption key (DEK) per message or security object, with the DEK protected by KMS.
 - Encrypted objects reside in private S3 with public access blocked and least-privilege IAM policies.
 - DynamoDB records containing message content or sensitive structured fields must use encryption at rest and should store references/metadata rather than duplicating large plaintext payloads.
@@ -63,7 +73,7 @@ No single reputation provider or fact-checking site is the sole authority for me
 ## Retention and destructive deletion
 
 - ReLiC message storage is transient by design and must not become a general-purpose archival mailbox.
-- Every inbound and outbound message has a default 30-day retention period from receipt/send time.
+- Every accepted inbound and outbound message has a default 30-day retention period from receipt/send time.
 - Reading, replying to, starring, or otherwise interacting with a message does not extend retention.
 - Before expiration, a user may deliberately save selected content into a separate authorized ReLiC storage area or export it outside the transient message store.
 - Saved/exported copies become independent user-controlled records and are governed by the retention rules of their destination, not the mailbox retention clock.
@@ -75,12 +85,12 @@ No single reputation provider or fact-checking site is the sole authority for me
 
 ## Receiver UI decomposition
 
-An inbound message is represented as separate controlled objects rather than one executable HTML email:
+An accepted inbound message is represented as separate controlled objects rather than one executable HTML email:
 
 - Message record / conversation ID
 - Sanitized text body
 - Extracted links as inert URL records with reputation status
-- Attachments as quarantined/encrypted blobs with IDs, hashes, MIME type, size, and scan state
+- Attachments as validated/encrypted blobs with IDs, hashes, MIME type, size, and scan state
 - Sender/authentication evidence
 - Risk/reputation findings
 - Immutable reference to the encrypted original message while the message remains within retention
@@ -88,9 +98,9 @@ An inbound message is represented as separate controlled objects rather than one
 ## Privacy-preserving support relay
 
 - Public help/support mail is received at `query@relicgamemaster.com`.
-- Messages to this address must pass the same inbound authentication, reputation, sanitization, quarantine, malware/link analysis, encryption, and retention controls as all other ReLiC mail.
+- Messages to this address must pass the same inbound authentication, reputation, sanitization, malware/link analysis, encryption, redaction, and retention controls as all other ReLiC mail.
 - Only after a support message is validated as safe may its sanitized text, approved links, and safe attachments be forwarded into the support handling mailbox `relic.gamemaster@gmail.com`.
-- ReLiC assigns a unique opaque support ticket code to each support conversation.
+- ReLiC assigns a unique opaque support ticket code to each accepted support conversation.
 - The ticket code is inserted into the forwarded Gmail subject line and is the only routing identifier support staff need to see.
 - The external user's actual address or ReLiC identity must not be exposed to the Gmail support mailbox unless a narrowly defined support/security exception explicitly requires it.
 - ReLiC retains the private mapping between ticket code and the authoritative originating user/message record inside AWS.
@@ -102,7 +112,7 @@ An inbound message is represented as separate controlled objects rather than one
 
 ### Mandatory support redaction gate
 
-Before any support text, link annotation, attachment-derived text, quoted reply, filename-derived text, or other content projection is exposed to `relic.gamemaster@gmail.com`, ReLiC must apply a deterministic redaction pass. The encrypted authoritative original remains protected inside AWS and is not altered by this support-side projection.
+Before any support text, link annotation, attachment-derived text, quoted reply, filename-derived text, or other content projection is exposed to `relic.gamemaster@gmail.com`, ReLiC must apply a deterministic redaction pass. The encrypted authoritative original remains protected inside AWS only when the message successfully passes the redaction and other mandatory safety gates.
 
 - Any nine-digit numeric sequence must be redacted, including common punctuation/spacing variants that still represent a nine-digit value.
 - Numerical words that express or reconstruct a nine-digit numeric value must be redacted as well; normalization must occur before redaction so simple spelling or separator changes do not bypass the rule.
@@ -113,11 +123,11 @@ Before any support text, link annotation, attachment-derived text, quoted reply,
 - ReLiCGameMaster's own approved business email, postal, telephone, domain, and other official contact data may remain visible where operationally necessary.
 - Metadata exceptions do not permit copying otherwise-redacted user content into metadata fields. Metadata must be generated from trusted transport/system records rather than scraped from message text.
 - Redaction occurs before support forwarding, before searchable indexing of the Gmail-side projection, and again on Gmail replies before any quoted/support-side content is relayed back to the user.
-- Redaction failures fail closed: if the sanitizer cannot confidently produce a safe support projection, the message remains quarantined for ReLiC-side review rather than being forwarded to Gmail.
+- Redaction failures fail closed by immediate destruction. If the sanitizer cannot confidently produce a safe support projection, ReLiC destroys the message content and cryptographic material; it is not quarantined, retained for manual review, or forwarded.
 
 Intended flow:
 
-External user -> `query@relicgamemaster.com` -> SES/security pipeline -> encrypted ReLiC ticket -> mandatory redaction gate -> safe projection forwarded to `relic.gamemaster@gmail.com` with ticket code -> Gmail reply containing ticket code -> ReLiC validates/resolves ticket -> reply redaction/sanitization -> relay to originating user without exposing the user's address to Gmail.
+External user -> `query@relicgamemaster.com` -> SES/security pipeline -> mandatory validation/redaction gate -> if safe: encrypted ReLiC ticket -> safe projection forwarded to `relic.gamemaster@gmail.com` with ticket code -> Gmail reply containing ticket code -> ReLiC validates/resolves ticket -> reply redaction/sanitization -> relay to originating user without exposing the user's address to Gmail. Any mandatory-gate failure -> immediate destructive deletion.
 
 ## Outbound authorization
 
@@ -125,13 +135,13 @@ External user -> `query@relicgamemaster.com` -> SES/security pipeline -> encrypt
 - AWS verifies Discord/ReLiC identity, alias ownership, thread permissions, recipient policy, rate limits, and abuse controls before sending.
 - SES handles compatible internet email delivery.
 - DKIM, SPF, and DMARC are required for `relicgamemaster.com` sending identities before production use.
-- Every send creates an audit event linked to the authoritative conversation record.
+- Every accepted send creates an audit event linked to the authoritative conversation record.
 
 ## Security boundaries
 
 The intended trust chain is:
 
-Internet email -> SES transport screening -> encrypted quarantine -> parsing/scanning/reputation -> ReLiC authority -> authenticated Discord/ReLiC receiver.
+Internet email -> SES transport screening -> ephemeral isolated validation/scanning -> immediate destruction on failure OR encryption/normalization on acceptance -> ReLiC authority -> authenticated Discord/ReLiC receiver.
 
 Receiving a message must never provide the sender an authentication path into the receiver's ReLiC account.
 
@@ -143,7 +153,7 @@ Receiving a message must never provide the sender an authentication path into th
 - DynamoDB point-in-time recovery for authoritative non-message state.
 - Durable user storage may use S3 versioning/recovery controls; transient message storage must honor destructive deletion and expiration.
 - Rate limiting and abuse controls on send, code verification, retrieval, support-ticket resolution, and attachment access.
-- Attachment and link processing occurs in isolated/quarantined paths.
+- Attachment and link processing occurs in isolated ephemeral paths; rejected content is destroyed rather than quarantined.
 - No automatic execution of message content.
 - No secret, raw encryption key, plaintext decryption code, or decrypted message body is committed to GitHub.
 
