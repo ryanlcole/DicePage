@@ -1,4 +1,4 @@
-name: Deploy RIST WORLD Live Alpha
+name: Redirect Legacy GitHub Pages
 
 on:
   push:
@@ -23,35 +23,69 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-      - run: python apps/rist-world/prepare_public_data.py
-      - run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
-      - name: Optimize public card back
-        run: |
-          CARD="build/rist/wwwroot/assets/cards/shaelvien_card_back.jpg"
-          if [ -f "$CARD" ]; then
-            sudo apt-get update -qq
-            sudo apt-get install -y --no-install-recommends imagemagick >/dev/null
-            convert "$CARD" \
-              -auto-orient \
-              -resize '420x420>' \
-              -strip \
-              -sampling-factor 4:2:0 \
-              -interlace Plane \
-              -quality 56 \
-              "$CARD.optimized.jpg"
-            mv "$CARD.optimized.jpg" "$CARD"
-          fi
-      - name: Assemble GitHub Pages site
+      - name: Assemble redirect-only GitHub Pages site
         run: |
           mkdir -p dist/app
-          cp -r build/rist/wwwroot/. dist/app/
           touch dist/.nojekyll
+
           cat > dist/index.html <<'HTML'
           <!doctype html>
-          <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=./app/"><title>Opening Shaelvien RIST</title><script>location.replace("./app/" + location.search + location.hash);</script></head><body><a href="./app/">Open Shaelvien RIST</a></body></html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta name="robots" content="noindex,follow">
+            <meta http-equiv="refresh" content="0;url=https://relicgamemaster.com/">
+            <link rel="canonical" href="https://relicgamemaster.com/">
+            <title>ReLiC GameMaster has moved</title>
+            <script>
+              location.replace("https://relicgamemaster.com/" + location.search + location.hash);
+            </script>
+          </head>
+          <body>
+            <p>ReLiC GameMaster has moved to <a href="https://relicgamemaster.com/">relicgamemaster.com</a>.</p>
+          </body>
+          </html>
+          HTML
+
+          cat > dist/app/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta name="robots" content="noindex,follow">
+            <meta http-equiv="refresh" content="0;url=https://relicgamemaster.com/Game/">
+            <link rel="canonical" href="https://relicgamemaster.com/Game/">
+            <title>Shaelvien RIST has moved</title>
+            <script>
+              location.replace("https://relicgamemaster.com/Game/" + location.search + location.hash);
+            </script>
+          </head>
+          <body>
+            <p>Shaelvien RIST has moved to <a href="https://relicgamemaster.com/Game/">relicgamemaster.com/Game/</a>.</p>
+          </body>
+          </html>
+          HTML
+
+          cat > dist/404.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta name="robots" content="noindex,follow">
+            <meta http-equiv="refresh" content="0;url=https://relicgamemaster.com/">
+            <link rel="canonical" href="https://relicgamemaster.com/">
+            <title>ReLiC GameMaster has moved</title>
+            <script>
+              location.replace("https://relicgamemaster.com/" + location.search + location.hash);
+            </script>
+          </head>
+          <body>
+            <p>Continue at <a href="https://relicgamemaster.com/">relicgamemaster.com</a>.</p>
+          </body>
+          </html>
           HTML
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
