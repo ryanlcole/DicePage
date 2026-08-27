@@ -20,7 +20,7 @@ env:
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-platform
-  AUTH_API_BASE: https://pvdxm8ht5e.execute-api.us-east-1.amazonaws.com
+  AUTH_STACK: rist-discord-storage
 
 jobs:
   validate-and-deploy:
@@ -38,27 +38,19 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Discover deployed Discord identity table
+      - name: Resolve deployed Discord identity table
         shell: bash
         run: |
           set -euo pipefail
-          AUTH_STACK=$(aws cloudformation describe-stacks \
-            --query "Stacks[?Outputs[?OutputKey=='ApiBaseUrl' && OutputValue=='${AUTH_API_BASE}']].StackName | [0]" \
-            --output text)
-          if [ -z "$AUTH_STACK" ] || [ "$AUTH_STACK" = "None" ]; then
-            echo "Could not locate the deployed Discord auth stack from ${AUTH_API_BASE}."
-            exit 1
-          fi
           IDENTITY_TABLE=$(aws cloudformation describe-stack-resource \
             --stack-name "$AUTH_STACK" \
             --logical-resource-id IdentityTable \
             --query 'StackResourceDetail.PhysicalResourceId' \
             --output text)
           if [ -z "$IDENTITY_TABLE" ] || [ "$IDENTITY_TABLE" = "None" ]; then
-            echo "Discord auth stack found, but IdentityTable could not be resolved."
+            echo "Discord auth stack $AUTH_STACK exists, but IdentityTable could not be resolved."
             exit 1
           fi
-          echo "AUTH_STACK=$AUTH_STACK" >> "$GITHUB_ENV"
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
           echo "Using auth stack $AUTH_STACK"
 
