@@ -15,6 +15,13 @@ concurrency:
   group: github-pages
   cancel-in-progress: true
 
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
+  DISTRIBUTION_ID: E1D9TALLP51FI5
+  ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
+
 jobs:
   deploy:
     environment:
@@ -23,11 +30,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+
       - run: python apps/rist-world/prepare_public_data.py
       - run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+
       - name: Optimize public card back
         run: |
           CARD="build/rist/wwwroot/assets/cards/shaelvien_card_back.jpg"
@@ -46,6 +56,44 @@ jobs:
             echo "Optimized card back:"
             ls -lh "$CARD"
           fi
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish every RIST runtime art asset to AWS
+        run: |
+          aws s3 sync build/rist/wwwroot/assets/ "s3://${ASSET_BUCKET}/assets/" --only-show-errors
+
+      - name: Stage world, atlas, and card data assets
+        run: python apps/rist-world/prepare_aws_assets.py
+
+      - name: Publish world, atlas, and card data assets to AWS
+        run: |
+          aws s3 sync build/aws-assets/ "s3://${ASSET_BUCKET}/" --only-show-errors
+
+      - name: Refresh CloudFront asset paths
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths '/assets/*' '/worlds/*' '/atlas/*' '/cards/*' \
+            --query 'Invalidation.Id' \
+            --output text)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --id "$INVALIDATION_ID"
+
+      - name: Verify critical assets through CloudFront
+        run: |
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/mmo.webp "${ASSET_BASE_URL}assets/ui/mmo-toggle.webp"
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/sandbox.webp "${ASSET_BASE_URL}assets/ui/sandbox-toggle.webp"
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/naeja.png "${ASSET_BASE_URL}worlds/naeja/world.png"
+          test $(stat -c%s /tmp/mmo.webp) -gt 1000
+          test $(stat -c%s /tmp/sandbox.webp) -gt 1000
+          test $(stat -c%s /tmp/naeja.png) -gt 100000
+
       - name: Assemble GitHub Pages site
         run: |
           mkdir -p dist/app
@@ -64,6 +112,7 @@ jobs:
           <body><a href="./app/">Open Shaelvien RIST</a></body>
           </html>
           HTML
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
