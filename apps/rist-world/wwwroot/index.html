@@ -9,21 +9,28 @@ const program={
  groups:{
   tabletop:['map-tile-loader.js?v=3','card-defaults.js?v=card-defaults-1','back-logout.js?v=1','grid-coordinate-system.js?v=4'],
   shell:['character-board-focus.js?v=board-focus-6','map-context-sidebar.js?v=4','recursion-layers.js?v=2','header-info.js?v=1','mmo-mode.js?v=3','token-game-launcher.js?v=2'],
-  interaction:['portrait-editor-live.js?v=2','card-appearance.js?v=2','start-menu.js?v=1','mmo-build.js?v=2','asset-credit.js?v=1','cursors-haptics.js?v=1','art-studio.js?v=6','art-surface-controls.js?v=1','sprite-creator.js?v=1']
- }
+  interaction:['card-appearance.js?v=2','start-menu.js?v=1','mmo-build.js?v=2','cursors-haptics.js?v=1','art-studio.js?v=6','art-surface-controls.js?v=1','sprite-creator.js?v=1']
+ },
+ sensors:[
+  {selector:'.portrait-editor',src:'portrait-editor-live.js?v=2'},
+  {selector:'.tile-browser',src:'asset-credit.js?v=1'}
+ ]
 };
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const setPhase=(value,name)=>{program.phase=value;document.documentElement.dataset.ristPhase=name;dispatchEvent(new CustomEvent('rist:runtime-phase',{detail:{value,name}}));};
 const loadScript=src=>{if(program.loaded.has(src))return Promise.resolve();program.loaded.add(src);return new Promise(resolve=>{const s=document.createElement('script');s.src=src;s.async=false;s.dataset.ristPhaseLoad='1';s.onload=resolve;s.onerror=()=>{console.error('[RIST PLC] module failed',src);resolve()};document.body.appendChild(s)})};
 const runGroup=(name,phase,gap)=>{if(program.running.has(name))return program.running.get(name);const task=(async()=>{setPhase(phase,name);for(const src of program.groups[name]){await loadScript(src);await delay(gap)}})();program.running.set(name,task);return task};
-async function scanCore(){if(program.phase>=PLC.SHELL)return;await runGroup('tabletop',PLC.TABLETOP,80);await delay(120);await runGroup('shell',PLC.SHELL,100);setPhase(PLC.SHELL,'shell-ready')}
-async function scanInteraction(){await scanCore();if(program.phase>=PLC.COMPLETE)return;await runGroup('interaction',PLC.INTERACTION,160);setPhase(PLC.COMPLETE,'complete')}
+async function scanCore(){if(program.phase>=PLC.SHELL)return;await runGroup('tabletop',PLC.TABLETOP,80);await delay(120);await runGroup('shell',PLC.SHELL,100);setPhase(PLC.SHELL,'shell-ready');scanSensors()}
+async function scanInteraction(){await scanCore();if(program.phase>=PLC.COMPLETE)return;await runGroup('interaction',PLC.INTERACTION,160);setPhase(PLC.COMPLETE,'complete');scanSensors()}
+let sensorRaf=0;function scanSensors(){sensorRaf=0;for(const sensor of program.sensors)if(document.querySelector(sensor.selector))void loadScript(sensor.src)}
+function scheduleSensors(){if(!sensorRaf)sensorRaf=requestAnimationFrame(scanSensors)}
+const sensorObserver=new MutationObserver(scheduleSensors);
 const coreScan=()=>void scanCore();
 const interactionScan=()=>void scanInteraction();
-addEventListener('rist:app-ready',coreScan,{once:true});
+addEventListener('rist:app-ready',()=>{sensorObserver.observe(document.body,{childList:true,subtree:true});coreScan();scheduleSensors()},{once:true});
 setTimeout(coreScan,10000);
 addEventListener('pointerdown',interactionScan,{once:true,capture:true,passive:true});
 addEventListener('keydown',interactionScan,{once:true,capture:true});
 if(!matchMedia('(max-width:800px)').matches){const idle=window.requestIdleCallback||((fn)=>setTimeout(fn,2200));idle(interactionScan,{timeout:5000})}
-window.RistPLC={state:program,scanCore,scanInteraction};
+window.RistPLC={state:program,scanCore,scanInteraction,scanSensors};
 })();</script></body></html>
