@@ -35,55 +35,55 @@ cat >/tmp/relic-cfn-exec-policy.json <<JSON
     {
       "Sid":"ReLiCStorage",
       "Effect":"Allow",
-      "Action":["s3:CreateBucket","s3:DeleteBucket","s3:GetBucket*","s3:PutBucket*","s3:DeleteBucketPolicy","s3:PutBucketPolicy","s3:ListBucket","s3:GetObject","s3:PutObject","s3:DeleteObject","s3:TagResource","s3:UntagResource"],
+      "Action":["s3:CreateBucket","s3:DeleteBucket","s3:GetBucket*","s3:PutBucket*","s3:DeleteBucketPolicy","s3:PutBucketPolicy","s3:DeleteBucketCors","s3:DeleteBucketEncryption","s3:DeleteBucketLifecycle","s3:DeleteBucketTagging","s3:PutBucketTagging","s3:GetBucketTagging","s3:ListBucket","s3:GetObject","s3:PutObject","s3:DeleteObject"],
       "Resource":["arn:aws:s3:::rist-*","arn:aws:s3:::rist-*/*","arn:aws:s3:::relic-*","arn:aws:s3:::relic-*/*"]
     },
     {
       "Sid":"ReLiCDynamoDB",
       "Effect":"Allow",
-      "Action":["dynamodb:CreateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:UpdateTable","dynamodb:UpdateTimeToLive","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:DescribeContinuousBackups","dynamodb:TagResource","dynamodb:UntagResource"],
+      "Action":["dynamodb:CreateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:UpdateTable","dynamodb:UpdateTimeToLive","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:DescribeContinuousBackups","dynamodb:ListTagsOfResource","dynamodb:TagResource","dynamodb:UntagResource"],
       "Resource":["arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/rist-*","arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/relic-*"]
     },
     {
       "Sid":"ReLiCLambda",
       "Effect":"Allow",
-      "Action":["lambda:CreateFunction","lambda:DeleteFunction","lambda:GetFunction","lambda:GetFunctionConfiguration","lambda:UpdateFunctionCode","lambda:UpdateFunctionConfiguration","lambda:AddPermission","lambda:RemovePermission","lambda:TagResource","lambda:UntagResource","lambda:PublishVersion","lambda:CreateAlias","lambda:UpdateAlias","lambda:DeleteAlias","lambda:GetAlias"],
+      "Action":["lambda:CreateFunction","lambda:DeleteFunction","lambda:GetFunction","lambda:GetFunctionConfiguration","lambda:UpdateFunctionCode","lambda:UpdateFunctionConfiguration","lambda:AddPermission","lambda:RemovePermission","lambda:ListTags","lambda:TagResource","lambda:UntagResource","lambda:PublishVersion","lambda:CreateAlias","lambda:UpdateAlias","lambda:DeleteAlias","lambda:GetAlias"],
       "Resource":["arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:rist-*","arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:relic-*"]
     },
     {
       "Sid":"ReLiCIamManagedRoles",
       "Effect":"Allow",
-      "Action":["iam:CreateRole","iam:DeleteRole","iam:GetRole","iam:PutRolePolicy","iam:DeleteRolePolicy","iam:GetRolePolicy","iam:AttachRolePolicy","iam:DetachRolePolicy","iam:TagRole","iam:UntagRole","iam:PassRole"],
+      "Action":["iam:CreateRole","iam:DeleteRole","iam:GetRole","iam:PutRolePolicy","iam:DeleteRolePolicy","iam:GetRolePolicy","iam:ListRolePolicies","iam:ListAttachedRolePolicies","iam:AttachRolePolicy","iam:DetachRolePolicy","iam:TagRole","iam:UntagRole","iam:PassRole"],
       "Resource":["arn:aws:iam::${ACCOUNT_ID}:role/rist-*","arn:aws:iam::${ACCOUNT_ID}:role/relic-*","arn:aws:iam::${ACCOUNT_ID}:role/ReLiC-*"]
     },
     {
       "Sid":"ReLiCKms",
       "Effect":"Allow",
-      "Action":["kms:CreateKey","kms:DescribeKey","kms:EnableKeyRotation","kms:GetKeyRotationStatus","kms:CreateAlias","kms:UpdateAlias","kms:DeleteAlias","kms:PutKeyPolicy","kms:GetKeyPolicy","kms:TagResource","kms:UntagResource","kms:ScheduleKeyDeletion","kms:CancelKeyDeletion"],
+      "Action":["kms:CreateKey","kms:DescribeKey","kms:EnableKeyRotation","kms:GetKeyRotationStatus","kms:CreateAlias","kms:UpdateAlias","kms:DeleteAlias","kms:ListAliases","kms:PutKeyPolicy","kms:GetKeyPolicy","kms:ListResourceTags","kms:TagResource","kms:UntagResource","kms:ScheduleKeyDeletion","kms:CancelKeyDeletion"],
       "Resource":"*"
     },
     {
       "Sid":"ReLiCApiGateway",
       "Effect":"Allow",
-      "Action":["apigateway:*"],
+      "Action":"apigateway:*",
       "Resource":"arn:aws:apigateway:${REGION}::*"
     },
     {
       "Sid":"ReLiCCloudFrontWaf",
       "Effect":"Allow",
-      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:TagResource","wafv2:UntagResource"],
+      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:ListTagsForResource","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:ListTagsForResource","wafv2:TagResource","wafv2:UntagResource"],
       "Resource":"*"
     },
     {
       "Sid":"ReLiCSES",
       "Effect":"Allow",
-      "Action":["ses:CreateReceiptRuleSet","ses:DeleteReceiptRuleSet","ses:CreateReceiptRule","ses:UpdateReceiptRule","ses:DeleteReceiptRule","ses:DescribeReceiptRuleSet","ses:SetActiveReceiptRuleSet","sesv2:CreateEmailIdentity","sesv2:DeleteEmailIdentity","sesv2:GetEmailIdentity","sesv2:PutEmailIdentityDkimAttributes"],
+      "Action":["ses:CreateReceiptRuleSet","ses:DeleteReceiptRuleSet","ses:CreateReceiptRule","ses:UpdateReceiptRule","ses:DeleteReceiptRule","ses:DescribeReceiptRuleSet","ses:DescribeReceiptRule","ses:ListReceiptRuleSets","ses:SetActiveReceiptRuleSet","ses:VerifyDomainIdentity","ses:VerifyDomainDkim","ses:SetIdentityDkimEnabled","sesv2:CreateEmailIdentity","sesv2:DeleteEmailIdentity","sesv2:GetEmailIdentity","sesv2:PutEmailIdentityDkimAttributes"],
       "Resource":"*"
     },
     {
       "Sid":"ReLiCLogsAndTracing",
       "Effect":"Allow",
-      "Action":["logs:CreateLogGroup","logs:DeleteLogGroup","logs:PutRetentionPolicy","logs:TagResource","logs:UntagResource","xray:PutTraceSegments","xray:PutTelemetryRecords"],
+      "Action":["logs:CreateLogGroup","logs:DeleteLogGroup","logs:DescribeLogGroups","logs:PutRetentionPolicy","logs:DeleteRetentionPolicy","logs:TagResource","logs:UntagResource","xray:PutTraceSegments","xray:PutTelemetryRecords"],
       "Resource":"*"
     }
   ]
@@ -137,7 +137,7 @@ cat >/tmp/relic-github-ci-policy.json <<JSON
     {
       "Sid":"RuntimeAssetPublishing",
       "Effect":"Allow",
-      "Action":["s3:ListBucket","s3:GetBucketLocation","s3:GetBucketEncryption","s3:GetLifecycleConfiguration"],
+      "Action":["s3:ListBucket","s3:GetBucketLocation","s3:GetEncryptionConfiguration","s3:GetLifecycleConfiguration"],
       "Resource":["arn:aws:s3:::rist-*","arn:aws:s3:::relic-*"]
     },
     {
