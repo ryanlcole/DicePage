@@ -7,6 +7,7 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - 'infra/aws/rist-platform.yml'
+      - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-platform.yml'
 
 permissions:
@@ -16,6 +17,8 @@ permissions:
 env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-platform
   AUTH_API_BASE: https://pvdxm8ht5e.execute-api.us-east-1.amazonaws.com
 
@@ -59,7 +62,7 @@ jobs:
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
           echo "Using auth stack $AUTH_STACK"
 
-      - name: Deploy authority platform
+      - name: Deploy authority platform through CloudFormation execution role
         env:
           OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
         run: |
@@ -67,7 +70,9 @@ jobs:
             --template-file infra/aws/rist-platform.yml \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
-            --resolve-s3 \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
@@ -87,5 +92,3 @@ jobs:
           name: rist-authority-config
           path: authority-config.json
           retention-days: 7
-
-# Deployment trigger: OIDC trust repaired 2026-08-27
