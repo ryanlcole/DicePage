@@ -8,6 +8,7 @@ on:
     paths:
       - 'apps/rist-world/**'
       - 'infra/aws/rist-frontend.yml'
+      - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-frontend-aws.yml'
 
 permissions:
@@ -17,6 +18,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   FRONTEND_STACK: rist-frontend
   PLATFORM_STACK: rist-platform
 
@@ -45,12 +47,13 @@ jobs:
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
 
-      - name: Deploy protected frontend origin and CloudFront
+      - name: Deploy protected frontend origin and CloudFront through execution role
         run: |
           aws cloudformation deploy \
             --template-file infra/aws/rist-frontend.yml \
             --stack-name "$FRONTEND_STACK" \
             --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
             --no-fail-on-empty-changeset
 
       - name: Inject deployed authority endpoints when available
@@ -92,5 +95,3 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "$URL"
           grep -q 'RistPLC' /tmp/rist-index.html
           echo "AWS frontend verified at $URL"
-
-# Deployment trigger: OIDC trust repaired 2026-08-27
