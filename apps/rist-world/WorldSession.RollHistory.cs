@@ -6,16 +6,6 @@ public sealed partial class WorldSession
     public string ActiveRollCardName { get; private set; } = "";
     private RollHistoryBatch? _activeRollBatch;
 
-    public void BeginCardRoll(string cardName)
-    {
-        ActiveRollCardName = cardName ?? "";
-    }
-
-    public void EndCardRoll()
-    {
-        ActiveRollCardName = "";
-    }
-
     private RollHistoryBatch EnsureRollHistoryBatch()
     {
         if(_activeRollBatch is not null)return _activeRollBatch;
@@ -36,20 +26,46 @@ public sealed partial class WorldSession
         batch.Total=Total;
     }
 
-    private void RecordGemHistory(int value)
+    public async Task RollWithHistoryAsync(string key,int? selectedMagnitude=null)
     {
-        var batch=EnsureRollHistoryBatch();
-        batch.Terms.Add(value>=0?$"+{value}":value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        batch.Total=Total;
+        var before=Rolls.Count;
+        await RollAsync(key,selectedMagnitude);
+        if(Rolls.Count<=before)return;
+        foreach(var roll in Rolls.Skip(before))
+        {
+            var die=Dice(roll.Key);
+            if(die is not null)RecordRollHistory(die,roll.Value);
+        }
+        Notify();
     }
 
-    private void FinishRollHistoryBatch()
+    public async Task RollHandCardWithHistoryAsync(HandCard card)
     {
-        if(_activeRollBatch is null)return;
-        _activeRollBatch.Total=Total;
-        _activeRollBatch.Complete=true;
-        _activeRollBatch=null;
+        var before=Rolls.Count;
+        ActiveRollCardName=card.Name;
+        await RollHandCardAsync(card);
+        if(Rolls.Count>before)
+        {
+            foreach(var roll in Rolls.Skip(before))
+            {
+                var die=Dice(roll.Key);
+                if(die is not null)RecordRollHistory(die,roll.Value);
+            }
+        }
         ActiveRollCardName="";
+        Notify();
+    }
+
+    public void ClearRollsWithHistory()
+    {
+        if(_activeRollBatch is not null)
+        {
+            _activeRollBatch.Total=Total;
+            _activeRollBatch.Complete=true;
+            _activeRollBatch=null;
+        }
+        ActiveRollCardName="";
+        ClearRolls();
     }
 }
 
