@@ -55,6 +55,23 @@ jobs:
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
           echo "Using auth stack $AUTH_STACK"
 
+      - name: Recover failed platform stack shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            STACK_STATUS=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackStatus' \
+              --output text)
+            if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
+              echo "$STACK_NAME is ROLLBACK_COMPLETE; deleting failed shell before clean redeploy..."
+              aws cloudformation delete-stack --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+              echo "Failed platform stack shell deleted successfully."
+            fi
+          fi
+
       - name: Deploy authority platform through CloudFormation execution role
         env:
           OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
