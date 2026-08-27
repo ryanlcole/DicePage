@@ -1,0 +1,94 @@
+name: Deploy RIST Frontend to AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/**'
+      - 'infra/aws/rist-frontend.yml'
+      - '.github/workflows/deploy-rist-frontend-aws.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  FRONTEND_STACK: rist-frontend
+  PLATFORM_STACK: rist-platform
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Prepare public data
+        run: python apps/rist-world/prepare_public_data.py
+
+      - name: Build RIST WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate frontend stack
+        run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
+
+      - name: Deploy protected frontend origin and CloudFront
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/aws/rist-frontend.yml \
+            --stack-name "$FRONTEND_STACK" \
+            --region "$AWS_REGION" \
+            --no-fail-on-empty-changeset
+
+      - name: Inject deployed authority endpoints when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" >/dev/null 2>&1; then
+            API=$(aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" --query "Stacks[0].Outputs[?OutputKey=='AuthorityApiBaseUrl'].OutputValue" --output text)
+            WS=$(aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" --query "Stacks[0].Outputs[?OutputKey=='RealtimeWebSocketUrl'].OutputValue" --output text)
+            if [ -n "$API" ] && [ "$API" != "None" ]; then
+              printf '{"apiBaseUrl":"%s","realtimeUrl":"%s"}\n' "$API" "$WS" > build/rist/wwwroot/authority-config.json
+            fi
+          fi
+
+      - name: Publish compiled frontend to private S3 origin
+        shell: bash
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/" \
+            --delete \
+            --cache-control 'public,max-age=86400' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/authority-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+
+      - name: Invalidate and verify AWS frontend
+        shell: bash
+        run: |
+          DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
+          URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/*' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "$URL"
+          grep -q 'RistPLC' /tmp/rist-index.html
+          echo "AWS frontend verified at $URL"
