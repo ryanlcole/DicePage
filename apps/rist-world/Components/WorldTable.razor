@@ -1,6 +1,9 @@
 @implements IDisposable
 @inject WorldSession Session
-<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor")"><WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /><RistWelcomeTutorial /></div>
+<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor")">
+ <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
+ <WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /><RistWelcomeTutorial />
+</div>
 @code{
  protected override async Task OnInitializedAsync()
  {
