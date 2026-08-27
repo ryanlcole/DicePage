@@ -14,14 +14,24 @@
   <link rel="canonical" href="https://relicgamemaster.com/">
   <link rel="stylesheet" href="/relic-home.css">
   <style>
-    .site-header{justify-content:center}
-    .site-header nav{width:100%;justify-content:center}
-    .relic-story-banner{position:relative;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);box-shadow:none}
-    .relic-story-banner .story-art{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:contain;object-position:center;background:#02070a}
-    .relic-story-banner .story-sweep{position:absolute;inset:0 auto 0 -42%;width:34%;z-index:2;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(107,183,202,.04) 18%,rgba(236,205,145,.18) 50%,rgba(106,193,220,.06) 74%,transparent);filter:blur(4px);mix-blend-mode:screen;animation:storyArtSweep 10.5s ease-in-out infinite}
-    @keyframes storyArtSweep{0%,8%{left:-42%;opacity:0}16%{opacity:1}82%{opacity:1}94%,100%{left:108%;opacity:0}}
-    @media(max-width:760px){.site-header{padding-top:12px;padding-bottom:12px}.site-header nav{gap:18px}.relic-story-banner .story-art{width:100%;height:auto;object-fit:contain}}
-    @media(prefers-reduced-motion:reduce){.relic-story-banner .story-sweep{animation:none;display:none}}
+    .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}
+    .relic-story-banner{position:relative;aspect-ratio:2/1;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);box-shadow:none}
+    .story-complete{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s ease;background:#02070a}
+    .story-scenes{position:absolute;inset:0 0 22% 0;display:grid;grid-template-columns:repeat(5,1fr);overflow:hidden}
+    .story-scene-window{position:relative;overflow:hidden;opacity:0;transition:opacity .75s ease;background:#02070a}
+    .story-scene-window img{position:absolute;top:0;width:500%;height:auto;max-width:none;object-fit:fill;filter:none;transform:translateX(calc(var(--scene-index) * -20%));will-change:opacity}
+    .story-mark{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:94%;text-align:center;opacity:0;transition:opacity .75s ease;color:#ead8b6;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2rem,6vw,5rem);font-weight:600;line-height:.95;text-shadow:0 3px 28px rgba(0,0,0,.95);white-space:nowrap}
+    .story-mark small{display:block;margin-top:.45rem;color:#88bac9;font-size:clamp(.7rem,1.6vw,1rem);font-weight:400;letter-spacing:.08em}
+    .relic-story-banner[data-phase="remember"] .scene-remember,
+    .relic-story-banner[data-phase="exist"] .scene-exist,
+    .relic-story-banner[data-phase="live"] .scene-live,
+    .relic-story-banner[data-phase="imagine"] .scene-imagine,
+    .relic-story-banner[data-phase="create"] .scene-create{opacity:1}
+    .relic-story-banner[data-phase]:not([data-phase="final"]) .story-mark{opacity:1}
+    .relic-story-banner[data-phase="final"] .story-complete{opacity:1}
+    .relic-story-banner[data-phase="final"] .story-scenes,.relic-story-banner[data-phase="final"] .story-mark{opacity:0}
+    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-scenes{inset:0 0 24% 0}.story-mark{bottom:7%;font-size:clamp(1.7rem,7.5vw,3rem)}}
+    @media(prefers-reduced-motion:reduce){.story-scenes,.story-mark{display:none}.story-complete{opacity:1!important}}
   </style>
 </head>
 <body>
@@ -35,9 +45,16 @@
   </header>
 
   <main>
-    <section class="relic-story-banner" aria-label="Remember. Exist. Live. Imagine. Create.">
-      <img class="story-art" src="/relic-story-banner.svg" alt="Remember, exist, Live, imagine, Create — ReLiCGameMaster">
-      <div class="story-sweep" aria-hidden="true"></div>
+    <section class="relic-story-banner" data-phase="remember" aria-label="Remember. Exist. Live. Imagine. Create.">
+      <img class="story-complete" src="/relic-story-banner.svg" alt="Remember, exist, Live, imagine, Create — ReLiCGameMaster">
+      <div class="story-scenes" aria-hidden="true">
+        <div class="story-scene-window scene-remember" style="--scene-index:0"><img src="/relic-story-banner.svg" alt=""></div>
+        <div class="story-scene-window scene-exist" style="--scene-index:1"><img src="/relic-story-banner.svg" alt=""></div>
+        <div class="story-scene-window scene-live" style="--scene-index:2"><img src="/relic-story-banner.svg" alt=""></div>
+        <div class="story-scene-window scene-imagine" style="--scene-index:3"><img src="/relic-story-banner.svg" alt=""></div>
+        <div class="story-scene-window scene-create" style="--scene-index:4"><img src="/relic-story-banner.svg" alt=""></div>
+      </div>
+      <div class="story-mark" aria-hidden="true"><span id="relic-story-mark">R</span><small>ReLiC powering Shaelvien</small></div>
     </section>
 
     <section class="hero" aria-labelledby="hero-title">
@@ -61,48 +78,46 @@
     </section>
 
     <section class="overview" id="about" aria-labelledby="about-title">
-      <div class="section-heading">
-        <p class="eyebrow">The Company</p>
-        <h2 id="about-title">ReLiCGameMaster</h2>
-      </div>
-      <div class="overview-copy">
-        <p>ReLiCGameMaster is building a digital tabletop studio where the familiar pieces of tabletop play — maps, dice, cards, tokens, miniatures, character sheets, terrain, and imagination — can work together without forcing every game into the same shape.</p>
-        <p>The goal is straightforward: make creating, running, sharing, and playing worlds feel natural whether a group is gathered around a physical table or connecting online.</p>
-      </div>
+      <div class="section-heading"><p class="eyebrow">The Company</p><h2 id="about-title">ReLiCGameMaster</h2></div>
+      <div class="overview-copy"><p>ReLiCGameMaster is building a digital tabletop studio where the familiar pieces of tabletop play — maps, dice, cards, tokens, miniatures, character sheets, terrain, and imagination — can work together without forcing every game into the same shape.</p><p>The goal is straightforward: make creating, running, sharing, and playing worlds feel natural whether a group is gathered around a physical table or connecting online.</p></div>
     </section>
 
     <section class="feature-grid" aria-label="ReLiCGameMaster projects">
-      <article id="rist">
-        <p class="eyebrow">The Engine</p>
-        <h2>RIST</h2>
-        <h3>Recursive Immersive Sandbox Table Top</h3>
-        <p>RIST is the tabletop environment beneath Shaelvien: a recursive play space designed around maps, nested locations, physical-style game pieces, player tools, GM creation, and persistent worlds.</p>
-      </article>
-      <article id="shaelvien">
-        <p class="eyebrow">The World</p>
-        <h2>Shaelvien</h2>
-        <h3>A world built to keep growing</h3>
-        <p>Shaelvien is the public world built on RIST. Game Masters can create within the shared setting while players explore, build histories, and carry their progress forward through a persistent world.</p>
-      </article>
-      <article>
-        <p class="eyebrow">The Table</p>
-        <h2>Your Game</h2>
-        <h3>Tools before restrictions</h3>
-        <p>RIST is being designed as a tabletop studio rather than a single ruleset. The table provides the pieces and controls; groups decide how they use them.</p>
-      </article>
+      <article id="rist"><p class="eyebrow">The Engine</p><h2>RIST</h2><h3>Recursive Immersive Sandbox Table Top</h3><p>RIST is the tabletop environment beneath Shaelvien: a recursive play space designed around maps, nested locations, physical-style game pieces, player tools, GM creation, and persistent worlds.</p></article>
+      <article id="shaelvien"><p class="eyebrow">The World</p><h2>Shaelvien</h2><h3>A world built to keep growing</h3><p>Shaelvien is the public world built on RIST. Game Masters can create within the shared setting while players explore, build histories, and carry their progress forward through a persistent world.</p></article>
+      <article><p class="eyebrow">The Table</p><h2>Your Game</h2><h3>Tools before restrictions</h3><p>RIST is being designed as a tabletop studio rather than a single ruleset. The table provides the pieces and controls; groups decide how they use them.</p></article>
     </section>
 
-    <section class="final-cta" aria-labelledby="final-title">
-      <p class="eyebrow">Enter the Table</p>
-      <h2 id="final-title">Shaelvien is becoming playable now.</h2>
-      <p>Development is moving toward persistent friends-and-family testing, Kickstarter, and public testing.</p>
-      <a class="primary-button" href="/Game/index.html">Game Now</a>
-    </section>
+    <section class="final-cta" aria-labelledby="final-title"><p class="eyebrow">Enter the Table</p><h2 id="final-title">Shaelvien is becoming playable now.</h2><p>Development is moving toward persistent friends-and-family testing, Kickstarter, and public testing.</p><a class="primary-button" href="/Game/index.html">Game Now</a></section>
   </main>
 
-  <footer>
-    <img src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="" aria-hidden="true">
-    <p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p>
-  </footer>
+  <footer><img src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="" aria-hidden="true"><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>
+
+  <script>
+    (() => {
+      const banner = document.querySelector('.relic-story-banner');
+      const mark = document.getElementById('relic-story-mark');
+      if (!banner || !mark || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const phases = [
+        {name:'remember', mark:'R', hold:2400},
+        {name:'exist', mark:'Re', hold:2400},
+        {name:'live', mark:'ReLi', hold:2400},
+        {name:'imagine', mark:'ReLiC', hold:2400},
+        {name:'create', mark:'ReLiCGameMaster', hold:3000},
+        {name:'final', mark:'ReLiCGameMaster', hold:5200}
+      ];
+      let index = 0;
+      const run = () => {
+        const phase = phases[index];
+        banner.dataset.phase = phase.name;
+        mark.textContent = phase.mark;
+        window.setTimeout(() => {
+          index = (index + 1) % phases.length;
+          run();
+        }, phase.hold);
+      };
+      run();
+    })();
+  </script>
 </body>
 </html>
