@@ -193,7 +193,6 @@ Resources:
           - S3Action:
               BucketName: !Ref MailBucket
               ObjectKeyPrefix: raw/
-              KmsKeyArn: !GetAtt MailKey.Arn
           - LambdaAction:
               FunctionArn: !GetAtt GatewayFunction.Arn
               InvocationType: Event
