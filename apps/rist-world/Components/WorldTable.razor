@@ -5,12 +5,24 @@
  <WorldHeader /><PublicCardRail /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /><RistWelcomeTutorial />
 </div>
 @code{
+ readonly CancellationTokenSource _autosaveCts=new();
  protected override async Task OnInitializedAsync()
  {
   Session.Changed+=SessionChanged;
   await Session.InitializeAsync();
+  await Session.LoadPrivateCheckpointAsync();
   await Session.LoadThirdPartyStarterAssetsAsync();
+  _=AutosaveLoopAsync(_autosaveCts.Token);
+ }
+ async Task AutosaveLoopAsync(CancellationToken token)
+ {
+  try
+  {
+   using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));
+   while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();
+  }
+  catch(OperationCanceledException){}
  }
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
- public void Dispose()=>Session.Changed-=SessionChanged;
+ public void Dispose(){_autosaveCts.Cancel();_autosaveCts.Dispose();Session.Changed-=SessionChanged;}
 }
