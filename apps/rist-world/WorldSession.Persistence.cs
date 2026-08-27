@@ -24,7 +24,14 @@ public sealed partial class WorldSession
  public async Task<bool> TryLoadSavedMapAsync()
  {
   var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
-  if(string.IsNullOrWhiteSpace(json))return false;
+  if(string.IsNullOrWhiteSpace(json))
+  {
+   // A fresh public session begins in canonical Shaelvien. Naeja remains
+   // registered as legacy/importable map content for existing saved worlds.
+   BuildShaelvienPangaea();
+   MapLocked=true;
+   return true;
+  }
   LoadMapJson(json);return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
