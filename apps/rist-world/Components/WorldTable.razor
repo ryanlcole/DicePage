@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject WorldSession Session
+@inject IJSRuntime JS
 <div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") tabletop-rail-layout">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
 
@@ -64,6 +65,13 @@
  {
   Session.Changed+=SessionChanged;
   await Session.InitializeAsync();
+  try
+  {
+   var policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");
+   await policy.InvokeVoidAsync("applyEightHourSessionPolicy");
+   await policy.DisposeAsync();
+  }
+  catch(JSException){}
   await Session.LoadPrivateCheckpointAsync();
   await Session.LoadThirdPartyStarterAssetsAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
