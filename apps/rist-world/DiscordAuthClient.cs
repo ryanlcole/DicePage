@@ -44,6 +44,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             {
                 Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
                 if (Profile is not null) return Profile;
+
+                // A completed request that returns null is the explicit 401 path in
+                // SendAsync. Only then is the browser session known to be invalid.
                 await ClearSessionAsync();
                 return null;
             }
@@ -55,15 +58,37 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             {
                 await Task.Delay(350 * (attempt + 1));
             }
+            catch (HttpRequestException)
+            {
+                return KeepIssuedSessionActive();
+            }
+            catch (TaskCanceledException)
+            {
+                return KeepIssuedSessionActive();
+            }
             catch
             {
-                Profile = null;
-                return null;
+                return KeepIssuedSessionActive();
             }
         }
 
-        Profile = null;
-        return null;
+        return KeepIssuedSessionActive();
+    }
+
+    private AuthProfile? KeepIssuedSessionActive()
+    {
+        if (string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            Profile = null;
+            return null;
+        }
+
+        // The token came from the server-issued OAuth handoff. Do not demote the
+        // whole tabletop back to visitor mode merely because the optional profile
+        // lookup had a transient network/CORS failure. Protected AWS operations
+        // still validate this bearer token server-side.
+        Profile = new AuthProfile("", "Discord session", "");
+        return Profile;
     }
 
     public async Task BeginLoginAsync()
