@@ -7,9 +7,9 @@
 
 @if(Session.CardBrowserOpen)
 {
-<section id="card-library" class="tile-browser card-browser unified-card-library" aria-label="Card library">
- <header>
-  <div class="tile-browser-title"><strong>Card library</strong><small>Open a deck to draw its contents to the right.</small></div>
+<section id="card-library" class="tile-browser card-browser unified-card-library rail-card-library" aria-label="Card library">
+ <header class="library-heading">
+  <div class="tile-browser-title"><strong>Card Library</strong><small>Choose a library, then a folder. Cards in the current folder appear below.</small></div>
   @if(Session.IsLoggedIn)
   {
    <button class="card-create-toggle" @onclick="ToggleTools" aria-expanded="@_toolsOpen" title="Card library actions" aria-label="Card library actions">+</button>
@@ -26,18 +26,54 @@
  }
  else
  {
-  <div class="library-deck-toolbar">
-   <label>Library
-    <select @bind="_source" @bind:after="ResetNavigation">
-     <option value="Universal">Universal</option>
-     <option value="Shaelvien">Shaelvien</option>
-     @foreach(var libraryName in CustomLibraries){<option value="@libraryName">@libraryName</option>}
-    </select>
-   </label>
-   <button @onclick="GoRoot" disabled="@(_path.Count==0)">Home</button>
-   @if(_path.Count>0){<button @onclick="GoBack">Back</button>}
-   <button class="card-filter-toggle" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
-  </div>
+  <section class="library-rail-section source-rail-section" aria-label="Libraries">
+   <span class="library-rail-caption">Card Library</span>
+   <div id="card-library-source-rail" class="library-horizontal-rail desktop-arrow-slider">
+    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#card-library-source-rail',-1)" aria-label="Scroll libraries left">‹</button>
+    <div class="library-horizontal-set">
+     @foreach(var source in AvailableSources)
+     {
+      <button class="library-nav-card source-card @(source.Equals(_source,StringComparison.OrdinalIgnoreCase)?"active":"")" @onclick="()=>SelectSource(source)" aria-pressed="@source.Equals(_source,StringComparison.OrdinalIgnoreCase)">
+       <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span>
+       <strong>@source</strong>
+      </button>
+     }
+    </div>
+    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#card-library-source-rail',1)" aria-label="Scroll libraries right">›</button>
+   </div>
+  </section>
+
+  <section class="library-rail-section folder-rail-section" aria-label="Folders in @_source">
+   <span class="library-rail-caption">@_source</span>
+   <div id="card-library-folder-rail" class="library-horizontal-rail desktop-arrow-slider">
+    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#card-library-folder-rail',-1)" aria-label="Scroll folders left">‹</button>
+    <div class="library-horizontal-set">
+     <button class="library-path-home @(_path.Count==0?"active":"")" @onclick="GoRoot" aria-label="Open @_source root">@_source</button>
+     @for(var i=0;i<_path.Count;i++)
+     {
+      var index=i;
+      <span class="library-path-divider" aria-hidden="true">›</span>
+      <button class="library-path-home @(i==_path.Count-1?"active":"")" @onclick="()=>GoToDepth(index)">@_path[i]</button>
+     }
+     @if(CurrentFolders.Any())
+     {
+      <span class="library-folder-divider" aria-hidden="true"></span>
+      @foreach(var folder in CurrentFolders)
+      {
+       <button class="library-nav-card folder-card" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder folder">
+        <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span>
+        <strong>@folder</strong>
+       </button>
+      }
+     }
+     else
+     {
+      <span class="library-no-folders">No deeper folders</span>
+     }
+    </div>
+    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#card-library-folder-rail',1)" aria-label="Scroll folders right">›</button>
+   </div>
+  </section>
 
   @if(_toolsOpen)
   {
@@ -49,34 +85,22 @@
    </div>
   }
 
-  <div class="@($"card-browser-filters{(_filtersOpen ? " open" : "")}")">
-   <label>Type<select @bind="_type" @bind:after="ResetPage"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
-   <label class="card-search-field">Search<input type="search" placeholder="Name, property, or text" @bind="_search" @bind:event="oninput" @bind:after="ResetPage" /></label>
+  <div class="library-secondary-tools">
+   <button class="card-filter-toggle" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Search / Filter</button>
+   @if(_path.Count>0){<button @onclick="GoBack">‹ Back one folder</button>}
   </div>
 
-  <div class="card-library-workspace">
-   <div class="card-library-results" aria-label="Card library deck rail">
-    <div id="card-library-deck-rail" class="library-deck-rail desktop-arrow-slider">
-     <button class="library-deck-folder @(_path.Count==0?"active":"")" @onclick="GoRoot" aria-label="Open @_source library root">
-      <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@_source</strong><small>Library</small>
-     </button>
-     @for(var i=0;i<_path.Count;i++)
-     {
-      var index=i;
-      <button class="library-deck-folder @(i==_path.Count-1?"active":"")" @onclick="()=>GoToDepth(index)" aria-label="Return to @_path[i]">
-       <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@_path[i]</strong><small>Deck</small>
-      </button>
-     }
-     @if(_path.Count>0||PagedFolders.Any()||PagedLeafCards.Any()){<span class="library-deck-divider" aria-hidden="true"></span>}
+  <div class="@($"card-browser-filters{(_filtersOpen ? " open" : "")}")">
+   <label>Type<select @bind="_type"><option value="">All types</option>@foreach(var type in Types){<option value="@type">@type</option>}</select></label>
+   <label class="card-search-field">Search<input type="search" placeholder="Name, property, or text" @bind="_search" @bind:event="oninput" /></label>
+  </div>
 
-     @foreach(var folder in PagedFolders)
-     {
-      <button class="library-deck-folder" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder deck">
-       <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@folder</strong><small>Deck</small>
-      </button>
-     }
-
-     @foreach(var card in PagedLeafCards)
+  <section class="library-rail-section contents-rail-section" aria-label="Contents of @CurrentLocationLabel">
+   <span class="library-rail-caption">@CurrentLocationLabel</span>
+   <div id="card-library-content-rail" class="library-horizontal-rail library-content-rail desktop-arrow-slider">
+    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#card-library-content-rail',-1)" aria-label="Scroll cards left">‹</button>
+    <div class="library-horizontal-set card-content-set">
+     @foreach(var card in CurrentLeafCards)
      {
       <article class="library-playing-card" draggable="@CanDrag(card)" @ondragstart="()=>BeginCardDrag(card)">
        <button class="library-card-face" @onclick="()=>OpenCardAsync(card)" aria-label="@card.Name">
@@ -85,23 +109,32 @@
         <strong>@card.Name</strong>
        </button>
        @if(IsCharacterCard(card)){<button class="library-card-add" @onclick="OpenCharacter">Open sheet</button>}
-       else if(IsMapCard(card)){<button class="library-card-add" @onclick="()=>LoadMapAsync(card)">Load map</button>}
        else{<button class="library-card-add" @onclick="()=>Library.AddToSpellbookAsync(card)">Hand +</button>}
       </article>
      }
-
-     @if(_page>0){<button class="library-deck-page" @onclick="PreviousPage" aria-label="Previous page">‹ Previous</button>}
-     @if(HasNextPage){<button class="library-deck-page" @onclick="NextPage" aria-label="Next page">Next ›</button>}
-     @if(!CurrentFolders.Any()&&!CurrentLeafCards.Any()){<p class="library-deck-empty">This deck is empty.</p>}
+     @if(!CurrentLeafCards.Any())
+     {
+      <p class="library-deck-empty">No cards are stored directly in this folder.</p>
+     }
     </div>
+    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#card-library-content-rail',1)" aria-label="Scroll cards right">›</button>
    </div>
+  </section>
 
-   <aside class="character-spellbook-drop" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync" aria-label="Active character card drop area">
-    <header><strong>Active character cards</strong><small>Drag cards here. The same cards appear on the character sheet.</small></header>
-    <div class="spellbook-card-strip">@foreach(var card in Library.SpellbookCards){<button class="spellbook-mini-card" @onclick="()=>_selected=card"><strong>@card.Name</strong><small>@card.Type</small></button>}</div>
-    @if(!Library.SpellbookCards.Any()){<p>Drop a card here.</p>}
-   </aside>
-  </div>
+  <section class="library-rail-section active-card-rail-section" aria-label="Active character cards">
+   <span class="library-rail-caption">Active Character Cards</span>
+   <div id="active-character-card-rail" class="library-horizontal-rail desktop-arrow-slider" @ondragover:preventDefault="true" @ondrop="Library.DropOnSpellbookAsync">
+    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#active-character-card-rail',-1)" aria-label="Scroll active cards left">‹</button>
+    <div class="library-horizontal-set active-card-set">
+     @foreach(var card in Library.SpellbookCards)
+     {
+      <button class="spellbook-mini-card" @onclick="()=>_selected=card"><strong>@card.Name</strong><small>@card.Type</small></button>
+     }
+     @if(!Library.SpellbookCards.Any()){<p class="library-deck-empty">Drag cards here to add them to the active character.</p>}
+    </div>
+    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#active-character-card-rail',1)" aria-label="Scroll active cards right">›</button>
+   </div>
+  </section>
  }
  @if(!string.IsNullOrWhiteSpace(Library.Status)){<output class="tile-browser-status">@Library.Status</output>}
 </section>
@@ -114,7 +147,7 @@
    <button class="private-spell-close" @onclick="CancelCreator" aria-label="Cancel custom card">×</button>
    <h2 id="custom-card-title">Create custom card</h2>
    <div class="custom-card-image">@if(!string.IsNullOrWhiteSpace(_draft.ImageDataUrl)){<img src="@_draft.ImageDataUrl" alt="Custom card preview" />}else{<span>Card image</span>}<label><strong>@(string.IsNullOrWhiteSpace(_draft.ImageDataUrl)?"Add image":"Change image")</strong><InputFile OnChange="LoadImageAsync" accept="image/png,image/jpeg,image/webp" /></label></div>
-   <label>Library<input @bind="_draft.LibraryName" maxlength="80" placeholder="Universal" /></label>
+   <label>Library<input @bind="_draft.LibraryName" maxlength="80" placeholder="Shaelvien" /></label>
    <label>What do you call this?<input @bind="_draft.Name" maxlength="80" /></label>
    <label>Type<input @bind="_draft.Type" maxlength="80" placeholder="Character, Equipment, Magic..." /></label>
    <label>Folder path<input @bind="_draft.Category" placeholder="Characters > Anatomy > Interface" maxlength="240" /></label>
@@ -139,14 +172,12 @@
 }
 
 @code {
- const int CardsPerPage=10;
  LibraryCard? _selected;
  CardDraft _draft=new();
  string _search="";
- string _source="Universal";
+ string _source="Shaelvien";
  string _type="";
  string _editorStatus="";
- int _page;
  bool _creating;
  bool _filtersOpen;
  bool _toolsOpen;
@@ -157,25 +188,17 @@
   get
   {
    yield return new LibraryCard{Id=$"universal-character-{Session.ActiveCharacterNumber}",Name=string.IsNullOrWhiteSpace(Session.CharacterName)?"Character":Session.CharacterName,Description=Session.CharacterDescription??"",ImageDataUrl=Session.CharacterPortraitDataUrl??"",Type="Character",Source="Universal",School="Characters",Custom=false};
-   yield return MapCard("random-world","Random World Map","World map");
-   yield return MapCard("verdant-reach","Verdant Reach","Region map");
-   yield return MapCard("ember-basin","Ember Basin","Region map");
-   yield return MapCard("frost-march","Frost March","Region map");
   }
  }
- static LibraryCard MapCard(string id,string name,string type)=>new(){Id=$"universal-map-{id}",Name=name,Description="Recursive procedural map.",Type=type,Source="Universal",School="Maps",Custom=false};
  IEnumerable<string> CustomLibraries=>Library.Cards.Where(x=>x.Custom&&!x.Source.Equals("Shaelvien",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Universal",StringComparison.OrdinalIgnoreCase)&&!x.Source.Equals("Custom",StringComparison.OrdinalIgnoreCase)).Select(x=>x.Source).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<string> AvailableSources=>new[]{"Shaelvien","Universal"}.Concat(CustomLibraries).Distinct(StringComparer.OrdinalIgnoreCase);
  IEnumerable<LibraryCard> AllSourceCards=>_source.Equals("Universal",StringComparison.OrdinalIgnoreCase)?UniversalCards.Concat(Library.Cards.Where(card=>card.Source.Equals("Universal",StringComparison.OrdinalIgnoreCase))):Library.Cards.Where(card=>card.Source.Equals(_source,StringComparison.OrdinalIgnoreCase));
  IEnumerable<string> Types=>AllSourceCards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
  IEnumerable<LibraryCard> SourceCards=>AllSourceCards.Where(card=>(string.IsNullOrWhiteSpace(_search)||card.Name.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.Description.Contains(_search,StringComparison.OrdinalIgnoreCase)||card.School.Contains(_search,StringComparison.OrdinalIgnoreCase))&&(string.IsNullOrWhiteSpace(_type)||card.Type.Equals(_type,StringComparison.OrdinalIgnoreCase)));
  string CurrentPath=>string.Join(" > ",_path);
+ string CurrentLocationLabel=>_path.Count==0?_source:_path[^1];
  IEnumerable<string> CurrentFolders{get{var depth=_path.Count;return SourceCards.Select(card=>SplitPath(card.School)).Where(parts=>parts.Length>depth&&PathStartsWith(parts,_path)).Select(parts=>parts[depth]).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);}}
  IEnumerable<LibraryCard> CurrentLeafCards{get{var current=CurrentPath;return SourceCards.Where(card=>{var school=(card.School??"").Trim();if(!school.Equals(current,StringComparison.OrdinalIgnoreCase))return false;if(_path.Count>0&&card.Name.Equals(_path[^1],StringComparison.OrdinalIgnoreCase))return false;return true;}).OrderBy(x=>x.Name);}}
- IEnumerable<object> CombinedPage{get{var items=new List<object>();items.AddRange(CurrentFolders.Cast<object>());items.AddRange(CurrentLeafCards.Cast<object>());return items.Skip(_page*CardsPerPage).Take(CardsPerPage);}}
- IEnumerable<string> PagedFolders=>CombinedPage.OfType<string>();
- IEnumerable<LibraryCard> PagedLeafCards=>CombinedPage.OfType<LibraryCard>();
- int MatchCount=>CurrentFolders.Count()+CurrentLeafCards.Count();
- bool HasNextPage=>(_page+1)*CardsPerPage<MatchCount;
 
  protected override void OnInitialized(){Library.Changed+=LibraryChanged;Session.Changed+=SessionChanged;}
  protected override async Task OnParametersSetAsync(){if(Session.IsLoggedIn)await Library.EnsureLoadedAsync();else Library.Reset();}
@@ -185,25 +208,21 @@
  public void Dispose(){Library.Changed-=LibraryChanged;Session.Changed-=SessionChanged;}
  static string[] SplitPath(string? value)=>(value??"").Split('>',StringSplitOptions.TrimEntries|StringSplitOptions.RemoveEmptyEntries);
  static bool PathStartsWith(string[] parts,List<string> path){if(parts.Length<path.Count)return false;for(var i=0;i<path.Count;i++)if(!parts[i].Equals(path[i],StringComparison.OrdinalIgnoreCase))return false;return true;}
- void ResetPage(){_page=0;_toolsOpen=false;}
- void ResetNavigation(){_path.Clear();ResetPage();}
- void NextPage(){if(HasNextPage)_page++;}
- void PreviousPage(){if(_page>0)_page--;}
+ void SelectSource(string source){_source=source;ResetNavigation();}
+ void ResetNavigation(){_path.Clear();_toolsOpen=false;}
  void ToggleTools()=>_toolsOpen=!_toolsOpen;
- void OpenFolder(string folder){_path.Add(folder);_page=0;}
- void GoBack(){if(_path.Count>0)_path.RemoveAt(_path.Count-1);_page=0;}
- void GoRoot(){_path.Clear();_page=0;}
- void GoToDepth(int index){while(_path.Count>index+1)_path.RemoveAt(_path.Count-1);_page=0;}
+ void OpenFolder(string folder){_path.Add(folder);}
+ void GoBack(){if(_path.Count>0)_path.RemoveAt(_path.Count-1);}
+ void GoRoot()=>_path.Clear();
+ void GoToDepth(int index){while(_path.Count>index+1)_path.RemoveAt(_path.Count-1);}
  bool IsCharacterCard(LibraryCard card)=>card.Id.StartsWith("universal-character-",StringComparison.Ordinal);
- bool IsMapCard(LibraryCard card)=>card.Id.StartsWith("universal-map-",StringComparison.Ordinal);
- bool CanDrag(LibraryCard card)=>!IsCharacterCard(card)&&!IsMapCard(card);
+ bool CanDrag(LibraryCard card)=>!IsCharacterCard(card);
  void BeginCardDrag(LibraryCard card){if(CanDrag(card))Library.BeginDrag(card);}
- async Task OpenCardAsync(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return;}if(IsMapCard(card)){await LoadMapAsync(card);return;}_selected=card;}
+ Task OpenCardAsync(LibraryCard card){if(IsCharacterCard(card)){OpenCharacter();return Task.CompletedTask;}_selected=card;return Task.CompletedTask;}
  void OpenCharacter()=>Session.OpenCharacterFromLibrary();
- async Task LoadMapAsync(LibraryCard card){var id=card.Id["universal-map-".Length..];await JS.InvokeVoidAsync("ristProceduralMap.load",id);}
  void OpenCreator(){_toolsOpen=false;_editorStatus="";_draft=new(){LibraryName=_source,Category=CurrentPath};_creating=true;}
  void CancelCreator(){_creating=false;_editorStatus="";_draft=new();}
- async Task ImportCustomAsync(InputFileChangeEventArgs e){_toolsOpen=false;await using var stream=e.File.OpenReadStream(8*1024*1024);await Library.ImportCustomAsync(stream);_source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Universal";ResetNavigation();}
+ async Task ImportCustomAsync(InputFileChangeEventArgs e){_toolsOpen=false;await using var stream=e.File.OpenReadStream(8*1024*1024);await Library.ImportCustomAsync(stream);_source=Library.Cards.LastOrDefault(card=>card.Custom)?.Source??"Shaelvien";ResetNavigation();}
  async Task LoadImageAsync(InputFileChangeEventArgs e){const long limit=1_500_000;if(e.File.Size>limit){_editorStatus="Choose an image smaller than 1.5 MB.";return;}await using var stream=e.File.OpenReadStream(limit);using var memory=new MemoryStream();await stream.CopyToAsync(memory);var type=string.IsNullOrWhiteSpace(e.File.ContentType)?"image/jpeg":e.File.ContentType;_draft.ImageDataUrl=$"data:{type};base64,{Convert.ToBase64String(memory.ToArray())}";_editorStatus="";}
- async Task CreateCustomAsync(){if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}await Library.CreateCustomAsync(_draft);_source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Universal":_draft.LibraryName.Trim();ResetNavigation();_creating=false;_draft=new();_editorStatus="";}
+ async Task CreateCustomAsync(){if(string.IsNullOrWhiteSpace(_draft.Name)){_editorStatus="Give the card a name.";return;}await Library.CreateCustomAsync(_draft);_source=string.IsNullOrWhiteSpace(_draft.LibraryName)?"Shaelvien":_draft.LibraryName.Trim();ResetNavigation();_creating=false;_draft=new();_editorStatus="";}
 }
