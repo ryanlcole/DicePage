@@ -3,8 +3,11 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ const string OceanResetMarkerKey="rist.world.reset.2026-08-28-ocean-v1";
+ const string PrivateOceanResetMarkerKey="rist.world.private-reset.2026-08-28-ocean-v1";
  string _lastPrivateSnapshot="";
- object SavePayload()=>new{Format="RISTMAP",Version=1,Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
+
+ object SavePayload()=>new{Format="RISTMAP",Version=1,Reset="2026-08-28-ocean-v1",Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
@@ -20,6 +23,7 @@ public sealed partial class WorldSession
    var json=ExportMapJson();
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
    await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
+   await js.InvokeVoidAsync("localStorage.setItem",PrivateOceanResetMarkerKey,"1");
    _lastPrivateSnapshot=json;
    if(showSuccess)PrivateStorageStatus="Shaelvien progress synced to your private AWS storage.";
   }
@@ -31,6 +35,16 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   try
   {
+   var privateReset=await js.InvokeAsync<string?>("localStorage.getItem",PrivateOceanResetMarkerKey);
+   if(privateReset!="1")
+   {
+    ResetToCanonicalOcean();
+    await SavePrivateCheckpointAsync(showSuccess:false);
+    PrivateStorageStatus="Private Shaelvien world reset to the canonical ocean start.";
+    Notify();
+    return;
+   }
+
    var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
    if(saved is null)
    {
@@ -58,18 +72,43 @@ public sealed partial class WorldSession
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
+  var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",OceanResetMarkerKey);
+  if(resetApplied!="1")
+  {
+   ResetToCanonicalOcean();
+   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+   return true;
+  }
+
   var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
   if(string.IsNullOrWhiteSpace(json))
   {
-   // A fresh public session begins in canonical Shaelvien. Naeja remains
-   // registered as legacy/importable map content for existing saved worlds.
-   BuildShaelvienPangaea();
-   MapLocked=true;
+   ResetToCanonicalOcean();
+   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
    return true;
   }
   LoadMapJson(json);return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
+
+ void ResetToCanonicalOcean()
+ {
+  EncounterActive=false;
+  Layer="WORLD";
+  GridStyle="square";
+  DistanceUnit="mi";
+  GridDiameter=48;
+  GridDistance=1;
+  GridCalibrationZoom=1;
+  ViewZoom=1;
+  Pieces=[];
+  PlacedTiles=[];
+  MapLocked=true;
+  CloseHeaderMenus();
+  Notify();
+ }
+
  public void LoadMapJson(string json)
  {
   var save=JsonSerializer.Deserialize<SavedWorld>(json,new JsonSerializerOptions{PropertyNameCaseInsensitive=true});if(save is null)return;
