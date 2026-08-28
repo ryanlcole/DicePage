@@ -30,8 +30,23 @@
 }
 @code{
  bool _loginPromptOpen;
+ bool _privateRestoreStarted;
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
- void SessionChanged(){if(Session.IsLoggedIn)_loginPromptOpen=false;_ = InvokeAsync(StateHasChanged);}
+ void SessionChanged()
+ {
+  if(Session.IsLoggedIn)
+  {
+   _loginPromptOpen=false;
+   if(!_privateRestoreStarted){_privateRestoreStarted=true;_ = RestorePrivateWorldAsync();}
+  }
+  else _privateRestoreStarted=false;
+  _ = InvokeAsync(StateHasChanged);
+ }
+ async Task RestorePrivateWorldAsync()
+ {
+  await Session.LoadPrivateCheckpointAsync();
+  await InvokeAsync(StateHasChanged);
+ }
  public void Dispose()=>Session.Changed-=SessionChanged;
  async Task DoorClicked(){if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}_loginPromptOpen=true;}
  void CloseLoginPrompt()=>_loginPromptOpen=false;
