@@ -3,11 +3,34 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
- const string OceanResetVersion="2026-08-28-ocean-v1";
- const string OceanResetMarkerKey="rist.world.reset.2026-08-28-ocean-v1";
+ const string OceanResetVersion="2026-08-28-topology-v2";
+ const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  string _lastPrivateSnapshot="";
 
- object SavePayload()=>new{Format="RISTMAP",Version=1,Reset=OceanResetVersion,Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
+ object SavePayload()=>new
+ {
+  Format="RISTMAP",
+  Version=2,
+  Reset=OceanResetVersion,
+  Role,
+  Layer,
+  GridStyle,
+  DistanceUnit,
+  GridDiameter,
+  GridDistance,
+  GridCalibrationZoom,
+  CubeX,
+  CubeY,
+  CubeZ,
+  CubeRole,
+  PlaneIndex,
+  TierIndex,
+  LayerOffset,
+  Pieces,
+  TileItems=PlacedTiles,
+  Tiles=PlacedTiles,
+  NpcBoundaryExchanges
+ };
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
@@ -42,7 +65,7 @@ public sealed partial class WorldSession
     await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
     PrivateStorageStatus=saved is null
       ?"Private AWS storage initialized with the canonical ocean start."
-      :"Private Shaelvien world reset once to the canonical ocean start for this development run.";
+      :"Private Shaelvien world reset once to the canonical World/Plane/Tier ocean origin.";
     Notify();
     return;
    }
@@ -100,6 +123,7 @@ public sealed partial class WorldSession
   ViewZoom=1;
   Pieces=[];
   PlacedTiles=[];
+  ResetTopologyToCanonicalOrigin();
   MapLocked=true;
   CloseHeaderMenus();
   Notify();
@@ -111,6 +135,8 @@ public sealed partial class WorldSession
   EncounterActive=false;Role=save.Role;Layer=TableLayers.Contains(save.Layer)?save.Layer:"WORLD";GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
+  CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
+  NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();PlacedTiles=save.Tiles??[];MapLocked=true;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
