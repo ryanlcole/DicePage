@@ -5,151 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>ReLiCGameMaster | Shaelvien powered by RIST</title>
   <meta name="description" content="ReLiCGameMaster builds accessible tabletop world-building and play tools. Enter Shaelvien, a shared fantasy world powered by RIST — the Recursive Immersive Sandbox Table Top.">
-  <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#081117">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="ReLiCGameMaster | Shaelvien powered by RIST">
-  <meta property="og:description" content="Build worlds, gather players, and play in Shaelvien with RIST.">
-  <meta property="og:image" content="/Game/assets/branding/shaelvien_d20_crest.jpg">
-  <link rel="canonical" href="https://relicgamemaster.com/">
-  <link rel="stylesheet" href="/relic-home.css">
+  <meta name="robots" content="index,follow"><meta name="theme-color" content="#081117">
+  <meta property="og:type" content="website"><meta property="og:title" content="ReLiCGameMaster | Shaelvien powered by RIST"><meta property="og:description" content="Build worlds, gather players, and play in Shaelvien with RIST."><meta property="og:image" content="/Game/assets/branding/shaelvien_d20_crest.jpg">
+  <link rel="canonical" href="https://relicgamemaster.com/"><link rel="stylesheet" href="/relic-home.css">
   <style>
-    .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}
-    .relic-story-banner{position:relative;aspect-ratio:2/1;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);box-shadow:none}
-    .story-scenes{position:absolute;inset:0 0 25% 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:hidden}
-    .story-scene-window{position:relative;overflow:hidden;opacity:0;transition:opacity .68s ease;background:#02070a}
-    .story-scene-window svg{display:block;width:100%;height:100%;overflow:hidden}
-    .story-scene-window image{width:360px;height:180px}
-    .story-mark-stack{position:absolute;left:3%;right:3%;bottom:1.8%;height:24%;display:grid;place-items:center;pointer-events:none}
-    .story-mark-tile{grid-area:1/1;width:100%;height:100%;display:grid;place-items:center;opacity:0;transition:opacity .62s ease}
-    .story-mark-tile svg{display:block;width:100%;height:100%;overflow:visible}
-    .story-mark-tile image{width:360px;height:180px}
-    .story-scene-window.active,.story-mark-tile.active{opacity:1}
-    .relic-story-banner.finalizing .story-scene-window{opacity:1}
-    .footer-relic-logo{width:92px!important;height:92px!important;object-fit:cover!important;object-position:left center!important;padding:7px;border-radius:18px;background:rgba(8,17,23,.28)!important;opacity:.82;mix-blend-mode:screen;border:1px solid rgba(224,197,141,.2);box-shadow:0 0 18px rgba(106,193,220,.24),0 0 34px rgba(224,197,141,.2);filter:drop-shadow(0 0 8px rgba(106,193,220,.38)) drop-shadow(0 0 18px rgba(224,197,141,.25))}
-    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-scenes{inset:0 0 27% 0}.story-mark-stack{left:4%;right:4%;bottom:1%;height:26%}.footer-relic-logo{width:82px!important;height:82px!important}}
-    @media(prefers-reduced-motion:reduce){.story-scene-window{opacity:1!important}.story-mark-tile{opacity:0!important}.story-mark-tile[data-mark="final"]{opacity:1!important}}
+    .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}.relic-story-wrap{background:#02070a;border-bottom:1px solid rgba(224,197,141,.28)}.relic-story-banner{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;background:#02070a;isolation:isolate}.story-art{position:absolute;inset:0;background-image:url('/relic-story-tileset.jpg');background-size:100% 600%;background-repeat:no-repeat;opacity:0;transform:scale(1.008);transition:opacity .9s ease,transform 1.6s ease;will-change:opacity,transform}.story-art.active{opacity:1;transform:scale(1)}.story-art[data-art="0"]{background-position:center 0%}.story-art[data-art="1"]{background-position:center 20%}.story-art[data-art="2"]{background-position:center 40%}.story-art[data-art="3"]{background-position:center 60%}.story-art[data-art="4"]{background-position:center 80%}.story-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 42%,rgba(0,0,0,.58));z-index:2;pointer-events:none}.story-word,.story-name{position:absolute;left:50%;z-index:3;margin:0;color:#f5ead3;font-family:Georgia,'Times New Roman',serif;text-align:center;text-shadow:0 2px 10px #000,0 0 22px rgba(224,197,141,.28);opacity:0;transition:opacity .65s ease,transform .9s ease;pointer-events:none}.story-word{top:10%;transform:translate(-50%,-5px);font-size:clamp(1.45rem,4.4vw,4.2rem);font-weight:400;letter-spacing:.045em}.story-word.active{opacity:.96;transform:translate(-50%,0)}.story-name{bottom:7%;transform:translate(-50%,4px);font-size:clamp(1.15rem,3.2vw,3.25rem);font-weight:600;letter-spacing:.065em;white-space:nowrap}.story-name.active{opacity:1;transform:translate(-50%,0)}.story-final-symbol{position:absolute;left:50%;bottom:14%;z-index:3;width:clamp(72px,14vw,170px);aspect-ratio:1;border-radius:20%;background-image:url('/relic-story-tileset.jpg');background-size:200% 1200%;background-position:center 100%;background-repeat:no-repeat;opacity:0;filter:drop-shadow(0 0 12px rgba(106,193,220,.34)) drop-shadow(0 0 22px rgba(224,197,141,.24));transition:opacity .8s ease,transform 1s ease;transform:translateX(-50%) scale(.94)}.story-final-symbol.active{opacity:.82;transform:translateX(-50%) scale(1)}.story-subtitle{margin:0;padding:9px 16px 11px;text-align:center;color:rgba(245,234,211,.78);font-family:Georgia,'Times New Roman',serif;font-size:clamp(.78rem,1.7vw,1rem);letter-spacing:.12em}.footer-relic-logo{width:88px;height:88px;border-radius:18px;background-image:url('/relic-story-tileset.jpg');background-size:200% 1200%;background-position:center 100%;background-repeat:no-repeat;opacity:.78;border:1px solid rgba(224,197,141,.18);box-shadow:0 0 18px rgba(106,193,220,.2),0 0 34px rgba(224,197,141,.16);filter:drop-shadow(0 0 8px rgba(106,193,220,.3));flex:0 0 auto}@media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-word{top:8%}.story-name{bottom:6%}.footer-relic-logo{width:76px;height:76px}}@media(prefers-reduced-motion:reduce){.story-art,.story-word,.story-name,.story-final-symbol{transition:none!important}.story-art[data-art="4"],.story-name[data-name="ReLiCGameMaster"],.story-final-symbol{opacity:1!important}.story-art[data-art="4"]{transform:none!important}.story-name[data-name="ReLiCGameMaster"],.story-final-symbol{transform:translateX(-50%) scale(1)!important}.story-word{display:none}}
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <nav aria-label="Primary navigation">
-      <a href="#about">About</a>
-      <a href="#rist">RIST</a>
-      <a href="#shaelvien">Shaelvien</a>
-      <a class="nav-play" href="/Game/index.html">Game Now</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="relic-story-banner" aria-label="Remember. Exist. Live. Imagine. Create.">
-      <div class="story-scenes" aria-hidden="true">
-        <div class="story-scene-window" data-scene="0">
-          <svg viewBox="0 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
-        </div>
-        <div class="story-scene-window" data-scene="1">
-          <svg viewBox="72 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
-        </div>
-        <div class="story-scene-window" data-scene="2">
-          <svg viewBox="144 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
-        </div>
-        <div class="story-scene-window" data-scene="3">
-          <svg viewBox="216 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
-        </div>
-        <div class="story-scene-window" data-scene="4">
-          <svg viewBox="288 0 72 132" preserveAspectRatio="xMidYMid slice"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg>
-        </div>
-      </div>
-
-      <div class="story-mark-stack" aria-hidden="true">
-        <div class="story-mark-tile" data-mark="0"><svg viewBox="7 134 30 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-        <div class="story-mark-tile" data-mark="1"><svg viewBox="41 134 31 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-        <div class="story-mark-tile" data-mark="2"><svg viewBox="73 134 43 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-        <div class="story-mark-tile" data-mark="3"><svg viewBox="108 134 48 44" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-        <div class="story-mark-tile" data-mark="4"><svg viewBox="150 133 57 45" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-        <div class="story-mark-tile" data-mark="final"><svg viewBox="236 128 124 52" preserveAspectRatio="xMidYMid meet"><image href="/relic-story-banner.svg" x="0" y="0" width="360" height="180" preserveAspectRatio="none"/></svg></div>
-      </div>
-    </section>
-
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow">ReLiCGameMaster Presents</p>
-        <h1 id="hero-title">Build the world.<br>Then step inside it.</h1>
-        <p class="hero-lede">ReLiCGameMaster develops tabletop tools focused on creative freedom, shared worlds, and bringing the physical language of tabletop gaming into an online space.</p>
-        <div class="hero-actions">
-          <a class="primary-button" href="/Game/index.html">Game Now</a>
-          <a class="secondary-button" href="#about">Discover ReLiC</a>
-        </div>
-      </div>
-      <aside class="game-ad" aria-label="Play Shaelvien">
-        <img class="crest" src="/Game/assets/branding/shaelvien_d20_crest.jpg" alt="Shaelvien crest">
-        <p class="ad-kicker">NOW ENTERING</p>
-        <h2>SHAELVIEN</h2>
-        <p>Powered by RIST</p>
-        <a href="/Game/index.html">GAME NOW</a>
-        <small>Friends &amp; family testing is opening first as RIST moves toward public testing.</small>
-      </aside>
-    </section>
-
-    <section class="overview" id="about" aria-labelledby="about-title">
-      <div class="section-heading"><p class="eyebrow">The Company</p><h2 id="about-title">ReLiCGameMaster</h2></div>
-      <div class="overview-copy"><p>ReLiCGameMaster is building a digital tabletop studio where the familiar pieces of tabletop play — maps, dice, cards, tokens, miniatures, character sheets, terrain, and imagination — can work together without forcing every game into the same shape.</p><p>The goal is straightforward: make creating, running, sharing, and playing worlds feel natural whether a group is gathered around a physical table or connecting online.</p></div>
-    </section>
-
-    <section class="feature-grid" aria-label="ReLiCGameMaster projects">
-      <article id="rist"><p class="eyebrow">The Engine</p><h2>RIST</h2><h3>Recursive Immersive Sandbox Table Top</h3><p>RIST is the tabletop environment beneath Shaelvien: a recursive play space designed around maps, nested locations, physical-style game pieces, player tools, GM creation, and persistent worlds.</p></article>
-      <article id="shaelvien"><p class="eyebrow">The World</p><h2>Shaelvien</h2><h3>A world built to keep growing</h3><p>Shaelvien is the public world built on RIST. Game Masters can create within the shared setting while players explore, build histories, and carry their progress forward through a persistent world.</p></article>
-      <article><p class="eyebrow">The Table</p><h2>Your Game</h2><h3>Tools before restrictions</h3><p>RIST is being designed as a tabletop studio rather than a single ruleset. The table provides the pieces and controls; groups decide how they use them.</p></article>
-    </section>
-
-    <section class="final-cta" aria-labelledby="final-title"><p class="eyebrow">Enter the Table</p><h2 id="final-title">Shaelvien is becoming playable now.</h2><p>Development is moving toward persistent friends-and-family testing, Kickstarter, and public testing.</p><a class="primary-button" href="/Game/index.html">Game Now</a></section>
-  </main>
-
-  <footer><img class="footer-relic-logo" src="/Game/assets/branding/relic_gamemaster_wordmark.jpg" alt="ReLiCGameMaster"><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>
-
-  <script>
-    (() => {
-      const banner = document.querySelector('.relic-story-banner');
-      const scenes = [...document.querySelectorAll('.story-scene-window')];
-      const marks = [...document.querySelectorAll('.story-mark-tile')];
-      if (!banner || !scenes.length || !marks.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-      const sleep = ms => new Promise(resolve => window.setTimeout(resolve, ms));
-      const clear = () => {
-        banner.classList.remove('finalizing');
-        scenes.forEach(scene => scene.classList.remove('active'));
-        marks.forEach(mark => mark.classList.remove('active'));
-      };
-
-      const run = async () => {
-        while (true) {
-          for (let i = 0; i < 5; i += 1) {
-            clear();
-            scenes[i].classList.add('active');
-            await sleep(650);
-            marks[i].classList.add('active');
-            await sleep(1350);
-            scenes[i].classList.remove('active');
-            await sleep(350);
-            marks[i].classList.remove('active');
-            await sleep(350);
-          }
-
-          clear();
-          banner.classList.add('finalizing');
-          await sleep(750);
-          const finalMark = marks.find(mark => mark.dataset.mark === 'final');
-          if (finalMark) finalMark.classList.add('active');
-          await sleep(4200);
-          scenes.forEach(scene => scene.classList.remove('active'));
-          banner.classList.remove('finalizing');
-          if (finalMark) finalMark.classList.remove('active');
-          await sleep(900);
-        }
-      };
-
-      run();
-    })();
-  </script>
-</body>
-</html>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="#about">About</a><a href="#rist">RIST</a><a href="#shaelvien">Shaelvien</a><a class="nav-play" href="/Game/index.html">Game Now</a></nav></header>
+<main>
+<section class="relic-story-wrap" aria-label="Remember. exist. Live. imagine. Create. ReLiCGameMaster."><div class="relic-story-banner"><div class="story-art" data-art="0" aria-hidden="true"></div><div class="story-art" data-art="1" aria-hidden="true"></div><div class="story-art" data-art="2" aria-hidden="true"></div><div class="story-art" data-art="3" aria-hidden="true"></div><div class="story-art" data-art="4" aria-hidden="true"></div><div class="story-shade" aria-hidden="true"></div><p class="story-word" data-word="Remember">Remember</p><p class="story-word" data-word="exist">exist</p><p class="story-word" data-word="Live">Live</p><p class="story-word" data-word="imagine">imagine</p><p class="story-word" data-word="Create">Create</p><p class="story-name" data-name="R">R</p><p class="story-name" data-name="Re">Re</p><p class="story-name" data-name="ReLi">ReLi</p><p class="story-name" data-name="ReLiC">ReLiC</p><p class="story-name" data-name="ReLiCGameMaster">ReLiCGameMaster</p><div class="story-final-symbol" aria-hidden="true"></div></div><p class="story-subtitle">ReLiC powering Shaelvien</p></section>
+<section class="hero" aria-labelledby="hero-title"><div class="hero-copy"><p class="eyebrow">ReLiCGameMaster Presents</p><h1 id="hero-title">Build the world.<br>Then step inside it.</h1><p class="hero-lede">ReLiCGameMaster develops tabletop tools focused on creative freedom, shared worlds, and bringing the physical language of tabletop gaming into an online space.</p><div class="hero-actions"><a class="primary-button" href="/Game/index.html">Game Now</a><a class="secondary-button" href="#about">Discover ReLiC</a></div></div><aside class="game-ad" aria-label="Play Shaelvien"><img class="crest" src="/Game/assets/branding/shaelvien_d20_crest.jpg" alt="Shaelvien crest"><p class="ad-kicker">NOW ENTERING</p><h2>SHAELVIEN</h2><p>Powered by RIST</p><a href="/Game/index.html">GAME NOW</a><small>Friends &amp; family testing is opening first as RIST moves toward public testing.</small></aside></section>
+<section class="overview" id="about" aria-labelledby="about-title"><div class="section-heading"><p class="eyebrow">The Company</p><h2 id="about-title">ReLiCGameMaster</h2></div><div class="overview-copy"><p>ReLiCGameMaster is building a digital tabletop studio where the familiar pieces of tabletop play — maps, dice, cards, tokens, miniatures, character sheets, terrain, and imagination — can work together without forcing every game into the same shape.</p><p>The goal is straightforward: make creating, running, sharing, and playing worlds feel natural whether a group is gathered around a physical table or connecting online.</p></div></section>
+<section class="feature-grid" aria-label="ReLiCGameMaster projects"><article id="rist"><p class="eyebrow">The Engine</p><h2>RIST</h2><h3>Recursive Immersive Sandbox Table Top</h3><p>RIST is the tabletop environment beneath Shaelvien: a recursive play space designed around maps, nested locations, physical-style game pieces, player tools, GM creation, and persistent worlds.</p></article><article id="shaelvien"><p class="eyebrow">The World</p><h2>Shaelvien</h2><h3>A world built to keep growing</h3><p>Shaelvien is the public world built on RIST. Game Masters can create within the shared setting while players explore, build histories, and carry their progress forward through a persistent world.</p></article><article><p class="eyebrow">The Table</p><h2>Your Game</h2><h3>Tools before restrictions</h3><p>RIST is being designed as a tabletop studio rather than a single ruleset. The table provides the pieces and controls; groups decide how they use them.</p></article></section>
+<section class="final-cta" aria-labelledby="final-title"><p class="eyebrow">Enter the Table</p><h2 id="final-title">Shaelvien is becoming playable now.</h2><p>Development is moving toward persistent friends-and-family testing, Kickstarter, and public testing.</p><a class="primary-button" href="/Game/index.html">Game Now</a></section>
+</main>
+<footer><div class="footer-relic-logo" role="img" aria-label="ReLiCGameMaster"></div><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>
+<script>(()=>{const banner=document.querySelector('.relic-story-banner');if(!banner||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const arts=[...banner.querySelectorAll('.story-art')],words=[...banner.querySelectorAll('.story-word')],names=[...banner.querySelectorAll('.story-name')],symbol=banner.querySelector('.story-final-symbol'),sleep=ms=>new Promise(r=>setTimeout(r,ms));const clear=()=>{arts.forEach(x=>x.classList.remove('active'));words.forEach(x=>x.classList.remove('active'));names.forEach(x=>x.classList.remove('active'));symbol.classList.remove('active')};const show=(a,w,n)=>{clear();if(a!==null)arts[a].classList.add('active');if(w)words.find(x=>x.dataset.word===w)?.classList.add('active');if(n)names.find(x=>x.dataset.name===n)?.classList.add('active')};async function run(){for(;;){show(0,'Remember',null);await sleep(1500);names[0].classList.add('active');await sleep(1300);words[0].classList.remove('active');await sleep(650);names[0].classList.remove('active');await sleep(500);show(1,'exist','Re');await sleep(2500);show(2,'Live','ReLi');await sleep(2500);show(3,'imagine','ReLiC');await sleep(2700);show(4,'Create','ReLiC');await sleep(2200);words.find(x=>x.dataset.word==='Create')?.classList.remove('active');names.forEach(x=>x.classList.remove('active'));names.find(x=>x.dataset.name==='ReLiCGameMaster')?.classList.add('active');symbol.classList.add('active');await sleep(4300);clear();await sleep(900)}}run()})();</script>
+</body></html>
