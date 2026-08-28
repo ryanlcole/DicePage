@@ -102,12 +102,13 @@ public sealed class MixerChannel(string name,int current,int max)
 
 public sealed class SavedWorld
 {
+    public string Reset { get; set; } = "";
     public string Role { get; set; } = "GM";
     public string Layer { get; set; } = "WORLD";
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; set; } = "mi";
     public int GridDiameter { get; set; } = 48;
-    public double GridDistance { get; set; } = 5;
+    public double GridDistance { get; set; } = 1;
     public double GridCalibrationZoom { get; set; } = 1;
     public List<PieceItem> Pieces { get; set; } = [];
     public List<TileItem> Tiles { get; set; } = [];
