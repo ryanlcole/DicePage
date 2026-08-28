@@ -147,6 +147,7 @@ Resources:
         CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
         BUCKET = os.environ["STORAGE_BUCKET"]
         SESSION_SECONDS = int(os.environ["SESSION_HOURS"]) * 3600
+        DISCORD_USER_AGENT = "ReLiCGameMaster-RIST/1.0"
         ALLOWED_TYPES = {
             "application/json", "application/zip", "image/png", "image/jpeg",
             "image/webp", "text/plain", "application/octet-stream"
@@ -243,6 +244,7 @@ Resources:
                 if not code or not saved or int(saved.get("expiresAt", 0)) <= now:
                     return frontend_error("invalid_state")
                 ddb.delete_item(Key=state_key)
+                stage = "token"
                 try:
                     redirect = api_base(event) + "/auth/callback"
                     encoded = urllib.parse.urlencode({
@@ -251,20 +253,32 @@ Resources:
                         "redirect_uri": redirect
                     }).encode()
                     req = urllib.request.Request(
-                        "https://discord.com/api/oauth2/token", data=encoded,
-                        headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
+                        "https://discord.com/api/v10/oauth2/token", data=encoded,
+                        headers={
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Accept": "application/json",
+                            "User-Agent": DISCORD_USER_AGENT
+                        }
                     )
                     with urllib.request.urlopen(req, timeout=8) as r:
                         token_payload = json.loads(r.read())
                     discord_token = token_payload.get("access_token")
                     if not discord_token:
                         raise ValueError("Discord token response did not include access_token")
+
+                    stage = "profile"
                     req = urllib.request.Request(
-                        "https://discord.com/api/users/@me",
-                        headers={"Authorization": "Bearer " + discord_token, "Accept": "application/json", "User-Agent": "RIST/1.0"}
+                        "https://discord.com/api/v10/users/@me",
+                        headers={
+                            "Authorization": "Bearer " + discord_token,
+                            "Accept": "application/json",
+                            "User-Agent": DISCORD_USER_AGENT
+                        }
                     )
                     with urllib.request.urlopen(req, timeout=8) as r:
                         profile = json.loads(r.read())
+
+                    stage = "session"
                     discord_id = str(profile["id"])
                     user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
                     token = secrets.token_urlsafe(48)
@@ -283,11 +297,11 @@ Resources:
                     return response(302, location=target)
                 except urllib.error.HTTPError as exc:
                     detail = exc.read().decode("utf-8", "replace")[:1000]
-                    print("Discord OAuth HTTP error", exc.code, detail)
-                    return frontend_error("discord_exchange")
+                    print("Discord OAuth HTTP error", "stage=" + stage, "status=" + str(exc.code), detail)
+                    return frontend_error("discord_" + stage + "_" + str(exc.code))
                 except Exception as exc:
-                    print("Discord OAuth callback error", type(exc).__name__, str(exc)[:1000])
-                    return frontend_error("callback_failed")
+                    print("Discord OAuth callback error", "stage=" + stage, type(exc).__name__, str(exc)[:1000])
+                    return frontend_error("callback_" + stage)
 
             if route == "GET /auth/session":
                 handoff = query.get("handoff") or ""
