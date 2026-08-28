@@ -77,7 +77,7 @@
    <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true"><button type="button" @onclick="ZoomOut">−</button><button type="button" @onclick="ZoomIn">+</button></div>
    @if(Session.LockedTileMenuOpen)
    {
-    <div class="locked-tile-menu" role="menu" aria-label="Locked region actions" @onpointerdown:stopPropagation="true"><strong>Pinned region</strong><label class="pin-label-editor"><span>Label call-out</span><input value="@Session.SelectedPin?.Label" @onchange="e=>Session.SetSelectedPinLabel(e.Value?.ToString()??string.Empty)" placeholder="Name this location" /></label><button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button><button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button><button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button><button class="danger" role="menuitem" @onclick="Session.RemoveSelectedPin">Remove Pin</button><button role="menuitem" @onclick="()=>Session.CloseLockedTileMenu()">Cancel</button></div>
+    <div class="locked-tile-menu" role="menu" aria-label="Pinned region actions" @onpointerdown:stopPropagation="true"><strong>Pinned region</strong><label class="pin-label-editor"><span>Label call-out</span><input value="@Session.SelectedPin?.Label" @onchange="e=>Session.SetSelectedPinLabel(e.Value?.ToString()??string.Empty)" placeholder="Name this location" /></label><div role="group" aria-label="Plane and tier navigation"><button type="button" @onclick="()=>Session.MovePlane(-1)">Plane−</button><button type="button" @onclick="()=>Session.MovePlane(1)">Plane+</button><button type="button" @onclick="()=>Session.MoveTier(-1)">Tier−</button><button type="button" @onclick="()=>Session.MoveTier(1)">Tier+</button></div><small>@Session.WorldCoordinateLabel</small><button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button><button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button><button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button><button class="danger" role="menuitem" @onclick="Session.RemoveSelectedPin">Remove Pin</button><button role="menuitem" @onclick="()=>Session.CloseLockedTileMenu()">Cancel</button></div>
    }
    @if(Session.RegionPlayerPickerOpen)
    {
@@ -113,7 +113,7 @@
      }
     }
    </div>
-   <div class="status">@Session.MapName • @StatusText • drag • pinch • @($"{G.Zoom:0.0}x")</div>
+   <div class="status">@Session.MapName • @StatusText • @Session.WorldCoordinateLabel • drag • pinch • @($"{G.Zoom:0.0}x")</div>
   </div>
  </section>
  @if(Dragging)
