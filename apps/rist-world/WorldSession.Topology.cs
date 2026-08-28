@@ -13,7 +13,7 @@ public sealed partial class WorldSession
     public int LayerOffset { get; private set; }
     public int LocalZ => checked((TierIndex * LayersPerTier) + LayerOffset);
     public bool IsSeaLevel => LocalZ == 0;
-    public bool IsGianaph => CubeX == 0 && CubeY == 0 && CubeZ == 0;
+    public bool IsGianaph => CubeRole == WorldCubeRole.Developer && CubeX == 0 && CubeY == 0 && CubeZ == 0;
     public string WorldCoordinateLabel => $"Cube {CubeX},{CubeY},{CubeZ} • Plane {PlaneIndex} • Tier {TierIndex} • z={LocalZ}";
 
     public List<NpcBoundaryExchange> NpcBoundaryExchanges { get; private set; } = [];
