@@ -1,0 +1,171 @@
+@implements IDisposable
+@inject WorldSession Session
+
+@if(Session.TileBrowserOpen)
+{
+<section class="asset-rail-library" aria-label="Asset library">
+ <header class="asset-library-head">
+  <div><strong>Asset Library</strong><small>Choose a collection, then follow the rows down to its contents.</small></div>
+  <button type="button" class="asset-library-close" @onclick="Session.ToggleTileBrowser" aria-label="Close asset library">×</button>
+ </header>
+
+ <div class="asset-nav-row asset-category-row" aria-label="Asset collections">
+  @foreach(var category in Categories)
+  {
+   <button type="button" class="asset-category-card @(_category==category?"active":"")" @onclick="()=>SelectCategory(category)" aria-pressed="@(_category==category)">
+    <span class="asset-category-art @CategoryArtClass(category)">
+     @if(category=="Games")
+     {
+      <span class="calforth-token-face" aria-hidden="true"></span>
+     }
+     else if(CategoryHero(category) is { } hero)
+     {
+      <span class="asset-category-image tile-image-crop"><img src="@hero.Image" style="@CropStyle(hero)" alt="" draggable="false" /></span>
+     }
+     else if(category=="Tiles")
+     {
+      <span class="asset-chess-fallback" aria-hidden="true"></span>
+     }
+     else
+     {
+      <span class="asset-dragon-fallback" aria-hidden="true">⚡</span>
+     }
+    </span>
+    <strong>@category</strong>
+   </button>
+  }
+ </div>
+
+ @if(CategoryTiles.Any())
+ {
+  <div class="asset-path-row" aria-label="Layer">
+   <span class="asset-row-label">Layer</span>
+   <div class="asset-horizontal-rail">
+    @foreach(var layer in Layers)
+    {
+     <button type="button" class="asset-path-card @(_layer==layer?"active":"")" @onclick="()=>SelectLayer(layer)">@Pretty(layer)</button>
+    }
+   </div>
+  </div>
+
+  @if(!string.IsNullOrWhiteSpace(_layer))
+  {
+   <div class="asset-path-row" aria-label="Directory">
+    <span class="asset-row-label">@Pretty(_layer)</span>
+    <div class="asset-horizontal-rail">
+     @foreach(var directory in Directories)
+     {
+      <button type="button" class="asset-path-card @(_directory==directory?"active":"")" @onclick="()=>SelectDirectory(directory)">@directory</button>
+     }
+    </div>
+   </div>
+  }
+
+  @if(!string.IsNullOrWhiteSpace(_directory))
+  {
+   <div class="asset-path-row" aria-label="Folder">
+    <span class="asset-row-label">@_directory</span>
+    <div class="asset-horizontal-rail">
+     @foreach(var folder in Folders)
+     {
+      <button type="button" class="asset-path-card @(_folder==folder?"active":"")" @onclick="()=>SelectFolder(folder)">@folder</button>
+     }
+    </div>
+   </div>
+  }
+ }
+
+ <div class="asset-contents-row" aria-label="Current folder contents">
+  <div class="asset-contents-heading">
+   <strong>@CurrentTitle</strong>
+   <small>@ContentCount item@(ContentCount==1?"":"s") · tap an item to add it to the pallet</small>
+  </div>
+  <div class="asset-horizontal-rail asset-contents-rail">
+   @foreach(var tile in CurrentTiles)
+   {
+    <button type="button" class="asset-content-card" @onclick="()=>Session.StageTile(tile)" title="@tile.Name — @tile.Author">
+     <span class="asset-content-image tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false" /></span>
+     <strong>@tile.Name</strong>
+     @if(!string.IsNullOrWhiteSpace(tile.Author)){<small>@tile.Author</small>}
+    </button>
+   }
+   @if(!CurrentTiles.Any())
+   {
+    <p class="asset-empty">Choose a folder to see its contents.</p>
+   }
+  </div>
+ </div>
+</section>
+}
+
+<style>
+.table-workspace>.tile-browser:not(.card-browser){display:none!important}
+.asset-rail-library{position:relative;z-index:42;display:grid;gap:8px;padding:8px 10px;border-block:1px solid #8d6a28;background:#0b141bcc;color:#e8dcc0;box-shadow:0 8px 24px #0008}
+.asset-library-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.asset-library-head>div{display:grid;gap:1px}.asset-library-head strong{font:700 15px/1.1 Georgia,serif;color:#d6b765}.asset-library-head small{font-size:10px;opacity:.75}.asset-library-close{width:32px;height:32px;border:1px solid #8d6a28;border-radius:50%;background:#101a22;color:#d6b765;font-size:22px}
+.asset-nav-row,.asset-horizontal-rail{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.asset-nav-row>* ,.asset-horizontal-rail>*{flex:0 0 auto;scroll-snap-align:start}
+.asset-category-row{padding:2px 0 5px}.asset-category-card{width:104px;height:92px;display:grid;grid-template-rows:1fr auto;gap:4px;padding:5px;border:1px solid #675427;border-radius:10px;background:#101920;color:#d8c79d}.asset-category-card.active{border-color:#d0a63f;box-shadow:0 0 0 1px #d0a63f66,inset 0 0 18px #b8872030}.asset-category-art{position:relative;display:block;overflow:hidden;min-height:58px;border-radius:7px;background:#071015}.asset-category-art>.calforth-token-face,.asset-category-image{position:absolute;inset:0;width:100%;height:100%;display:block}.asset-category-image img,.asset-content-image img{position:absolute}.asset-chess-fallback{position:absolute;inset:0;background:conic-gradient(#d5c5a0 25%,#3b3020 0 50%,#d5c5a0 0 75%,#3b3020 0) 0 0/24px 24px}.asset-dragon-fallback{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;background:radial-gradient(circle,#35596b,#0a1117 68%);color:#aeeaff;text-shadow:0 0 10px #8cecff}.asset-category-card strong{font-size:11px}
+.asset-path-row{display:grid;grid-template-columns:70px minmax(0,1fr);align-items:center;gap:7px;min-width:0}.asset-row-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bca56d;font:700 9px/1.1 system-ui;text-transform:uppercase;letter-spacing:.07em}.asset-path-card{min-width:92px;max-width:180px;height:36px;padding:0 11px;border:1px solid #554a31;border-radius:8px;background:#111a21;color:#d9ceb3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-path-card.active{border-color:#c59b3b;background:#18232b;color:#f3dfaa}
+.asset-contents-row{display:grid;gap:5px;padding-top:3px;border-top:1px solid #4b412c}.asset-contents-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.asset-contents-heading strong{font:700 11px/1.1 Georgia,serif;color:#d2b66e}.asset-contents-heading small{font-size:9px;opacity:.65}.asset-contents-rail{min-height:98px;padding:1px 0 4px}.asset-content-card{width:86px;height:94px;display:grid;grid-template-rows:62px auto auto;gap:2px;padding:4px;overflow:hidden;border:1px solid #4c432f;border-radius:8px;background:#0e171e;color:#ded3ba;text-align:left}.asset-content-card:active{border-color:#d0a63f}.asset-content-image{position:relative;display:block;overflow:hidden;width:100%;height:62px;border-radius:5px;background:#080d11}.asset-content-card strong,.asset-content-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-content-card strong{font-size:9px}.asset-content-card small{font-size:7px;opacity:.65}.asset-empty{margin:auto;padding:20px;color:#9b927f;font-size:11px}
+@media(max-width:800px){.asset-rail-library{padding-inline:6px;gap:6px}.asset-category-card{width:92px;height:82px}.asset-category-art{min-height:50px}.asset-path-row{grid-template-columns:58px minmax(0,1fr)}.asset-path-card{min-width:82px;height:34px}.asset-content-card{width:82px}.asset-contents-heading small{display:none}}
+</style>
+
+@code {
+ static readonly string[] Categories=["Tiles","Tokens","Games"];
+ string _category="Tiles";
+ string _layer="";
+ string _directory="";
+ string _folder="";
+
+ IEnumerable<AtlasTile> CategoryTiles=>Session.AtlasTiles.Where(x=>CategoryOf(x)==_category);
+ IEnumerable<string> Layers=>CategoryTiles.Select(x=>x.Layer).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<AtlasTile> LayerTiles=>string.IsNullOrWhiteSpace(_layer)?Enumerable.Empty<AtlasTile>():CategoryTiles.Where(x=>x.Layer.Equals(_layer,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<string> Directories=>LayerTiles.Select(x=>x.Directory).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<AtlasTile> DirectoryTiles=>string.IsNullOrWhiteSpace(_directory)?Enumerable.Empty<AtlasTile>():LayerTiles.Where(x=>x.Directory.Equals(_directory,StringComparison.OrdinalIgnoreCase));
+ IEnumerable<string> Folders=>DirectoryTiles.Select(x=>x.Folder).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+ IEnumerable<AtlasTile> CurrentTiles=>string.IsNullOrWhiteSpace(_folder)?Enumerable.Empty<AtlasTile>():DirectoryTiles.Where(x=>x.Folder.Equals(_folder,StringComparison.OrdinalIgnoreCase));
+ int ContentCount=>CurrentTiles.Count();
+ string CurrentTitle=>string.IsNullOrWhiteSpace(_folder)?_category:_folder;
+
+ protected override void OnInitialized(){Session.Changed+=Changed;Normalize();}
+ void Changed()=>_ = InvokeAsync(()=>{Normalize();StateHasChanged();});
+ public void Dispose()=>Session.Changed-=Changed;
+
+ void SelectCategory(string value){_category=value;_layer="";_directory="";_folder="";Normalize();}
+ void SelectLayer(string value){_layer=value;_directory="";_folder="";Normalize();}
+ void SelectDirectory(string value){_directory=value;_folder="";Normalize();}
+ void SelectFolder(string value){_folder=value;}
+ void Normalize()
+ {
+  if(!Categories.Contains(_category))_category="Tiles";
+  if(!Layers.Contains(_layer,StringComparer.OrdinalIgnoreCase))_layer=Layers.FirstOrDefault()??"";
+  if(!Directories.Contains(_directory,StringComparer.OrdinalIgnoreCase))_directory=Directories.FirstOrDefault()??"";
+  if(!Folders.Contains(_folder,StringComparer.OrdinalIgnoreCase))_folder=Folders.FirstOrDefault()??"";
+ }
+
+ AtlasTile? CategoryHero(string category)
+ {
+  var items=Session.AtlasTiles.Where(x=>CategoryOf(x)==category).ToList();
+  if(category=="Tiles")return items.FirstOrDefault(x=>Has(x,"chess"))??items.FirstOrDefault(x=>Has(x,"board"));
+  if(category=="Tokens")return items.FirstOrDefault(x=>Has(x,"electric")&&Has(x,"dragon"))??items.FirstOrDefault(x=>Has(x,"lightning")&&Has(x,"dragon"))??items.FirstOrDefault(x=>Has(x,"dragon"));
+  return null;
+ }
+ static string CategoryArtClass(string category)=>category.ToLowerInvariant();
+ static string CategoryOf(AtlasTile tile)
+ {
+  if(Has(tile,"game","chess","board game","backgammon","domino","cribbage","othello","checkers","calforth"))return "Games";
+  if(Has(tile,"token","chit","pawn","meeple","miniature","mini","sprite","figure","creature","dragon","character"))return "Tokens";
+  return "Tiles";
+ }
+ static bool Has(AtlasTile tile,params string[] terms)
+ {
+  var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";
+  return terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));
+ }
+ static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase((value??"").ToLowerInvariant());
+ static string CropStyle(AtlasTile t)
+ {
+  if(t.SourceWidth<=0||t.SourceHeight<=0||t.CropWidth<=0||t.CropHeight<=0)return "width:100%;height:100%;object-fit:contain";
+  var inv=System.Globalization.CultureInfo.InvariantCulture;
+  return $"width:{(t.SourceWidth*100.0/t.CropWidth).ToString("0.###",inv)}%;height:{(t.SourceHeight*100.0/t.CropHeight).ToString("0.###",inv)}%;left:{(-t.CropX*100.0/t.CropWidth).ToString("0.###",inv)}%;top:{(-t.CropY*100.0/t.CropHeight).ToString("0.###",inv)}%;max-width:none;max-height:none";
+ }
+}
