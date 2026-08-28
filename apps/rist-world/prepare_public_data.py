@@ -1,88 +1,65 @@
 from pathlib import Path
 import json
-import shutil
 
 root = Path(__file__).resolve().parents[2]
 tactical = root / 'apps' / 'tactical'
 web = root / 'apps' / 'rist-world' / 'wwwroot'
-(web / 'assets' / 'atlas').mkdir(parents=True, exist_ok=True)
-(web / 'assets' / 'tiles').mkdir(parents=True, exist_ok=True)
-(web / 'data').mkdir(parents=True, exist_ok=True)
+data_dir = web / 'data'
+data_dir.mkdir(parents=True, exist_ok=True)
 
-registry = json.loads((tactical / 'data' / 'atlas' / 'atlas_asset_registry.json').read_text())
+# The Drive/AWS catalog is the canonical Shaelvien asset registry for both
+# visitors and authenticated users. Do not rebuild a second public catalog
+# from the old tactical prototype registries: doing so reclassified assets by
+# guessed tags and mixed obsolete prototype content into the live browser.
+canonical_catalog_path = web / 'assets' / 'drive-tiles' / 'catalog.json'
+canonical_rows = json.loads(canonical_catalog_path.read_text(encoding='utf-8'))
+if not isinstance(canonical_rows, list):
+    raise ValueError('Canonical Shaelvien asset catalog must be a JSON array')
+
+required = {'id', 'name', 'image', 'layer', 'directory', 'folder'}
+seen = set()
 rows = []
-for asset in registry.get('assets', []):
-    source = tactical / asset.get('derivedPath', '')
-    if not source.exists():
+for asset in canonical_rows:
+    if not isinstance(asset, dict):
         continue
-    target = web / 'assets' / 'atlas' / source.name
-    shutil.copy2(source, target)
-    tags = asset.get('tags', [])
-    layer = 'WORLD' if 'world_map' in tags else 'REGION' if 'region_map' in tags else 'UNIVERSAL'
-    rows.append({
-        'id': asset['assetId'],
-        'name': asset.get('name', asset['assetId']),
-        'image': 'assets/atlas/' + source.name,
-        'layer': layer,
-        'directory': str(asset.get('category', 'Atlas')).replace('_', ' ').title(),
-        'folder': str(asset.get('collection', 'General')).replace('_', ' ').title(),
-        'author': 'Shaelvien / owner-provided atlas'
-    })
-
-tile_registry = json.loads((tactical / 'data' / 'assets' / 'tile_asset_registry.json').read_text())
-for asset in tile_registry.get('assets', []):
-    if asset.get('type') != 'tile_image':
+    missing = required.difference(asset)
+    if missing:
+        raise ValueError(f"Asset {asset.get('id', '<unknown>')} is missing: {', '.join(sorted(missing))}")
+    asset_id = str(asset['id']).strip()
+    if not asset_id or asset_id in seen:
         continue
-    source = tactical / asset.get('sourcePath', '')
-    if not source.exists():
-        continue
-    target = web / 'assets' / 'tiles' / source.name
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, target)
-    tags = [str(tag).lower() for tag in asset.get('tags', [])]
-    if 'marker' in tags or any(tag in tags for tag in ('entrance', 'exit', 'trigger', 'player_start', 'enemy_start')):
-        layer = 'ENCOUNTER'
-    elif 'symbol' in tags or any(tag in tags for tag in ('city', 'town', 'village')):
-        layer = 'WORLD'
-    elif 'object' in tags or any(tag in tags for tag in ('table', 'chair', 'door', 'chest', 'barrel', 'bed')):
-        layer = 'AREA'
-    else:
-        layer = 'LOCAL'
-    directory = next((name for name in ('terrain', 'autotile', 'object', 'symbol', 'marker') if name in tags), 'tiles')
-    folder = next((tag for tag in tags if tag not in {'shaelvien_woodcut_v1', 'original', directory, 'placeholder'}), 'general')
-    rows.append({
-        'id': asset['assetId'],
-        'name': asset.get('name', asset['assetId']),
-        'image': 'assets/tiles/' + source.name,
-        'layer': layer,
-        'directory': directory.title(),
-        'folder': folder.replace('_', ' ').title(),
-        'author': asset.get('author', 'Shaelvien')
-    })
+    seen.add(asset_id)
+    rows.append(asset)
 
-static_sprite_sheets = [
-    {'id':'sprite-sheet-directional-humanoids','name':'Directional Humanoids','image':'assets/spritesheets/directional-humanoids.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
-    {'id':'sprite-sheet-magic-coins','name':'Magic Coin Sprites','image':'assets/spritesheets/magic-coins.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Coins','author':'Shaelvien / owner-provided sprites'},
-    {'id':'sprite-sheet-directional-creatures-a','name':'Directional Creatures A','image':'assets/spritesheets/directional-creatures-a.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
-    {'id':'sprite-sheet-directional-dragons','name':'Directional Dragons','image':'assets/spritesheets/directional-dragons.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'},
-    {'id':'sprite-sheet-directional-creatures-b','name':'Directional Creatures B','image':'assets/spritesheets/directional-creatures-b.webp','layer':'UNIVERSAL','directory':'Sprites','folder':'Directional Tokens','author':'Shaelvien / owner-provided sprites'}
-]
-for asset in static_sprite_sheets:
-    if (web / asset['image']).exists():
-        rows.append(asset)
+# WorldSession currently reads atlas-public.json first and then the canonical
+# Drive catalog. Publishing the same canonical rows to both locations keeps
+# compatibility while ensuring the second load is a no-op after ID dedupe.
+(data_dir / 'atlas-public.json').write_text(
+    json.dumps(rows, separators=(',', ':')),
+    encoding='utf-8'
+)
 
-(web / 'data' / 'atlas-public.json').write_text(json.dumps(rows, separators=(',', ':')))
-(web / 'data' / 'asset-config.json').write_text(json.dumps({
-    'mapMode': 'procedural',
-    'worldColumns': 800,
-    'worldRows': 600,
-    'defaultMap': 'random-world',
-    'regions': ['verdant-reach', 'ember-basin', 'frost-march']
-}, separators=(',', ':')))
+# Do not regenerate the obsolete random-world / prototype-region configuration.
+# The live recursive world topology is owned by the RIST application itself.
+legacy_asset_config = data_dir / 'asset-config.json'
+if legacy_asset_config.exists():
+    legacy_asset_config.unlink()
 
-cards = json.loads((tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text()).get('cards', [])
-(web / 'data' / 'cards-public.json').write_text(json.dumps([
-    {'id': c['cardId'], 'name': c.get('name', 'Card'), 'type': c.get('cardType', 'card'), 'text': c.get('text', '')}
-    for c in cards
-], separators=(',', ':')))
-print(f'atlas={len(rows)} cards={len(cards)} world=procedural-800x600 regions=3')
+# Card definitions remain independent of the asset catalog for now.
+cards = json.loads(
+    (tactical / 'data' / 'tabletop' / 'card_definitions.json').read_text(encoding='utf-8')
+).get('cards', [])
+(data_dir / 'cards-public.json').write_text(
+    json.dumps([
+        {
+            'id': card['cardId'],
+            'name': card.get('name', 'Card'),
+            'type': card.get('cardType', 'card'),
+            'text': card.get('text', '')
+        }
+        for card in cards
+    ], separators=(',', ':')),
+    encoding='utf-8'
+)
+
+print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled')
