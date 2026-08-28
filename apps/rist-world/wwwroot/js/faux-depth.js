@@ -3,7 +3,7 @@
 
   let motionAttached=false;
   let motionRequested=false;
-  let lastMotion={x:0,y:0};
+  let activeMouseMap=null;
 
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
   const mapFor=target=>target?.closest?.('.map');
@@ -24,9 +24,10 @@
     map.style.setProperty('--rist-depth-piece-y',`${(y*.34).toFixed(2)}px`);
   }
 
-  function mouseDepth(event){
+  function pointerDepth(event){
     if(event.pointerType && event.pointerType!=='mouse')return;
-    const map=mapFor(event.target);
+    if((event.buttons&1)!==1)return;
+    const map=activeMouseMap||mapFor(event.target);
     if(!map)return;
     const rect=map.getBoundingClientRect();
     if(rect.width<=0||rect.height<=0)return;
@@ -41,10 +42,8 @@
     addEventListener('deviceorientation',event=>{
       const gamma=Number.isFinite(event.gamma)?event.gamma:0;
       const beta=Number.isFinite(event.beta)?event.beta:0;
-      lastMotion.x=clamp(gamma/3,-14,14);
-      lastMotion.y=clamp((beta-45)/5,-10,10);
       const map=document.querySelector('.map');
-      if(map)apply(map,lastMotion.x,lastMotion.y);
+      if(map)apply(map,clamp(gamma/3,-14,14),clamp((beta-45)/5,-10,10));
     },{passive:true});
   }
 
@@ -60,15 +59,24 @@
       }
       attachMotion();
     }catch{
-      // Pointer parallax remains available when motion permission is denied.
+      // Mouse drag remains available when motion permission is denied.
     }
   }
 
-  document.addEventListener('pointermove',mouseDepth,{passive:true});
   document.addEventListener('pointerdown',event=>{
-    if(!mapFor(event.target))return;
-    void requestMotion();
-  },{passive:true});
+    const map=mapFor(event.target);
+    if(!map)return;
+    if(!event.pointerType||event.pointerType==='mouse'){
+      if(event.button===0)activeMouseMap=map;
+    }else{
+      void requestMotion();
+    }
+  },{passive:true,capture:true});
+  document.addEventListener('pointermove',pointerDepth,{passive:true,capture:true});
+  document.addEventListener('pointerup',event=>{
+    if(!event.pointerType||event.pointerType==='mouse')activeMouseMap=null;
+  },{passive:true,capture:true});
+  document.addEventListener('pointercancel',()=>{activeMouseMap=null;},{passive:true,capture:true});
 
   window.RistFauxDepth={apply,requestMotion};
 })();
