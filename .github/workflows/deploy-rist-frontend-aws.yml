@@ -108,9 +108,10 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --only-show-errors
 
-          # Publish all current homepage assets instead of hard-coding a removed banner filename.
+          # Keep the production banner uploaded directly to S3 until the binary source is added to GitHub.
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
             --exclude 'index.html' \
+            --exclude 'relic-story-tileset-primary.jpeg' \
             --cache-control 'public,max-age=3600' \
             --only-show-errors
           aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
@@ -130,8 +131,8 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-tiles.webp "${URL}relic-story-tiles.webp"
-          test -s /tmp/relic-tiles.webp
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-banner "${URL}relic-story-tileset-primary.jpeg"
+          test -s /tmp/relic-banner
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'RistPLC' /tmp/rist-index.html
@@ -140,6 +141,6 @@ jobs:
           grep -q 'QAStaging' /tmp/launcher-index.html
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "ReLiC story tiles verified at ${URL}relic-story-tiles.webp"
+          echo "ReLiC story banner verified at ${URL}relic-story-tileset-primary.jpeg"
           echo "RIST WORLD verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
