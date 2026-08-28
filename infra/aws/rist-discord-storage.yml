@@ -8,7 +8,7 @@ Parameters:
     Description: Discord application client ID
   DiscordClientSecretArn:
     Type: String
-    Description: Secrets Manager ARN containing {"client_secret":"..."}
+    Description: Secrets Manager ARN containing the Discord client secret
   FrontendOrigin:
     Type: String
     Default: https://ryanlcole.github.io
@@ -137,7 +137,7 @@ Resources:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /account/delete, Method: POST }
       InlineCode: |
-        import base64, boto3, hashlib, json, os, re, secrets, time, urllib.parse, urllib.request, uuid
+        import base64, boto3, hashlib, json, os, re, secrets, time, urllib.error, urllib.parse, urllib.request, uuid
 
         ddb = boto3.resource("dynamodb").Table(os.environ["IDENTITY_TABLE"])
         s3 = boto3.client("s3")
@@ -165,14 +165,35 @@ Resources:
             payload = "" if body is None else json.dumps(body, separators=(",", ":"))
             return {"statusCode": status, "headers": headers, "body": payload}
 
+        def frontend_error(code):
+            sep = "&" if "?" in FRONTEND else "?"
+            return response(302, location=FRONTEND + sep + "rist_auth_error=" + urllib.parse.quote(code))
+
         def secret_value():
-            raw = sm.get_secret_value(SecretId=os.environ["DISCORD_SECRET_ARN"])["SecretString"]
-            value = json.loads(raw)
-            return value["client_secret"]
+            result = sm.get_secret_value(SecretId=os.environ["DISCORD_SECRET_ARN"])
+            raw = result.get("SecretString")
+            if not raw and result.get("SecretBinary"):
+                raw = base64.b64decode(result["SecretBinary"]).decode()
+            if not raw:
+                raise ValueError("Discord client secret is empty")
+            raw = raw.strip()
+            try:
+                value = json.loads(raw)
+            except json.JSONDecodeError:
+                return raw
+            if isinstance(value, str):
+                return value.strip()
+            if isinstance(value, dict):
+                secret = value.get("client_secret") or value.get("clientSecret") or value.get("secret")
+                if secret:
+                    return str(secret).strip()
+            raise ValueError("Discord client secret has an unsupported format")
 
         def api_base(event):
             ctx = event["requestContext"]
-            return "https://" + ctx["domainName"] + ctx.get("stage", "").replace("$default", "")
+            stage = ctx.get("stage", "")
+            suffix = "" if stage in ("", "$default") else "/" + stage.strip("/")
+            return "https://" + ctx["domainName"] + suffix
 
         def auth(event):
             header = (event.get("headers") or {}).get("authorization", "")
@@ -220,42 +241,53 @@ Resources:
                 state_key = {"pk": "state#" + (state or "")}
                 saved = ddb.get_item(Key=state_key).get("Item")
                 if not code or not saved or int(saved.get("expiresAt", 0)) <= now:
-                    return response(400, {"error": "Invalid or expired login state"})
+                    return frontend_error("invalid_state")
                 ddb.delete_item(Key=state_key)
-                redirect = api_base(event) + "/auth/callback"
-                encoded = urllib.parse.urlencode({
-                    "client_id": CLIENT_ID, "client_secret": secret_value(),
-                    "grant_type": "authorization_code", "code": code,
-                    "redirect_uri": redirect
-                }).encode()
-                req = urllib.request.Request(
-                    "https://discord.com/api/oauth2/token", data=encoded,
-                    headers={"Content-Type": "application/x-www-form-urlencoded"}
-                )
-                with urllib.request.urlopen(req, timeout=8) as r:
-                    discord_token = json.loads(r.read())["access_token"]
-                req = urllib.request.Request(
-                    "https://discord.com/api/users/@me",
-                    headers={"Authorization": "Bearer " + discord_token}
-                )
-                with urllib.request.urlopen(req, timeout=8) as r:
-                    profile = json.loads(r.read())
-                discord_id = str(profile["id"])
-                user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
-                token = secrets.token_urlsafe(48)
-                digest = hashlib.sha256(token.encode()).hexdigest()
-                ddb.put_item(Item={
-                    "pk": "session#" + digest, "userId": user_id,
-                    "username": profile.get("global_name") or profile.get("username") or "Discord user",
-                    "expiresAt": now + SESSION_SECONDS
-                })
-                handoff = secrets.token_urlsafe(32)
-                ddb.put_item(Item={
-                    "pk": "handoff#" + handoff, "sessionToken": token,
-                    "expiresAt": now + 120
-                })
-                target = FRONTEND + "?rist_handoff=" + urllib.parse.quote(handoff)
-                return response(302, location=target)
+                try:
+                    redirect = api_base(event) + "/auth/callback"
+                    encoded = urllib.parse.urlencode({
+                        "client_id": CLIENT_ID, "client_secret": secret_value(),
+                        "grant_type": "authorization_code", "code": code,
+                        "redirect_uri": redirect
+                    }).encode()
+                    req = urllib.request.Request(
+                        "https://discord.com/api/oauth2/token", data=encoded,
+                        headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
+                    )
+                    with urllib.request.urlopen(req, timeout=8) as r:
+                        token_payload = json.loads(r.read())
+                    discord_token = token_payload.get("access_token")
+                    if not discord_token:
+                        raise ValueError("Discord token response did not include access_token")
+                    req = urllib.request.Request(
+                        "https://discord.com/api/users/@me",
+                        headers={"Authorization": "Bearer " + discord_token, "Accept": "application/json", "User-Agent": "RIST/1.0"}
+                    )
+                    with urllib.request.urlopen(req, timeout=8) as r:
+                        profile = json.loads(r.read())
+                    discord_id = str(profile["id"])
+                    user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
+                    token = secrets.token_urlsafe(48)
+                    digest = hashlib.sha256(token.encode()).hexdigest()
+                    ddb.put_item(Item={
+                        "pk": "session#" + digest, "userId": user_id,
+                        "username": profile.get("global_name") or profile.get("username") or "Discord user",
+                        "expiresAt": now + SESSION_SECONDS
+                    })
+                    handoff = secrets.token_urlsafe(32)
+                    ddb.put_item(Item={
+                        "pk": "handoff#" + handoff, "sessionToken": token,
+                        "expiresAt": now + 120
+                    })
+                    target = FRONTEND + "?rist_handoff=" + urllib.parse.quote(handoff)
+                    return response(302, location=target)
+                except urllib.error.HTTPError as exc:
+                    detail = exc.read().decode("utf-8", "replace")[:1000]
+                    print("Discord OAuth HTTP error", exc.code, detail)
+                    return frontend_error("discord_exchange")
+                except Exception as exc:
+                    print("Discord OAuth callback error", type(exc).__name__, str(exc)[:1000])
+                    return frontend_error("callback_failed")
 
             if route == "GET /auth/session":
                 handoff = query.get("handoff") or ""
@@ -290,7 +322,7 @@ Resources:
                     args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
                     if continuation:
                         args["ContinuationToken"] = continuation
-                    result = s3.list_objects_v2(**args)
+                    result = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix, MaxKeys=1000)
                     objects = [{"Key": item["Key"]} for item in result.get("Contents", [])]
                     if objects:
                         s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects, "Quiet": True})
