@@ -10,10 +10,11 @@ public sealed partial class WorldSession
  object SavePayload()
  {
   var terrain=ExportSpatialTerrain();
+  var pieces=ExportSpatialPieces();
   return new
   {
    Format="RISTMAP",
-   Version=3,
+   Version=4,
    Reset=OceanResetVersion,
    Role,
    Layer,
@@ -29,7 +30,7 @@ public sealed partial class WorldSession
    PlaneIndex,
    TierIndex,
    LayerOffset,
-   Pieces,
+   Pieces=pieces,
    TileItems=terrain,
    Tiles=terrain,
    NpcBoundaryExchanges
@@ -64,7 +65,7 @@ public sealed partial class WorldSession
    var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
    if(saved is null || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
    {
-    ResetToCanonicalOcean();
+    ResetToCanonicalOrigin();
     await SavePrivateCheckpointAsync(showSuccess:false);
     await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
     PrivateStorageStatus=saved is null
@@ -98,7 +99,7 @@ public sealed partial class WorldSession
   var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",OceanResetMarkerKey);
   if(resetApplied!="1")
   {
-   ResetToCanonicalOcean();
+   ResetToCanonicalOrigin();
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
    await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
    return true;
@@ -107,7 +108,7 @@ public sealed partial class WorldSession
   var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
   if(string.IsNullOrWhiteSpace(json))
   {
-   ResetToCanonicalOcean();
+   ResetToCanonicalOrigin();
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
    return true;
   }
@@ -115,7 +116,7 @@ public sealed partial class WorldSession
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
 
- void ResetToCanonicalOcean()
+ void ResetToCanonicalOrigin()
  {
   EncounterActive=false;
   Layer="WORLD";
@@ -141,8 +142,8 @@ public sealed partial class WorldSession
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
-  Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
-  ImportSpatialTerrain(save.Tiles??[]);
+  var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
+  ImportSpatialContent(save.Tiles??[],pieces);
   MapLocked=true;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
