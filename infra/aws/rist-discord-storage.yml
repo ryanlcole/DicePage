@@ -322,7 +322,7 @@ Resources:
                     args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
                     if continuation:
                         args["ContinuationToken"] = continuation
-                    result = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix, MaxKeys=1000)
+                    result = s3.list_objects_v2(**args)
                     objects = [{"Key": item["Key"]} for item in result.get("Contents", [])]
                     if objects:
                         s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects, "Quiet": True})
