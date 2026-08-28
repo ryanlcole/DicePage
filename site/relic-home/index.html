@@ -15,21 +15,25 @@
   <link rel="stylesheet" href="/relic-home.css">
   <style>
     .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}
-    .relic-story-banner{position:relative;aspect-ratio:2/1;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);isolation:isolate}
-    .story-frame,.story-emblem{position:absolute;background-image:url('/relic-story-tiles.webp');background-repeat:no-repeat;background-size:100% 600%;opacity:0;transition:opacity .9s ease}
-    .story-frame{inset:0;background-position:center var(--pos)}
+    .relic-story-banner{position:relative;aspect-ratio:2/1;min-height:0;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);isolation:isolate}
+    .story-frame,.story-final-cell,.story-emblem{background-image:url('/relic-story-tiles.webp');background-repeat:no-repeat}
+    .story-frame{position:absolute;inset:0;background-size:100% 600%;background-position:center var(--pos);opacity:0;transition:opacity .9s ease}
     .story-frame.active{opacity:1}
-    .story-shade{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(1,5,8,.1),rgba(1,5,8,.14) 55%,rgba(1,5,8,.62));pointer-events:none}
-    .story-word,.story-name,.story-subtitle{position:absolute;z-index:3;left:50%;transform:translateX(-50%);font-family:Georgia,'Times New Roman',serif;color:#f0dfbb;text-align:center;text-shadow:0 2px 14px rgba(0,0,0,.92),0 0 18px rgba(224,197,141,.16)}
-    .story-word{top:12%;font-size:clamp(1.25rem,4.1vw,3.7rem);letter-spacing:.08em;font-weight:500;opacity:0;transition:opacity .7s ease}
+    .story-final-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);opacity:0;transition:opacity 1.15s ease;z-index:1}
+    .story-final-grid.active{opacity:1}
+    .story-final-cell{min-width:0;background-size:auto 600%;background-position:center var(--pos);border-right:1px solid rgba(224,197,141,.08)}
+    .story-final-cell:last-child{border-right:0}
+    .story-shade{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(1,5,8,.05),rgba(1,5,8,.08) 53%,rgba(1,5,8,.68));pointer-events:none}
+    .story-word,.story-name,.story-subtitle{position:absolute;z-index:4;left:50%;transform:translateX(-50%);font-family:Georgia,'Times New Roman',serif;text-align:center;text-shadow:0 2px 14px rgba(0,0,0,.95),0 0 18px rgba(224,197,141,.18)}
+    .story-word{top:10%;font-size:clamp(1.3rem,4vw,3.8rem);letter-spacing:.075em;font-weight:500;color:#f0dfbb;opacity:0;transition:opacity .7s ease}
     .story-word.active{opacity:1}
-    .story-name{bottom:12%;font-size:clamp(1.2rem,3.2vw,3rem);letter-spacing:.045em;white-space:nowrap;opacity:0;transition:opacity .65s ease}
+    .story-name{bottom:11.5%;font-size:clamp(1.45rem,3.6vw,3.3rem);letter-spacing:.035em;white-space:nowrap;color:#f0dfbb;opacity:0;transition:opacity .7s ease}
     .story-name.active{opacity:1}
-    .story-subtitle{bottom:3.2%;font-size:clamp(.72rem,1.25vw,1rem);letter-spacing:.12em;color:rgba(240,223,187,.8)}
-    .story-emblem{z-index:2;left:50%;bottom:20%;width:min(34%,330px);aspect-ratio:2/1;transform:translateX(-50%);background-position:center 100%;filter:drop-shadow(0 0 20px rgba(127,203,226,.24));transition:opacity .9s ease}
-    .story-emblem.active{opacity:.88}
-    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-word{top:10%}.story-name{bottom:13%}.story-emblem{width:45%;bottom:22%}}
-    @media(prefers-reduced-motion:reduce){.story-frame{display:none}.story-frame[data-scene="4"]{display:block;opacity:1}.story-word{display:none}.story-name{opacity:1!important}.story-emblem{opacity:.88!important}}
+    .story-subtitle{bottom:3%;font-size:clamp(.72rem,1.25vw,1rem);letter-spacing:.12em;color:rgba(136,186,201,.9)}
+    .story-emblem{position:absolute;z-index:3;left:50%;bottom:17%;width:min(34%,330px);aspect-ratio:2/1;transform:translateX(-50%);background-size:100% 600%;background-position:center 100%;filter:drop-shadow(0 0 18px rgba(127,203,226,.32)) drop-shadow(0 0 28px rgba(224,197,141,.14));opacity:0;transition:opacity 1s ease}
+    .story-emblem.active{opacity:.92}
+    @media(max-width:760px){.site-header{padding:14px 10px}.site-header nav{gap:12px;flex-wrap:nowrap}.site-header nav a{font-size:.78rem}.site-header nav .nav-play{padding:9px 14px}.story-word{top:8%}.story-name{bottom:13%;font-size:clamp(1.25rem,7.5vw,2rem)}.story-emblem{width:46%;bottom:21%}}
+    @media(prefers-reduced-motion:reduce){.story-frame{display:none}.story-final-grid{opacity:1}.story-word{display:none}.story-name{opacity:1!important}.story-emblem{opacity:.92!important}}
   </style>
 </head>
 <body>
@@ -49,6 +53,13 @@
       <div class="story-frame" data-scene="2" style="--pos:40%" aria-hidden="true"></div>
       <div class="story-frame" data-scene="3" style="--pos:60%" aria-hidden="true"></div>
       <div class="story-frame" data-scene="4" style="--pos:80%" aria-hidden="true"></div>
+      <div class="story-final-grid" aria-hidden="true">
+        <div class="story-final-cell" style="--pos:0%"></div>
+        <div class="story-final-cell" style="--pos:20%"></div>
+        <div class="story-final-cell" style="--pos:40%"></div>
+        <div class="story-final-cell" style="--pos:60%"></div>
+        <div class="story-final-cell" style="--pos:80%"></div>
+      </div>
       <div class="story-emblem" aria-hidden="true"></div>
       <div class="story-shade" aria-hidden="true"></div>
       <div class="story-word" aria-hidden="true"></div>
@@ -95,28 +106,44 @@
   <script>
     (() => {
       const banner=document.querySelector('.relic-story-banner');
-      if(!banner||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      if(!banner)return;
       const frames=[...banner.querySelectorAll('.story-frame')];
+      const finalGrid=banner.querySelector('.story-final-grid');
       const word=banner.querySelector('.story-word');
       const name=banner.querySelector('.story-name');
       const emblem=banner.querySelector('.story-emblem');
+      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){name.textContent='ReLiCGameMaster';return;}
       const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-      const show=async(scene,label,relic,ms,showEmblem=false)=>{
-        frames.forEach((f,i)=>f.classList.toggle('active',i===scene));
-        word.textContent=label||''; word.classList.toggle('active',!!label);
-        name.textContent=relic||''; name.classList.toggle('active',!!relic);
-        emblem.classList.toggle('active',showEmblem);
-        await sleep(ms);
+      const clear=()=>{frames.forEach(f=>f.classList.remove('active'));finalGrid.classList.remove('active');word.classList.remove('active');name.classList.remove('active');emblem.classList.remove('active');};
+      const phase=async(scene,label,relic)=>{
+        clear();
+        frames[scene].classList.add('active');
+        await sleep(650);
+        word.textContent=label;word.classList.add('active');
+        await sleep(720);
+        name.textContent=relic;name.classList.add('active');
+        await sleep(1450);
+        word.classList.remove('active');
+        await sleep(420);
+        name.classList.remove('active');
+        await sleep(420);
+        frames[scene].classList.remove('active');
+        await sleep(420);
       };
-      const fade=async(ms=520)=>{word.classList.remove('active');name.classList.remove('active');emblem.classList.remove('active');frames.forEach(f=>f.classList.remove('active'));await sleep(ms)};
       const run=async()=>{while(true){
-        await show(0,'Remember','',1900); await show(0,'','R',1000); await fade();
-        await show(1,'exist','Re',2100); await fade(420);
-        await show(2,'Live','ReLi',2100); await fade(420);
-        await show(3,'imagine','ReLiC',2200); await fade(420);
-        await show(4,'Create','ReLiCGameMaster',2500);
-        await show(4,'','ReLiCGameMaster',3900,true);
-        await fade(850);
+        await phase(0,'Remember','R');
+        await phase(1,'exist','Re');
+        await phase(2,'Live','ReLi');
+        await phase(3,'imagine','ReLiC');
+        await phase(4,'Create','ReLiCGameMaster');
+        clear();
+        finalGrid.classList.add('active');
+        await sleep(900);
+        emblem.classList.add('active');
+        name.textContent='ReLiCGameMaster';name.classList.add('active');
+        await sleep(4200);
+        name.classList.remove('active');emblem.classList.remove('active');finalGrid.classList.remove('active');
+        await sleep(900);
       }};
       run();
     })();
