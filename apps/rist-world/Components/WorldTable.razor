@@ -1,10 +1,64 @@
 @implements IDisposable
 @inject WorldSession Session
-<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor")">
+<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") tabletop-rail-layout">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
- <WorldHeader /><PublicCardRail /><AssetLibrary /><WorldMap /><RecursionCockpit /><HandRail /><WorldFooter /><CharacterMixer /><MmoZoneActions /><RistWelcomeTutorial />
+
+ <section class="tabletop-top-dock @(_topExpanded?"expanded":"collapsed")" aria-label="Upper tabletop controls">
+  <div class="tabletop-top-row">
+   <button type="button" class="tabletop-dock-toggle top-toggle" @onclick="()=>_topExpanded=!_topExpanded" aria-expanded="@_topExpanded" title="@(_topExpanded?"Collapse upper sliders left":"Expand upper sliders")">@(_topExpanded?"‹":"›")</button>
+   <div class="tabletop-top-primary"><WorldHeader /></div>
+  </div>
+  @if(_topExpanded)
+  {
+   <div class="tabletop-top-sliders">
+    <PublicCardRail />
+    <AssetLibrary />
+    <RecursionCockpit />
+   </div>
+  }
+ </section>
+
+ <WorldMap />
+
+ <section class="tabletop-bottom-dock @(_bottomExpanded?"expanded":"collapsed")" aria-label="Lower tabletop controls">
+  @if(_bottomExpanded)
+  {
+   <div class="tabletop-bottom-sliders">
+    <HandRail />
+    <WorldFooter />
+    <CharacterMixer />
+    <MmoZoneActions />
+   </div>
+  }
+  <div class="tabletop-bottom-row">
+   <span class="tabletop-bottom-spacer"></span>
+   <button type="button" class="tabletop-dock-toggle bottom-toggle" @onclick="()=>_bottomExpanded=!_bottomExpanded" aria-expanded="@_bottomExpanded" title="@(_bottomExpanded?"Collapse lower sliders right":"Expand lower sliders")">@(_bottomExpanded?"›":"‹")</button>
+  </div>
+ </section>
+
+ <RistWelcomeTutorial />
 </div>
+
+<style>
+.tabletop-rail-layout{min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+.tabletop-top-dock,.tabletop-bottom-dock{position:relative;z-index:55;min-width:0;background:#081118e8}
+.tabletop-top-row,.tabletop-bottom-row{display:grid;align-items:center;min-width:0}
+.tabletop-top-row{grid-template-columns:32px minmax(0,1fr);border-bottom:1px solid #665124}
+.tabletop-bottom-row{grid-template-columns:minmax(0,1fr) 32px;border-top:1px solid #665124}
+.tabletop-top-primary{min-width:0;overflow:hidden}.tabletop-top-primary>.topbar{margin:0!important;border:0!important}
+.tabletop-dock-toggle{width:30px;height:100%;min-height:38px;border:0;background:#101920;color:#d9b85e;font:700 24px/1 Georgia,serif;box-shadow:inset 0 0 0 1px #705a2b;touch-action:manipulation}
+.tabletop-top-sliders,.tabletop-bottom-sliders{display:grid;gap:0;min-width:0;max-height:40dvh;overflow-y:auto;overscroll-behavior:contain}
+.tabletop-top-sliders>* ,.tabletop-bottom-sliders>*{min-width:0;max-width:100%;}
+.tabletop-top-dock.collapsed .tabletop-top-row{border-bottom-color:#4b3b1e}.tabletop-bottom-dock.collapsed .tabletop-bottom-row{border-top-color:#4b3b1e}
+.tabletop-bottom-dock.collapsed{height:34px}.tabletop-bottom-dock.collapsed .tabletop-bottom-row{height:34px}
+.tabletop-rail-layout>.table-workspace{min-height:0!important;height:auto!important;overflow:hidden}
+.tabletop-top-sliders .public-card-drop,.tabletop-top-sliders .asset-slider-stack,.tabletop-top-sliders .recursion-cockpit,.tabletop-bottom-sliders .hand-rail,.tabletop-bottom-sliders .dice-footer{margin:0!important;border-radius:0!important}
+@@media(max-width:800px){.tabletop-rail-layout{height:100dvh}.tabletop-top-row{grid-template-columns:28px minmax(0,1fr)}.tabletop-bottom-row{grid-template-columns:minmax(0,1fr) 28px}.tabletop-dock-toggle{width:28px;min-height:34px;font-size:21px}.tabletop-top-sliders,.tabletop-bottom-sliders{max-height:34dvh}}
+</style>
+
 @code{
+ bool _topExpanded=true;
+ bool _bottomExpanded=true;
  readonly CancellationTokenSource _autosaveCts=new();
  protected override async Task OnInitializedAsync()
  {
