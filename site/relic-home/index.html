@@ -15,19 +15,19 @@
   <link rel="stylesheet" href="/relic-home.css">
   <style>
     .site-header{justify-content:center}.site-header .brand{display:none}.site-header nav{width:100%;justify-content:center}
-    .relic-story-banner{--fade:1200ms;position:relative;width:100%;aspect-ratio:1774/164;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);isolation:isolate}
-    .story-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;opacity:0;transform:scale(1.005);transition:opacity var(--fade) ease,transform 5s ease;z-index:1}.story-art.active{opacity:1;transform:scale(1)}
-    .story-vignette{position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(1,5,8,.28),transparent 10%,transparent 90%,rgba(1,5,8,.28));pointer-events:none}
+    .relic-story-banner{--fade:1200ms;position:relative;width:100%;aspect-ratio:3/1;overflow:hidden;background:#02070a;border-bottom:1px solid rgba(224,197,141,.28);isolation:isolate}
+    .story-art{position:absolute;left:50%;top:50%;width:auto;height:220%;max-width:none;opacity:0;transform:translate(-50%,-50%) scale(1.005);transform-origin:center;transition:opacity var(--fade) ease,transform 5s ease;z-index:1}.story-art.active{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .story-vignette{position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(1,5,8,.42),transparent 16%,transparent 84%,rgba(1,5,8,.42));pointer-events:none}
     .story-word,.story-name,.story-subtitle{position:absolute;z-index:5;font-family:Georgia,'Times New Roman',serif;text-shadow:0 2px 10px rgba(0,0,0,.98),0 0 16px rgba(224,197,141,.18);white-space:nowrap}
-    .story-word{top:8%;left:3%;margin:0;font-size:clamp(.8rem,2.4vw,2.5rem);letter-spacing:.06em;font-weight:500;color:#f0dfbb;opacity:0;transition:opacity 900ms ease}.story-word.active{opacity:1}
-    .story-name{right:3%;bottom:9%;font-size:clamp(.82rem,2.5vw,2.6rem);letter-spacing:.035em;color:#f0dfbb;opacity:0;transition:opacity 950ms ease}.story-name.active{opacity:1}
+    .story-word{top:7%;left:4%;margin:0;font-size:clamp(.9rem,2.8vw,2.8rem);letter-spacing:.06em;font-weight:500;color:#f0dfbb;opacity:0;transition:opacity 900ms ease}.story-word.active{opacity:1}
+    .story-name{right:4%;bottom:10%;font-size:clamp(.92rem,2.9vw,2.9rem);letter-spacing:.035em;color:#f0dfbb;opacity:0;transition:opacity 950ms ease}.story-name.active{opacity:1}
     .story-name .master{display:inline-block;max-width:0;overflow:hidden;vertical-align:bottom;opacity:0;transition:max-width 1500ms ease,opacity 1100ms ease,margin-left 1200ms ease;margin-left:0}.story-name.complete .master{max-width:16ch;opacity:1;margin-left:.08em}
-    .story-subtitle{left:50%;bottom:2%;transform:translateX(-50%);font-size:clamp(.42rem,1vw,.9rem);letter-spacing:.12em;color:rgba(136,186,201,.92)}
+    .story-subtitle{left:50%;bottom:2%;transform:translateX(-50%);font-size:clamp(.45rem,1.05vw,.92rem);letter-spacing:.12em;color:rgba(136,186,201,.92)}
     .story-final-glow{position:absolute;inset:5% 20%;z-index:3;border-radius:50%;background:radial-gradient(circle,rgba(106,182,207,.1),transparent 66%);opacity:0;transition:opacity 1200ms ease;pointer-events:none}.story-final-glow.active{opacity:1}
     footer .footer-relic-logo{display:none!important}.footer-relic-mark{width:92px;height:92px;flex:0 0 92px;border-radius:18px;background-image:url('/relic-story-6.jpg');background-repeat:no-repeat;background-size:cover;background-position:center;filter:drop-shadow(0 0 9px rgba(120,197,222,.32)) drop-shadow(0 0 14px rgba(224,197,141,.16));opacity:.9}
-    @media(max-width:760px){.site-header{padding:12px 8px}.site-header nav{gap:10px;flex-wrap:nowrap}.site-header nav a{font-size:.75rem}.site-header nav .nav-play{padding:8px 12px}.story-word{left:2%;top:6%}.story-name{right:2%;bottom:8%}.story-subtitle{font-size:.4rem;bottom:1%}footer{gap:12px}.footer-relic-mark{width:72px;height:72px;flex-basis:72px}}
-    @media(max-width:420px){.site-header nav{gap:8px}.site-header nav a{font-size:.7rem}.story-word{font-size:.75rem}.story-name{font-size:.78rem}.story-subtitle{font-size:.34rem}}
-    @media(prefers-reduced-motion:reduce){.story-art{display:none}.story-art:last-of-type{display:block;opacity:1;transform:scale(1)}.story-name{opacity:1!important}.story-name .master{max-width:16ch;opacity:1;margin-left:.08em}.story-final-glow{opacity:1}}
+    @media(max-width:760px){.site-header{padding:12px 8px}.site-header nav{gap:10px;flex-wrap:nowrap}.site-header nav a{font-size:.75rem}.site-header nav .nav-play{padding:8px 12px}.story-word{left:3%;top:6%}.story-name{right:3%;bottom:9%}.story-subtitle{font-size:.42rem;bottom:1.5%}footer{gap:12px}.footer-relic-mark{width:72px;height:72px;flex-basis:72px}}
+    @media(max-width:420px){.site-header nav{gap:8px}.site-header nav a{font-size:.7rem}.story-word{font-size:.82rem}.story-name{font-size:.85rem}.story-subtitle{font-size:.36rem}}
+    @media(prefers-reduced-motion:reduce){.story-art{display:none}.story-art:last-of-type{display:block;opacity:1;transform:translate(-50%,-50%) scale(1)}.story-name{opacity:1!important}.story-name .master{max-width:16ch;opacity:1;margin-left:.08em}.story-final-glow{opacity:1}}
   </style>
 </head>
 <body>
