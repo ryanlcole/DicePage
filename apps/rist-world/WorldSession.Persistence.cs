@@ -124,6 +124,7 @@ public sealed partial class WorldSession
   Pieces=[];
   PlacedTiles=[];
   ResetTopologyToCanonicalOrigin();
+  BuildDefaultOceanSurface();
   MapLocked=true;
   CloseHeaderMenus();
   Notify();
