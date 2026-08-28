@@ -3,45 +3,84 @@
  <CardLibrary />
  @if(Session.TileBrowserOpen)
  {
-  <section class="tile-browser" aria-label="Tile library">
+  <section class="tile-browser library-deck-browser" aria-label="Tile library">
    <header>
-    <div class="tile-browser-title"><strong>Tile library</strong><small>Choose a directory, then drag a tile to the pallet.</small></div>
-    <label class="tileset-upload" title="@(Session.IsLoggedIn?"Upload and split a tileset":"Log in to upload tilesets")" aria-label="Upload tileset">
-     <span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@(!Session.IsLoggedIn||ImportingTileset)" />
-    </label>
+    <div class="tile-browser-title"><strong>Asset library</strong><small>Open a deck to draw its contents to the right. Drag assets to the pallet.</small></div>
+    <label class="tileset-upload" title="@(Session.IsLoggedIn?"Upload and split a tileset":"Log in to upload tilesets")" aria-label="Upload tileset"><span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@(!Session.IsLoggedIn||ImportingTileset)" /></label>
    </header>
    @if(!string.IsNullOrWhiteSpace(ImportStatus)){<div class="tileset-import-status" role="status">@ImportStatus</div>}
-   <div class="tile-browser-path">
-    <label>Layer<select value="@BrowserLayer" @onchange="LayerChanged">@foreach(var layer in BrowserLayers){<option value="@layer">@Pretty(layer)</option>}</select></label>
-    <span aria-hidden="true">›</span>
-    <label>Directory<select value="@BrowserDirectory" @onchange="DirectoryChanged">@foreach(var directory in BrowserDirectories){<option value="@directory">@directory</option>}</select></label>
-    <span aria-hidden="true">›</span>
-    <label>Folder<select value="@BrowserFolder" @onchange="FolderChanged"><option value="">Choose folder</option>@foreach(var folder in BrowserFolders){<option value="@folder">@folder</option>}</select></label>
+
+   <div class="library-deck-toolbar">
+    <button @onclick="@(()=>{BrowserLayer="";BrowserDirectory="";BrowserFolder="";})">Home</button>
+    @if(!string.IsNullOrWhiteSpace(BrowserLayer)){<button @onclick="@(()=>{BrowserDirectory="";BrowserFolder="";})">Back</button>}
+    <label>Saved<select value="@SelectedSavedFilter" @onchange="ApplySavedFilter"><option value="">Saved filters</option>@foreach(var filter in SavedFilters){<option value="@filter.Key">@filter.Label</option>}</select></label>
+    <button @onclick="SaveCurrentFilter" disabled="@string.IsNullOrWhiteSpace(BrowserFolder)">Save current</button>
+    <label>Tool<select value="@SelectedTileTool" @onchange="TileToolChanged" aria-label="Tile tool type"><option value="draw">Draw</option><option value="brush">Brush</option><option value="fill">Fill</option><option value="line">Line</option><option value="square">Square</option><option value="circle">Circle</option><option value="erase">Erase</option></select></label>
    </div>
-   <div class="tile-filter-tools">
-    <label>Saved filters<select value="@SelectedSavedFilter" @onchange="ApplySavedFilter"><option value="">Choose saved filter</option>@foreach(var filter in SavedFilters){<option value="@filter.Key">@filter.Label</option>}</select></label>
-    <button @onclick="SaveCurrentFilter" disabled="@string.IsNullOrWhiteSpace(BrowserFolder)">Save filter</button>
-   </div>
-   <div class="tile-tool-row">
-    <label>Tool type
-     <select value="@SelectedTileTool" @onchange="TileToolChanged" aria-label="Tile tool type">
-      <option value="draw">Draw</option><option value="brush">Brush</option><option value="fill">Fill</option><option value="line">Line</option><option value="square">Square</option><option value="circle">Circle</option><option value="erase">Erase</option>
-     </select>
-    </label>
-   </div>
-   <div id="tile-library-slider" class="tile-browser-slider desktop-arrow-slider" aria-label="Tile library; scroll up or down">
-    <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#tile-library-slider',-1)" aria-label="Scroll tile library up">‹</button>
+
+   <div id="tile-library-slider" class="tile-browser-slider" aria-label="Asset deck rail">
     <div class="tile-browser-grid">
-    @foreach(var tile in BrowserTiles)
-    {
-     <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
-      <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
-     </button>
-    }
-    @if(string.IsNullOrWhiteSpace(BrowserFolder)){<p>Choose a folder to load its tiles.</p>}
-    else if(!BrowserTiles.Any()){<p>No tiles are available in this folder yet.</p>}
+     <div class="library-deck-rail">
+      @if(!string.IsNullOrWhiteSpace(BrowserLayer))
+      {
+       <button class="library-deck-folder active" @onclick="@(()=>{BrowserDirectory="";BrowserFolder="";})" aria-label="Open layer choices">
+        <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@Pretty(BrowserLayer)</strong><small>Layer</small>
+       </button>
+      }
+      @if(!string.IsNullOrWhiteSpace(BrowserDirectory))
+      {
+       <button class="library-deck-folder active" @onclick="@(()=>BrowserFolder="")" aria-label="Open directories">
+        <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@BrowserDirectory</strong><small>Directory</small>
+       </button>
+      }
+      @if(!string.IsNullOrWhiteSpace(BrowserFolder))
+      {
+       <button class="library-deck-folder active" aria-label="Current folder @BrowserFolder">
+        <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@BrowserFolder</strong><small>Folder</small>
+       </button>
+      }
+      @if(!string.IsNullOrWhiteSpace(BrowserLayer)||!string.IsNullOrWhiteSpace(BrowserDirectory)||!string.IsNullOrWhiteSpace(BrowserFolder)){<span class="library-deck-divider" aria-hidden="true"></span>}
+
+      @if(string.IsNullOrWhiteSpace(BrowserLayer))
+      {
+       @foreach(var layer in BrowserLayers)
+       {
+        <button class="library-deck-folder" @onclick="@(()=>{BrowserLayer=layer;BrowserDirectory="";BrowserFolder="";})" aria-label="Open @Pretty(layer) layer">
+         <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@Pretty(layer)</strong><small>Layer</small>
+        </button>
+       }
+      }
+      else if(string.IsNullOrWhiteSpace(BrowserDirectory))
+      {
+       @foreach(var directory in BrowserDirectories)
+       {
+        <button class="library-deck-folder" @onclick="@(()=>{BrowserDirectory=directory;BrowserFolder="";})" aria-label="Open @directory directory">
+         <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@directory</strong><small>Directory</small>
+        </button>
+       }
+      }
+      else if(string.IsNullOrWhiteSpace(BrowserFolder))
+      {
+       @foreach(var folder in BrowserFolders)
+       {
+        <button class="library-deck-folder" @onclick="@(()=>BrowserFolder=folder)" aria-label="Open @folder folder">
+         <span class="deck-stack"><span class="hand-toggle-card-back" aria-hidden="true"></span></span><strong>@folder</strong><small>Folder</small>
+        </button>
+       }
+       @if(!BrowserFolders.Any()){<p class="library-deck-empty">No folders are available here.</p>}
+      }
+      else
+      {
+       @foreach(var tile in BrowserTiles)
+       {
+        <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
+         <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
+        </button>
+       }
+       @if(!BrowserTiles.Any()){<p class="library-deck-empty">This folder is empty.</p>}
+      }
+     </div>
     </div>
-    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#tile-library-slider',1)" aria-label="Scroll tile library down">›</button>
    </div>
   </section>
  }
