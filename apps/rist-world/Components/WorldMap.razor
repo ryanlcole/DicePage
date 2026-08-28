@@ -66,7 +66,7 @@
    }
    @foreach(var staged in Session.StagedAssets)
    {
-    <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray." @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true" @ondblclick="()=>Session.RemoveStaged(staged.Key)">@if(staged.Kind=="tile"){<span class="tile-image-crop" style="@CropBoxStyle(staged)"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>}else{<span class="token-preview">token</span>}<small>@staged.Name</small></button>
+    <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray." @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true" @ondblclick="()=>Session.RemoveStaged(staged.Key)">@if(staged.Kind=="tile"){<span class="tile-image-crop" style="@CropBoxStyle(staged)"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>}else if(staged.Kind=="mini"){<span class="token-preview"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block" /></span>}else{<span class="token-preview">@staged.Name</span>}<small>@staged.Name</small></button>
    }
    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#pallet-slider',1)" aria-label="Scroll pallet forward"><span class="arrow-horizontal">›</span><span class="arrow-vertical">↓</span></button>
   </aside>
@@ -103,6 +103,10 @@
       <button class="piece pin zoom-pin placed-pin" style="@PinStyle(p)" aria-label="Open map pin menu" @onclick="()=>PinTap(p)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @oncontextmenu:preventDefault="true"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
       @if(!string.IsNullOrWhiteSpace(p.Label)){<span class="pin-label-callout" style="left:@Pct(p.X);top:@Pct(p.Y)">@p.Label</span>}
      }
+     else if(p.Kind=="mini")
+     {
+      <div class="piece mini" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="Miniature" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none" /></div>
+     }
      else
      {
       <div class="piece @p.Kind" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">@p.Kind</div>
@@ -114,6 +118,6 @@
  </section>
  @if(Dragging)
  {
-  <div class="drag-ghost" style="@DragPreviewStyle">@if(AtlasDragging is not null){<span class="tile-image-crop"><img src="@AtlasDragging.Image" style="@CropStyle(AtlasDragging)" alt="" /></span>}else if(TrayDragging?.Kind=="tile"){<span class="tile-image-crop"><img src="@TrayDragging.Image" style="@CropStyle(TrayDragging)" alt="" /></span>}else if(TileDragging is not null){<span class="tile-image-crop"><img src="@TileDragging.Image" style="@CropStyle(TileDragging)" alt="" /></span>}else if(TrayDragging?.Kind=="pin" || PieceDragging?.Kind=="pin"){<span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span>}else{<span class="token-preview">token</span>}</div>
+  <div class="drag-ghost" style="@DragPreviewStyle">@if(AtlasDragging is not null){<span class="tile-image-crop"><img src="@AtlasDragging.Image" style="@CropStyle(AtlasDragging)" alt="" /></span>}else if(TrayDragging?.Kind=="tile"){<span class="tile-image-crop"><img src="@TrayDragging.Image" style="@CropStyle(TrayDragging)" alt="" /></span>}else if(TileDragging is not null){<span class="tile-image-crop"><img src="@TileDragging.Image" style="@CropStyle(TileDragging)" alt="" /></span>}else if(TrayDragging?.Kind=="pin" || PieceDragging?.Kind=="pin"){<span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span>}else if(TrayDragging?.Kind=="mini" || PieceDragging?.Kind=="mini"){<span class="token-preview"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block" /></span>}else{<span class="token-preview">token</span>}</div>
  }
 </main>
