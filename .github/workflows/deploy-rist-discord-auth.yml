@@ -21,6 +21,7 @@ env:
   STACK_NAME: rist-discord-storage
   PRODUCTION_ORIGIN: https://relicgamemaster.com
   PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/index.html
+  SESSION_HOURS: 8
 
 jobs:
   validate-and-deploy:
@@ -50,17 +51,14 @@ jobs:
           }
           DISCORD_CLIENT_ID=$(get_param DiscordClientId)
           DISCORD_SECRET_ARN=$(get_param DiscordClientSecretArn)
-          SESSION_HOURS=$(get_param SessionHours)
           if [ -z "$DISCORD_CLIENT_ID" ] || [ "$DISCORD_CLIENT_ID" = "None" ]; then
             echo "Could not resolve DiscordClientId from $STACK_NAME"; exit 1
           fi
           if [ -z "$DISCORD_SECRET_ARN" ] || [ "$DISCORD_SECRET_ARN" = "None" ]; then
             echo "Could not resolve DiscordClientSecretArn from $STACK_NAME"; exit 1
           fi
-          if [ -z "$SESSION_HOURS" ] || [ "$SESSION_HOURS" = "None" ]; then SESSION_HOURS=12; fi
           echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
           echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
-          echo "SESSION_HOURS=$SESSION_HOURS" >> "$GITHUB_ENV"
 
       - name: Deploy production Discord auth return
         shell: bash
@@ -94,6 +92,11 @@ jobs:
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Parameters[?ParameterKey=='FrontendOrigin'].ParameterValue | [0]" \
             --output text)
+          DEPLOYED_SESSION_HOURS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='SessionHours'].ParameterValue | [0]" \
+            --output text)
           test "$FRONTEND_URL" = "$PRODUCTION_GAME_URL"
           test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
-          echo "Discord auth returns to $FRONTEND_URL"
+          test "$DEPLOYED_SESSION_HOURS" = "$SESSION_HOURS"
+          echo "Discord auth returns to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
