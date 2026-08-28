@@ -3,11 +3,11 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ const string OceanResetVersion="2026-08-28-ocean-v1";
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-ocean-v1";
- const string PrivateOceanResetMarkerKey="rist.world.private-reset.2026-08-28-ocean-v1";
  string _lastPrivateSnapshot="";
 
- object SavePayload()=>new{Format="RISTMAP",Version=1,Reset="2026-08-28-ocean-v1",Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
+ object SavePayload()=>new{Format="RISTMAP",Version=1,Reset=OceanResetVersion,Role,Layer,GridStyle,DistanceUnit,GridDiameter,GridDistance,GridCalibrationZoom,Pieces,TileItems=PlacedTiles,Tiles=PlacedTiles};
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
@@ -23,7 +23,6 @@ public sealed partial class WorldSession
    var json=ExportMapJson();
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
    await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
-   await js.InvokeVoidAsync("localStorage.setItem",PrivateOceanResetMarkerKey,"1");
    _lastPrivateSnapshot=json;
    if(showSuccess)PrivateStorageStatus="Shaelvien progress synced to your private AWS storage.";
   }
@@ -35,26 +34,23 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   try
   {
-   var privateReset=await js.InvokeAsync<string?>("localStorage.getItem",PrivateOceanResetMarkerKey);
-   if(privateReset!="1")
+   var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
+   if(saved is null || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
    {
     ResetToCanonicalOcean();
     await SavePrivateCheckpointAsync(showSuccess:false);
-    PrivateStorageStatus="Private Shaelvien world reset to the canonical ocean start.";
+    await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+    PrivateStorageStatus=saved is null
+      ?"Private AWS storage initialized with the canonical ocean start."
+      :"Private Shaelvien world reset once to the canonical ocean start for this development run.";
     Notify();
     return;
    }
 
-   var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
-   if(saved is null)
-   {
-    _lastPrivateSnapshot=ExportMapJson();
-    PrivateStorageStatus="Private AWS storage ready. New Shaelvien world will sync automatically.";
-    Notify();return;
-   }
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
+   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
    _lastPrivateSnapshot=ExportMapJson();
    PrivateStorageStatus="Shaelvien progress restored from your private AWS storage.";
   }
