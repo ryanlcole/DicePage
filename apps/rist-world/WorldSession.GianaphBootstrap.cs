@@ -2,11 +2,11 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Owner world extent: flattened Earth-scale rectangle. One world tile = 1 mile.
-    // The dimensions use Earth's equatorial circumference and pole-to-pole half-circumference,
-    // which keeps the canvas approximately 2:1 like a flat equirectangular world map.
+    // Giamaph test-world extent: flattened Earth-scale rectangle. One world tile = 1 mile.
     public const int GianaphEarthWidthMiles = 24901;
     public const int GianaphEarthHeightMiles = 12436;
+    bool _giamaphResetApplied;
+
     public bool UsesOwnerEarthScale => auth.IsOwnerDiscordAccount;
     public int GianaphWorldWidthMiles => UsesOwnerEarthScale ? GianaphEarthWidthMiles : GridColumns;
     public int GianaphWorldHeightMiles => UsesOwnerEarthScale ? GianaphEarthHeightMiles : GridRows;
@@ -19,37 +19,34 @@ public sealed partial class WorldSession
     {
         if (AtlasTiles.Count == 0) return;
 
-        // The shared AWS world begins as open ocean. Public visitors and ordinary
-        // authenticated accounts keep the lightweight 20×13 water viewport.
-        // The owner account receives an Earth-scale logical ocean canvas while
-        // still rendering only the current 20×13 tile window at one mile per tile.
-        // This avoids materializing ~310 million DOM/image tiles at once.
+        // Current public-test reset: every browser/login starts from the same
+        // canonical open-water surface at one mile per square. Existing saved
+        // map state is intentionally discarded once when the map first mounts.
         GridDistance = 1;
         DistanceUnit = "mi";
         GridCalibrationZoom = 1;
+        ViewZoom = 1;
 
-        if (PlacedTiles.Count > 0 && PlacedTiles.All(tile =>
-                tile.Name.StartsWith("Gianaph · Ocean ·", StringComparison.OrdinalIgnoreCase)))
+        if (_giamaphResetApplied)
         {
             MapName = UsesOwnerEarthScale
-                ? $"Gianaph · Earth-scale ocean · {GianaphEarthWidthMiles:N0}×{GianaphEarthHeightMiles:N0} mi"
-                : "Gianaph";
+                ? $"Giamaph · Earth-scale ocean · {GianaphEarthWidthMiles:N0}×{GianaphEarthHeightMiles:N0} mi"
+                : "Giamaph";
             return;
         }
 
-        // Replace only old generated defaults (legacy Naeja or the temporary
-        // generated Pangea). Never erase a map the user has actually authored.
-        var isLegacyDefault = PlacedTiles.Count == 0
-            || PlacedTiles.All(tile => tile.Id.StartsWith("naeja-map-", StringComparison.OrdinalIgnoreCase))
-            || PlacedTiles.All(tile => tile.Name.StartsWith("Gianaph · State ", StringComparison.OrdinalIgnoreCase));
-
-        if (!isLegacyDefault) return;
-
+        _giamaphResetApplied = true;
         PlacedTiles.Clear();
+        Pieces.Clear();
+        Rolls.Clear();
+        Gems.Clear();
+        StagedAssets.Clear();
         MapName = UsesOwnerEarthScale
-            ? $"Gianaph · Earth-scale ocean · {GianaphEarthWidthMiles:N0}×{GianaphEarthHeightMiles:N0} mi"
-            : "Gianaph";
+            ? $"Giamaph · Earth-scale ocean · {GianaphEarthWidthMiles:N0}×{GianaphEarthHeightMiles:N0} mi"
+            : "Giamaph";
         BuildDefaultOceanSurface();
+        MapLocked = true;
+        Notify();
     }
 
     void BuildDefaultOceanSurface()
@@ -57,8 +54,6 @@ public sealed partial class WorldSession
         var waterTiles = GianaphPalette(AtlasTiles,
             "ocean", "open ocean", "sea", "water", "deep water", "deep-sea", "deep sea");
 
-        // Avoid accidental shoreline/river artwork when a broad word such as
-        // "water" matches transition assets.
         waterTiles = waterTiles.Where(tile =>
         {
             var text = $"{tile.Id} {tile.Name} {tile.Directory} {tile.Folder}";
@@ -76,14 +71,16 @@ public sealed partial class WorldSession
             {
                 var text = $"{tile.Id} {tile.Name} {tile.Directory} {tile.Folder}";
                 return text.Contains("ocean", StringComparison.OrdinalIgnoreCase)
-                    || text.Contains("sea", StringComparison.OrdinalIgnoreCase);
+                    || text.Contains("sea", StringComparison.OrdinalIgnoreCase)
+                    || text.Contains("water", StringComparison.OrdinalIgnoreCase);
             }).ToList();
         }
 
         if (waterTiles.Count == 0) return;
 
-        // Render one 20×13 tile window. For the owner account, this is a movable
-        // window into the 24,901×12,436-mile logical world rather than the full world.
+        // Only the visible 20×13 one-mile window is materialized. The owner's
+        // Earth-scale logical world remains 24,901×12,436 miles without creating
+        // hundreds of millions of DOM tiles.
         for (var row = 0; row < GridRows; row++)
         {
             for (var column = 0; column < GridColumns; column++)
@@ -91,7 +88,7 @@ public sealed partial class WorldSession
                 var index = Math.Abs(GianaphSeed(column, row)) % waterTiles.Count;
                 var tile = waterTiles[index];
                 PlacedTiles.Add(new(tile.Id,
-                    $"Gianaph · Ocean · {column + 1},{row + 1} · 1 mi²",
+                    $"Giamaph · Ocean · {column + 1},{row + 1} · 1 mi²",
                     tile.Image,
                     column / (double)GridColumns,
                     row / (double)GridRows,
@@ -101,7 +98,5 @@ public sealed partial class WorldSession
                     Locked: true));
             }
         }
-
-        MapLocked = true;
     }
 }
