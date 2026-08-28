@@ -15,7 +15,28 @@ public sealed record AtlasTile(
     int CropWidth = 0,
     int CropHeight = 0);
 public sealed record PieceItem(string Kind, double X, double Y, double PlacementZoom = 1.0, string Label = "");
-public sealed record TileItem(string Id, string Name, string Image, double X, double Y, int SourceWidth = 0, int SourceHeight = 0, int CropX = 0, int CropY = 0, int CropWidth = 0, int CropHeight = 0, double PlacementZoom = 1.0, string ZoneId = "", string ZoneLabel = "", bool Locked = false);
+public sealed record TileItem(
+    string Id,
+    string Name,
+    string Image,
+    double X,
+    double Y,
+    int SourceWidth = 0,
+    int SourceHeight = 0,
+    int CropX = 0,
+    int CropY = 0,
+    int CropWidth = 0,
+    int CropHeight = 0,
+    double PlacementZoom = 1.0,
+    string ZoneId = "",
+    string ZoneLabel = "",
+    bool Locked = false,
+    int CubeX = 0,
+    int CubeY = 0,
+    int CubeZ = 0,
+    int PlaneIndex = 0,
+    int TierIndex = 0,
+    int LayerOffset = 0);
 public sealed record MapZoneLabel(string Id,string Label,string Terrain,double X,double Y,bool Locked);
 public sealed record StagedAsset(string Key, string Kind, string Name, string Image = "", int SourceWidth = 0, int SourceHeight = 0, int CropX = 0, int CropY = 0, int CropWidth = 0, int CropHeight = 0, string ApprovalStatus = "pending");
 public sealed record DiceSpec(string Key, string Label, string Image, int Sides, int Columns, int Rows, int FrameCount, int RestFrame, int ValueOffset = 1, int Sign = 1, double VisualAspect = 1.0);
