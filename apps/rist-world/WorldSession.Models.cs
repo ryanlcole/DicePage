@@ -24,6 +24,25 @@ public sealed record GemItem(int Value, double X, double Y);
 public sealed record CardItem(string Id, string Name, string Type, string Text);
 public sealed record CharacterFieldOption(string Name, string Kind, string Group);
 
+public enum WorldCubeRole
+{
+    Developer,
+    GameMaster,
+    AI
+}
+
+public sealed record NpcBoundaryExchange(
+    string Id,
+    string IncomingNpcId,
+    string OutgoingNpcId,
+    int FromCubeX,
+    int FromCubeY,
+    int FromCubeZ,
+    int ToCubeX,
+    int ToCubeY,
+    int ToCubeZ,
+    DateTimeOffset OccurredAt);
+
 public sealed class CharacterField(string name,string kind,string group)
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -110,6 +129,14 @@ public sealed class SavedWorld
     public int GridDiameter { get; set; } = 48;
     public double GridDistance { get; set; } = 1;
     public double GridCalibrationZoom { get; set; } = 1;
+    public int CubeX { get; set; }
+    public int CubeY { get; set; }
+    public int CubeZ { get; set; }
+    public WorldCubeRole CubeRole { get; set; } = WorldCubeRole.GameMaster;
+    public int PlaneIndex { get; set; }
+    public int TierIndex { get; set; }
+    public int LayerOffset { get; set; }
     public List<PieceItem> Pieces { get; set; } = [];
     public List<TileItem> Tiles { get; set; } = [];
+    public List<NpcBoundaryExchange> NpcBoundaryExchanges { get; set; } = [];
 }
