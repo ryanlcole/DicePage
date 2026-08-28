@@ -20,7 +20,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-discord-storage
   PRODUCTION_ORIGIN: https://relicgamemaster.com
-  PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/
+  PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/index.html
 
 jobs:
   validate-and-deploy:
