@@ -89,9 +89,12 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
+          # Shaelvien art under Game/assets/shaelvien is persistent content, not build output.
+          # Protect it from --delete so deployments cannot erase imported atlases/runtime crops.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
             --exclude 'Launcher/*' \
+            --exclude 'assets/shaelvien/*' \
             --cache-control 'public,max-age=86400' \
             --only-show-errors
           aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
