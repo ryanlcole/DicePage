@@ -4,7 +4,8 @@ public sealed partial class WorldSession
 {
     public const int LayersPerTier = 5;
 
-    readonly Dictionary<TerrainAddress,List<TileItem>> _terrainByAddress = [];
+    readonly Dictionary<SpatialAddress,List<TileItem>> _terrainByAddress = [];
+    readonly Dictionary<SpatialAddress,List<PieceItem>> _piecesByAddress = [];
 
     public int CubeX { get; private set; }
     public int CubeY { get; private set; }
@@ -20,37 +21,37 @@ public sealed partial class WorldSession
     public bool IsGianaph => CubeRole == WorldCubeRole.Developer && CubeX == 0 && CubeY == 0 && CubeZ == 0;
     public string WorldCoordinateLabel => $"Cube {CubeX},{CubeY},{CubeZ} • Plane {PlaneIndex} • Tier {TierIndex} • Layer {LayerZ} • z={SceneZ}";
 
-    TerrainAddress CurrentTerrainAddress => new(CubeX,CubeY,CubeZ,PlaneIndex,TierIndex,LayerOffset);
+    SpatialAddress CurrentSpatialAddress => new(CubeX,CubeY,CubeZ,PlaneIndex,TierIndex,LayerOffset);
 
     public List<NpcBoundaryExchange> NpcBoundaryExchanges { get; private set; } = [];
 
     public void MoveTier(int delta)
     {
         if (delta == 0) return;
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         TierIndex = checked(TierIndex + delta);
         LayerOffset = 0;
-        LoadCurrentTerrain();
+        LoadCurrentSpatialPage();
         Notify();
     }
 
     public void MovePlane(int delta)
     {
         if (delta == 0) return;
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         PlaneIndex = checked(PlaneIndex + delta);
-        LoadCurrentTerrain();
+        LoadCurrentSpatialPage();
         Notify();
     }
 
     public void MoveLayer(int delta)
     {
         if (delta == 0) return;
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         var targetZ = checked(SceneZ + delta);
         TierIndex = FloorDiv(targetZ, LayersPerTier);
         LayerOffset = targetZ - (TierIndex * LayersPerTier);
-        LoadCurrentTerrain();
+        LoadCurrentSpatialPage();
         Notify();
     }
 
@@ -58,28 +59,28 @@ public sealed partial class WorldSession
     {
         var next=Math.Clamp(offset,0,LayersPerTier-1);
         if(next==LayerOffset)return;
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         LayerOffset=next;
-        LoadCurrentTerrain();
+        LoadCurrentSpatialPage();
         Notify();
     }
 
     public void SetWorldCube(int x, int y, int z, WorldCubeRole role)
     {
         if(x==CubeX&&y==CubeY&&z==CubeZ&&role==CubeRole)return;
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         CubeX = x;
         CubeY = y;
         CubeZ = z;
         CubeRole = role;
-        LoadCurrentTerrain();
+        LoadCurrentSpatialPage();
         Notify();
     }
 
-    void StoreCurrentTerrain()
+    void StoreCurrentSpatialPage()
     {
-        var address=CurrentTerrainAddress;
-        var stamped=PlacedTiles.Select(tile=>tile with
+        var address=CurrentSpatialAddress;
+        var terrain=PlacedTiles.Select(tile=>tile with
         {
             CubeX=address.CubeX,
             CubeY=address.CubeY,
@@ -88,27 +89,48 @@ public sealed partial class WorldSession
             TierIndex=address.TierIndex,
             LayerOffset=address.LayerOffset
         }).ToList();
-        _terrainByAddress[address]=stamped;
-        PlacedTiles=stamped;
+        var pieces=Pieces.Select(piece=>piece with
+        {
+            CubeX=address.CubeX,
+            CubeY=address.CubeY,
+            CubeZ=address.CubeZ,
+            PlaneIndex=address.PlaneIndex,
+            TierIndex=address.TierIndex,
+            LayerOffset=address.LayerOffset
+        }).ToList();
+        _terrainByAddress[address]=terrain;
+        _piecesByAddress[address]=pieces;
+        PlacedTiles=terrain;
+        Pieces=pieces;
     }
 
-    void LoadCurrentTerrain()
+    void LoadCurrentSpatialPage()
     {
-        PlacedTiles=_terrainByAddress.TryGetValue(CurrentTerrainAddress,out var tiles)
+        PlacedTiles=_terrainByAddress.TryGetValue(CurrentSpatialAddress,out var tiles)
             ? tiles.ToList()
+            : [];
+        Pieces=_piecesByAddress.TryGetValue(CurrentSpatialAddress,out var pieces)
+            ? pieces.ToList()
             : [];
     }
 
     List<TileItem> ExportSpatialTerrain()
     {
-        StoreCurrentTerrain();
+        StoreCurrentSpatialPage();
         return _terrainByAddress.Values.SelectMany(x=>x).ToList();
     }
 
-    void ImportSpatialTerrain(IEnumerable<TileItem>? tiles)
+    List<PieceItem> ExportSpatialPieces()
+    {
+        StoreCurrentSpatialPage();
+        return _piecesByAddress.Values.SelectMany(x=>x).ToList();
+    }
+
+    void ImportSpatialContent(IEnumerable<TileItem>? tiles,IEnumerable<PieceItem>? pieces)
     {
         _terrainByAddress.Clear();
-        foreach(var group in (tiles??[]).GroupBy(tile=>new TerrainAddress(
+        _piecesByAddress.Clear();
+        foreach(var group in (tiles??[]).GroupBy(tile=>new SpatialAddress(
             tile.CubeX,
             tile.CubeY,
             tile.CubeZ,
@@ -118,7 +140,17 @@ public sealed partial class WorldSession
         {
             _terrainByAddress[group.Key]=group.Select(tile=>tile with{LayerOffset=group.Key.LayerOffset}).ToList();
         }
-        LoadCurrentTerrain();
+        foreach(var group in (pieces??[]).GroupBy(piece=>new SpatialAddress(
+            piece.CubeX,
+            piece.CubeY,
+            piece.CubeZ,
+            piece.PlaneIndex,
+            piece.TierIndex,
+            Math.Clamp(piece.LayerOffset,0,LayersPerTier-1))))
+        {
+            _piecesByAddress[group.Key]=group.Select(piece=>piece with{LayerOffset=group.Key.LayerOffset}).ToList();
+        }
+        LoadCurrentSpatialPage();
     }
 
     public bool TryExchangeNpcAcrossBoundary(
@@ -159,6 +191,7 @@ public sealed partial class WorldSession
         TierIndex = 0;
         LayerOffset = 0;
         _terrainByAddress.Clear();
+        _piecesByAddress.Clear();
         NpcBoundaryExchanges = [];
     }
 
@@ -170,5 +203,5 @@ public sealed partial class WorldSession
         return quotient;
     }
 
-    readonly record struct TerrainAddress(int CubeX,int CubeY,int CubeZ,int PlaneIndex,int TierIndex,int LayerOffset);
+    readonly record struct SpatialAddress(int CubeX,int CubeY,int CubeZ,int PlaneIndex,int TierIndex,int LayerOffset);
 }
