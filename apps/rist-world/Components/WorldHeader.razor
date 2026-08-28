@@ -31,7 +31,15 @@
 @code{
  bool _loginPromptOpen;
  bool _privateRestoreStarted;
- protected override void OnInitialized()=>Session.Changed+=SessionChanged;
+ protected override void OnInitialized()
+ {
+  Session.Changed+=SessionChanged;
+  if(Session.IsLoggedIn&&!_privateRestoreStarted)
+  {
+   _privateRestoreStarted=true;
+   _ = RestorePrivateWorldAsync();
+  }
+ }
  void SessionChanged()
  {
   if(Session.IsLoggedIn)
