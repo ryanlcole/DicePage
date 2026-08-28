@@ -1,0 +1,99 @@
+name: Deploy RIST Discord Auth
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-discord-storage.yml'
+      - '.github/workflows/deploy-rist-discord-auth.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
+  STACK_NAME: rist-discord-storage
+  PRODUCTION_ORIGIN: https://relicgamemaster.com
+  PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate Discord auth template
+        run: sam validate --lint --template-file infra/aws/rist-discord-storage.yml
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Recover deployed auth parameters
+        shell: bash
+        run: |
+          set -euo pipefail
+          get_param(){
+            aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Parameters[?ParameterKey=='$1'].ParameterValue | [0]" \
+              --output text
+          }
+          DISCORD_CLIENT_ID=$(get_param DiscordClientId)
+          DISCORD_SECRET_ARN=$(get_param DiscordClientSecretArn)
+          SESSION_HOURS=$(get_param SessionHours)
+          if [ -z "$DISCORD_CLIENT_ID" ] || [ "$DISCORD_CLIENT_ID" = "None" ]; then
+            echo "Could not resolve DiscordClientId from $STACK_NAME"; exit 1
+          fi
+          if [ -z "$DISCORD_SECRET_ARN" ] || [ "$DISCORD_SECRET_ARN" = "None" ]; then
+            echo "Could not resolve DiscordClientSecretArn from $STACK_NAME"; exit 1
+          fi
+          if [ -z "$SESSION_HOURS" ] || [ "$SESSION_HOURS" = "None" ]; then SESSION_HOURS=12; fi
+          echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
+          echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
+          echo "SESSION_HOURS=$SESSION_HOURS" >> "$GITHUB_ENV"
+
+      - name: Deploy production Discord auth return
+        shell: bash
+        run: |
+          set -euo pipefail
+          sam deploy \
+            --template-file infra/aws/rist-discord-storage.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              "DiscordClientId=$DISCORD_CLIENT_ID" \
+              "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
+              "FrontendOrigin=$PRODUCTION_ORIGIN" \
+              "FrontendUrl=$PRODUCTION_GAME_URL" \
+              "SessionHours=$SESSION_HOURS"
+
+      - name: Verify production return configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRONTEND_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='FrontendUrl'].ParameterValue | [0]" \
+            --output text)
+          FRONTEND_ORIGIN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='FrontendOrigin'].ParameterValue | [0]" \
+            --output text)
+          test "$FRONTEND_URL" = "$PRODUCTION_GAME_URL"
+          test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
+          echo "Discord auth returns to $FRONTEND_URL"
