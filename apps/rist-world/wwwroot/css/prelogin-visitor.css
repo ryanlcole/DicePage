@@ -3,6 +3,15 @@
 .rist.auth-visitor .topbar .finite-set>.header-info-button,
 .rist.auth-visitor .topbar .finite-set>.door-button{pointer-events:auto!important;filter:none;opacity:1}
 
+/* Public visitors see Shaelvien's ocean presentation. This is visual-only and
+   never materializes terrain into saved world state. Authenticated spatial
+   maps remain empty until actual terrain is placed at that address. */
+.rist.auth-visitor .map .base{
+ background-color:#1f6f92!important;
+ background-image:radial-gradient(ellipse at 28% 20%,#72bad044 0 4%,transparent 24%),radial-gradient(ellipse at 72% 68%,#083d5a55 0 5%,transparent 30%),repeating-linear-gradient(168deg,#3c93af 0 2px,#287d9d 3px 8px,#327f9b 9px 12px)!important;
+ box-shadow:inset 0 0 80px #031f35aa!important;
+}
+
 /* Rail navigation remains usable before login. */
 .rist.auth-visitor .rail-scroll-arrow{pointer-events:auto!important;opacity:1!important;filter:none!important}
 
