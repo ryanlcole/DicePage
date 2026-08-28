@@ -89,8 +89,6 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
-          # RIST WORLD is an isolated application surface. Keeping its relative
-          # base href means the exact PLC build can move under /Game/ unchanged.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
             --exclude 'Launcher/*' \
@@ -105,25 +103,19 @@ jobs:
             --content-type 'application/json' \
             --only-show-errors
 
-          # Launcher remains a root-level authenticated control surface.
           aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" \
             --delete \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --only-show-errors
 
-          # The public company website owns the domain root. Publish every
-          # homepage asset explicitly so new artwork cannot be omitted.
+          # Publish all current homepage assets instead of hard-coding a removed banner filename.
+          aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
+            --exclude 'index.html' \
+            --cache-control 'public,max-age=3600' \
+            --only-show-errors
           aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
-            --only-show-errors
-          aws s3 cp site/relic-home/relic-home.css "s3://${BUCKET}/relic-home.css" \
-            --cache-control 'public,max-age=3600' \
-            --content-type 'text/css; charset=utf-8' \
-            --only-show-errors
-          aws s3 cp site/relic-home/relic-story-banner.svg "s3://${BUCKET}/relic-story-banner.svg" \
-            --cache-control 'public,max-age=3600' \
-            --content-type 'image/svg+xml' \
             --only-show-errors
 
       - name: Invalidate and verify AWS frontend surfaces
@@ -138,8 +130,8 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-banner.svg "${URL}relic-story-banner.svg"
-          grep -q '<svg' /tmp/relic-banner.svg
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-tiles.webp "${URL}relic-story-tiles.webp"
+          test -s /tmp/relic-tiles.webp
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'RistPLC' /tmp/rist-index.html
@@ -148,6 +140,6 @@ jobs:
           grep -q 'QAStaging' /tmp/launcher-index.html
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "ReLiC story banner verified at ${URL}relic-story-banner.svg"
+          echo "ReLiC story tiles verified at ${URL}relic-story-tiles.webp"
           echo "RIST WORLD verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
