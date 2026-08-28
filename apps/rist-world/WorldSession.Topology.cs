@@ -3,6 +3,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     public const int LayersPerTier = 5;
+    public const int GuestTierCount = 2;
 
     readonly Dictionary<SpatialAddress,List<TileItem>> _terrainByAddress = [];
     readonly Dictionary<SpatialAddress,List<PieceItem>> _piecesByAddress = [];
@@ -28,8 +29,11 @@ public sealed partial class WorldSession
     public void MoveTier(int delta)
     {
         if (delta == 0) return;
+        var next=checked(TierIndex+delta);
+        if(!IsLoggedIn)next=Math.Clamp(next,0,GuestTierCount-1);
+        if(next==TierIndex)return;
         StoreCurrentSpatialPage();
-        TierIndex = checked(TierIndex + delta);
+        TierIndex = next;
         LayerOffset = 0;
         LoadCurrentSpatialPage();
         Notify();
@@ -37,7 +41,7 @@ public sealed partial class WorldSession
 
     public void MovePlane(int delta)
     {
-        if (delta == 0) return;
+        if (delta == 0 || !IsLoggedIn) return;
         StoreCurrentSpatialPage();
         PlaneIndex = checked(PlaneIndex + delta);
         LoadCurrentSpatialPage();
@@ -47,10 +51,14 @@ public sealed partial class WorldSession
     public void MoveLayer(int delta)
     {
         if (delta == 0) return;
-        StoreCurrentSpatialPage();
         var targetZ = checked(SceneZ + delta);
-        TierIndex = FloorDiv(targetZ, LayersPerTier);
-        LayerOffset = targetZ - (TierIndex * LayersPerTier);
+        if(!IsLoggedIn)targetZ=Math.Clamp(targetZ,0,(GuestTierCount*LayersPerTier)-1);
+        var nextTier=FloorDiv(targetZ, LayersPerTier);
+        var nextLayer=targetZ-(nextTier*LayersPerTier);
+        if(nextTier==TierIndex&&nextLayer==LayerOffset)return;
+        StoreCurrentSpatialPage();
+        TierIndex = nextTier;
+        LayerOffset = nextLayer;
         LoadCurrentSpatialPage();
         Notify();
     }
@@ -67,6 +75,7 @@ public sealed partial class WorldSession
 
     public void SetWorldCube(int x, int y, int z, WorldCubeRole role)
     {
+        if(!IsLoggedIn)return;
         if(x==CubeX&&y==CubeY&&z==CubeZ&&role==CubeRole)return;
         StoreCurrentSpatialPage();
         CubeX = x;
@@ -149,6 +158,13 @@ public sealed partial class WorldSession
             Math.Clamp(piece.LayerOffset,0,LayersPerTier-1))))
         {
             _piecesByAddress[group.Key]=group.Select(piece=>piece with{LayerOffset=group.Key.LayerOffset}).ToList();
+        }
+        if(!IsLoggedIn)
+        {
+            foreach(var key in _terrainByAddress.Keys.Where(x=>x.PlaneIndex!=0||x.TierIndex<0||x.TierIndex>=GuestTierCount).ToList())_terrainByAddress.Remove(key);
+            foreach(var key in _piecesByAddress.Keys.Where(x=>x.PlaneIndex!=0||x.TierIndex<0||x.TierIndex>=GuestTierCount).ToList())_piecesByAddress.Remove(key);
+            PlaneIndex=0;
+            TierIndex=Math.Clamp(TierIndex,0,GuestTierCount-1);
         }
         LoadCurrentSpatialPage();
     }
