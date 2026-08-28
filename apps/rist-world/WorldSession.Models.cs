@@ -14,7 +14,18 @@ public sealed record AtlasTile(
     int CropY = 0,
     int CropWidth = 0,
     int CropHeight = 0);
-public sealed record PieceItem(string Kind, double X, double Y, double PlacementZoom = 1.0, string Label = "");
+public sealed record PieceItem(
+    string Kind,
+    double X,
+    double Y,
+    double PlacementZoom = 1.0,
+    string Label = "",
+    int CubeX = 0,
+    int CubeY = 0,
+    int CubeZ = 0,
+    int PlaneIndex = 0,
+    int TierIndex = 0,
+    int LayerOffset = 0);
 public sealed record TileItem(
     string Id,
     string Name,
