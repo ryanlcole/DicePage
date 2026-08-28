@@ -64,14 +64,20 @@
  protected override async Task OnInitializedAsync()
  {
   Session.Changed+=SessionChanged;
-  await Session.InitializeAsync();
+  IJSObjectReference? policy=null;
   try
   {
-   var policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");
-   await policy.InvokeVoidAsync("applyEightHourSessionPolicy");
-   await policy.DisposeAsync();
+   policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");
+   await policy.InvokeVoidAsync("restorePersistentSession");
   }
   catch(JSException){}
+  await Session.InitializeAsync();
+  if(policy is not null)
+  {
+   try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}
+   catch(JSException){}
+   await policy.DisposeAsync();
+  }
   await Session.LoadPrivateCheckpointAsync();
   await Session.LoadThirdPartyStarterAssetsAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
