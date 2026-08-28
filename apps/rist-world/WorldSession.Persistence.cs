@@ -7,30 +7,34 @@ public sealed partial class WorldSession
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  string _lastPrivateSnapshot="";
 
- object SavePayload()=>new
+ object SavePayload()
  {
-  Format="RISTMAP",
-  Version=2,
-  Reset=OceanResetVersion,
-  Role,
-  Layer,
-  GridStyle,
-  DistanceUnit,
-  GridDiameter,
-  GridDistance,
-  GridCalibrationZoom,
-  CubeX,
-  CubeY,
-  CubeZ,
-  CubeRole,
-  PlaneIndex,
-  TierIndex,
-  LayerOffset,
-  Pieces,
-  TileItems=PlacedTiles,
-  Tiles=PlacedTiles,
-  NpcBoundaryExchanges
- };
+  var terrain=ExportSpatialTerrain();
+  return new
+  {
+   Format="RISTMAP",
+   Version=3,
+   Reset=OceanResetVersion,
+   Role,
+   Layer,
+   GridStyle,
+   DistanceUnit,
+   GridDiameter,
+   GridDistance,
+   GridCalibrationZoom,
+   CubeX,
+   CubeY,
+   CubeZ,
+   CubeRole,
+   PlaneIndex,
+   TierIndex,
+   LayerOffset,
+   Pieces,
+   TileItems=terrain,
+   Tiles=terrain,
+   NpcBoundaryExchanges
+  };
+ }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
@@ -64,8 +68,8 @@ public sealed partial class WorldSession
     await SavePrivateCheckpointAsync(showSuccess:false);
     await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
     PrivateStorageStatus=saved is null
-      ?"Private AWS storage initialized with the canonical ocean start."
-      :"Private Shaelvien world reset once to the canonical World/Plane/Tier ocean origin.";
+      ?"Private AWS storage initialized with the canonical origin."
+      :"Private Shaelvien world reset once to the canonical World/Plane/Tier origin.";
     Notify();
     return;
    }
@@ -124,7 +128,6 @@ public sealed partial class WorldSession
   Pieces=[];
   PlacedTiles=[];
   ResetTopologyToCanonicalOrigin();
-  BuildDefaultOceanSurface();
   MapLocked=true;
   CloseHeaderMenus();
   Notify();
@@ -138,7 +141,9 @@ public sealed partial class WorldSession
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
-  Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();PlacedTiles=save.Tiles??[];MapLocked=true;CloseHeaderMenus();Notify();
+  Pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
+  ImportSpatialTerrain(save.Tiles??[]);
+  MapLocked=true;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
  public void CloseCard(){OpenCard=null;Notify();}
