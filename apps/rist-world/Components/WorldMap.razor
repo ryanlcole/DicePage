@@ -88,7 +88,7 @@
     <div class="recursive-region-actions" role="toolbar" aria-label="Local region selection" @onpointerdown:stopPropagation="true"><strong>@Session.RecursiveRegionSelectionCount tile@(Session.RecursiveRegionSelectionCount==1?"":"s") selected</strong><button @onclick="Session.CommitRecursiveRegion" disabled="@(!Session.HasRecursiveRegionSelection)">Commit to @Session.NextRecursiveLayer</button><button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button></div>
    }
    <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
-    <div class="base map-tile-map" data-map-manifest="data/maps/naeja.json" aria-label="Shaelvien world map"></div>
+    <div class="base map-ocean-base" aria-label="Shaelvien ocean world"></div>
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
