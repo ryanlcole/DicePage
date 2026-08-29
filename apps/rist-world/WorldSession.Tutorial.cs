@@ -20,14 +20,23 @@ public sealed partial class WorldSession
     public void ChooseTutorialMapSource(string source)
     {
         TutorialMapSource = source ?? "";
-        if (TutorialMapSource == "paint")
+        if(TutorialMapSource=="attach")
         {
-            TutorialWelcomeOpen = false;
-            Mode = "tile";
+            TutorialWelcomeOpen=false;
+            SaveMenuOpen=false;
+            LoadMenuOpen=true;
             Notify();
             return;
         }
-        TutorialStep = TutorialMapSource == "attach" ? "map-attach" : "map-random";
+        if(TutorialMapSource=="paint")
+        {
+            TutorialWelcomeOpen=false;
+            Mode="tile";
+            Notify();
+            return;
+        }
+        TutorialMapSource="";
+        TutorialStep="map-source";
         Notify();
     }
 }
