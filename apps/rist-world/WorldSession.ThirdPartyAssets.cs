@@ -35,6 +35,8 @@ public sealed partial class WorldSession
 
     public async Task LoadThirdPartyStarterAssetsAsync()
     {
+        var existingIds = AtlasTiles.Select(tile => tile.Id).ToHashSet(StringComparer.Ordinal);
+        var addedAny = false;
         foreach (var pack in ThirdPartyStarterPacks)
         {
             try
@@ -42,22 +44,22 @@ public sealed partial class WorldSession
                 var url = "https://api.github.com/repos/ETdoFresh/kenney.nl/contents/" + Uri.EscapeDataString(pack.RemotePath).Replace("%2F", "/") + "?ref=master";
                 var rows = await http.GetFromJsonAsync<List<GitHubAssetEntry>>(url);
                 if (rows is null) continue;
-                var added = 0;
-                foreach (var row in rows.Where(x => x.Type == "file" && IsSupportedImage(x.Name) && !string.IsNullOrWhiteSpace(x.DownloadUrl)))
+                foreach (var row in rows)
                 {
-                    var cleanName = Path.GetFileNameWithoutExtension(row.Name).Replace('_', ' ').Replace('-', ' ').Trim();
+                    if (row.Type != "file" || !IsSupportedImage(row.Name) || string.IsNullOrWhiteSpace(row.DownloadUrl)) continue;
                     var id = $"thirdparty:{pack.Id}:{Slug(row.Name)}";
-                    if (AtlasTiles.Any(x => x.Id == id)) continue;
+                    if (!existingIds.Add(id)) continue;
+                    var cleanName = Path.GetFileNameWithoutExtension(row.Name).Replace('_', ' ').Replace('-', ' ').Trim();
                     AtlasTiles.Add(new AtlasTile(id, cleanName, row.DownloadUrl!, pack.Layer, pack.Category, pack.Folder, $"{pack.Creator} • {pack.Id}"));
-                    added++;
+                    addedAny = true;
                 }
-                if (added > 0) Notify();
             }
             catch
             {
                 // Third-party starter packs are additive. Never block the tabletop if a remote source is unavailable.
             }
         }
+        if (addedAny) Notify();
     }
 
     public ThirdPartyPack? ThirdPartyPackFor(AtlasTile tile)
@@ -68,7 +70,10 @@ public sealed partial class WorldSession
     }
 
     private static bool IsSupportedImage(string name)
-        => name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
+        => name.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
 
     private static string Slug(string value)
         => new(value.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray());
