@@ -2,45 +2,59 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 @inject WorldSession Session
-<section class="player-tools-rail" aria-label="Player hand and token placement">
- <div class="player-hand-pane" aria-label="Player card hand">
-  <span class="player-tools-label">Hand</span>
-  <div id="hand-slider" class="player-hand-strip desktop-arrow-slider"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#hand-slider',-1)" aria-label="Scroll hand left">‹</button>
-   <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open deck or draw a random card"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
-   @foreach(var card in Session.HandCards)
+
+<section class="private-assets-rail" aria-label="Private assets">
+ <header class="asset-rail-header">
+  <strong>Private Assets</strong>
+  <nav class="asset-type-tabs" aria-label="Private asset type">
+   @foreach(var type in AssetTypes)
    {
-    <div class="hand-card-wrap @card.ApprovalStatus">
-     <button class="compact-hand-card @card.ApprovalStatus" style="@CardStyle(card)" @onclick="()=>HandCardClick(card)" aria-label="@($"{card.Name}, {card.ApprovalStatus}")">
-      @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
-      else{<span class="drawer-glyph">@Glyph(card)</span>}
-      @if(card.ApprovalStatus==HandCard.Pending){<span class="pending-mark" aria-hidden="true">?</span>}
-     </button>
-     @if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending)
-     {
-      <span class="approval-actions"><button @onclick="()=>Session.ApproveHandCard(card)" aria-label="Approve @card.Name">✓</button><button @onclick="()=>Session.DenyHandCard(card)" aria-label="Deny @card.Name">×</button></span>
-     }
-    </div>
+    <button type="button" class="@(_assetType==type.Key?"active":"")" @onclick="()=>SelectAssetType(type.Key)" aria-pressed="@(_assetType==type.Key)">@type.Label</button>
    }
-   @foreach(var card in Session.StandardHandCards)
+  </nav>
+ </header>
+ <div id="private-assets-slider" class="private-assets-strip desktop-arrow-slider">
+  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#private-assets-slider',-1)" aria-label="Scroll private assets left">‹</button>
+  <div class="private-assets-items">
+   @if(_assetType=="cards")
    {
-    <button class="compact-hand-card standard-hand-card approved" @onclick="()=>Session.ShowCard(card)" aria-label="@card.Name"><span class="standard-card-face"><small>@card.Type</small><strong>@card.Name</strong></span></button>
+    <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open private card deck"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
+    @foreach(var card in Session.HandCards)
+    {
+     <div class="hand-card-wrap @card.ApprovalStatus">
+      <button class="compact-hand-card @card.ApprovalStatus" style="@CardStyle(card)" @onclick="()=>HandCardClick(card)" aria-label="@($"{card.Name}, {card.ApprovalStatus}")">
+       @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+       else{<span class="drawer-glyph">@Glyph(card)</span>}
+       @if(card.ApprovalStatus==HandCard.Pending){<span class="pending-mark" aria-hidden="true">?</span>}
+      </button>
+      @if(Session.Role=="GM"&&card.ApprovalStatus==HandCard.Pending)
+      {
+       <span class="approval-actions"><button @onclick="()=>Session.ApproveHandCard(card)" aria-label="Approve @card.Name">✓</button><button @onclick="()=>Session.DenyHandCard(card)" aria-label="Deny @card.Name">×</button></span>
+      }
+     </div>
+    }
+    @foreach(var card in Session.StandardHandCards)
+    {
+     <button class="compact-hand-card standard-hand-card approved" @onclick="()=>Session.ShowCard(card)" aria-label="@card.Name"><span class="standard-card-face"><small>@card.Type</small><strong>@card.Name</strong></span></button>
+    }
    }
-   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#hand-slider',1)" aria-label="Scroll hand right">›</button>
+   else if(_assetType=="tokens")
+   {
+    <ElementalTokenSelector />
+    <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag private map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+   }
+   else
+   {
+    <span class="private-assets-empty">No private @AssetTypeLabel.ToLowerInvariant() staged.</span>
+   }
   </div>
- </div>
- <div class="token-placement-pane" aria-label="Token placement">
-  <span class="player-tools-label">Tokens</span>
-  <div id="token-slider" class="token-choice-strip desktop-arrow-slider">
-   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#token-slider',-1)" aria-label="Scroll tokens left">‹</button>
-   <ElementalTokenSelector />
-   <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
-   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#token-slider',1)" aria-label="Scroll tokens right">›</button>
-  </div>
+  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#private-assets-slider',1)" aria-label="Scroll private assets right">›</button>
  </div>
 </section>
-@if(Session.HandOpen)
+
+@if(Session.HandOpen && _assetType=="cards")
 {
-<section class="card-triple-drawer" aria-label="Card drawer">
+<section class="card-triple-drawer" aria-label="Private card drawer">
  <div id="action-slider" class="card-drawer-row action-row desktop-arrow-slider" aria-label="Action cards"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#action-slider',-1)" aria-label="Scroll actions left">‹</button><div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Action</strong></div>
   @foreach(var field in AvailableActionFields){<button class="drawer-front deck-available-card" draggable="true" style="@FieldStyle(field)" @onclick="()=>Session.ShowFieldHand(field)" @ondragend="()=>Session.ShowFieldHand(field)" aria-label="Add @field.Name to hand">@if(!string.IsNullOrWhiteSpace(field.ImageDataUrl)){<img src="@field.ImageDataUrl" alt="" />}else{<span class="drawer-glyph">@FieldGlyph(field)</span>}<strong>@field.Name</strong></button>}
   @foreach(var card in ActionCards){<button class="drawer-front" style="@CardStyle(card)" @onclick="()=>Session.RollHandCardWithHistoryAsync(card)" aria-label="@card.Name action card">@if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}else{<span class="drawer-glyph">@Glyph(card)</span>}<strong>@card.Name</strong></button>}
@@ -52,10 +66,16 @@
  <div id="standard-slider" class="card-drawer-row standard-row desktop-arrow-slider" aria-label="Standard card game controls"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#standard-slider',-1)" aria-label="Scroll standard controls left">‹</button><div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Standard</strong></div><div class="standard-game-controls"><div class="standard-counts" aria-label="Card counts by type">@foreach(var type in Session.StandardCardTypes){<label><span>@type</span><input type="number" min="0" max="120" value="@Session.StandardTypeCount(type)" @onchange="e=>SetStandardCount(type,e)" /></label>}</div><label class="draw-only-setting"><input type="checkbox" checked="@Session.StandardDrawOnly" @onchange="e=>Session.SetStandardDrawOnly(e.Value is bool value&&value)" /><span>Draw only</span></label><button class="standard-save-icon" @onclick="SaveStandardDeck" aria-label="Save standard deck" title="Save standard deck"><span class="header-icon icon-save" aria-hidden="true"></span></button><label class="standard-load standard-load-icon" aria-label="Load standard deck" title="Load standard deck"><span class="header-icon icon-load" aria-hidden="true"></span><InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label><button class="standard-drawer-exit" @onclick="Session.CloseHand" aria-label="Close card sliders" title="Close card sliders"><span class="header-icon icon-exit" aria-hidden="true"></span></button></div><button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#standard-slider',1)" aria-label="Scroll standard controls right">›</button></div>
 </section>
 }
+
 <style>
-.token-placement-pane{position:relative;overflow:visible!important}.token-choice-strip{overflow:visible!important}
+.private-assets-rail{min-width:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-block:1px solid #6e592c;background:#0d1319;color:#eee6d3;overflow:hidden}.asset-rail-header{min-width:0;display:flex;align-items:center;gap:8px;padding:2px 6px;border-bottom:1px solid #40371f}.asset-rail-header>strong{flex:0 0 auto;color:#d7be80;font:800 9px/1 system-ui;letter-spacing:.13em;text-transform:uppercase}.asset-type-tabs{min-width:0;display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}.asset-type-tabs::-webkit-scrollbar{display:none}.asset-type-tabs button{flex:0 0 auto;height:24px;padding:0 8px;border:1px solid #51462d;border-radius:6px;background:#111920;color:#a99d82;font:700 8px/1 system-ui;text-transform:uppercase}.asset-type-tabs button.active{border-color:#c49a3b;background:#1b252d;color:#f1d68f}.private-assets-strip{min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr) 26px;align-items:center;overflow:hidden}.private-assets-items{min-width:0;height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:visible;padding:3px 4px;scrollbar-width:none}.private-assets-items::-webkit-scrollbar{display:none}.private-assets-empty{color:#8f8879;font-size:10px;white-space:nowrap}.token-pin-source{flex:0 0 auto}.elemental-token-selector{flex:0 0 auto}
 </style>
+
 @code{
+ static readonly (string Key,string Label)[] AssetTypes=[("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
+ string _assetType="cards";
+ string AssetTypeLabel=>AssetTypes.First(x=>x.Key==_assetType).Label;
+ void SelectAssetType(string type){_assetType=type;if(type!="cards"&&Session.HandOpen)Session.CloseHand();}
  async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
  void CancelPinDrag(PointerEventArgs e)=>Session.EndHeaderPinDrag();
