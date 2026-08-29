@@ -54,6 +54,20 @@
 
 @code{
  static readonly string[] AssetFamilies=["Miniatures","Caravans","Cards","Pieces","Tiles","Scenery","Weapons","Armor","Clothing","Containers","Misc"];
+ static readonly Dictionary<string,string[]> HeroTerms=new(StringComparer.OrdinalIgnoreCase)
+ {
+  ["Miniatures"]=["miniature","mini","figure","character","creature"],
+  ["Caravans"]=["caravan","wagon","cart","coach","locomotive","train","vehicle","ship","boat"],
+  ["Cards"]=["card back","playing card","card","deck"],
+  ["Pieces"]=["token","pawn","meeple","coin","chit","marker","piece"],
+  ["Tiles"]=["tile","floor tile","hex tile","square tile","road tile"],
+  ["Scenery"]=["tree","building","wall","door","terrain","scenery","furniture"],
+  ["Weapons"]=["sword","weapon","axe","bow","spear","dagger"],
+  ["Armor"]=["shield","armor","armour","helmet","helm"],
+  ["Clothing"]=["cloak","robe","shirt","boots","clothing","garment"],
+  ["Containers"]=["chest","backpack","bag","container","pouch","barrel","box"],
+  ["Misc"]=["misc","tool","object","bit"]
+ };
  bool _loginPromptOpen;
  bool _privateRestoreStarted;
  protected override void OnInitialized(){Session.Changed+=SessionChanged;if(Session.IsLoggedIn&&!_privateRestoreStarted){_privateRestoreStarted=true;_ = RestorePrivateWorldAsync();}}
@@ -64,7 +78,18 @@
  void CloseLoginPrompt()=>_loginPromptOpen=false;
  async Task ContinueDiscordLogin(){_loginPromptOpen=false;await Session.ToggleLoginAsync();}
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
- AtlasTile? CategoryHero(string category)=>Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category);
+ AtlasTile? CategoryHero(string category)
+ {
+  if(HeroTerms.TryGetValue(category,out var preferred))
+  {
+   foreach(var term in preferred)
+   {
+    var exact=Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category&&Has(x,term));
+    if(exact is not null)return exact;
+   }
+  }
+  return Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category);
+ }
  static string CategoryOf(AtlasTile tile){if(Has(tile,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";if(Has(tile,"armor","armour","shield","helmet","helm"))return "Armor";if(Has(tile,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";if(Has(tile,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";if(Has(tile,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";if(Has(tile,"card","deck"))return "Cards";if(Has(tile,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";if(Has(tile,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";if(Has(tile,"tile","floor","road","water","coast","hex","square"))return "Tiles";if(Has(tile,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";return "Misc";}
  static bool Has(AtlasTile tile,params string[] terms){var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";return terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));}
  static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Caravans"=>"➜","Cards"=>"▣","Pieces"=>"●","Tiles"=>"◇","Scenery"=>"⌂","Weapons"=>"⚔","Armor"=>"⬟","Clothing"=>"♜","Containers"=>"□",_=>"+"};
