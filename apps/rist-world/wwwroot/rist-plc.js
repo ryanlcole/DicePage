@@ -9,11 +9,11 @@
   ],
   shell:[
    'map-context-sidebar.js?v=5',
-   'recursion-layers.js?v=4',
+   'recursion-layers.js?v=5',
    'mmo-mode.js?v=4',
    'token-game-launcher.js?v=3',
    'start-menu.js?v=2',
-   'js/faux-depth.js?v=2'
+   'js/faux-depth.js?v=3'
   ],
   interaction:[
    'portrait-editor-live.js?v=3',
@@ -28,9 +28,7 @@
  };
  const styles={
   tabletop:[],
-  shell:[
-   'css/character-universal.css?v=universal-badge-1'
-  ],
+  shell:['css/character-universal.css?v=universal-badge-1'],
   interaction:[
    'css/art-studio.css?v=20260829-consolidated-1',
    'css/art-surface-controls.css?v=1',
@@ -56,8 +54,8 @@
   state.errors.push(error);console.error(`[RIST PLC] ${type} failed`,src);dispatchEvent(new CustomEvent('rist:module-error',{detail:error}));
  }
  function loadScript(src){
-  const key=`script:${canonical(src)}`;if(state.loaded.has(key))return state.loaded.get(key);
-  const existing=[...document.scripts].find(script=>{try{return canonical(script.src)===canonical(src)}catch{return false}});
+  const path=canonical(src),key=`script:${path}`;if(state.loaded.has(key))return state.loaded.get(key);
+  const existing=[...document.scripts].find(script=>{try{return canonical(script.src)===path}catch{return false}});
   if(existing?.dataset.ristLoaded==='1'||existing?.readyState==='complete'){
    existing.dataset.ristLoaded='1';const ready=Promise.resolve(existing);state.loaded.set(key,ready);return ready;
   }
@@ -107,9 +105,42 @@
  document.addEventListener('pointermove',e=>{if(e.target instanceof Element&&e.target.closest('.map,.rist-art-studio'))signalViewport()},{capture:true,passive:true});
  document.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('.map,.rist-art-studio'))signalViewport()},{capture:true,passive:true});
 
+ const motion={requested:false,attached:false,promise:null};
+ function attachOrientation(){
+  if(motion.attached)return;motion.attached=true;
+  addEventListener('deviceorientation',event=>{
+   const detail={
+    alpha:Number.isFinite(event.alpha)?event.alpha:0,
+    beta:Number.isFinite(event.beta)?event.beta:0,
+    gamma:Number.isFinite(event.gamma)?event.gamma:0,
+    absolute:!!event.absolute
+   };
+   dispatchEvent(new CustomEvent('rist:orientation',{detail}));
+  },{passive:true});
+ }
+ function requestOrientation(){
+  if(motion.attached)return Promise.resolve(true);
+  if(motion.promise)return motion.promise;
+  motion.requested=true;
+  motion.promise=(async()=>{
+   try{
+    const ctor=window.DeviceOrientationEvent;if(!ctor)return false;
+    if(typeof ctor.requestPermission==='function'){
+     const permission=await ctor.requestPermission();if(permission!=='granted')return false;
+    }
+    attachOrientation();return true;
+   }catch{return false}
+   finally{if(!motion.attached)motion.promise=null}
+  })();
+  return motion.promise;
+ }
+
  const core=()=>void scanCore(),interaction=()=>void scanInteraction();
  addEventListener('rist:app-ready',core,{once:true});setTimeout(core,10000);
  addEventListener('pointerdown',interaction,{once:true,capture:true,passive:true});addEventListener('keydown',interaction,{once:true,capture:true});
+ document.addEventListener('pointerdown',event=>{
+  if((event.pointerType==='touch'||event.pointerType==='pen')&&event.target instanceof Element&&event.target.closest('.map'))void requestOrientation();
+ },{capture:true,passive:true});
  if(!matchMedia('(max-width:800px)').matches){const idle=window.requestIdleCallback||((fn)=>setTimeout(fn,1800));idle(interaction,{timeout:5000})}
- window.RistRuntime={frame,signalDom,signalViewport};window.RistPLC={PHASE,state,ensureGroup,scanCore,scanInteraction,loadScript,loadStyle};
+ window.RistRuntime={frame,signalDom,signalViewport,requestOrientation,motion};window.RistPLC={PHASE,state,ensureGroup,scanCore,scanInteraction,loadScript,loadStyle};
 })();
