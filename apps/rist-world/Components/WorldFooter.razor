@@ -37,6 +37,7 @@
  <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="@ChatPrompt"></textarea></label>
  <button class="home-chat-send" @onclick="SendInlineChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
 </section>
+<div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
 </div>
 
 @if(_chatHistoryOpen)
