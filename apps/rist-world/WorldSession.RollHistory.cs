@@ -43,17 +43,23 @@ public sealed partial class WorldSession
     {
         var before=Rolls.Count;
         ActiveRollCardName=card.Name;
-        await RollHandCardAsync(card);
-        if(Rolls.Count>before)
+        try
         {
-            foreach(var roll in Rolls.Skip(before))
+            await RollHandCardAsync(card);
+            if(Rolls.Count>before)
             {
-                var die=Dice(roll.Key);
-                if(die is not null)RecordRollHistory(die,roll.Value);
+                foreach(var roll in Rolls.Skip(before))
+                {
+                    var die=Dice(roll.Key);
+                    if(die is not null)RecordRollHistory(die,roll.Value);
+                }
             }
         }
-        ActiveRollCardName="";
-        Notify();
+        finally
+        {
+            ActiveRollCardName="";
+            Notify();
+        }
     }
 
     public void ClearRollsWithHistory()
