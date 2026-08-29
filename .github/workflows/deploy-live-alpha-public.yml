@@ -59,7 +59,9 @@ jobs:
             <link rel="canonical" href="https://relicgamemaster.com/Game/">
             <title>Shaelvien RIST has moved</title>
             <script>
-              location.replace("https://relicgamemaster.com/Game/" + location.search + location.hash);
+              const suffix = location.pathname.replace(/^.*\/app\/?/, "");
+              const target = "https://relicgamemaster.com/Game/" + suffix;
+              location.replace(target + location.search + location.hash);
             </script>
           </head>
           <body>
@@ -76,10 +78,19 @@ jobs:
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <meta name="robots" content="noindex,follow">
             <meta http-equiv="refresh" content="0;url=https://relicgamemaster.com/">
-            <link rel="canonical" href="https://relicgamemaster.com/">
             <title>ReLiC GameMaster has moved</title>
             <script>
-              location.replace("https://relicgamemaster.com/" + location.search + location.hash);
+              (() => {
+                let path = location.pathname || "/";
+                path = path.replace(/^\/DicePage(?=\/|$)/i, "") || "/";
+                if (/^\/app(?:\/|$)/i.test(path)) {
+                  path = "/Game/" + path.replace(/^\/app\/?/i, "");
+                }
+                const target = new URL(path, "https://relicgamemaster.com/");
+                target.search = location.search;
+                target.hash = location.hash;
+                location.replace(target.href);
+              })();
             </script>
           </head>
           <body>
