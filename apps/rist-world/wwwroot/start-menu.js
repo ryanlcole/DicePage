@@ -1,5 +1,6 @@
 (()=>{
  const sections={
+  World:`<h2>World</h2><p class="rist-start-note">Edit shared world context and display time.</p>${row('Stars','<button type="button" data-world-context="stars">Edit</button>')}${row('Sky','<button type="button" data-world-context="sky">Edit</button>')}${row('Calendar','<button type="button" data-world-context="cal">Edit</button>')}${row('UGC','<button type="button" data-world-context="ugc">Edit</button>')}${row('Clock','<button type="button" data-world-clock>Edit</button>')}`,
   Video:`<h2>Video</h2>${row('Picture Mode',select(['Standard','Cinema','Game','Vivid','Custom']))}${range('Brightness',50)}${range('Contrast',50)}${range('Gamma',50)}${range('Motion',50)}${row('Aspect',select(['Auto','16:9','4:3','Fit','Fill']))}`,
   Picture:`<h2>Picture</h2>${range('Exposure',50)}${range('Highlights',50)}${range('Shadows',50)}${range('Saturation',50)}${range('Temperature',50)}${range('Sharpness',50)}${range('Opacity',100)}`,
   Sound:`<h2>Sound</h2><p class="rist-start-note">Mixing-board foundation. Shaelvien tileset controls and external sound-app integrations can plug into these channels.</p>${range('Master',75)}${range('Music',70)}${range('Effects',80)}${range('Voice',80)}${range('Ambient',75)}${range('UI',65)}${row('Sound Apps','<button type="button" disabled>Future integrations</button>')}`,
@@ -21,7 +22,7 @@
   if(!overlay){overlay=document.createElement('div');overlay.className='rist-start-overlay';overlay.hidden=true;overlay.innerHTML='<div class="rist-start-panel" role="dialog" aria-modal="true" aria-label="Start menu"></div>';document.body.appendChild(overlay)}
   panel=overlay.querySelector('.rist-start-panel');showHome(panel);
   if(overlay.dataset.wired)return;overlay.dataset.wired='1';
-  overlay.addEventListener('click',e=>{const section=e.target.closest('[data-start-section]');if(section){showSection(panel,section.dataset.startSection);return}if(e.target.closest('[data-start-back]')){showHome(panel);return}if(e.target.closest('[data-start-exit]'))close()});
+  overlay.addEventListener('click',e=>{const context=e.target.closest('[data-world-context]');if(context){window.RistWorldContext?.edit?.(context.dataset.worldContext);return}if(e.target.closest('[data-world-clock]')){window.RistWorldContext?.openClock?.();return}const section=e.target.closest('[data-start-section]');if(section){showSection(panel,section.dataset.startSection);return}if(e.target.closest('[data-start-back]')){showHome(panel);return}if(e.target.closest('[data-start-exit]'))close()});
  }
  function open(){ensure();showHome(panel);overlay.hidden=false;pause(true)}
  function close(){if(!overlay)return;overlay.hidden=true;pause(false)}
