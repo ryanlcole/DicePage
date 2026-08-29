@@ -1,3 +1,5 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 @inject WorldSession Session
 <section id="public-card-slider" class="public-assets-rail" aria-label="Public assets" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
  <header class="asset-rail-header public-assets-header">
@@ -12,6 +14,7 @@
  <div id="public-assets-slider" class="public-assets-strip desktop-arrow-slider">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#public-assets-slider',-1)" aria-label="Scroll public assets left">‹</button>
   <div class="public-assets-items">
+   <button class="token-pin-source public-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag public map pin onto map" title="Map pin"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
    @if(Session.PublicAssetType is "all" or "cards")
    {
     @if(Session.PublicCards.Count==0)
@@ -32,7 +35,7 @@
    }
    else
    {
-    <span class="public-assets-empty">Public @AssetTypeLabel.ToLowerInvariant() are staged in the rail below.</span>
+    <span class="public-assets-empty">No public @AssetTypeLabel.ToLowerInvariant() staged.</span>
    }
   </div>
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#public-assets-slider',1)" aria-label="Scroll public assets right">›</button>
@@ -40,12 +43,15 @@
 </section>
 
 <style>
-.public-assets-rail{min-width:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-block:1px solid #6e592c;background:#0d1319;color:#eee6d3;overflow:hidden}.public-assets-strip{min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr) 26px;align-items:center;overflow:hidden}.public-assets-items{min-width:0;height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;padding:3px 4px;scrollbar-width:none}.public-assets-items::-webkit-scrollbar{display:none}.public-assets-empty{color:#8f8879;font-size:10px;white-space:nowrap}.public-asset-card{flex:0 0 46px;width:46px;height:46px;display:grid;place-items:center;padding:3px;border:1px solid #6e592c;border-radius:7px;background:#111920;color:#e5d7b6;overflow:hidden}.public-asset-card img{width:100%;height:100%;object-fit:cover}.public-asset-card small{display:none}
+.public-assets-rail{min-width:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-block:1px solid #6e592c;background:#0d1319;color:#eee6d3;overflow:hidden}.public-assets-strip{min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr) 26px;align-items:center;overflow:hidden}.public-assets-items{min-width:0;height:100%;display:flex;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;padding:6px 4px;scrollbar-width:none}.public-assets-items::-webkit-scrollbar{display:none}.public-assets-empty{color:#8f8879;font-size:10px;white-space:nowrap}.public-pin-source{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center}.public-pin-source .map-pin-icon{width:70%;height:70%}.public-asset-card{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;padding:3px;border:1px solid #6e592c;border-radius:8px;background:#111920;color:#e5d7b6;overflow:hidden}.public-asset-card img{width:100%;height:100%;object-fit:cover}.public-asset-card small{display:none}
 </style>
 
 @code{
  static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
  string AssetTypeLabel=>AssetTypes.First(x=>x.Key==Session.PublicAssetType).Label;
+ async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
+ async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
+ void CancelPinDrag(PointerEventArgs e)=>Session.EndHeaderPinDrag();
  string CardStyle(HandCard card)=>$"--field-accent:{AccentHex(card.Field.Color)}";
  static string Glyph(HandCard card)=>WorldSession.IsTrackerField(card.Field)?"◉":WorldSession.IsFlareField(card.Field)?"✦":"•";
  static string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","green"=>"#58a765","teal"=>"#41aaa4","blue"=>"#4c82d5","purple"=>"#9653c9",_=>"#d9a82f"};
