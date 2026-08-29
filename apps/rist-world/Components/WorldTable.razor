@@ -1,96 +1,87 @@
 @implements IDisposable
 @inject WorldSession Session
 @inject IJSRuntime JS
-<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") tabletop-rail-layout">
+<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") tabletop-shell">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
 
- <section class="tabletop-top-dock @(_topExpanded?"expanded":"collapsed")" aria-label="Upper tabletop controls">
-  <div class="tabletop-top-row">
-   <button type="button" class="tabletop-dock-toggle top-toggle" @onclick="()=>_topExpanded=!_topExpanded" aria-expanded="@_topExpanded" title="@(_topExpanded?"Collapse upper sliders left":"Expand upper sliders")">@(_topExpanded?"‹":"›")</button>
-   <div class="tabletop-top-primary"><WorldHeader /></div>
-  </div>
-  @if(_topExpanded)
-  {
-   <div class="tabletop-top-sliders">
-    <PublicCardRail />
-    <AssetLibrary />
-    <RecursionCockpit />
-   </div>
-  }
+ <WorldHeader />
+
+ <nav class="map-meta-top" aria-label="Map status">
+  <span><small>Coordinates</small><strong>@Session.WorldCoordinateLabel</strong></span>
+  <span><small>Game Date</small><strong>Day 1</strong></span>
+  <span><small>Game Time</small><strong>00:00</strong></span>
+  <span><small>Real Date</small><strong>@DateTime.Now.ToString("yyyy-MM-dd")</strong></span>
+  <span><small>Real Time</small><strong>@DateTime.Now.ToString("HH:mm")</strong></span>
+  <button type="button" @onclick="Session.CycleMapDirection"><small>Direction</small><strong>@Session.MapDirection</strong></button>
+ </nav>
+
+ <section class="map-frame" aria-label="Tabletop map frame">
+  <WorldMap />
+  <aside class="public-side-rail" aria-label="Public assets"><span class="side-rail-title">PUBLIC</span><PublicCardRail /></aside>
  </section>
 
- <WorldMap />
+ <footer class="map-meta-bottom" aria-label="Map details">
+  <span><small>World Name</small><strong>@Session.MapName</strong></span>
+  <label><small>Area Name</small><input @bind="Session.AreaName" @bind:event="oninput" /></label>
+  <label class="gm-note"><small>GM Note</small><input @bind="Session.GmNote" @bind:event="oninput" /></label>
+  <span><small>GM Name</small><strong>@Session.GmName</strong></span>
+  <span><small>Units / sq</small><strong>@Session.EffectiveGridDistance.ToString("0.##") @Session.EffectiveGridUnit</strong></span>
+ </footer>
 
- <section class="tabletop-bottom-dock @(_bottomExpanded?"expanded":"collapsed")" aria-label="Lower tabletop controls">
+ <section class="player-tool-dock @(_bottomExpanded?"expanded":"collapsed")" aria-label="Player tools">
+  <div class="player-tool-launchers">
+   <button type="button" class="bottom-collapse" @onclick="()=>_bottomExpanded=!_bottomExpanded" aria-expanded="@_bottomExpanded">@(_bottomExpanded?"‹":"›")</button>
+   <button type="button" @onclick="()=>OpenBottom("public")">Player Public Assets</button>
+   <button type="button" @onclick="()=>OpenBottom("private")">Player Private Assets</button>
+   <button type="button" @onclick="()=>OpenBottom("dice")">Dice</button>
+   <button type="button" @onclick="()=>OpenBottom("chat")">Chat</button>
+  </div>
   @if(_bottomExpanded)
   {
-   <div class="tabletop-bottom-sliders">
-    <HandRail />
-    <WorldFooter />
-    <CharacterMixer />
-    <MmoZoneActions />
+   <div class="player-tool-content" data-panel="@_bottomPanel">
+    @if(_bottomPanel is "public" or "private")
+    {
+     <HandRail />
+     @if(_bottomPanel=="private"){<CharacterMixer />}
+    }
+    else
+    {
+     <WorldFooter />
+    }
    </div>
   }
-  <div class="tabletop-bottom-row">
-   <span class="tabletop-bottom-spacer"></span>
-   <button type="button" class="tabletop-dock-toggle bottom-toggle" @onclick="()=>_bottomExpanded=!_bottomExpanded" aria-expanded="@_bottomExpanded" title="@(_bottomExpanded?"Collapse lower sliders right":"Expand lower sliders")">@(_bottomExpanded?"›":"‹")</button>
-  </div>
  </section>
-
+ <MmoZoneActions />
  <RistWelcomeTutorial />
 </div>
 
 <style>
-.tabletop-rail-layout{min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
-.tabletop-top-dock,.tabletop-bottom-dock{position:relative;z-index:55;min-width:0;background:#081118e8}
-.tabletop-top-row,.tabletop-bottom-row{display:grid;align-items:center;min-width:0}
-.tabletop-top-row{grid-template-columns:32px minmax(0,1fr);border-bottom:1px solid #665124}
-.tabletop-bottom-row{grid-template-columns:minmax(0,1fr) 32px;border-top:1px solid #665124}
-.tabletop-top-primary{min-width:0;overflow:hidden}.tabletop-top-primary>.topbar{margin:0!important;border:0!important}
-.tabletop-dock-toggle{width:30px;height:100%;min-height:38px;border:0;background:#101920;color:#d9b85e;font:700 24px/1 Georgia,serif;box-shadow:inset 0 0 0 1px #705a2b;touch-action:manipulation}
-.tabletop-top-sliders,.tabletop-bottom-sliders{display:grid;gap:0;min-width:0;max-height:40dvh;overflow-y:auto;overscroll-behavior:contain}
-.tabletop-top-sliders>* ,.tabletop-bottom-sliders>*{min-width:0;max-width:100%;}
-.tabletop-top-dock.collapsed .tabletop-top-row{border-bottom-color:#4b3b1e}.tabletop-bottom-dock.collapsed .tabletop-bottom-row{border-top-color:#4b3b1e}
-.tabletop-bottom-dock.collapsed{height:34px}.tabletop-bottom-dock.collapsed .tabletop-bottom-row{height:34px}
-.tabletop-rail-layout>.table-workspace{min-height:0!important;height:auto!important;overflow:hidden}
-.tabletop-top-sliders .public-card-drop,.tabletop-top-sliders .asset-slider-stack,.tabletop-top-sliders .recursion-cockpit,.tabletop-bottom-sliders .hand-rail,.tabletop-bottom-sliders .dice-footer{margin:0!important;border-radius:0!important}
-@@media(max-width:800px){.tabletop-rail-layout{height:100dvh}.tabletop-top-row{grid-template-columns:28px minmax(0,1fr)}.tabletop-bottom-row{grid-template-columns:minmax(0,1fr) 28px}.tabletop-dock-toggle{width:28px;min-height:34px;font-size:21px}.tabletop-top-sliders,.tabletop-bottom-sliders{max-height:34dvh}}
+.tabletop-shell{height:100dvh;min-height:100dvh;display:grid;grid-template-rows:auto 28px minmax(0,1fr) 30px auto;overflow:hidden;background:#071118}
+.map-meta-top,.map-meta-bottom{display:flex;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1319;border-block:1px solid #5d4a24;color:#c9b67e}.map-meta-top::-webkit-scrollbar,.map-meta-bottom::-webkit-scrollbar{display:none}.map-meta-top>* ,.map-meta-bottom>*{flex:0 0 auto;min-width:108px;height:100%;display:grid;grid-template-rows:10px 1fr;align-content:center;padding:2px 8px;border:0;border-right:1px solid #3f351e;background:transparent;color:inherit;text-align:left}.map-meta-top small,.map-meta-bottom small{font:700 7px/1 system-ui;text-transform:uppercase;letter-spacing:.07em;opacity:.65}.map-meta-top strong,.map-meta-bottom strong{font:700 9px/1.1 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.map-meta-top button{cursor:pointer}.map-meta-bottom label{min-width:150px}.map-meta-bottom .gm-note{min-width:210px}.map-meta-bottom input{width:100%;min-width:0;border:0;border-bottom:1px solid #594a2b;background:#0f181f;color:#ded0a8;font:600 9px/1 system-ui;padding:1px 3px;outline:none}
+.map-frame{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 82px;overflow:hidden}.map-frame>.table-workspace{min-width:0;min-height:0;height:100%!important;display:grid!important;grid-template-columns:74px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important}.map-frame>.table-workspace>.staging-tray{grid-column:1!important;grid-row:1!important;height:100%!important;min-height:0!important;width:74px!important;display:flex!important;flex-direction:column!important;overflow-y:auto!important;overflow-x:hidden!important;margin:0!important;border-radius:0!important}.map-frame>.table-workspace>.staging-tray .rail-scroll-arrow{width:100%!important;min-height:28px!important}.map-frame>.table-workspace>.map-shell{grid-column:2!important;grid-row:1!important;min-height:0!important;height:100%!important;margin:0!important}.map-frame>.table-workspace>.tile-browser{display:none!important}
+.public-side-rail{grid-column:2;min-width:0;min-height:0;display:grid;grid-template-rows:18px minmax(0,1fr);border-left:1px solid #6a5427;background:#091219;overflow:hidden}.side-rail-title{display:grid;place-items:center;color:#bca260;font:700 8px/1 system-ui;letter-spacing:.12em;border-bottom:1px solid #4b3d21}.public-side-rail .public-card-drop{height:100%!important;min-height:0!important;width:100%!important;display:grid!important;grid-template-rows:28px minmax(0,1fr) 28px!important;grid-template-columns:1fr!important;margin:0!important;border:0!important;border-radius:0!important;overflow:hidden!important}.public-side-rail .public-card-strip{display:flex!important;flex-direction:column!important;gap:6px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:4px!important}.public-side-rail .rail-scroll-arrow{width:100%!important;height:28px!important;min-height:28px!important}.public-side-rail .public-table-card{flex:0 0 auto!important;width:70px!important;max-width:70px!important;margin:auto!important}.public-side-rail .public-card-empty{writing-mode:vertical-rl;transform:rotate(180deg);margin:auto;font-size:8px}
+.player-tool-dock{position:relative;z-index:60;min-width:0;background:#081118f4;border-top:1px solid #725a28}.player-tool-launchers{display:flex;align-items:stretch;gap:3px;min-height:36px;padding:3px;overflow-x:auto;scrollbar-width:none}.player-tool-launchers::-webkit-scrollbar{display:none}.player-tool-launchers button{flex:0 0 auto;min-height:32px;border:1px solid #5c4925;border-radius:7px;background:#111a21;color:#d5bf82;padding:5px 9px;font:700 9px/1.1 system-ui}.player-tool-launchers .bottom-collapse{width:32px;padding:0;font-size:20px}.player-tool-content{max-height:29dvh;overflow:auto;border-top:1px solid #41361f}.player-tool-dock.collapsed .player-tool-content{display:none}.player-tool-content>.hand-rail,.player-tool-content .home-footer-stack{margin:0!important;border-radius:0!important}
+.tabletop-shell>.mmo-zone-actions{position:absolute!important}
+@@media(max-width:800px){.tabletop-shell{grid-template-rows:auto 27px minmax(0,1fr) 29px auto}.map-frame{grid-template-columns:minmax(0,1fr) 58px}.map-frame>.table-workspace{grid-template-columns:52px minmax(0,1fr)!important}.map-frame>.table-workspace>.staging-tray{width:52px!important}.public-side-rail .public-table-card{width:50px!important;max-width:50px!important}.map-meta-top>* ,.map-meta-bottom>*{min-width:94px;padding-inline:6px}.map-meta-bottom label{min-width:120px}.map-meta-bottom .gm-note{min-width:150px}.player-tool-launchers button{padding-inline:7px;font-size:8px}}
 </style>
 
 @code{
- bool _topExpanded=true;
  bool _bottomExpanded=true;
+ string _bottomPanel="dice";
  readonly CancellationTokenSource _autosaveCts=new();
+ void OpenBottom(string panel){_bottomPanel=panel;_bottomExpanded=true;}
  protected override async Task OnInitializedAsync()
  {
   Session.Changed+=SessionChanged;
   IJSObjectReference? policy=null;
-  try
-  {
-   policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");
-   await policy.InvokeVoidAsync("restorePersistentSession");
-  }
-  catch(JSException){}
+  try{policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");await policy.InvokeVoidAsync("restorePersistentSession");}catch(JSException){}
   await Session.InitializeAsync();
-  if(policy is not null)
-  {
-   try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}
-   catch(JSException){}
-   await policy.DisposeAsync();
-  }
+  if(policy is not null){try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}catch(JSException){}await policy.DisposeAsync();}
   await Session.LoadPrivateCheckpointAsync();
   await Session.LoadThirdPartyStarterAssetsAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
  }
- async Task AutosaveLoopAsync(CancellationToken token)
- {
-  try
-  {
-   using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));
-   while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();
-  }
-  catch(OperationCanceledException){}
- }
+ async Task AutosaveLoopAsync(CancellationToken token){try{using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();}catch(OperationCanceledException){}}
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose(){_autosaveCts.Cancel();_autosaveCts.Dispose();Session.Changed-=SessionChanged;}
 }
