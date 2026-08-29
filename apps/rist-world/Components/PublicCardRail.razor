@@ -1,48 +1,41 @@
 @inject WorldSession Session
-<section id="public-card-slider" class="public-card-drop desktop-arrow-slider" aria-label="Public tabletop cards" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
- <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#public-card-slider',-1)" aria-label="Scroll public cards left">‹</button>
- <div class="public-card-strip">
-  @if(Session.PublicCards.Count==0)
+<section id="public-card-slider" class="public-assets-rail desktop-arrow-slider" aria-label="Public assets" @ondragover:preventDefault="true" @ondrop="Session.PublishDraggedHandCard">
+ <strong class="public-assets-title">Public Assets</strong>
+ <nav class="asset-type-tabs public-asset-tabs" aria-label="Public asset type">
+  @foreach(var type in AssetTypes)
   {
-   <div class="public-card-empty">@(Session.IsLoggedIn?"Drag a card here to show it publicly.":"Log in for additional features.")</div>
+   <button type="button" class="@(Session.PublicAssetType==type.Key?"active":"")" @onclick="()=>Session.SetPublicAssetType(type.Key)" aria-pressed="@(Session.PublicAssetType==type.Key)">@type.Label</button>
   }
-  else
-  {
-   @foreach(var card in Session.PublicCards)
+ </nav>
+ @if(Session.PublicAssetType is "all" or "cards")
+ {
+  <div class="public-card-strip public-assets-card-strip">
+   @if(Session.PublicCards.Count==0)
    {
-    <article class="public-table-card" style="@CardStyle(card)" @key="card.Field.Id">
-     <button class="public-card-remove tap-safe" title="Return card to hand" @onclick="()=>Session.RemovePublicCard(card)">×</button>
-     <div class="public-card-name">@card.Name</div>
-     @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl))
-     {
-      <img class="public-card-image" src="@card.Field.ImageDataUrl" alt="@card.Name" />
-     }
-     else
-     {
-      <div class="public-card-image public-card-glyph">@Glyph(card)</div>
-     }
-     @if(WorldSession.IsTrackerField(card.Field))
-     {
-      <div class="public-tracker-value"><strong>@card.Value</strong><span>/ @card.Max</span></div>
-      <input class="public-tracker-slider" type="range" min="0" max="@Math.Max(card.Max,1)" value="@card.Value" @oninput="e=>SetTracker(card.Field,e)" />
-     }
-     else
-     {
-      <div class="public-card-value">@CardValue(card)</div>
-     }
-     <button class="dicebag-button public-card-bag" title="Roll dice bag" @onclick="()=>Roll(card)"><img src="assets/ui/custom_dicebag.png" alt="Dice bag"/><span class="bag-count">@card.DiceBag.Sum(x=>x.Count)</span></button>
-    </article>
+    <span class="public-assets-empty">@(Session.IsLoggedIn?"No public cards.":"Log in for additional features.")</span>
    }
-  }
- </div>
- <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#public-card-slider',1)" aria-label="Scroll public cards right">›</button>
+   else
+   {
+    @foreach(var card in Session.PublicCards)
+    {
+     <button class="public-asset-card" style="@CardStyle(card)" title="@card.Name" @onclick="()=>Session.ShowCard(card.Field.ToCardItem())">
+      @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
+      else{<span>@Glyph(card)</span>}
+      <small>@card.Name</small>
+     </button>
+    }
+   }
+  </div>
+ }
 </section>
+
+<style>
+.public-assets-rail{box-sizing:border-box;min-width:0;display:flex;align-items:center;gap:6px;padding:3px 6px;background:#0d1319;border-block:1px solid #6e592c;color:#eee6d3;overflow:hidden}.public-assets-title{flex:0 0 auto;color:#d7be80;font:800 9px/1 system-ui;letter-spacing:.13em;text-transform:uppercase}.public-asset-tabs{flex:0 1 auto;max-width:56%;}.public-assets-card-strip{min-width:0;flex:1;display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none}.public-assets-card-strip::-webkit-scrollbar{display:none}.public-asset-card{flex:0 0 34px;width:34px;height:34px;display:grid;place-items:center;padding:2px;border:1px solid #6e592c;border-radius:6px;background:#111920;color:#e5d7b6;overflow:hidden}.public-asset-card img{width:100%;height:100%;object-fit:cover}.public-asset-card small{display:none}.public-assets-empty{color:#8f8879;font-size:9px;white-space:nowrap}
+</style>
+
 @code{
- string CardStyle(HandCard card)=>$"--card-face:url('{CardFront(card)}');--field-accent:{AccentHex(card.Field.Color)}";
- string CardFront(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"assets/cards/fronts/card_front_01_three_roses.png":WorldSession.IsTrackerField(card.Field)?"assets/cards/fronts/card_front_02_two_roses.png":WorldSession.IsLimitField(card.Field)?"assets/cards/fronts/card_front_03_four_roses.png":card.Field.Group=="Skills"?"assets/cards/fronts/card_front_04_single_rose.png":WorldSession.IsFlareField(card.Field)?"assets/cards/fronts/card_front_05_two_low_roses.png":"assets/cards/fronts/card_front_06_minimal.png";
- string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","yellow"=>"#f0d85c","lime"=>"#9bc84a","green"=>"#58a765","teal"=>"#41aaa4","cyan"=>"#55c7dc","blue"=>"#4c82d5","indigo"=>"#6559c7","purple"=>"#9653c9","magenta"=>"#cf59ad","rose"=>"#d16d7f","silver"=>"#b8bdc4","white"=>"#eee6d2",_=>"#d9a82f"};
- string Glyph(HandCard card)=>WorldSession.IsAttributeField(card.Field)?"±":WorldSession.IsLimitField(card.Field)?"MAX":WorldSession.IsFlareField(card.Field)?"✦":"+";
- string CardValue(HandCard card)=>WorldSession.IsAttributeField(card.Field)?$"{card.BaseValue} ({(card.Value>0?"+":"")}{card.Value})":WorldSession.IsLimitField(card.Field)?$"{card.Value}/{card.Max}":WorldSession.IsFlareField(card.Field)?"FLARE":card.Value.ToString();
- void SetTracker(CharacterField field,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetTrackerCurrent(field,value);}
- async Task Roll(HandCard card)=>await Session.RollHandCardAsync(card);
+ static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
+ string CardStyle(HandCard card)=>$"--field-accent:{AccentHex(card.Field.Color)}";
+ static string Glyph(HandCard card)=>WorldSession.IsTrackerField(card.Field)?"◉":WorldSession.IsFlareField(card.Field)?"✦":"•";
+ static string AccentHex(string c)=>c switch{"red"=>"#c7493a","orange"=>"#e9852c","gold"=>"#d9a82f","green"=>"#58a765","teal"=>"#41aaa4","blue"=>"#4c82d5","purple"=>"#9653c9",_=>"#d9a82f"};
 }
