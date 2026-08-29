@@ -2,16 +2,16 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
+<section class="world-context-strip" aria-label="World context">
+ <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
+ <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
+ <button type="button" class="world-context-action" data-context="cal" onclick="window.RistWorldContext?.edit?.('cal')"><strong>Cal:</strong> <span>EDIT</span></button>
+ <button type="button" class="world-context-action" data-context="ugc" onclick="window.RistWorldContext?.edit?.('ugc')"><strong>UGC:</strong> <span>EDIT</span></button>
+ <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
+ <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
+</section>
 <div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor")">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
- <section class="world-context-strip" aria-label="World context">
-  <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="cal" onclick="window.RistWorldContext?.edit?.('cal')"><strong>Cal:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="ugc" onclick="window.RistWorldContext?.edit?.('ugc')"><strong>UGC:</strong> <span>EDIT</span></button>
-  <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
-  <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
- </section>
  <WorldHeader />
  <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
  <PublicCardRail />
