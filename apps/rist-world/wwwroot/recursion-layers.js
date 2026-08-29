@@ -14,7 +14,7 @@
  const RECENT_KEY='rist.recursion.tier.v3';
  const remembered=(()=>{try{return JSON.parse(localStorage.getItem(RECENT_KEY)||'{}')}catch{return {}}})();
  const catalogByImage=new Map(),catalogByName=new Map();
- let scheduled=false,rememberSavePending=false,tiltX=0,tiltY=0,rightDrag=null,orientationWired=false,lastStageBase='',catalogLoaded=false;
+ let scheduled=false,rememberSavePending=false,tiltX=0,tiltY=0,rightDrag=null,lastStageBase='',catalogLoaded=false;
  const map=()=>document.querySelector('.map');
  const stage=()=>document.querySelector('.world-stage');
  const zoom=()=>Math.max(.1,parseFloat(map()?.dataset.zoom||'1')||1);
@@ -71,12 +71,17 @@
  function stripTilt(transform){return String(transform||'').replace(/\s*rotateX\([^)]*\)/g,'').replace(/\s*rotateY\([^)]*\)/g,'').trim()}
  function applyTilt(){const s=stage();if(!s)return;const raw=stripTilt(s.style.transform);if(raw&&raw!==lastStageBase)lastStageBase=raw;const base=raw||lastStageBase||'';const composed=`${base}${base?' ':''}rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg)`;if(s.style.transform!==composed)s.style.transform=composed}
  const setTilt=(x,y)=>{tiltX=Math.max(-10,Math.min(10,x));tiltY=Math.max(-12,Math.min(12,y));applyTilt()};
- function wireRightTilt(){const m=map();if(!m||m.dataset.ristTiltWired==='2')return;m.dataset.ristTiltWired='2';m.addEventListener('contextmenu',e=>e.preventDefault());m.addEventListener('pointerdown',e=>{if(e.button!==2)return;rightDrag={id:e.pointerId,x:e.clientX,y:e.clientY,tx:tiltX,ty:tiltY};m.setPointerCapture?.(e.pointerId);e.preventDefault();e.stopPropagation()});m.addEventListener('pointermove',e=>{if(!rightDrag||rightDrag.id!==e.pointerId||(e.buttons&2)!==2)return;setTilt(rightDrag.tx-(e.clientY-rightDrag.y)*.08,rightDrag.ty+(e.clientX-rightDrag.x)*.08);e.preventDefault();e.stopPropagation()},{passive:false});const end=e=>{if(!rightDrag||rightDrag.id!==e.pointerId)return;rightDrag=null;e.preventDefault();e.stopPropagation()};m.addEventListener('pointerup',end);m.addEventListener('pointercancel',end)}
- async function enableOrientation(){if(orientationWired)return;try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const permission=await DeviceOrientationEvent.requestPermission();if(permission!=='granted')return}}catch{return}orientationWired=true;addEventListener('deviceorientation',e=>{if(e.gamma==null||e.beta==null)return;setTilt((e.beta-45)*.10,e.gamma*.12)},{passive:true})}
- function wireOrientation(){const m=map();if(!m||m.dataset.ristOrientationWired==='2')return;m.dataset.ristOrientationWired='2';m.addEventListener('pointerdown',()=>void enableOrientation(),{once:true,passive:true})}
+ function wireRightTilt(){const m=map();if(!m||m.dataset.ristTiltWired==='3')return;m.dataset.ristTiltWired='3';m.addEventListener('contextmenu',e=>e.preventDefault());m.addEventListener('pointerdown',e=>{if(e.button!==2)return;rightDrag={id:e.pointerId,x:e.clientX,y:e.clientY,tx:tiltX,ty:tiltY};m.setPointerCapture?.(e.pointerId);e.preventDefault();e.stopPropagation()});m.addEventListener('pointermove',e=>{if(!rightDrag||rightDrag.id!==e.pointerId||(e.buttons&2)!==2)return;setTilt(rightDrag.tx-(e.clientY-rightDrag.y)*.08,rightDrag.ty+(e.clientX-rightDrag.x)*.08);e.preventDefault();e.stopPropagation()},{passive:false});const end=e=>{if(!rightDrag||rightDrag.id!==e.pointerId)return;rightDrag=null;e.preventDefault();e.stopPropagation()};m.addEventListener('pointerup',end);m.addEventListener('pointercancel',end)}
  function indexCatalog(rows){for(const row of rows){const image=cleanUrl(row?.image);if(image&&!catalogByImage.has(image))catalogByImage.set(image,row);const name=String(row?.name||'');if(name&&!catalogByName.has(name))catalogByName.set(name,row)}}
- async function loadCatalog(){if(catalogLoaded)return;catalogLoaded=true;for(const url of ['data/atlas-public.json','assets/drive-tiles/catalog.json']){try{const response=await fetch(url,{cache:'default'});if(response.ok){const rows=await response.json();if(Array.isArray(rows))indexCatalog(rows)}}catch(error){console.warn('[RIST recursion] catalog unavailable',url,error)}}schedule()}
- function refresh(){wireRightTilt();wireOrientation();schedule()}
+ async function loadCatalog(){
+  if(catalogLoaded)return;catalogLoaded=true;
+  for(const url of ['assets/drive-tiles/catalog.json','data/atlas-public.json']){
+   try{const response=await fetch(url,{cache:'default'});if(!response.ok)continue;const rows=await response.json();if(Array.isArray(rows)){indexCatalog(rows);break}}
+   catch(error){console.warn('[RIST recursion] catalog unavailable',url,error)}
+  }
+  schedule();
+ }
+ function refresh(){wireRightTilt();schedule()}
  document.addEventListener('rist:dom-change',refresh);document.addEventListener('rist:viewport-change',refresh);
  void loadCatalog();refresh();
  window.RistRecursion={currentTier,tiers:[...tierOrder],layers:[...layerOrder],refresh:schedule};
