@@ -2,44 +2,56 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    public static readonly string[] RecursionLayers =
+    public static readonly string[] RecursionTiers =
     [
-        "WORLD","REGION","LOCAL","SITE","ROOM","ENCOUNTER","OBJECT","CONTAINER","CONTENTS","WEATHER"
+        "WORLD","REGION","LOCAL","SITE","ROOM","ENCOUNTER","OBJECT","CONTAINER","CONTENTS"
     ];
+
+    // Compatibility alias for older components/snapshots. WEATHER is a visual
+    // layer, never a navigable recursion tier.
+    public static IReadOnlyList<string> RecursionLayers => RecursionTiers;
 
     private Dictionary<string,AtlasTile> _atlasById = new(StringComparer.Ordinal);
     private int _atlasIndexCount = -1;
 
     public string ViewportLayer { get; private set; } = "WORLD";
+    public string ViewportTier => ViewportLayer;
+
+    public void SetViewportTier(string? tier) => SetViewportLayer(tier);
 
     public void SetViewportLayer(string? layer)
     {
-        var normalized = NormalizeRecursionLayer(layer);
+        var normalized = NormalizeRecursionTier(layer);
         if (ViewportLayer == normalized) return;
         ViewportLayer = normalized;
         Notify();
     }
 
-    public static string NormalizeRecursionLayer(string? layer)
+    public static string NormalizeRecursionTier(string? tier)
     {
-        var value = (layer ?? "WORLD").Trim().ToUpperInvariant();
+        var value = (tier ?? "WORLD").Trim().ToUpperInvariant();
         return value switch
         {
             "ZONE" or "CONTINENT" => "REGION",
             "AREA" => "LOCAL",
             "TACTICAL" or "INSTANCE" => "ENCOUNTER",
-            "UNIVERSAL" or "" => "WORLD",
-            _ when RecursionLayers.Contains(value) => value,
+            "UNIVERSAL" or "WEATHER" or "" => "WORLD",
+            _ when RecursionTiers.Contains(value) => value,
             _ => "WORLD"
         };
     }
 
-    public static int RecursionLayerRank(string? layer)
+    // Legacy name retained while saved-map and component code migrates to tier terminology.
+    public static string NormalizeRecursionLayer(string? layer) => NormalizeRecursionTier(layer);
+
+    public static int RecursionTierRank(string? tier)
     {
-        var normalized = NormalizeRecursionLayer(layer);
-        var index = Array.IndexOf(RecursionLayers, normalized);
+        var normalized = NormalizeRecursionTier(tier);
+        var index = Array.IndexOf(RecursionTiers, normalized);
         return index < 0 ? 0 : index;
     }
+
+    public static int RecursionLayerRank(string? layer) => RecursionTierRank(layer);
 
     private AtlasTile? FindAtlasTile(string id)
     {
@@ -54,8 +66,9 @@ public sealed partial class WorldSession
 
     public string NativeLayer(AtlasTile tile)
     {
-        if (string.Equals(tile.Layer,"UNIVERSAL",StringComparison.OrdinalIgnoreCase)) return ViewportLayer;
-        return NormalizeRecursionLayer(tile.Layer);
+        if (string.Equals(tile.Layer,"WEATHER",StringComparison.OrdinalIgnoreCase)) return "WEATHER";
+        if (string.Equals(tile.Layer,"UNIVERSAL",StringComparison.OrdinalIgnoreCase)) return ViewportTier;
+        return NormalizeRecursionTier(tile.Layer);
     }
 
     public string NativeLayer(StagedAsset staged)
@@ -72,7 +85,7 @@ public sealed partial class WorldSession
             "pawn" or "pin" => "LOCAL",
             "terrain" => "LOCAL",
             "bit" => "OBJECT",
-            _ => ViewportLayer
+            _ => ViewportTier
         };
     }
 
@@ -80,7 +93,7 @@ public sealed partial class WorldSession
     {
         var atlas = FindAtlasTile(tile.Id);
         if (atlas is not null) return NativeLayer(atlas);
-        return ViewportLayer;
+        return ViewportTier;
     }
 
     public string NativeLayer(PieceItem piece) => piece.Kind switch
@@ -90,14 +103,14 @@ public sealed partial class WorldSession
         "pawn" or "pin" => "LOCAL",
         "terrain" => "LOCAL",
         "bit" => "OBJECT",
-        _ => ViewportLayer
+        _ => ViewportTier
     };
 
     public bool LayerParticipatesInViewport(string? nativeLayer)
     {
-        var normalized = NormalizeRecursionLayer(nativeLayer);
-        if (normalized == "WEATHER") return RecursionLayerRank(ViewportLayer) <= RecursionLayerRank("ROOM");
-        return RecursionLayerRank(normalized) <= RecursionLayerRank(ViewportLayer);
+        if (string.Equals(nativeLayer,"WEATHER",StringComparison.OrdinalIgnoreCase))
+            return RecursionTierRank(ViewportTier) <= RecursionTierRank("ROOM");
+        return RecursionTierRank(nativeLayer) <= RecursionTierRank(ViewportTier);
     }
 
     public bool LooksLikeWeatherBlocker(TileItem tile)
