@@ -20,7 +20,8 @@
  function decorate(){
   const tools=document.querySelector('#card-library .card-library-tools');if(!tools||tools.querySelector('.sprite-create-action'))return;
   const b=document.createElement('button');b.type='button';b.className='sprite-create-action';b.textContent='Create sprite';b.addEventListener('click',openSpriteCreator);
-  const first=tools.querySelector('button');first?.insertAdjacentElement('afterend',b);
+  tools.querySelector('button')?.insertAdjacentElement('afterend',b);
  }
- const mo=new MutationObserver(decorate);mo.observe(document.documentElement,{subtree:true,childList:true});document.addEventListener('DOMContentLoaded',decorate);requestAnimationFrame(decorate);
+ document.addEventListener('rist:dom-change',decorate);
+ decorate();
 })();
