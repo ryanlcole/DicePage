@@ -72,6 +72,4 @@ public sealed partial class WorldSession
         MapDirection = MapDirection switch { "North" => "East", "East" => "South", "South" => "West", _ => "North" };
         Notify();
     }
-
-    private void ApplyTutorialUserMode(string mode) => ApplyUserMode(mode);
 }
