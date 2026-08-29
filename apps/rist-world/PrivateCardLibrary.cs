@@ -23,10 +23,20 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
 
     public string Status { get; private set; } = "";
 
-    public IEnumerable<LibraryCard> SpellbookCards =>
-        SpellbookIds
-            .Select(id => Cards.FirstOrDefault(card => card.Id == id))
-            .OfType<LibraryCard>();
+    public IEnumerable<LibraryCard> SpellbookCards
+    {
+        get
+        {
+            if (SpellbookIds.Count == 0 || Cards.Count == 0)
+                return [];
+
+            var byId = Cards.ToDictionary(card => card.Id, StringComparer.Ordinal);
+            return SpellbookIds
+                .Select(id => byId.GetValueOrDefault(id))
+                .OfType<LibraryCard>()
+                .ToList();
+        }
+    }
 
     public async Task EnsureLoadedAsync()
     {
@@ -39,6 +49,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
         try
         {
             Cards.Clear();
+            SpellbookIds.Clear();
 
             try
             {
@@ -78,7 +89,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
                 if (spellbook?.CardIds is not null)
                 {
                     SpellbookIds.AddRange(
-                        spellbook.CardIds.Distinct()
+                        spellbook.CardIds.Distinct(StringComparer.Ordinal)
                     );
                 }
             }
@@ -248,7 +259,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
         LibraryCard card
     )
     {
-        if (!SpellbookIds.Contains(card.Id))
+        if (!SpellbookIds.Contains(card.Id, StringComparer.Ordinal))
         {
             SpellbookIds.Add(card.Id);
 
@@ -357,8 +368,7 @@ public sealed class CardDraft
 
     public string Name { get; set; } = "";
 
-    public string Type { get; set; } =
-        "Standard";
+    public string Type { get; set; } = "";
 
     public string Category { get; set; } = "";
 
@@ -375,42 +385,13 @@ public sealed class LibraryCard
 
     public string Description { get; set; } = "";
 
-    public string ImageDataUrl { get; set; } = "";
-
-    public string Rating { get; set; } = "";
-
     public string School { get; set; } = "";
 
-    public string? Subschool { get; set; }
+    public string ImageDataUrl { get; set; } = "";
 
-    public string? CastingTime { get; set; }
+    public string Type { get; set; } = "Standard";
 
-    public string? Range { get; set; }
-
-    public string? Area { get; set; }
-
-    public string? Effect { get; set; }
-
-    public string? Targets { get; set; }
-
-    public string? Duration { get; set; }
-
-    public string? SavingThrow { get; set; }
-
-    public string? SpellResistance { get; set; }
-
-    public string? Sourcebook { get; set; }
-
-    public Dictionary<string, string> Classes
-    {
-        get;
-        set;
-    } = [];
-
-    public string Type { get; set; } =
-        "Standard";
-
-    public string Source { get; set; } = "";
+    public string Source { get; set; } = "Shaelvien";
 
     public bool Custom { get; set; }
 }
