@@ -1,17 +1,113 @@
 (()=>{
+ 'use strict';
  const TICKS=5;
- const number=v=>{const a=Math.abs(v);let d=a>=100?0:a>=10?1:a>=1?2:a>=.1?3:a>=.01?4:5;const n=Math.abs(v)<Math.pow(10,-d)/2?0:v;return n.toFixed(d).replace(/\.0+$|(?<=\.[0-9]*?)0+$/,'').replace(/\.$/,'')};
- function parseScale(map){const s=map.querySelector('.status')?.textContent||'';const m=s.match(/([0-9]+(?:\.[0-9]+)?)\s*(mi|km|m|yd|ft)\/(?:sq|hex)/i);return m?{distance:Number(m[1])||1,unit:m[2]}:{distance:1,unit:''}}
- function ensureFrame(host,kind){let f=host.querySelector(':scope > .rist-coordinate-frame');if(f)return f;f=document.createElement('div');f.className=`rist-coordinate-frame ${kind}`;f.setAttribute('aria-hidden','true');for(const side of ['top','right','bottom','left']){const a=document.createElement('div');a.className=`rist-coordinate-axis ${side}`;if(side!=='top'){const label=document.createElement('b');label.className='rist-coordinate-axis-label';label.textContent=side==='left'?'Y':side==='bottom'?'X':'Z';a.appendChild(label)}for(let i=0;i<TICKS;i++){const t=document.createElement('span');t.className='rist-coordinate-tick';t.style.setProperty('--p',`${i/(TICKS-1)*100}%`);a.appendChild(t)}f.appendChild(a)}host.appendChild(f);return f}
- function setTick(t,value,unit,inside,zeroTolerance){if(!inside){t.textContent='';t.classList.remove('zero');t.classList.add('outside-world');return}t.classList.remove('outside-world');t.textContent=`${number(value)}${unit?` ${unit}`:''}`;t.classList.toggle('zero',Math.abs(value)<zeroTolerance)}
- function decorateMap(map){map.querySelectorAll(':scope > .rist-hex-grid,:scope > .rist-grid-overlay').forEach(x=>x.remove());const stage=map.querySelector('.world-stage');if(!stage)return;const frame=ensureFrame(map,'map-coordinates'),mr=map.getBoundingClientRect(),sr=stage.getBoundingClientRect();if(mr.width<2||mr.height<2||sr.width<2||sr.height<2)return;const scale=parseScale(map),cols=20,rows=13,halfX=cols*scale.distance/2,halfY=rows*scale.distance/2,xAt=x=>Math.max(-halfX,Math.min(halfX,(((x-sr.left)/sr.width)-.5)*cols*scale.distance)),yAt=y=>Math.max(-halfY,Math.min(halfY,(.5-((y-sr.top)/sr.height))*rows*scale.distance)),insideX=x=>x>=sr.left-.5&&x<=sr.right+.5,insideY=y=>y>=sr.top-.5&&y<=sr.bottom+.5;
-  const bottom=[...frame.querySelectorAll('.bottom .rist-coordinate-tick')],left=[...frame.querySelectorAll('.left .rist-coordinate-tick')],right=[...frame.querySelectorAll('.right .rist-coordinate-tick')];
-  bottom.forEach((t,i)=>{const x=mr.left+mr.width*i/(TICKS-1);setTick(t,xAt(x),scale.unit,insideX(x),scale.distance/1000)});
-  left.forEach((t,i)=>{const y=mr.top+mr.height*i/(TICKS-1);setTick(t,yAt(y),scale.unit,insideY(y),scale.distance/1000)});
-  const z=Number((map.querySelector('.status')?.textContent||'').match(/(?:^|\s)z=(-?\d+)/i)?.[1]||0);right.forEach((t,i)=>{t.textContent=i===Math.floor(TICKS/2)?number(z):'';t.classList.toggle('zero',z===0&&i===Math.floor(TICKS/2))});
-  frame.querySelectorAll('.top .rist-coordinate-tick').forEach(t=>t.textContent='');
+ const number=v=>{
+  const a=Math.abs(v);
+  const d=a>=100?0:a>=10?1:a>=1?2:a>=.1?3:a>=.01?4:5;
+  const n=a<Math.pow(10,-d)/2?0:v;
+  return n.toFixed(d).replace(/\.0+$|(?<=\.[0-9]*?)0+$/,'').replace(/\.$/,'');
+ };
+ function parseScale(map){
+  const text=map.querySelector('.status')?.textContent||'';
+  const match=text.match(/([0-9]+(?:\.[0-9]+)?)\s*(mi|km|m|yd|ft)\/(?:sq|hex)/i);
+  return match?{distance:Number(match[1])||1,unit:match[2]}:{distance:1,unit:''};
  }
- function decorateCanvas(main){const canvas=main.querySelector(':scope > canvas');if(!canvas)return;const frame=ensureFrame(main,'canvas-coordinates'),r=canvas.getBoundingClientRect();if(r.width<2||r.height<2)return;const z=main.closest('.rist-art-studio')?.querySelector('.rist-art-zoom-value')?.textContent||'1×',zoom=Math.max(1,Number.parseFloat(z)||1),xAt=x=>((x-r.left)-r.width/2)/zoom,yAt=y=>(r.height/2-(y-r.top))/zoom,xs=[...frame.querySelectorAll('.bottom .rist-coordinate-tick')],ys=[...frame.querySelectorAll('.left .rist-coordinate-tick')];xs.forEach((t,i)=>{const v=xAt(r.left+r.width*i/(TICKS-1));t.textContent=number(v);t.classList.toggle('zero',Math.abs(v)<.0001)});ys.forEach((t,i)=>{const v=yAt(r.top+r.height*i/(TICKS-1));t.textContent=number(v);t.classList.toggle('zero',Math.abs(v)<.0001)})}
- function update(){document.querySelectorAll('.map').forEach(decorateMap);document.querySelectorAll('.rist-art-studio main').forEach(decorateCanvas)}
- let raf=0;const queue=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;update()})};new MutationObserver(queue).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','data-pan-x','data-pan-y','data-zoom']});addEventListener('resize',queue,{passive:true});addEventListener('pointermove',queue,{passive:true});addEventListener('wheel',queue,{passive:true});document.addEventListener('DOMContentLoaded',queue);queue();
+ function ensureFrame(host,kind){
+  let frame=host.querySelector(':scope > .rist-coordinate-frame');
+  if(frame)return frame;
+  frame=document.createElement('div');
+  frame.className=`rist-coordinate-frame ${kind}`;
+  frame.setAttribute('aria-hidden','true');
+  for(const side of ['top','right','bottom','left']){
+   const axis=document.createElement('div');
+   axis.className=`rist-coordinate-axis ${side}`;
+   if(side!=='top'){
+    const label=document.createElement('b');
+    label.className='rist-coordinate-axis-label';
+    label.textContent=side==='left'?'Y':side==='bottom'?'X':'Z';
+    axis.appendChild(label);
+   }
+   for(let i=0;i<TICKS;i++){
+    const tick=document.createElement('span');
+    tick.className='rist-coordinate-tick';
+    tick.style.setProperty('--p',`${i/(TICKS-1)*100}%`);
+    axis.appendChild(tick);
+   }
+   frame.appendChild(axis);
+  }
+  host.appendChild(frame);
+  return frame;
+ }
+ function setTick(tick,value,unit,inside,zeroTolerance){
+  if(!inside){
+   tick.textContent='';
+   tick.classList.remove('zero');
+   tick.classList.add('outside-world');
+   return;
+  }
+  tick.classList.remove('outside-world');
+  tick.textContent=`${number(value)}${unit?` ${unit}`:''}`;
+  tick.classList.toggle('zero',Math.abs(value)<zeroTolerance);
+ }
+ function decorateMap(map){
+  const stage=map.querySelector('.world-stage');
+  if(!stage)return;
+  const frame=ensureFrame(map,'map-coordinates');
+  const mapRect=map.getBoundingClientRect();
+  const stageRect=stage.getBoundingClientRect();
+  if(mapRect.width<2||mapRect.height<2||stageRect.width<2||stageRect.height<2)return;
+  const scale=parseScale(map),cols=20,rows=13;
+  const halfX=cols*scale.distance/2,halfY=rows*scale.distance/2;
+  const xAt=x=>Math.max(-halfX,Math.min(halfX,(((x-stageRect.left)/stageRect.width)-.5)*cols*scale.distance));
+  const yAt=y=>Math.max(-halfY,Math.min(halfY,(.5-((y-stageRect.top)/stageRect.height))*rows*scale.distance));
+  const insideX=x=>x>=stageRect.left-.5&&x<=stageRect.right+.5;
+  const insideY=y=>y>=stageRect.top-.5&&y<=stageRect.bottom+.5;
+  const bottom=frame.querySelectorAll('.bottom .rist-coordinate-tick');
+  const left=frame.querySelectorAll('.left .rist-coordinate-tick');
+  const right=frame.querySelectorAll('.right .rist-coordinate-tick');
+  bottom.forEach((tick,i)=>{
+   const x=mapRect.left+mapRect.width*i/(TICKS-1);
+   setTick(tick,xAt(x),scale.unit,insideX(x),scale.distance/1000);
+  });
+  left.forEach((tick,i)=>{
+   const y=mapRect.top+mapRect.height*i/(TICKS-1);
+   setTick(tick,yAt(y),scale.unit,insideY(y),scale.distance/1000);
+  });
+  const z=Number((map.querySelector('.status')?.textContent||'').match(/(?:^|\s)z=(-?\d+)/i)?.[1]||0);
+  const center=Math.floor(TICKS/2);
+  right.forEach((tick,i)=>{
+   tick.textContent=i===center?number(z):'';
+   tick.classList.toggle('zero',z===0&&i===center);
+  });
+  frame.querySelectorAll('.top .rist-coordinate-tick').forEach(tick=>tick.textContent='');
+ }
+ function decorateCanvas(main){
+  const canvas=main.querySelector(':scope > canvas');
+  if(!canvas)return;
+  const frame=ensureFrame(main,'canvas-coordinates');
+  const rect=canvas.getBoundingClientRect();
+  if(rect.width<2||rect.height<2)return;
+  const label=main.closest('.rist-art-studio')?.querySelector('.rist-art-zoom-value')?.textContent||'1×';
+  const zoom=Math.max(1,Number.parseFloat(label)||1);
+  const xAt=x=>((x-rect.left)-rect.width/2)/zoom;
+  const yAt=y=>(rect.height/2-(y-rect.top))/zoom;
+  frame.querySelectorAll('.bottom .rist-coordinate-tick').forEach((tick,i)=>{
+   const value=xAt(rect.left+rect.width*i/(TICKS-1));
+   tick.textContent=number(value);
+   tick.classList.toggle('zero',Math.abs(value)<.0001);
+  });
+  frame.querySelectorAll('.left .rist-coordinate-tick').forEach((tick,i)=>{
+   const value=yAt(rect.top+rect.height*i/(TICKS-1));
+   tick.textContent=number(value);
+   tick.classList.toggle('zero',Math.abs(value)<.0001);
+  });
+ }
+ function update(){
+  document.querySelectorAll('.map').forEach(decorateMap);
+  document.querySelectorAll('.rist-art-studio main').forEach(decorateCanvas);
+ }
+ const queue=()=>window.RistRuntime?.frame?.('coordinates',update)??requestAnimationFrame(update);
+ document.addEventListener('rist:dom-change',queue);
+ document.addEventListener('rist:viewport-change',queue);
+ queue();
 })();
