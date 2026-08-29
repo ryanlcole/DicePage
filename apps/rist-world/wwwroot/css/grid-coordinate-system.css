@@ -1,37 +1,56 @@
-/* Coordinates and the glass grid span the fixed map viewport. The world stage beneath them may pan/zoom independently. */
+/* Fixed map glass + coordinate HUD. Nothing here may resize the map. */
 .world-stage{position:absolute;inset:0;z-index:2}
-/* The descendant .grid is now only a mode marker (square/hex). Do not paint it inside the movable stage. */
 .world-stage>.grid{display:none!important}
 .rist-grid-overlay,.rist-hex-grid{display:none!important}
-/* adaptive-grid.css paints .map::before from :has(.grid.square/.grid.hex); keep that single viewport-owned grid implementation. */
-.map:has(.grid.square)::before,.map:has(.grid.hex)::before{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:8!important;pointer-events:none!important;transform:none!important}
-.rist-coordinate-frame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:18;pointer-events:none;overflow:hidden;box-sizing:border-box;border:1px solid #7a632f;color:#f3d88e;font:600 8px/1 system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px #000,0 0 2px #000}
-.rist-coordinate-axis{position:absolute;pointer-events:none;background:#030608d9}
-.rist-coordinate-axis.top{left:22px;right:22px;top:0;height:18px;border-bottom:1px solid #55451f}
-.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:18px;bottom:0;width:22px}
-.rist-coordinate-axis.left{left:0;border-right:1px solid #55451f}.rist-coordinate-axis.right{right:0;border-left:1px solid #55451f}
-.rist-coordinate-axis.bottom{display:none!important}
+
+/* adaptive-grid.css owns the one glass grid. It fills the viewport, not the moving stage. */
+.map:has(.grid.square)::before,.map:has(.grid.hex)::before{
+ display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ z-index:8!important;pointer-events:none!important;transform:none!important
+}
+
+/* Coordinate frame is a HUD/cursor around the viewport. */
+.rist-coordinate-frame{
+ position:absolute!important;inset:0!important;width:auto!important;height:auto!important;box-sizing:border-box!important;
+ z-index:18!important;pointer-events:none!important;overflow:hidden!important;border:1px solid #7a632f!important;
+ color:#f3d88e;font:600 8px/1 system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px #000,0 0 2px #000
+}
+.rist-coordinate-axis{position:absolute!important;pointer-events:none!important;background:#030608d9!important;margin:0!important;box-sizing:border-box!important}
+/* Top is the map/status readout. */
+.rist-coordinate-axis.top{left:18px!important;right:18px!important;top:0!important;height:18px!important;border-bottom:1px solid #55451f!important}
+/* Left = Y, right = Z, bottom = X. */
+.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:18px!important;bottom:18px!important;width:18px!important}
+.rist-coordinate-axis.left{left:0!important;border-right:1px solid #55451f!important}
+.rist-coordinate-axis.right{right:0!important;border-left:1px solid #55451f!important}
+.rist-coordinate-axis.bottom{display:block!important;left:18px!important;right:18px!important;bottom:0!important;height:18px!important;border-top:1px solid #55451f!important}
 .rist-coordinate-tick{position:absolute;white-space:nowrap;opacity:.88}
 .top .rist-coordinate-tick{left:var(--p);top:5px;transform:translateX(-50%)}
+.bottom .rist-coordinate-tick{left:var(--p);top:5px;transform:translateX(-50%)}
 .left .rist-coordinate-tick,.right .rist-coordinate-tick{top:var(--p);transform:translateY(-50%);writing-mode:vertical-rl}
-.left .rist-coordinate-tick{left:6px;transform:translateY(-50%) rotate(180deg)}.right .rist-coordinate-tick{right:6px}
+.left .rist-coordinate-tick{left:4px;transform:translateY(-50%) rotate(180deg)}
+.right .rist-coordinate-tick{right:4px}
 .rist-coordinate-tick.zero{color:#fff7d1;font-weight:900;opacity:1}
-.rist-art-studio main{position:relative}.rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}.rist-art-studio .rist-coordinate-axis.bottom{display:block!important}
-@media(max-width:800px){.rist-coordinate-frame{font-size:7px}.rist-coordinate-axis.top{left:18px;right:18px;height:16px}.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:16px;width:18px}.left .rist-coordinate-tick{left:4px}.right .rist-coordinate-tick{right:4px}}
+.rist-coordinate-axis-label{position:absolute;color:#fff7d1;font-weight:900;z-index:1}
+.rist-coordinate-axis.left .rist-coordinate-axis-label{left:4px;top:4px;writing-mode:horizontal-tb!important}
+.rist-coordinate-axis.right .rist-coordinate-axis-label{right:4px;top:4px;writing-mode:horizontal-tb!important}
+.rist-coordinate-axis.bottom .rist-coordinate-axis-label{left:4px;top:5px}
+.rist-coordinate-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6d6ad;font-weight:700}
+
+/* The old in-map status strip is represented by the HUD top edge. */
+.map-shell .map>.status{position:absolute!important;left:18px!important;right:18px!important;top:0!important;bottom:auto!important;height:18px!important;z-index:19!important;margin:0!important;padding:0 5px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;pointer-events:none!important;background:#030608e8!important;border:0!important;border-bottom:1px solid #55451f!important;color:#e6d6ad!important;font:700 8px/1 system-ui,-apple-system,sans-serif!important}
+
+.rist-art-studio main{position:relative}.rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}
+@media(max-width:800px){.rist-coordinate-frame{font-size:7px}.map-shell .map>.status{font-size:7px!important}}
 
 /* Stable token-rail pin. It belongs to Tokens, not the map frame. */
 #token-slider .token-pin-source{position:relative!important;inset:auto!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;min-height:34px!important;max-height:34px!important;margin:0!important;padding:1px!important;border:1px solid #8b6d2f!important;border-radius:6px!important;background:#000!important;box-shadow:none!important;overflow:hidden!important}
 #token-slider .token-pin-source .map-pin-icon{width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;max-width:29px!important;max-height:29px!important;margin:auto!important}
 
 @media(orientation:landscape){
- /* Safari must not stretch the header cells to the rail width. */
  #header-slider .header-circular-set{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:38px!important;min-height:38px!important;max-height:38px!important;gap:2px!important;padding:0 2px!important}
- #header-slider .header-circular-set>.header-icon-button,
- #header-slider .header-circular-set>.icon-select-control{align-self:center!important;justify-self:auto!important;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;min-height:34px!important;max-height:34px!important;aspect-ratio:1!important;padding:1px!important;margin:0!important}
+ #header-slider .header-circular-set>.header-icon-button,#header-slider .header-circular-set>.icon-select-control{align-self:center!important;justify-self:auto!important;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;min-height:34px!important;max-height:34px!important;aspect-ratio:1!important;padding:1px!important;margin:0!important}
  #header-slider .header-mmo-button{flex-basis:auto!important;width:auto!important;min-width:34px!important;max-width:68px!important;aspect-ratio:auto!important}
- #header-slider .header-icon-button .header-icon,
- #header-slider .icon-select-control .header-icon,
- #header-slider .header-card-back{width:30px!important;height:30px!important;min-width:0!important;min-height:0!important;max-width:30px!important;max-height:30px!important;margin:auto!important;background-size:auto 30px!important}
+ #header-slider .header-icon-button .header-icon,#header-slider .icon-select-control .header-icon,#header-slider .header-card-back{width:30px!important;height:30px!important;min-width:0!important;min-height:0!important;max-width:30px!important;max-height:30px!important;margin:auto!important;background-size:auto 30px!important}
  #header-slider .header-mmo-button .mmo-toggle-image{width:auto!important;height:30px!important;min-width:0!important;max-width:64px!important;max-height:30px!important;margin:auto!important}
  #header-slider .header-mmo-button .mmo-toggle-image img{display:block!important;width:auto!important;height:30px!important;max-width:64px!important;max-height:30px!important;object-fit:contain!important;margin:auto!important}
  #token-slider .token-pin-source{flex-basis:34px!important;width:34px!important;height:34px!important}
