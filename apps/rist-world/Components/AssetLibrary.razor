@@ -74,29 +74,18 @@
  IEnumerable<AtlasTile> CategoryTiles=>string.IsNullOrWhiteSpace(_openCategory)?Enumerable.Empty<AtlasTile>():Session.AtlasTiles.Where(x=>CategoryOf(x)==_openCategory);
  IEnumerable<FolderChoice> FolderChoices=>CategoryTiles.GroupBy(FolderKey,StringComparer.OrdinalIgnoreCase).Select(g=>new FolderChoice(g.Key,FolderLabel(g.First()))).OrderBy(x=>x.Label,StringComparer.OrdinalIgnoreCase);
  IEnumerable<AtlasTile> CurrentTiles=>string.IsNullOrWhiteSpace(_folderKey)?Enumerable.Empty<AtlasTile>():CategoryTiles.Where(x=>FolderKey(x).Equals(_folderKey,StringComparison.OrdinalIgnoreCase));
- protected override void OnInitialized(){Session.Changed+=Changed;}
- void Changed()=>_ = InvokeAsync(()=>{Normalize();StateHasChanged();});
+ protected override void OnInitialized(){Session.Changed+=Changed;SyncFromSession();}
+ void Changed()=>_ = InvokeAsync(()=>{SyncFromSession();Normalize();StateHasChanged();});
  public void Dispose()=>Session.Changed-=Changed;
- void ToggleCategory(string category){if(_openCategory==category){Collapse();return;}_openCategory=category;_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}
+ void SyncFromSession(){if(Categories.Contains(Session.AssetFamily)&&Session.AssetFamily!=_openCategory){_openCategory=Session.AssetFamily;_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}}
+ void ToggleCategory(string category){if(_openCategory==category){Collapse();return;}_openCategory=category;Session.OpenAssetFamily(category);_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}
  void Collapse(){_openCategory="";_folderKey="";}
  void SelectFolder(string key)=>_folderKey=key;
  void Normalize(){if(string.IsNullOrWhiteSpace(_openCategory))return;if(!Categories.Contains(_openCategory)){Collapse();return;}if(!FolderChoices.Any(x=>x.Key.Equals(_folderKey,StringComparison.OrdinalIgnoreCase)))_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}
  static string FolderKey(AtlasTile tile){var folder=(tile.Folder??"").Trim();var directory=(tile.Directory??"").Trim();var layer=(tile.Layer??"").Trim();if(folder.Length>0)return $"{directory}|{folder}";if(directory.Length>0)return $"{layer}|{directory}";if(layer.Length>0)return layer;return "General";}
  static string FolderLabel(AtlasTile tile){if(!string.IsNullOrWhiteSpace(tile.Folder))return tile.Folder;if(!string.IsNullOrWhiteSpace(tile.Directory))return tile.Directory;if(!string.IsNullOrWhiteSpace(tile.Layer))return Pretty(tile.Layer);return "General";}
  AtlasTile? CategoryHero(string category)=>Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category);
- static string CategoryOf(AtlasTile tile){
-  if(Has(tile,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";
-  if(Has(tile,"armor","armour","shield","helmet","helm"))return "Armor";
-  if(Has(tile,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";
-  if(Has(tile,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";
-  if(Has(tile,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";
-  if(Has(tile,"card","deck"))return "Cards";
-  if(Has(tile,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";
-  if(Has(tile,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";
-  if(Has(tile,"tile","floor","road","water","coast","hex","square"))return "Tiles";
-  if(Has(tile,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";
-  return "Misc";
- }
+ static string CategoryOf(AtlasTile tile){if(Has(tile,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";if(Has(tile,"armor","armour","shield","helmet","helm"))return "Armor";if(Has(tile,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";if(Has(tile,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";if(Has(tile,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";if(Has(tile,"card","deck"))return "Cards";if(Has(tile,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";if(Has(tile,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";if(Has(tile,"tile","floor","road","water","coast","hex","square"))return "Tiles";if(Has(tile,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";return "Misc";}
  static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Caravans"=>"➜","Cards"=>"▣","Pieces"=>"●","Tiles"=>"◇","Scenery"=>"⌂","Weapons"=>"⚔","Armor"=>"⬟","Clothing"=>"♜","Containers"=>"□",_=>"+"};
  static bool Has(AtlasTile tile,params string[] terms){var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";return terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));}
  static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase((value??"").ToLowerInvariant());
