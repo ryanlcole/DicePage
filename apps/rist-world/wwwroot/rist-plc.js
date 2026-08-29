@@ -26,9 +26,20 @@
    'sprite-creator.js?v=3'
   ]
  };
+ const styles={
+  tabletop:[],
+  shell:[
+   'css/character-universal.css?v=universal-badge-1'
+  ],
+  interaction:[
+   'css/art-studio.css?v=20260829-consolidated-1',
+   'css/art-surface-controls.css?v=1',
+   'css/asset-credit.css?v=1'
+  ]
+ };
  const values={tabletop:PHASE.TABLETOP,shell:PHASE.SHELL,interaction:PHASE.INTERACTION};
  const dependencies={tabletop:null,shell:'tabletop',interaction:'shell'};
- const state={phase:PHASE.BOOT,phaseName:'boot',started:new Set(),completed:new Set(),running:new Map(),loaded:new Map(),errors:[],groups};
+ const state={phase:PHASE.BOOT,phaseName:'boot',started:new Set(),completed:new Set(),running:new Map(),loaded:new Map(),errors:[],groups,styles};
 
  const canonical=src=>new URL(src,document.baseURI).pathname;
  const announce=(kind,name)=>{
@@ -40,29 +51,47 @@
   state.completed.add(name);state.phase=values[name]??state.phase;state.phaseName=name;
   document.documentElement.dataset.ristPhase=name;announce('complete',name);
  };
+ function recordFailure(src,key,type){
+  const error={src,key,type,phase:state.phaseName,time:new Date().toISOString()};
+  state.errors.push(error);console.error(`[RIST PLC] ${type} failed`,src);dispatchEvent(new CustomEvent('rist:module-error',{detail:error}));
+ }
  function loadScript(src){
-  const key=canonical(src);if(state.loaded.has(key))return state.loaded.get(key);
-  const existing=[...document.scripts].find(script=>{try{return canonical(script.src)===key}catch{return false}});
+  const key=`script:${canonical(src)}`;if(state.loaded.has(key))return state.loaded.get(key);
+  const existing=[...document.scripts].find(script=>{try{return canonical(script.src)===canonical(src)}catch{return false}});
   if(existing?.dataset.ristLoaded==='1'||existing?.readyState==='complete'){
    existing.dataset.ristLoaded='1';const ready=Promise.resolve(existing);state.loaded.set(key,ready);return ready;
   }
   const task=new Promise(resolve=>{
-   const script=existing||document.createElement('script');
-   let settled=false;
-   const finish=ok=>{
-    if(settled)return;settled=true;script.dataset.ristLoaded='1';
-    if(!ok){const error={src,key,phase:state.phaseName,time:new Date().toISOString()};state.errors.push(error);console.error('[RIST PLC] module failed',src);dispatchEvent(new CustomEvent('rist:module-error',{detail:error}))}
-    resolve(script);
-   };
+   const script=existing||document.createElement('script');let settled=false;
+   const finish=ok=>{if(settled)return;settled=true;script.dataset.ristLoaded='1';if(!ok)recordFailure(src,key,'script');resolve(script)};
    script.addEventListener('load',()=>finish(true),{once:true});script.addEventListener('error',()=>finish(false),{once:true});
    if(!existing){script.src=src;script.async=false;script.dataset.ristPhaseLoad='1';document.body.appendChild(script)}
    else setTimeout(()=>finish(true),0);
   });
   state.loaded.set(key,task);return task;
  }
+ function loadStyle(src){
+  const path=canonical(src),key=`style:${path}`;if(state.loaded.has(key))return state.loaded.get(key);
+  const existing=[...document.querySelectorAll('link[rel="stylesheet"]')].find(link=>{try{return canonical(link.href)===path}catch{return false}});
+  if(existing?.sheet){existing.dataset.ristLoaded='1';const ready=Promise.resolve(existing);state.loaded.set(key,ready);return ready}
+  const task=new Promise(resolve=>{
+   const link=existing||document.createElement('link');let settled=false;
+   const finish=ok=>{if(settled)return;settled=true;link.dataset.ristLoaded='1';if(!ok)recordFailure(src,key,'style');resolve(link)};
+   link.addEventListener('load',()=>finish(true),{once:true});link.addEventListener('error',()=>finish(false),{once:true});
+   if(!existing){link.rel='stylesheet';link.href=src;link.dataset.ristPhaseLoad='1';document.head.appendChild(link)}
+   else setTimeout(()=>finish(!!link.sheet),0);
+  });
+  state.loaded.set(key,task);return task;
+ }
  async function ensureGroup(name){
   if(state.completed.has(name))return;if(state.running.has(name))return state.running.get(name);
-  const task=(async()=>{const dependency=dependencies[name];if(dependency)await ensureGroup(dependency);state.started.add(name);announce('start',name);for(const src of groups[name]||[])await loadScript(src);complete(name)})();
+  const task=(async()=>{
+   const dependency=dependencies[name];if(dependency)await ensureGroup(dependency);
+   state.started.add(name);announce('start',name);
+   await Promise.all((styles[name]||[]).map(loadStyle));
+   for(const src of groups[name]||[])await loadScript(src);
+   complete(name);
+  })();
   state.running.set(name,task);try{await task}finally{state.running.delete(name)}
  }
  async function scanCore(){await ensureGroup('shell')}
@@ -82,5 +111,5 @@
  addEventListener('rist:app-ready',core,{once:true});setTimeout(core,10000);
  addEventListener('pointerdown',interaction,{once:true,capture:true,passive:true});addEventListener('keydown',interaction,{once:true,capture:true});
  if(!matchMedia('(max-width:800px)').matches){const idle=window.requestIdleCallback||((fn)=>setTimeout(fn,1800));idle(interaction,{timeout:5000})}
- window.RistRuntime={frame,signalDom,signalViewport};window.RistPLC={PHASE,state,ensureGroup,scanCore,scanInteraction,loadScript};
+ window.RistRuntime={frame,signalDom,signalViewport};window.RistPLC={PHASE,state,ensureGroup,scanCore,scanInteraction,loadScript,loadStyle};
 })();
