@@ -138,15 +138,21 @@ jobs:
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
-          # Hard-fail only on surfaces produced by this workflow.
+          # Hard-fail only on surfaces and artifacts produced by this workflow.
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
-          grep -q 'RistPLC' /tmp/rist-index.html
+          grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
+          grep -q 'rist-plc.js' /tmp/rist-index.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-plc.js "${URL}Game/rist-plc.js"
+          grep -q 'window.RistPLC' /tmp/rist-plc.js
+          grep -q "interaction:'shell'" /tmp/rist-plc.js
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/launcher-index.html "${URL}Launcher/index.html"
+          grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
           grep -q 'QAStaging' /tmp/launcher-index.html
 
           # Story scenes are persistent media currently managed outside this workflow.
@@ -165,7 +171,7 @@ jobs:
           done
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "RIST WORLD verified at ${URL}Game/index.html"
+          echo "RIST WORLD + PLC verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
           if [ "$STORY_MISSING" -eq 0 ]; then
             echo "ReLiC story scenes verified at ${URL}relic-story-{1..6}.jpg"
