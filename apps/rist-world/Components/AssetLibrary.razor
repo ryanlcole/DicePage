@@ -33,7 +33,7 @@
    <button type="button" class="asset-collapse-left" @onclick="Collapse" aria-label="Collapse @_openCategory">‹</button>
    <span class="asset-rail-label">@_openCategory folders</span>
    <div class="asset-horizontal-rail">
-    @foreach(var folder in FolderChoices)
+    @foreach(var folder in _folderChoices)
     {
      <button type="button" class="asset-folder-button @(_folderKey==folder.Key?"active":"")" @onclick="()=>SelectFolder(folder.Key)">@folder.Label</button>
     }
@@ -42,14 +42,14 @@
   <div class="asset-child-rail asset-items-row" aria-label="@_openCategory assets">
    <span class="asset-rail-label">@_openCategory</span>
    <div class="asset-horizontal-rail asset-item-rail">
-    @foreach(var tile in CurrentTiles)
+    @foreach(var tile in _currentTiles)
     {
      <button type="button" class="asset-item-button" @onclick="()=>Session.StageTile(tile)" title="@tile.Name — @tile.Author">
       <span class="asset-item-image tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false" /></span>
       <strong>@tile.Name</strong>
      </button>
     }
-    @if(!CurrentTiles.Any()){<span class="asset-empty">No assets in this folder.</span>}
+    @if(_currentTiles.Count==0){<span class="asset-empty">No assets in this folder.</span>}
    </div>
   </div>
  }
@@ -69,25 +69,83 @@
 
 @code {
  static readonly string[] Categories=["Miniatures","Caravans","Cards","Pieces","Tiles","Scenery","Weapons","Armor","Clothing","Containers","Misc"];
+ readonly Dictionary<string,List<AtlasTile>> _tilesByCategory=new(StringComparer.Ordinal);
+ readonly Dictionary<string,AtlasTile> _heroByCategory=new(StringComparer.Ordinal);
+ List<FolderChoice> _folderChoices=[];
+ List<AtlasTile> _currentTiles=[];
+ int _indexedAtlasCount=-1;
  string _openCategory="";
  string _folderKey="";
- IEnumerable<AtlasTile> CategoryTiles=>string.IsNullOrWhiteSpace(_openCategory)?Enumerable.Empty<AtlasTile>():Session.AtlasTiles.Where(x=>CategoryOf(x)==_openCategory);
- IEnumerable<FolderChoice> FolderChoices=>CategoryTiles.GroupBy(FolderKey,StringComparer.OrdinalIgnoreCase).Select(g=>new FolderChoice(g.Key,FolderLabel(g.First()))).OrderBy(x=>x.Label,StringComparer.OrdinalIgnoreCase);
- IEnumerable<AtlasTile> CurrentTiles=>string.IsNullOrWhiteSpace(_folderKey)?Enumerable.Empty<AtlasTile>():CategoryTiles.Where(x=>FolderKey(x).Equals(_folderKey,StringComparison.OrdinalIgnoreCase));
- protected override void OnInitialized(){Session.Changed+=Changed;SyncFromSession();}
- void Changed()=>_ = InvokeAsync(()=>{SyncFromSession();Normalize();StateHasChanged();});
+
+ protected override void OnInitialized(){Session.Changed+=Changed;EnsureAssetIndex();SyncFromSession();RefreshSelection();}
+ void Changed()=>_ = InvokeAsync(()=>{EnsureAssetIndex();SyncFromSession();Normalize();StateHasChanged();});
  public void Dispose()=>Session.Changed-=Changed;
- void SyncFromSession(){if(Categories.Contains(Session.AssetFamily)&&Session.AssetFamily!=_openCategory){_openCategory=Session.AssetFamily;_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}}
- void ToggleCategory(string category){if(_openCategory==category){Collapse();return;}_openCategory=category;Session.OpenAssetFamily(category);_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}
- void Collapse(){_openCategory="";_folderKey="";}
- void SelectFolder(string key)=>_folderKey=key;
- void Normalize(){if(string.IsNullOrWhiteSpace(_openCategory))return;if(!Categories.Contains(_openCategory)){Collapse();return;}if(!FolderChoices.Any(x=>x.Key.Equals(_folderKey,StringComparison.OrdinalIgnoreCase)))_folderKey=FolderChoices.FirstOrDefault()?.Key??"";}
+
+ void EnsureAssetIndex()
+ {
+  if(_indexedAtlasCount==Session.AtlasTiles.Count)return;
+  _tilesByCategory.Clear();_heroByCategory.Clear();
+  foreach(var tile in Session.AtlasTiles)
+  {
+   var category=CategoryOf(tile);
+   if(!_tilesByCategory.TryGetValue(category,out var items))_tilesByCategory[category]=items=[];
+   items.Add(tile);
+   _heroByCategory.TryAdd(category,tile);
+  }
+  _indexedAtlasCount=Session.AtlasTiles.Count;
+  RefreshSelection();
+ }
+ void SyncFromSession()
+ {
+  if(Categories.Contains(Session.AssetFamily)&&Session.AssetFamily!=_openCategory){_openCategory=Session.AssetFamily;RefreshSelection();_folderKey=_folderChoices.FirstOrDefault()?.Key??"";RefreshCurrentTiles();}
+ }
+ void ToggleCategory(string category)
+ {
+  if(_openCategory==category){Collapse();return;}
+  _openCategory=category;Session.OpenAssetFamily(category);RefreshSelection();_folderKey=_folderChoices.FirstOrDefault()?.Key??"";RefreshCurrentTiles();
+ }
+ void Collapse(){_openCategory="";_folderKey="";_folderChoices=[];_currentTiles=[];}
+ void SelectFolder(string key){_folderKey=key;RefreshCurrentTiles();}
+ void Normalize()
+ {
+  if(string.IsNullOrWhiteSpace(_openCategory))return;
+  if(!Categories.Contains(_openCategory)){Collapse();return;}
+  RefreshSelection();
+  if(!_folderChoices.Any(x=>x.Key.Equals(_folderKey,StringComparison.OrdinalIgnoreCase)))_folderKey=_folderChoices.FirstOrDefault()?.Key??"";
+  RefreshCurrentTiles();
+ }
+ void RefreshSelection()
+ {
+  var tiles=CategoryTiles();
+  _folderChoices=tiles.GroupBy(FolderKey,StringComparer.OrdinalIgnoreCase).Select(g=>new FolderChoice(g.Key,FolderLabel(g.First()))).OrderBy(x=>x.Label,StringComparer.OrdinalIgnoreCase).ToList();
+  RefreshCurrentTiles();
+ }
+ void RefreshCurrentTiles()
+ {
+  if(string.IsNullOrWhiteSpace(_folderKey)){_currentTiles=[];return;}
+  _currentTiles=CategoryTiles().Where(x=>FolderKey(x).Equals(_folderKey,StringComparison.OrdinalIgnoreCase)).ToList();
+ }
+ List<AtlasTile> CategoryTiles()=>!string.IsNullOrWhiteSpace(_openCategory)&&_tilesByCategory.TryGetValue(_openCategory,out var tiles)?tiles:[];
+ AtlasTile? CategoryHero(string category)=>_heroByCategory.GetValueOrDefault(category);
  static string FolderKey(AtlasTile tile){var folder=(tile.Folder??"").Trim();var directory=(tile.Directory??"").Trim();var layer=(tile.Layer??"").Trim();if(folder.Length>0)return $"{directory}|{folder}";if(directory.Length>0)return $"{layer}|{directory}";if(layer.Length>0)return layer;return "General";}
  static string FolderLabel(AtlasTile tile){if(!string.IsNullOrWhiteSpace(tile.Folder))return tile.Folder;if(!string.IsNullOrWhiteSpace(tile.Directory))return tile.Directory;if(!string.IsNullOrWhiteSpace(tile.Layer))return Pretty(tile.Layer);return "General";}
- AtlasTile? CategoryHero(string category)=>Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category);
- static string CategoryOf(AtlasTile tile){if(Has(tile,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";if(Has(tile,"armor","armour","shield","helmet","helm"))return "Armor";if(Has(tile,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";if(Has(tile,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";if(Has(tile,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";if(Has(tile,"card","deck"))return "Cards";if(Has(tile,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";if(Has(tile,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";if(Has(tile,"tile","floor","road","water","coast","hex","square"))return "Tiles";if(Has(tile,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";return "Misc";}
+ static string CategoryOf(AtlasTile tile)
+ {
+  var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";
+  if(Has(text,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";
+  if(Has(text,"armor","armour","shield","helmet","helm"))return "Armor";
+  if(Has(text,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";
+  if(Has(text,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";
+  if(Has(text,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";
+  if(Has(text,"card","deck"))return "Cards";
+  if(Has(text,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";
+  if(Has(text,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";
+  if(Has(text,"tile","floor","road","water","coast","hex","square"))return "Tiles";
+  if(Has(text,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";
+  return "Misc";
+ }
+ static bool Has(string text,params string[] terms)=>terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));
  static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Caravans"=>"➜","Cards"=>"▣","Pieces"=>"●","Tiles"=>"◇","Scenery"=>"⌂","Weapons"=>"⚔","Armor"=>"⬟","Clothing"=>"♜","Containers"=>"□",_=>"+"};
- static bool Has(AtlasTile tile,params string[] terms){var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";return terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));}
  static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase((value??"").ToLowerInvariant());
  static string CropStyle(AtlasTile t){if(t.SourceWidth<=0||t.SourceHeight<=0||t.CropWidth<=0||t.CropHeight<=0)return "width:100%;height:100%;object-fit:contain";var inv=System.Globalization.CultureInfo.InvariantCulture;return $"width:{(t.SourceWidth*100.0/t.CropWidth).ToString("0.###",inv)}%;height:{(t.SourceHeight*100.0/t.CropHeight).ToString("0.###",inv)}%;left:{(-t.CropX*100.0/t.CropWidth).ToString("0.###",inv)}%;top:{(-t.CropY*100.0/t.CropHeight).ToString("0.###",inv)}%;max-width:none;max-height:none";}
  sealed record FolderChoice(string Key,string Label);
