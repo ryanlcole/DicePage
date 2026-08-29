@@ -86,10 +86,18 @@ public sealed partial class WorldSession
         Notify();
     }
 
+    static bool MatchesAddress(TileItem tile,SpatialAddress address)=>
+        tile.CubeX==address.CubeX&&tile.CubeY==address.CubeY&&tile.CubeZ==address.CubeZ&&
+        tile.PlaneIndex==address.PlaneIndex&&tile.TierIndex==address.TierIndex&&tile.LayerOffset==address.LayerOffset;
+
+    static bool MatchesAddress(PieceItem piece,SpatialAddress address)=>
+        piece.CubeX==address.CubeX&&piece.CubeY==address.CubeY&&piece.CubeZ==address.CubeZ&&
+        piece.PlaneIndex==address.PlaneIndex&&piece.TierIndex==address.TierIndex&&piece.LayerOffset==address.LayerOffset;
+
     void StoreCurrentSpatialPage()
     {
         var address=CurrentSpatialAddress;
-        var terrain=PlacedTiles.Select(tile=>tile with
+        var terrain=PlacedTiles.Select(tile=>MatchesAddress(tile,address)?tile:tile with
         {
             CubeX=address.CubeX,
             CubeY=address.CubeY,
@@ -98,7 +106,7 @@ public sealed partial class WorldSession
             TierIndex=address.TierIndex,
             LayerOffset=address.LayerOffset
         }).ToList();
-        var pieces=Pieces.Select(piece=>piece with
+        var pieces=Pieces.Select(piece=>MatchesAddress(piece,address)?piece:piece with
         {
             CubeX=address.CubeX,
             CubeY=address.CubeY,
@@ -147,7 +155,7 @@ public sealed partial class WorldSession
             tile.TierIndex,
             Math.Clamp(tile.LayerOffset,0,LayersPerTier-1))))
         {
-            _terrainByAddress[group.Key]=group.Select(tile=>tile with{LayerOffset=group.Key.LayerOffset}).ToList();
+            _terrainByAddress[group.Key]=group.Select(tile=>tile.LayerOffset==group.Key.LayerOffset?tile:tile with{LayerOffset=group.Key.LayerOffset}).ToList();
         }
         foreach(var group in (pieces??[]).GroupBy(piece=>new SpatialAddress(
             piece.CubeX,
@@ -157,7 +165,7 @@ public sealed partial class WorldSession
             piece.TierIndex,
             Math.Clamp(piece.LayerOffset,0,LayersPerTier-1))))
         {
-            _piecesByAddress[group.Key]=group.Select(piece=>piece with{LayerOffset=group.Key.LayerOffset}).ToList();
+            _piecesByAddress[group.Key]=group.Select(piece=>piece.LayerOffset==group.Key.LayerOffset?piece:piece with{LayerOffset=group.Key.LayerOffset}).ToList();
         }
         if(!IsLoggedIn)
         {
