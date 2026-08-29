@@ -6,7 +6,8 @@
     const token=sessionStorage.getItem('rist.session');
     if(!token)return;
     try{
-      const config=await fetch('auth-config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null);
+      const response=await fetch('auth-config.json',{cache:'no-store'});
+      const config=response.ok?await response.json():null;
       const base=config?.apiBaseUrl||config?.ApiBaseUrl||'';
       if(base){
         await fetch(base.replace(/\/$/,'')+'/auth/logout',{
@@ -31,8 +32,5 @@
     });
   }
 
-  addEventListener('rist:app-ready',install,{once:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});
-  else setTimeout(install,0);
-  setTimeout(install,1500);
+  install();
 })();
