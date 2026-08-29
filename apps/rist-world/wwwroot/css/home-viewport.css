@@ -1,15 +1,14 @@
 /*
  * RIST home viewport contract.
  * One structural order in both orientations:
- * header -> public assets -> pallet/map -> private assets -> dice/chat/legal.
+ * header -> public assets -> map -> private assets -> dice/chat/legal.
  * Orientation changes dimensions only; it must not move components into
  * implicit columns or absolute overlay layouts.
  */
 :root{
   --rist-header-h:54px;
-  --rist-public-h:86px;
-  --rist-pallet-h:58px;
-  --rist-private-h:86px;
+  --rist-public-h:172px;
+  --rist-private-h:172px;
   --rist-dice-h:64px;
   --rist-chat-h:58px;
   --rist-legal-h:10px;
@@ -55,20 +54,21 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 .rist>.public-assets-rail{grid-area:public!important;height:var(--rist-public-h)!important;min-height:var(--rist-public-h)!important;max-height:var(--rist-public-h)!important}
 .rist>.private-assets-rail{grid-area:private!important;height:var(--rist-private-h)!important;min-height:var(--rist-private-h)!important;max-height:var(--rist-private-h)!important}
 
-/* Public and Private Assets intentionally share the same two-row visual grammar. */
+/* Public and Private Assets share the same two-row tray grammar. */
 .rist>.public-assets-rail,
-.rist>.private-assets-rail{display:grid!important;grid-template-rows:34px minmax(0,1fr)!important;background:#0d1319!important;border-block:1px solid #6e592c!important;overflow:hidden!important}
-.rist .asset-rail-header{box-sizing:border-box!important;height:34px!important;min-height:34px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:3px 8px!important;border-bottom:1px solid #40371f!important;overflow:hidden!important}
+.rist>.private-assets-rail{display:grid!important;grid-template-rows:38px minmax(0,1fr)!important;background:#0d1319!important;border-block:1px solid #6e592c!important;overflow:hidden!important}
+.rist .asset-rail-header{box-sizing:border-box!important;height:38px!important;min-height:38px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:4px 8px!important;border-bottom:1px solid #40371f!important;overflow:hidden!important}
 .rist .asset-rail-header>strong{flex:0 0 auto!important;color:#d7be80!important;font:800 10px/1 system-ui!important;letter-spacing:.13em!important;text-transform:uppercase!important;white-space:nowrap!important}
 .rist .asset-type-tabs{min-width:0!important;display:flex!important;gap:4px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
 .rist .asset-type-tabs::-webkit-scrollbar{display:none!important}
-.rist .asset-type-tabs button{flex:0 0 auto!important;height:27px!important;padding:0 10px!important;border:1px solid #51462d!important;border-radius:7px!important;background:#111920!important;color:#a99d82!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important}
+.rist .asset-type-tabs button{flex:0 0 auto!important;height:29px!important;padding:0 11px!important;border:1px solid #51462d!important;border-radius:7px!important;background:#111920!important;color:#a99d82!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important}
 .rist .asset-type-tabs button.active{border-color:#c49a3b!important;background:#1b252d!important;color:#f1d68f!important}
 .rist .public-assets-strip,
 .rist .private-assets-strip{height:100%!important;min-height:0!important}
 .rist .public-assets-items,
-.rist .private-assets-items{height:100%!important;min-height:0!important;padding:5px 4px!important}
+.rist .private-assets-items{height:100%!important;min-height:0!important;padding:8px 6px!important}
 
+/* The legacy Pallet surface is retired. Public Assets is the public tray. */
 .rist>.table-workspace{
   grid-area:map!important;
   box-sizing:border-box!important;
@@ -76,55 +76,16 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   height:100%!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
   gap:0!important;
   overflow:hidden!important;
 }
-.rist>.table-workspace>.staging-tray{
-  box-sizing:border-box!important;
-  position:relative!important;
-  grid-column:1!important;
-  grid-row:1!important;
-  width:100%!important;
-  max-width:100%!important;
-  height:var(--rist-pallet-h)!important;
-  min-height:var(--rist-pallet-h)!important;
-  max-height:var(--rist-pallet-h)!important;
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  gap:8px!important;
-  margin:0!important;
-  padding:5px 10px!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  border-inline:0!important;
-  border-right:0!important;
-  border-radius:0!important;
-  border-bottom:1px solid #6e592c!important;
-  background:#0d1319!important;
-}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong{font-size:9px!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong::after{content:none!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span{font-size:11px!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span::after{content:none!important}
-
-/* Public Assets type filtering reuses the proven map staging/drag engine. */
-.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .tray-item{display:none!important}
-.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .tray-item:not(.pin){display:none!important}
-.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .tray-item:not(.mini){display:none!important}
-.rist.public-assets-tiles>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
-.rist.public-assets-terrain>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
-.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-bits>.table-workspace>.staging-tray.pallet .zone-editor{display:none!important}
-
+.rist>.table-workspace>.staging-tray.pallet{display:none!important}
 .rist>.table-workspace>.map-shell{
   box-sizing:border-box!important;
   position:relative!important;
   grid-column:1!important;
-  grid-row:2!important;
+  grid-row:1!important;
   width:100%!important;
   max-width:100%!important;
   min-width:0!important;
@@ -154,6 +115,11 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   margin:0!important;
   overflow:hidden!important;
 }
+
+/* Encounter initiative remains available without reviving Pallet geometry. */
+.rist>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
+.rist>.table-workspace>.encounter-control-rail{grid-column:1!important;grid-row:1!important;position:relative!important;max-width:100%!important}
+.rist>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
 
 .home-footer-stack{
   grid-area:footer!important;
@@ -202,9 +168,8 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 @media(orientation:landscape){
   :root{
     --rist-header-h:50px;
-    --rist-public-h:72px;
-    --rist-pallet-h:46px;
-    --rist-private-h:72px;
+    --rist-public-h:144px;
+    --rist-private-h:144px;
     --rist-dice-h:54px;
     --rist-chat-h:54px;
     --rist-legal-h:10px;
@@ -215,15 +180,17 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
     grid-template-rows:var(--rist-header-h) var(--rist-public-h) minmax(0,1fr) var(--rist-private-h) var(--rist-footer-h)!important;
   }
   .rist>#header-slider{position:relative!important;inset:auto!important;width:100%!important;max-width:100%!important;height:var(--rist-header-h)!important;min-height:var(--rist-header-h)!important;max-height:var(--rist-header-h)!important}
-  .rist>.public-assets-rail,.rist>.private-assets-rail{position:relative!important;inset:auto!important;grid-column:1!important;width:100%!important;max-width:100%!important;grid-template-rows:30px minmax(0,1fr)!important}
-  .rist .asset-rail-header{height:30px!important;min-height:30px!important;padding:2px 8px!important}
+  .rist>.public-assets-rail,.rist>.private-assets-rail{position:relative!important;inset:auto!important;grid-column:1!important;width:100%!important;max-width:100%!important;grid-template-rows:34px minmax(0,1fr)!important}
+  .rist .asset-rail-header{height:34px!important;min-height:34px!important;padding:3px 8px!important}
   .rist .asset-rail-header>strong{font-size:10px!important}
-  .rist .asset-type-tabs button{height:25px!important;padding-inline:10px!important}
+  .rist .asset-type-tabs button{height:27px!important;padding-inline:10px!important}
 
-  .rist>.table-workspace{grid-column:1!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important}
-  .rist>.table-workspace>.staging-tray{display:flex!important;grid-column:1!important;grid-row:1!important;flex-direction:row!important;width:100%!important;height:var(--rist-pallet-h)!important;min-height:var(--rist-pallet-h)!important;max-height:var(--rist-pallet-h)!important;margin:0!important;padding:3px 8px!important;overflow-x:auto!important;overflow-y:hidden!important;border-right:0!important}
-  .rist>.table-workspace>.map-shell{display:grid!important;grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important}
+  .rist>.table-workspace{grid-column:1!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+  .rist>.table-workspace>.staging-tray.pallet{display:none!important}
+  .rist>.table-workspace>.map-shell{display:grid!important;grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important}
   .rist>.table-workspace>.map-shell>.map{grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important}
+  .rist>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
+  .rist>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
 
   .home-footer-stack{
     height:64px!important;
