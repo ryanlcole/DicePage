@@ -1,13 +1,15 @@
 /*
  * RIST home viewport contract.
- * This file is the single final authority for home-screen geometry.
- * Component styles may decorate the shell, but they must not redefine its rows,
- * columns, map dimensions, or orientation ordering.
+ * One structural order in both orientations:
+ * header -> public assets -> pallet/map -> private assets -> dice/chat/legal.
+ * Orientation changes dimensions only; it must not move components into
+ * implicit columns or absolute overlay layouts.
  */
 :root{
   --rist-header-h:54px;
-  --rist-cards-h:38px;
-  --rist-hand-h:82px;
+  --rist-public-h:86px;
+  --rist-pallet-h:58px;
+  --rist-private-h:86px;
   --rist-dice-h:64px;
   --rist-chat-h:58px;
   --rist-legal-h:10px;
@@ -17,6 +19,7 @@
 html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 .rist{
   box-sizing:border-box!important;
+  position:relative!important;
   width:100%!important;
   max-width:100dvw!important;
   min-width:0!important;
@@ -24,41 +27,89 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   height:100dvh!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-areas:"header" "cards" "map" "hand" "footer"!important;
-  grid-template-rows:var(--rist-header-h) var(--rist-cards-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
+  grid-template-areas:"header" "public" "map" "private" "footer"!important;
+  grid-template-rows:var(--rist-header-h) var(--rist-public-h) minmax(0,1fr) var(--rist-private-h) var(--rist-footer-h)!important;
   gap:0!important;
-  row-gap:0!important;
   overflow:hidden!important;
   padding-bottom:max(2px,env(safe-area-inset-bottom))!important;
 }
 
-.rist>.public-assets-rail{grid-area:cards!important;width:100%!important;height:var(--rist-cards-h)!important;min-height:var(--rist-cards-h)!important;max-height:var(--rist-cards-h)!important}
-.rist>.private-assets-rail{grid-area:hand!important;width:100%!important;height:var(--rist-hand-h)!important;min-height:var(--rist-hand-h)!important;max-height:var(--rist-hand-h)!important}
+/* Explicitly retire all historical absolute/side-column placement. */
+.rist>#header-slider,
+.rist>.public-assets-rail,
+.rist>.private-assets-rail,
+.rist>.table-workspace,
+.rist>.home-footer-stack{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  grid-column:1!important;
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+}
+.rist>#header-slider{grid-area:header!important;height:var(--rist-header-h)!important;min-height:var(--rist-header-h)!important;max-height:var(--rist-header-h)!important}
+.rist>.public-assets-rail{grid-area:public!important;height:var(--rist-public-h)!important;min-height:var(--rist-public-h)!important;max-height:var(--rist-public-h)!important}
+.rist>.private-assets-rail{grid-area:private!important;height:var(--rist-private-h)!important;min-height:var(--rist-private-h)!important;max-height:var(--rist-private-h)!important}
+
+/* Public and Private Assets intentionally share the same two-row visual grammar. */
+.rist>.public-assets-rail,
+.rist>.private-assets-rail{display:grid!important;grid-template-rows:34px minmax(0,1fr)!important;background:#0d1319!important;border-block:1px solid #6e592c!important;overflow:hidden!important}
+.rist .asset-rail-header{box-sizing:border-box!important;height:34px!important;min-height:34px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:3px 8px!important;border-bottom:1px solid #40371f!important;overflow:hidden!important}
+.rist .asset-rail-header>strong{flex:0 0 auto!important;color:#d7be80!important;font:800 10px/1 system-ui!important;letter-spacing:.13em!important;text-transform:uppercase!important;white-space:nowrap!important}
+.rist .asset-type-tabs{min-width:0!important;display:flex!important;gap:4px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
+.rist .asset-type-tabs::-webkit-scrollbar{display:none!important}
+.rist .asset-type-tabs button{flex:0 0 auto!important;height:27px!important;padding:0 10px!important;border:1px solid #51462d!important;border-radius:7px!important;background:#111920!important;color:#a99d82!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important}
+.rist .asset-type-tabs button.active{border-color:#c49a3b!important;background:#1b252d!important;color:#f1d68f!important}
+.rist .public-assets-strip,
+.rist .private-assets-strip{height:100%!important;min-height:0!important}
+.rist .public-assets-items,
+.rist .private-assets-items{height:100%!important;min-height:0!important;padding:5px 4px!important}
 
 .rist>.table-workspace{
   grid-area:map!important;
   box-sizing:border-box!important;
-  width:100%!important;
-  max-width:100%!important;
-  min-width:0!important;
   min-height:0!important;
   height:100%!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:auto minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important;
   gap:0!important;
   overflow:hidden!important;
 }
 .rist>.table-workspace>.staging-tray{
+  box-sizing:border-box!important;
+  position:relative!important;
+  grid-column:1!important;
   grid-row:1!important;
-  min-height:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:var(--rist-pallet-h)!important;
+  min-height:var(--rist-pallet-h)!important;
+  max-height:var(--rist-pallet-h)!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:5px 10px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  border-inline:0!important;
+  border-right:0!important;
+  border-radius:0!important;
+  border-bottom:1px solid #6e592c!important;
+  background:#0d1319!important;
 }
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong{font-size:0!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong::after{content:"PUBLIC ASSETS";font-size:9px!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span{font-size:0!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span::after{content:"Drag public assets here.";font-size:11px!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint strong{font-size:9px!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint strong::after{content:none!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint span{font-size:11px!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint span::after{content:none!important}
 
-/* Public Assets type filtering reuses the existing staging/drag engine. */
+/* Public Assets type filtering reuses the proven map staging/drag engine. */
 .rist.public-assets-cards>.table-workspace>.staging-tray.pallet .tray-item{display:none!important}
 .rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .tray-item:not(.pin){display:none!important}
 .rist.public-assets-minis>.table-workspace>.staging-tray.pallet .tray-item:not(.mini){display:none!important}
@@ -70,8 +121,10 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 .rist.public-assets-bits>.table-workspace>.staging-tray.pallet .zone-editor{display:none!important}
 
 .rist>.table-workspace>.map-shell{
-  grid-row:2!important;
   box-sizing:border-box!important;
+  position:relative!important;
+  grid-column:1!important;
+  grid-row:2!important;
   width:100%!important;
   max-width:100%!important;
   min-width:0!important;
@@ -88,6 +141,8 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 .rist>.table-workspace>.map-shell>.map{
   box-sizing:border-box!important;
   position:relative!important;
+  grid-column:1!important;
+  grid-row:1!important;
   display:block!important;
   width:100%!important;
   max-width:none!important;
@@ -113,25 +168,8 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   gap:0!important;
   overflow:hidden!important;
 }
-.home-footer-stack #footer-slider{
-  box-sizing:border-box!important;
-  width:100%!important;
-  max-width:100%!important;
-  height:var(--rist-dice-h)!important;
-  min-height:var(--rist-dice-h)!important;
-  max-height:var(--rist-dice-h)!important;
-  margin:0!important;
-}
-.home-inline-chat{
-  box-sizing:border-box!important;
-  width:100%!important;
-  max-width:100%!important;
-  min-width:0!important;
-  height:var(--rist-chat-h)!important;
-  min-height:var(--rist-chat-h)!important;
-  max-height:var(--rist-chat-h)!important;
-  margin:0!important;
-}
+.home-footer-stack #footer-slider{box-sizing:border-box!important;width:100%!important;max-width:100%!important;height:var(--rist-dice-h)!important;min-height:var(--rist-dice-h)!important;max-height:var(--rist-dice-h)!important;margin:0!important}
+.home-inline-chat{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;height:var(--rist-chat-h)!important;min-height:var(--rist-chat-h)!important;max-height:var(--rist-chat-h)!important;margin:0!important}
 .site-copyright-notice{
   box-sizing:border-box!important;
   position:static!important;
@@ -158,74 +196,46 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   text-shadow:0 1px 2px #000!important;
 }
 
-/* Retired sidebars must never reserve layout width. */
 .map-context-sidebar{display:none!important;width:0!important;min-width:0!important;max-width:0!important}
 .map-shell.map-context-ready{grid-template-columns:minmax(0,1fr)!important}
 
 @media(orientation:landscape){
   :root{
     --rist-header-h:50px;
-    --rist-cards-h:32px;
-    --rist-hand-h:48px;
-    --rist-dice-h:38px;
-    --rist-chat-h:38px;
-    --rist-legal-h:8px;
-    --rist-footer-h:46px;
+    --rist-public-h:72px;
+    --rist-pallet-h:46px;
+    --rist-private-h:72px;
+    --rist-dice-h:54px;
+    --rist-chat-h:54px;
+    --rist-legal-h:10px;
+    --rist-footer-h:64px;
   }
   .rist{
-    grid-template-areas:"header" "cards" "map" "hand" "footer"!important;
-    grid-template-rows:var(--rist-header-h) var(--rist-cards-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
+    grid-template-areas:"header" "public" "map" "private" "footer"!important;
+    grid-template-rows:var(--rist-header-h) var(--rist-public-h) minmax(0,1fr) var(--rist-private-h) var(--rist-footer-h)!important;
   }
-  #header-slider{width:100%!important;max-width:100%!important;height:38px!important;min-height:38px!important;max-height:38px!important}
-  .public-assets-rail{font-size:8px!important}
-  .public-assets-title{font-size:8px!important}
-  .public-asset-tabs{max-width:70%!important}
-  .private-assets-rail{grid-template-rows:22px minmax(0,1fr)!important}
-  .private-assets-rail .asset-rail-header{padding-block:0!important}
-  .private-assets-rail .asset-type-tabs button{height:20px!important}
+  .rist>#header-slider{position:relative!important;inset:auto!important;width:100%!important;max-width:100%!important;height:var(--rist-header-h)!important;min-height:var(--rist-header-h)!important;max-height:var(--rist-header-h)!important}
+  .rist>.public-assets-rail,.rist>.private-assets-rail{position:relative!important;inset:auto!important;grid-column:1!important;width:100%!important;max-width:100%!important;grid-template-rows:30px minmax(0,1fr)!important}
+  .rist .asset-rail-header{height:30px!important;min-height:30px!important;padding:2px 8px!important}
+  .rist .asset-rail-header>strong{font-size:10px!important}
+  .rist .asset-type-tabs button{height:25px!important;padding-inline:10px!important}
+
+  .rist>.table-workspace{grid-column:1!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important}
+  .rist>.table-workspace>.staging-tray{display:flex!important;grid-column:1!important;grid-row:1!important;flex-direction:row!important;width:100%!important;height:var(--rist-pallet-h)!important;min-height:var(--rist-pallet-h)!important;max-height:var(--rist-pallet-h)!important;margin:0!important;padding:3px 8px!important;overflow-x:auto!important;overflow-y:hidden!important;border-right:0!important}
+  .rist>.table-workspace>.map-shell{display:grid!important;grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important}
+  .rist>.table-workspace>.map-shell>.map{grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important}
 
   .home-footer-stack{
-    height:46px!important;
-    min-height:46px!important;
-    max-height:46px!important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-    grid-template-rows:38px 8px!important;
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)!important;
+    grid-template-rows:54px 10px!important;
   }
-  .home-inline-chat{
-    grid-column:1!important;
-    grid-row:1!important;
-    height:38px!important;
-    min-height:38px!important;
-    max-height:38px!important;
-    padding:2px 6px!important;
-  }
-  .home-footer-stack #footer-slider{
-    grid-column:2!important;
-    grid-row:1!important;
-    height:38px!important;
-    min-height:38px!important;
-    max-height:38px!important;
-  }
-  .site-copyright-notice{
-    grid-column:1 / -1!important;
-    grid-row:2!important;
-    height:8px!important;
-    min-height:8px!important;
-    font-size:6px!important;
-  }
-  .home-inline-chat .chat-history-toggle,
-  .home-chat-compose,
-  .home-chat-compose textarea,
-  .home-chat-send{
-    height:34px!important;
-    min-height:34px!important;
-    max-height:34px!important;
-  }
+  .home-inline-chat{grid-column:1!important;grid-row:1!important;height:54px!important;min-height:54px!important;max-height:54px!important;padding:3px 6px!important}
+  .home-footer-stack #footer-slider{grid-column:2!important;grid-row:1!important;height:54px!important;min-height:54px!important;max-height:54px!important}
+  .site-copyright-notice{grid-column:1 / -1!important;grid-row:2!important;height:10px!important;min-height:10px!important;font-size:7px!important}
+  .home-inline-chat .chat-history-toggle,.home-chat-compose,.home-chat-compose textarea,.home-chat-send{height:48px!important;min-height:48px!important;max-height:48px!important}
   .home-chat-compose{display:block!important}
-  .home-chat-compose textarea{font-size:16px!important;padding:4px 8px!important}
-
-  /* Landscape keeps Public Assets as a compact row above the map. */
-  .rist>.table-workspace{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
-  .rist>.table-workspace>.staging-tray{display:none!important}
-  .rist>.table-workspace>.map-shell{grid-row:1!important}
+  .home-chat-compose textarea{font-size:16px!important;padding:6px 9px!important}
 }
