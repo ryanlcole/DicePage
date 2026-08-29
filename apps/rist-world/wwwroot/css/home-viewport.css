@@ -1,0 +1,191 @@
+/*
+ * RIST home viewport contract.
+ * This file is the single final authority for home-screen geometry.
+ * Component styles may decorate the shell, but they must not redefine its rows,
+ * columns, map dimensions, or orientation ordering.
+ */
+:root{
+  --rist-header-h:54px;
+  --rist-cards-h:52px;
+  --rist-hand-h:54px;
+  --rist-dice-h:64px;
+  --rist-chat-h:58px;
+  --rist-footer-h:126px;
+}
+
+html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+.rist{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100dvw!important;
+  min-width:0!important;
+  min-height:100dvh!important;
+  height:100dvh!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"header" "cards" "map" "hand" "footer"!important;
+  grid-template-rows:var(--rist-header-h) var(--rist-cards-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
+  gap:0!important;
+  row-gap:0!important;
+  overflow:hidden!important;
+  padding-bottom:max(2px,env(safe-area-inset-bottom))!important;
+}
+
+.rist>.table-workspace{
+  grid-area:map!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:0!important;
+  overflow:hidden!important;
+}
+.rist>.table-workspace>.map-shell{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  place-items:stretch!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+.rist>.table-workspace>.map-shell>.map{
+  box-sizing:border-box!important;
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100%!important;
+  max-height:none!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+
+.home-footer-stack{
+  grid-area:footer!important;
+  box-sizing:border-box!important;
+  min-width:0!important;
+  height:var(--rist-footer-h)!important;
+  min-height:var(--rist-footer-h)!important;
+  max-height:var(--rist-footer-h)!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-dice-h) var(--rist-chat-h)!important;
+  gap:0!important;
+  overflow:hidden!important;
+}
+.home-footer-stack #footer-slider{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:var(--rist-dice-h)!important;
+  min-height:var(--rist-dice-h)!important;
+  max-height:var(--rist-dice-h)!important;
+  margin:0!important;
+}
+.home-inline-chat{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:var(--rist-chat-h)!important;
+  min-height:var(--rist-chat-h)!important;
+  max-height:var(--rist-chat-h)!important;
+  margin:0!important;
+}
+
+/* Retired sidebars must never reserve layout width. */
+.map-context-sidebar{display:none!important;width:0!important;min-width:0!important;max-width:0!important}
+.map-shell.map-context-ready{grid-template-columns:minmax(0,1fr)!important}
+
+@media(orientation:landscape){
+  :root{
+    --rist-header-h:50px;
+    --rist-cards-h:0px;
+    --rist-hand-h:38px;
+    --rist-dice-h:38px;
+    --rist-chat-h:38px;
+    --rist-footer-h:38px;
+  }
+  .rist{
+    grid-template-areas:"header" "map" "hand" "footer"!important;
+    grid-template-rows:var(--rist-header-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
+  }
+  /* Header and public-card rail intentionally share the top row in landscape. */
+  #header-slider{
+    position:absolute!important;
+    z-index:55!important;
+    top:0!important;
+    left:0!important;
+    right:auto!important;
+    width:50%!important;
+    max-width:50%!important;
+    height:38px!important;
+    min-height:38px!important;
+    max-height:38px!important;
+  }
+  #public-card-slider{
+    position:absolute!important;
+    z-index:55!important;
+    top:0!important;
+    right:0!important;
+    left:auto!important;
+    width:50%!important;
+    max-width:50%!important;
+    height:38px!important;
+    min-height:38px!important;
+    max-height:38px!important;
+  }
+  .site-copyright-notice{top:38px!important;height:12px!important;min-height:12px!important}
+
+  .home-footer-stack{
+    height:38px!important;
+    min-height:38px!important;
+    max-height:38px!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:38px!important;
+  }
+  .home-inline-chat{
+    grid-column:1!important;
+    grid-row:1!important;
+    height:38px!important;
+    min-height:38px!important;
+    max-height:38px!important;
+    padding:2px 6px!important;
+  }
+  .home-footer-stack #footer-slider{
+    grid-column:2!important;
+    grid-row:1!important;
+    height:38px!important;
+    min-height:38px!important;
+    max-height:38px!important;
+  }
+  .home-inline-chat .chat-history-toggle,
+  .home-chat-compose,
+  .home-chat-compose textarea,
+  .home-chat-send{
+    height:34px!important;
+    min-height:34px!important;
+    max-height:34px!important;
+  }
+  .home-chat-compose{display:block!important}
+  .home-chat-compose textarea{font-size:16px!important;padding:4px 8px!important}
+
+  /* The retired 96px staging column from adaptive-grid is not part of HOME. */
+  .rist>.table-workspace{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+  .rist>.table-workspace>.staging-tray{display:none!important}
+}
