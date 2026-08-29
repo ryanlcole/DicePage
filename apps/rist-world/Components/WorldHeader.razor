@@ -2,64 +2,55 @@
 @implements IDisposable
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
-<header id="header-slider" class="topbar header-rail finite-rail icon-header desktop-arrow-slider" aria-label="Tabletop controls">
- <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll controls left" title="Scroll left">‹</button>
- <div class="finite-set header-circular-set">
-  <button class="header-icon-button door-button login-door-first @(Session.IsLoggedIn?"logged-in":"logged-out login-pulse")" @onclick="DoorClicked" title="@(Session.IsLoggedIn?"Log out":"Log in with Discord")" aria-label="@(Session.IsLoggedIn?"Log out":"Log in with Discord")"><span class="header-icon icon-exit" aria-hidden="true"></span></button>
-  <button type="button" class="header-icon-button header-mmo-button" data-shaelvien-ai-authority="@(Auth.IsOwnerDiscordAccount?"true":"false")" onclick="window.RistMMO?.toggle?.()" aria-pressed="false" title="GM local mode — editable personal map" aria-label="Toggle Shaelvien MMO mode"><span class="mmo-toggle-art" aria-hidden="true"><span style="display:grid;place-items:center;width:100%;height:100%;font:700 1.15rem/1 Georgia,serif;color:#d8c38a;text-shadow:0 1px 2px #000">∞</span></span></button>
-  <div class="control icon-select-control table-mode-control @Session.TableMode" title="@Session.TableModeLabel"><span class="header-icon icon-encounter" aria-hidden="true"></span><label class="sr-only" for="table-mode">Table mode</label><select id="table-mode" value="@Session.TableMode" @onchange="ModeChanged" aria-label="Table mode"><option value="worldbuilder">Worldbuilder</option><option value="forge">Forge</option><option value="test">Test</option><option value="encounter">Encounter</option><option value="play">Let's Roll!</option></select></div>
-  <div class="control asset-type-control icon-select-control"><span class="header-icon icon-assets" aria-hidden="true"></span><label class="sr-only">Asset type</label><select @bind="Session.PieceKind" aria-label="Tabletop asset type"><option value="mini">Miniatures (Minis)</option><option value="rolling-stock">Rolling Stock &amp; Locomotives</option><option value="pawn">Pawns &amp; Meeples</option><option value="pin">Tokens &amp; Chits</option><option value="tile">Tiles</option><option value="terrain">Scenery &amp; Terrain</option><option value="bit">Bits</option></select></div>
-  <button type="button" class="header-icon-button header-card-deck tap-safe @(Session.CardBrowserOpen?"active":"")" @onclick="Session.ToggleCardBrowser" aria-expanded="@Session.CardBrowserOpen" aria-controls="card-library" @onclick:stopPropagation="true" title="@(Session.CardBrowserOpen?"Close card library":"Open card library")" aria-label="@(Session.CardBrowserOpen?"Close card library":"Open card library")"><span class="header-card-back" aria-hidden="true"></span>@if(Session.PendingHandApprovalCount>0&&Session.Role=="GM"){<span class="header-notification-badge">@Session.PendingHandApprovalCount</span>}</button>
-  <button class="header-icon-button tile-library-button @(Session.TileBrowserOpen?"active":"")" @onclick="Session.ToggleTileBrowser" aria-expanded="@Session.TileBrowserOpen" title="Browse assets" aria-label="Browse assets"><span class="header-icon icon-browse" aria-hidden="true"></span></button>
-  <div class="control icon-select-control compact-select"><span class="header-icon icon-role" aria-hidden="true"></span><label class="sr-only">Role</label><select @bind="Session.Role" @bind:after="Session.Notify" aria-label="Role">@if(Session.CanManageCurrentMap){<option value="GM">GM</option>}<option value="PC">PC</option></select></div>
-  <div class="control icon-select-control compact-select"><span class="header-icon icon-grid-@Session.GridStyle" aria-hidden="true"></span><label class="sr-only">Grid</label><select @bind="Session.GridStyle" @bind:after="Session.Notify" disabled="@Session.EncounterActive" aria-label="Grid"><option value="square">Square</option><option value="hex">Hex</option><option value="none">No grid</option></select></div>
-  <div class="control unit-control icon-select-control compact-select"><span class="header-icon icon-scale" aria-hidden="true"></span><label class="sr-only">Units per square</label><select value="@Session.DistanceUnit" @onchange="UnitChanged" disabled="@Session.EncounterActive" aria-label="Units per square"><option value="mi">mi</option><option value="km">km</option><option value="m">m</option><option value="yd">yd</option><option value="ft">ft</option></select></div>
-  <div class="scale-stack"><label class="sr-only" for="grid-distance">Amount per square</label><input id="grid-distance" type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" aria-label="Amount per square" /><output>@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output></div>
-  <button class="header-icon-button" @onclick="Session.SaveAndToggleExportAsync" title="Save current map" aria-label="Save current map and show export options" aria-expanded="@Session.SaveMenuOpen"><span class="header-icon icon-save" aria-hidden="true"></span></button>
-  <button class="header-icon-button" @onclick="Session.ToggleLoadMenu" title="Load" aria-label="Load options" aria-expanded="@Session.LoadMenuOpen"><span class="header-icon icon-load" aria-hidden="true"></span></button>
-  <a class="header-icon-button header-info-button" href="info.html" title="About, contact, legal and safety information" aria-label="About, contact, legal and safety information"><span aria-hidden="true">i</span></a>
-  <button type="button" class="header-icon-button header-settings-button" onclick="window.RistStartMenu?.open?.()" title="Start / Settings" aria-label="Start / Settings"><span aria-hidden="true">⚙</span></button>
+
+<header class="table-command-header" aria-label="Tabletop controls">
+ <div class="command-wrap">
+  <button type="button" class="brand-button" title="ReLiCGameMaster"><span class="brand-relic">ReLiC</span><span class="brand-game">GameMaster</span></button>
+  <button class="command-button entrance @(Session.IsLoggedIn?"logged-in":"logged-out")" @onclick="DoorClicked">@(Session.IsLoggedIn?"Exit":"Entrance / Login")</button>
+  <button type="button" class="command-button mmo-sandbox" data-shaelvien-ai-authority="@(Auth.IsOwnerDiscordAccount?"true":"false")" onclick="window.RistMMO?.toggle?.()"><span class="mmo-mark">∞</span><span>MMO / Sandbox</span></button>
+  <button type="button" class="command-button mode-button" @onclick="Session.CycleUserMode"><small>User Mode</small><strong>@Session.UserMode</strong></button>
+  <button type="button" class="command-button game-mode @Session.GameMode.ToLowerInvariant()" @onclick="Session.CycleGameMode"><small>Game Mode</small><strong>@Session.GameMode</strong></button>
+  <button type="button" class="command-button presentation-mode" @onclick="Session.CyclePresentationMode"><small>Presentation</small><strong>@Session.PresentationMode</strong></button>
+  <span class="command-divider" aria-hidden="true"></span>
+  @foreach(var family in AssetFamilies)
+  {
+   <button type="button" class="command-button asset-launcher @(Session.AssetFamily==family&&Session.TileBrowserOpen?"active":"")" @onclick="()=>Session.OpenAssetFamily(family)">@family</button>
+  }
+  <span class="command-divider" aria-hidden="true"></span>
+  <button type="button" class="command-button" onclick="window.RistStartMenu?.open?.()">Settings</button>
+  <a class="command-button command-link" href="info.html">About</a>
+  <button type="button" class="command-button" onclick="window.RistStartMenu?.open?.()">Help</button>
+  <button type="button" class="command-button compact-icon" @onclick="Session.SaveAndToggleExportAsync" title="Save / Export">⇩</button>
+  <button type="button" class="command-button compact-icon" @onclick="Session.ToggleLoadMenu" title="Load">⇧</button>
  </div>
- <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#header-slider',1)" aria-label="Scroll controls right" title="Scroll right">›</button>
- @if(Session.SaveMenuOpen){<section class="header-action-menu save-menu" aria-label="Export map options"><strong>Export map</strong><button @onclick="Session.DownloadMapAsync">Download RIST map</button>@if(Session.IsLoggedIn){<button @onclick="Session.SaveRistAsync">Save RIST to private AWS storage</button>}<button @onclick="Session.ShareMapAsync">Export to Files / Drive / Share</button>@if(!string.IsNullOrWhiteSpace(Session.PrivateStorageStatus)){<output class="storage-status">@Session.PrivateStorageStatus</output>}<a href="privacy.html" target="_blank" rel="noopener">Privacy and data use</a>@if(Session.IsLoggedIn){<button class="danger-action" @onclick="Session.DeletePrivateAccountAsync">Delete private storage and session</button>}</section>}
- @if(Session.LoadMenuOpen){<section class="header-action-menu load-menu" aria-label="Load map options"><label class="map-file-load">Load map file<InputFile OnChange="LoadMapFile" accept=".ristmap,.json,application/json" /></label><button @onclick="Session.LoadAsync">Load browser save</button><button>Load as Shaelvien Graphics</button>@if(Session.IsLoggedIn){<button title="Private campaign map storage">Campaign maps</button><button @onclick="Session.ToggleTileBrowser">Custom tiles and tilesets</button><button @onclick="Session.OpenMixer">Characters and cards</button>}</section>}
+ @if(Session.TileBrowserOpen){<AssetLibrary />}
+ @if(Session.SaveMenuOpen){<section class="header-action-menu save-menu" aria-label="Export map options"><strong>Export map</strong><button @onclick="Session.DownloadMapAsync">Download RIST map</button>@if(Session.IsLoggedIn){<button @onclick="Session.SaveRistAsync">Save RIST to private AWS storage</button>}<button @onclick="Session.ShareMapAsync">Export to Files / Drive / Share</button>@if(!string.IsNullOrWhiteSpace(Session.PrivateStorageStatus)){<output class="storage-status">@Session.PrivateStorageStatus</output>}</section>}
+ @if(Session.LoadMenuOpen){<section class="header-action-menu load-menu" aria-label="Load map options"><label class="map-file-load">Load map file<InputFile OnChange="LoadMapFile" accept=".ristmap,.json,application/json" /></label><button @onclick="Session.LoadAsync">Load browser save</button>@if(Session.IsLoggedIn){<button title="Private campaign map storage">Campaign maps</button><button @onclick="Session.OpenMixer">Characters and cards</button>}</section>}
 </header>
+
 @if(_loginPromptOpen && !Session.IsLoggedIn)
 {
- <div class="discord-login-overlay" role="dialog" aria-modal="true" aria-label="Log in with Discord" @onclick="CloseLoginPrompt"><section class="discord-login-card" @onclick:stopPropagation="true"><button class="discord-login-close" @onclick="CloseLoginPrompt" aria-label="Close login">×</button><div class="discord-brand-mark" aria-hidden="true"><svg viewBox="0 0 127.14 96.36" role="img"><path d="M107.7 8.1A105.2 105.2 0 0 0 81.5 0a72.1 72.1 0 0 0-3.4 7A97.7 97.7 0 0 0 49 7 72.4 72.4 0 0 0 45.5 0 105.9 105.9 0 0 0 19.3 8.2C2.7 32.8-1.8 56.8.4 80.5A105.7 105.7 0 0 0 32.5 96.4a77.7 77.7 0 0 0 6.9-9.4 68.7 68.7 0 0 1-10.8-5.2l2.7-2.1c20.8 9.6 43.4 9.6 63.9 0l2.8 2.1A69.3 69.3 0 0 1 87 87a77 77 0 0 0 6.9 9.4 105.3 105.3 0 0 0 32.1-15.9c2.7-27.5-4.6-51.3-18.3-72.4ZM42.5 65.7c-6.3 0-11.4-5.8-11.4-12.9s5-12.9 11.4-12.9c6.4 0 11.5 5.8 11.4 12.9 0 7.1-5 12.9-11.4 12.9Zm42.1 0c-6.3 0-11.4-5.8-11.4-12.9s5-12.9 11.4-12.9c6.4 0 11.5 5.8 11.4 12.9 0 7.1-5 12.9-11.4 12.9Z"/></svg></div><h2>Enter RIST with Discord</h2><p>Discord identifies your account so RIST can load the correct permissions, private storage, characters, campaigns, and tutorial path.</p><button class="discord-login-primary" @onclick="ContinueDiscordLogin">Continue with Discord</button><button class="discord-login-cancel" @onclick="CloseLoginPrompt">Cancel</button></section></div>
+ <div class="discord-login-overlay" role="dialog" aria-modal="true" aria-label="Log in with Discord" @onclick="CloseLoginPrompt"><section class="discord-login-card" @onclick:stopPropagation="true"><button class="discord-login-close" @onclick="CloseLoginPrompt" aria-label="Close login">×</button><h2>Enter RIST with Discord</h2><p>Discord identifies your account so RIST can load permissions, private storage, characters and campaigns.</p><button class="discord-login-primary" @onclick="ContinueDiscordLogin">Continue with Discord</button><button class="discord-login-cancel" @onclick="CloseLoginPrompt">Cancel</button></section></div>
 }
+
+<style>
+.table-command-header{position:relative;z-index:70;background:#081118f3;border-bottom:1px solid #745d28;color:#dfcfaa}
+.command-wrap{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;padding:4px;min-width:0}
+.command-button,.brand-button{min-height:36px;border:1px solid #5e4b25;border-radius:7px;background:#111a21;color:#d9c38a;padding:5px 9px;font:700 10px/1.1 system-ui;display:inline-flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;white-space:nowrap}.command-button:active,.command-button.active{border-color:#d0a63f;background:#1a252d}.brand-button{min-width:118px;display:grid;grid-template-columns:auto auto;gap:3px;background:#0a1319}.brand-relic{font:700 15px/1 Georgia,serif;color:#e3c46f}.brand-game{font-size:9px;color:#b7a170}.command-button small{font-size:7px;opacity:.65;text-transform:uppercase;letter-spacing:.05em}.command-button strong{font-size:10px}.mode-button,.game-mode,.presentation-mode{display:grid;gap:1px}.game-mode.build strong{color:#d6b85c}.game-mode.test strong{color:#6ec8ff}.game-mode.live strong{color:#79d78b}.mmo-sandbox{padding-inline:7px}.mmo-mark{display:grid;place-items:center;width:25px;height:25px;border:1px solid #756333;border-radius:50%;font:700 18px/1 Georgia,serif;color:#83dbff;background:#10212a}.asset-launcher{min-width:64px}.command-divider{width:1px;align-self:stretch;background:#6a552a;margin:0 2px}.compact-icon{min-width:36px;font-size:17px;padding-inline:6px}
+.table-command-header>.asset-slider-stack{border-top:1px solid #5a4825}.header-action-menu{position:absolute;right:5px;top:calc(100% + 2px);z-index:90;display:grid;gap:6px;min-width:220px;padding:10px;border:1px solid #80662f;border-radius:9px;background:#0c151b;color:#dfcfaa;box-shadow:0 10px 30px #000b}.header-action-menu button,.header-action-menu label{min-height:36px;border:1px solid #5e4b25;border-radius:7px;background:#111a21;color:#ddc88f;padding:8px}.map-file-load{position:relative;overflow:hidden}.map-file-load input{position:absolute;inset:0;opacity:0}
+@@media(max-width:800px){.command-wrap{gap:3px;padding:3px}.command-button,.brand-button{min-height:32px;padding:4px 7px;font-size:9px;border-radius:6px}.brand-button{min-width:106px}.brand-relic{font-size:14px}.asset-launcher{min-width:58px}.command-divider{display:none}}
+</style>
+
 @code{
+ static readonly string[] AssetFamilies=["Miniatures","Caravans","Cards","Pieces","Tiles","Scenery","Weapons","Armor","Clothing","Containers","Misc"];
  bool _loginPromptOpen;
  bool _privateRestoreStarted;
- protected override void OnInitialized()
- {
-  Session.Changed+=SessionChanged;
-  if(Session.IsLoggedIn&&!_privateRestoreStarted)
-  {
-   _privateRestoreStarted=true;
-   _ = RestorePrivateWorldAsync();
-  }
- }
- void SessionChanged()
- {
-  if(Session.IsLoggedIn)
-  {
-   _loginPromptOpen=false;
-   if(!_privateRestoreStarted){_privateRestoreStarted=true;_ = RestorePrivateWorldAsync();}
-  }
-  else _privateRestoreStarted=false;
-  _ = InvokeAsync(StateHasChanged);
- }
- async Task RestorePrivateWorldAsync()
- {
-  await Session.LoadPrivateCheckpointAsync();
-  await InvokeAsync(StateHasChanged);
- }
+ protected override void OnInitialized(){Session.Changed+=SessionChanged;if(Session.IsLoggedIn&&!_privateRestoreStarted){_privateRestoreStarted=true;_ = RestorePrivateWorldAsync();}}
+ void SessionChanged(){if(Session.IsLoggedIn){_loginPromptOpen=false;if(!_privateRestoreStarted){_privateRestoreStarted=true;_ = RestorePrivateWorldAsync();}}else _privateRestoreStarted=false;_ = InvokeAsync(StateHasChanged);}
+ async Task RestorePrivateWorldAsync(){await Session.LoadPrivateCheckpointAsync();await InvokeAsync(StateHasChanged);}
  public void Dispose()=>Session.Changed-=SessionChanged;
  async Task DoorClicked(){if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}_loginPromptOpen=true;}
  void CloseLoginPrompt()=>_loginPromptOpen=false;
  async Task ContinueDiscordLogin(){_loginPromptOpen=false;await Session.ToggleLoginAsync();}
- void UnitChanged(ChangeEventArgs e)=>Session.SetDistanceUnit(e.Value?.ToString()??"mi");
- void ModeChanged(ChangeEventArgs e)=>Session.SetTableMode(e.Value?.ToString()??"worldbuilder");
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
 }
