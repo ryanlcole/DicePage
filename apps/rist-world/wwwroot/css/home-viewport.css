@@ -6,8 +6,8 @@
  */
 :root{
   --rist-header-h:54px;
-  --rist-cards-h:52px;
-  --rist-hand-h:54px;
+  --rist-cards-h:38px;
+  --rist-hand-h:82px;
   --rist-dice-h:64px;
   --rist-chat-h:58px;
   --rist-legal-h:10px;
@@ -32,6 +32,9 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   padding-bottom:max(2px,env(safe-area-inset-bottom))!important;
 }
 
+.rist>.public-assets-rail{grid-area:cards!important;width:100%!important;height:var(--rist-cards-h)!important;min-height:var(--rist-cards-h)!important;max-height:var(--rist-cards-h)!important}
+.rist>.private-assets-rail{grid-area:hand!important;width:100%!important;height:var(--rist-hand-h)!important;min-height:var(--rist-hand-h)!important;max-height:var(--rist-hand-h)!important}
+
 .rist>.table-workspace{
   grid-area:map!important;
   box-sizing:border-box!important;
@@ -50,6 +53,22 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   grid-row:1!important;
   min-height:0!important;
 }
+.rist>.table-workspace>.staging-tray.pallet .tray-hint strong{font-size:0!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint strong::after{content:"PUBLIC ASSETS";font-size:9px!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint span{font-size:0!important}
+.rist>.table-workspace>.staging-tray.pallet .tray-hint span::after{content:"Drag public assets here.";font-size:11px!important}
+
+/* Public Assets type filtering reuses the existing staging/drag engine. */
+.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .tray-item{display:none!important}
+.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .tray-item:not(.pin){display:none!important}
+.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .tray-item:not(.mini){display:none!important}
+.rist.public-assets-tiles>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
+.rist.public-assets-terrain>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
+.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .zone-editor,
+.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .zone-editor,
+.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .zone-editor,
+.rist.public-assets-bits>.table-workspace>.staging-tray.pallet .zone-editor{display:none!important}
+
 .rist>.table-workspace>.map-shell{
   grid-row:2!important;
   box-sizing:border-box!important;
@@ -146,42 +165,24 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 @media(orientation:landscape){
   :root{
     --rist-header-h:50px;
-    --rist-cards-h:0px;
-    --rist-hand-h:38px;
+    --rist-cards-h:32px;
+    --rist-hand-h:48px;
     --rist-dice-h:38px;
     --rist-chat-h:38px;
     --rist-legal-h:8px;
     --rist-footer-h:46px;
   }
   .rist{
-    grid-template-areas:"header" "map" "hand" "footer"!important;
-    grid-template-rows:var(--rist-header-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
+    grid-template-areas:"header" "cards" "map" "hand" "footer"!important;
+    grid-template-rows:var(--rist-header-h) var(--rist-cards-h) minmax(0,1fr) var(--rist-hand-h) var(--rist-footer-h)!important;
   }
-  /* Header and public-card rail intentionally share the top row in landscape. */
-  #header-slider{
-    position:absolute!important;
-    z-index:55!important;
-    top:0!important;
-    left:0!important;
-    right:auto!important;
-    width:50%!important;
-    max-width:50%!important;
-    height:38px!important;
-    min-height:38px!important;
-    max-height:38px!important;
-  }
-  #public-card-slider{
-    position:absolute!important;
-    z-index:55!important;
-    top:0!important;
-    right:0!important;
-    left:auto!important;
-    width:50%!important;
-    max-width:50%!important;
-    height:38px!important;
-    min-height:38px!important;
-    max-height:38px!important;
-  }
+  #header-slider{width:100%!important;max-width:100%!important;height:38px!important;min-height:38px!important;max-height:38px!important}
+  .public-assets-rail{font-size:8px!important}
+  .public-assets-title{font-size:8px!important}
+  .public-asset-tabs{max-width:70%!important}
+  .private-assets-rail{grid-template-rows:22px minmax(0,1fr)!important}
+  .private-assets-rail .asset-rail-header{padding-block:0!important}
+  .private-assets-rail .asset-type-tabs button{height:20px!important}
 
   .home-footer-stack{
     height:46px!important;
@@ -223,7 +224,7 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   .home-chat-compose{display:block!important}
   .home-chat-compose textarea{font-size:16px!important;padding:4px 8px!important}
 
-  /* The retired 96px staging column from adaptive-grid is not part of HOME. */
+  /* Landscape keeps Public Assets as a compact row above the map. */
   .rist>.table-workspace{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
   .rist>.table-workspace>.staging-tray{display:none!important}
   .rist>.table-workspace>.map-shell{grid-row:1!important}
