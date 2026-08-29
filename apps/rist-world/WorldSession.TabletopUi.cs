@@ -2,8 +2,12 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    private string _userMode = "Player";
+
     public string AssetFamily { get; private set; } = "";
-    public string UserMode { get; private set; } = "Player";
+    public string UserMode => Role == "GM"
+        ? (_userMode == "Moderator" ? "Moderator" : "GameMaster")
+        : (_userMode == "Spectator" ? "Spectator" : "Player");
     public string GameMode { get; private set; } = "Build";
     public string PresentationMode { get; private set; } = "World";
     public string MapDirection { get; private set; } = "North";
@@ -21,14 +25,14 @@ public sealed partial class WorldSession
 
     private void ApplyUserMode(string mode)
     {
-        UserMode = mode switch
+        _userMode = mode switch
         {
             "GameMaster" when IsLoggedIn => "GameMaster",
             "Moderator" when IsLoggedIn => "Moderator",
             "Spectator" => "Spectator",
             _ => "Player"
         };
-        Role = UserMode is "GameMaster" or "Moderator" ? "GM" : "PC";
+        Role = _userMode is "GameMaster" or "Moderator" ? "GM" : "PC";
     }
 
     public void SetUserMode(string mode)
