@@ -1,0 +1,51 @@
+@inject WorldSession Session
+
+<div class="elemental-token-selector">
+ <button type="button" class="elemental-token-active" @onclick="ToggleMenu" aria-expanded="@_menuOpen" aria-label="Choose elemental token" title="Choose elemental token">
+  <span class="magic-coin-sprite magic-coin-animated" style="@CoinStyle(_selectedRow)" aria-hidden="true"></span>
+ </button>
+ @if(_menuOpen)
+ {
+  <div class="elemental-token-menu" role="menu" aria-label="Elemental token choices">
+   @for(var row=0;row<15;row++)
+   {
+    var choice=row;
+    <button type="button" class="elemental-token-option @(choice==_selectedRow?"selected":"")" @onclick="()=>SelectRow(choice)" role="menuitem" aria-label="Select elemental token @(choice+1)">
+     <span class="magic-coin-sprite" style="@CoinStyle(choice)" aria-hidden="true"></span>
+    </button>
+   }
+  </div>
+ }
+</div>
+
+<style>
+.elemental-token-selector{position:relative;flex:0 0 auto;overflow:visible;z-index:18}
+.elemental-token-active,.elemental-token-option{display:grid;place-items:center;padding:3px;border:1px solid #745c25;border-radius:9px;background:#111a21;color:#e8d49a}
+.elemental-token-active{width:72px;height:72px}
+.elemental-token-active:active,.elemental-token-option:active,.elemental-token-option.selected{border-color:#d7ad49;background:#1a2730;box-shadow:inset 0 0 0 1px #d7ad4966}
+.magic-coin-sprite{display:block;width:60px;height:60px;background-image:url('assets/spritesheets/magic-coins.webp');background-repeat:no-repeat;background-size:600% 1500%;background-position-x:0%;filter:drop-shadow(0 2px 2px #0009)}
+.magic-coin-animated{animation:magic-coin-cycle 900ms linear infinite}
+.elemental-token-menu{position:absolute;z-index:120;left:0;bottom:calc(100% + 8px);width:232px;display:grid;grid-template-columns:repeat(5,42px);gap:4px;padding:7px;border:1px solid #96752e;border-radius:10px;background:#0a1218f5;box-shadow:0 -8px 26px #000b;backdrop-filter:blur(6px)}
+.elemental-token-option{width:42px;height:42px;padding:2px}
+.elemental-token-option .magic-coin-sprite{width:36px;height:36px}
+@@keyframes magic-coin-cycle{
+ 0%,16.65%{background-position-x:0%}
+ 16.66%,33.31%{background-position-x:20%}
+ 33.32%,49.97%{background-position-x:40%}
+ 49.98%,66.63%{background-position-x:60%}
+ 66.64%,83.29%{background-position-x:80%}
+ 83.3%,100%{background-position-x:100%}
+}
+</style>
+
+@code {
+ bool _menuOpen;
+ int _selectedRow;
+ void ToggleMenu()=>_menuOpen=!_menuOpen;
+ void SelectRow(int row){_selectedRow=Math.Clamp(row,0,14);_menuOpen=false;Session.Notify();}
+ string CoinStyle(int row)
+ {
+  var y=row<=0?0:row>=14?100:row*(100.0/14.0);
+  return $"background-position-y:{y.ToString("0.###",System.Globalization.CultureInfo.InvariantCulture)}%";
+ }
+}
