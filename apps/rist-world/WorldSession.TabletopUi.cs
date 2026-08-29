@@ -32,6 +32,18 @@ public sealed partial class WorldSession
         Notify();
     }
 
+    public void CycleUserMode()
+    {
+        var next = UserMode switch
+        {
+            "Player" => IsLoggedIn ? "GameMaster" : "Spectator",
+            "GameMaster" => "Spectator",
+            "Spectator" => IsLoggedIn ? "Moderator" : "Player",
+            _ => "Player"
+        };
+        SetUserMode(next);
+    }
+
     public void CycleGameMode()
     {
         GameMode = GameMode switch { "Build" => "Test", "Test" => "Live", _ => "Build" };
