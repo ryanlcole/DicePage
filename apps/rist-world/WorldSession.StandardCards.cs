@@ -10,8 +10,12 @@ public sealed partial class WorldSession
     public Dictionary<string,int> StandardTypeCounts { get; } = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<CardItem> _standardDrawPile = [];
 
-    public IEnumerable<string> StandardCardTypes
-        => Cards.Select(x=>x.Type).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x);
+    public IReadOnlyList<string> StandardCardTypes
+        => Cards.Select(x=>x.Type)
+            .Where(x=>!string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x=>x,StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
     public int StandardTypeCount(string type)
         => StandardTypeCounts.TryGetValue(type,out var count)?count:0;
@@ -32,13 +36,15 @@ public sealed partial class WorldSession
     {
         _standardDrawPile.Clear();
         StandardHandCards.Clear();
-        foreach(var type in StandardCardTypes)
+        var cardsByType=Cards
+            .Where(card=>!string.IsNullOrWhiteSpace(card.Type))
+            .GroupBy(card=>card.Type,StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group=>group.Key,group=>group.ToArray(),StringComparer.OrdinalIgnoreCase);
+        foreach(var pair in StandardTypeCounts)
         {
-            var requested=StandardTypeCount(type);
-            if(requested<=0)continue;
-            var source=Cards.Where(x=>x.Type.Equals(type,StringComparison.OrdinalIgnoreCase)).ToList();
-            if(source.Count==0)continue;
-            for(var i=0;i<requested;i++)_standardDrawPile.Add(source[i%source.Count]);
+            var requested=Math.Clamp(pair.Value,0,120);
+            if(requested<=0||!cardsByType.TryGetValue(pair.Key,out var source)||source.Length==0)continue;
+            for(var i=0;i<requested;i++)_standardDrawPile.Add(source[i%source.Length]);
         }
         ShuffleStandardPile();
         StandardGameActive=true;
