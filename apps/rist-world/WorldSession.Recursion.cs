@@ -7,6 +7,9 @@ public sealed partial class WorldSession
         "WORLD","REGION","LOCAL","SITE","ROOM","ENCOUNTER","OBJECT","CONTAINER","CONTENTS","WEATHER"
     ];
 
+    private Dictionary<string,AtlasTile> _atlasById = new(StringComparer.Ordinal);
+    private int _atlasIndexCount = -1;
+
     public string ViewportLayer { get; private set; } = "WORLD";
 
     public void SetViewportLayer(string? layer)
@@ -38,6 +41,17 @@ public sealed partial class WorldSession
         return index < 0 ? 0 : index;
     }
 
+    private AtlasTile? FindAtlasTile(string id)
+    {
+        if (_atlasIndexCount != AtlasTiles.Count)
+        {
+            _atlasById = new Dictionary<string,AtlasTile>(AtlasTiles.Count,StringComparer.Ordinal);
+            foreach (var tile in AtlasTiles) _atlasById[tile.Id] = tile;
+            _atlasIndexCount = AtlasTiles.Count;
+        }
+        return _atlasById.GetValueOrDefault(id);
+    }
+
     public string NativeLayer(AtlasTile tile)
     {
         if (string.Equals(tile.Layer,"UNIVERSAL",StringComparison.OrdinalIgnoreCase)) return ViewportLayer;
@@ -48,8 +62,7 @@ public sealed partial class WorldSession
     {
         if (staged.Kind == "tile" && staged.Key.StartsWith("tile:",StringComparison.Ordinal))
         {
-            var id = staged.Key[5..];
-            var atlas = AtlasTiles.FirstOrDefault(x => x.Id == id);
+            var atlas = FindAtlasTile(staged.Key[5..]);
             if (atlas is not null) return NativeLayer(atlas);
         }
         return staged.Kind switch
@@ -65,7 +78,7 @@ public sealed partial class WorldSession
 
     public string NativeLayer(TileItem tile)
     {
-        var atlas = AtlasTiles.FirstOrDefault(x => x.Id == tile.Id);
+        var atlas = FindAtlasTile(tile.Id);
         if (atlas is not null) return NativeLayer(atlas);
         return ViewportLayer;
     }
