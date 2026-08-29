@@ -143,8 +143,9 @@ public sealed partial class WorldSession
     public void SetFieldDiceMagnitude(CharacterField field,string dieKey,int magnitude)
     {
         if(!MixerOpen || Dice(dieKey) is null) return;
+        var safeMagnitude=Math.Clamp(magnitude,1,5);
         var entry=field.DiceBag.FirstOrDefault(x=>x.DieKey==dieKey);
-        if(entry is null){entry=new(dieKey,1,magnitude);field.DiceBag.Add(entry);}else entry.SelectedMagnitude=Math.Clamp(magnitude,1,5);
+        if(entry is null){entry=new(dieKey,1,safeMagnitude);field.DiceBag.Add(entry);}else entry.SelectedMagnitude=safeMagnitude;
         DiceBagExampleTotal=null;Notify();
     }
 
