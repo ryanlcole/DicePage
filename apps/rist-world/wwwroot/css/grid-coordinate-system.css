@@ -1,27 +1,20 @@
-/* Coordinates surround the viewport. Square grid remains the original tabletop grid. */
-.world-stage{position:absolute;inset:0}
+/* Coordinates live in a dedicated map frame. The grid itself is the glass layer above the map. */
+.world-stage{position:absolute;inset:0;z-index:2}
+.grid.rist-glass-grid,.rist-hex-grid.rist-glass-grid{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:8!important;pointer-events:none!important;transform:none!important}
 .rist-grid-overlay{display:none!important}
 .map:has(.grid.hex)::before{display:none!important;content:none!important}
-
-/* Hex is drawn as real SVG polygons by grid-coordinate-system.js. */
 .grid.hex{background:none!important}
-.rist-hex-grid{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;overflow:hidden;opacity:.52}
-.rist-hex-grid polygon{fill:none;stroke:#f1d26f;stroke-width:1;vector-effect:non-scaling-stroke}
-.rist-hex-grid .hex-shadow{stroke:#05080b;stroke-width:2.5;opacity:.65}
-
-.rist-coordinate-frame{position:absolute;inset:0;z-index:18;pointer-events:none;overflow:visible;color:#f3d88e;font:600 8px/1 system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px #000,0 0 2px #000}
-.rist-coordinate-axis{position:absolute;pointer-events:none}
-.rist-coordinate-axis.top,.rist-coordinate-axis.bottom{left:13px;right:13px;height:16px}
-.rist-coordinate-axis.top{top:0}.rist-coordinate-axis.bottom{bottom:0}
-.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:13px;bottom:13px;width:28px}
-.rist-coordinate-axis.left{left:0}.rist-coordinate-axis.right{right:0}
-.rist-coordinate-tick{position:absolute;white-space:nowrap;opacity:.82}
-.top .rist-coordinate-tick,.bottom .rist-coordinate-tick{left:var(--p);transform:translateX(-50%)}
-.top .rist-coordinate-tick{top:2px}.bottom .rist-coordinate-tick{bottom:2px}
+.rist-hex-grid{overflow:hidden;opacity:.52}.rist-hex-grid polygon{fill:none;stroke:#f1d26f;stroke-width:1;vector-effect:non-scaling-stroke}.rist-hex-grid .hex-shadow{stroke:#05080b;stroke-width:2.5;opacity:.65}
+.rist-coordinate-frame{position:absolute;inset:0;z-index:18;pointer-events:none;overflow:hidden;box-sizing:border-box;border:1px solid #7a632f;color:#f3d88e;font:600 8px/1 system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px #000,0 0 2px #000}
+.rist-coordinate-axis{position:absolute;pointer-events:none;background:#030608d9}
+.rist-coordinate-axis.top{left:22px;right:22px;top:0;height:18px;border-bottom:1px solid #55451f}
+.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:18px;bottom:0;width:22px}
+.rist-coordinate-axis.left{left:0;border-right:1px solid #55451f}.rist-coordinate-axis.right{right:0;border-left:1px solid #55451f}
+.rist-coordinate-axis.bottom{display:none!important}
+.rist-coordinate-tick{position:absolute;white-space:nowrap;opacity:.88}
+.top .rist-coordinate-tick{left:var(--p);top:5px;transform:translateX(-50%)}
 .left .rist-coordinate-tick,.right .rist-coordinate-tick{top:var(--p);transform:translateY(-50%);writing-mode:vertical-rl}
-.left .rist-coordinate-tick{left:2px;transform:translateY(-50%) rotate(180deg)}
-.right .rist-coordinate-tick{right:2px}
+.left .rist-coordinate-tick{left:6px;transform:translateY(-50%) rotate(180deg)}.right .rist-coordinate-tick{right:6px}
 .rist-coordinate-tick.zero{color:#fff7d1;font-weight:900;opacity:1}
-.rist-art-studio main{position:relative}
-.rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}
-@media(max-width:800px){.rist-coordinate-frame{font-size:7px}.rist-coordinate-axis.top,.rist-coordinate-axis.bottom{left:9px;right:9px}.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:9px;bottom:9px;width:22px}}
+.rist-art-studio main{position:relative}.rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}.rist-art-studio .rist-coordinate-axis.bottom{display:block!important}
+@media(max-width:800px){.rist-coordinate-frame{font-size:7px}.rist-coordinate-axis.top{left:18px;right:18px;height:16px}.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:16px;width:18px}.left .rist-coordinate-tick{left:4px}.right .rist-coordinate-tick{right:4px}}
