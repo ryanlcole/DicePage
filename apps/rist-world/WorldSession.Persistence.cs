@@ -139,7 +139,7 @@ public sealed partial class WorldSession
  public void LoadMapJson(string json)
  {
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
-  EncounterActive=false;Role=save.Role;Layer=TableLayers.Contains(save.Layer)?save.Layer:"WORLD";GridStyle=save.GridStyle;
+  EncounterActive=false;Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
