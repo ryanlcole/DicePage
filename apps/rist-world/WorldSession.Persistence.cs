@@ -5,6 +5,8 @@ public sealed partial class WorldSession
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
  const string OceanResetVersion="2026-08-28-topology-v2";
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
+ static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
+ static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
 
  object SavePayload()
@@ -36,7 +38,7 @@ public sealed partial class WorldSession
    NpcBoundaryExchanges
   };
  }
- public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),new JsonSerializerOptions{WriteIndented=true});
+ public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
  public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
@@ -44,11 +46,11 @@ public sealed partial class WorldSession
   if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
   await SavePrivateCheckpointAsync(showSuccess:true);
  }
- async Task SavePrivateCheckpointAsync(bool showSuccess)
+ async Task SavePrivateCheckpointAsync(bool showSuccess,string? snapshot=null)
  {
   try
   {
-   var json=ExportMapJson();
+   var json=snapshot??ExportMapJson();
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
    await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
    _lastPrivateSnapshot=json;
@@ -90,7 +92,7 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   var json=ExportMapJson();
   if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
-  await SavePrivateCheckpointAsync(showSuccess:false);
+  await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
  }
  public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
@@ -136,7 +138,7 @@ public sealed partial class WorldSession
 
  public void LoadMapJson(string json)
  {
-  var save=JsonSerializer.Deserialize<SavedWorld>(json,new JsonSerializerOptions{PropertyNameCaseInsensitive=true});if(save is null)return;
+  var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
   EncounterActive=false;Role=save.Role;Layer=TableLayers.Contains(save.Layer)?save.Layer:"WORLD";GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
