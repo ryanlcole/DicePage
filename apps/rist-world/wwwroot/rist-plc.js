@@ -8,7 +8,6 @@
    'grid-coordinate-system.js?v=5'
   ],
   shell:[
-   'character-board-focus.js?v=7',
    'map-context-sidebar.js?v=5',
    'recursion-layers.js?v=3',
    'mmo-mode.js?v=4',
@@ -17,7 +16,6 @@
    'js/faux-depth.js?v=2'
   ],
   interaction:[
-   'card-defaults.js?v=2',
    'portrait-editor-live.js?v=3',
    'card-appearance.js?v=3',
    'mmo-build.js?v=3',
@@ -25,7 +23,7 @@
    'cursors-haptics.js?v=2',
    'art-studio.js?v=7',
    'art-surface-controls.js?v=2',
-   'sprite-creator.js?v=2'
+   'sprite-creator.js?v=3'
   ]
  };
  const values={tabletop:PHASE.TABLETOP,shell:PHASE.SHELL,interaction:PHASE.INTERACTION};
