@@ -1,15 +1,26 @@
 @implements IDisposable
 @inject WorldSession Session
 @inject IJSRuntime JS
+
 <div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") tabletop-shell">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
 
- <section class="top-control-stack" aria-label="Tabletop controls">
-  <WorldHeader />
-  <AssetLibrary />
- </section>
+ <header class="tabletop-header @(_headerExpanded?"expanded":"collapsed")">
+  <div class="header-collapse-row">
+   <button type="button" class="section-collapse-button" @onclick="ToggleHeader" aria-expanded="@_headerExpanded" aria-controls="tabletop-header-content">
+    <span>@(_headerExpanded?"⌃":"⌄")</span><strong>Table Controls</strong>
+   </button>
+  </div>
+  @if(_headerExpanded)
+  {
+   <div id="tabletop-header-content" class="tabletop-header-content">
+    <WorldHeader />
+    <AssetLibrary />
+   </div>
+  }
+ </header>
 
- <section class="map-section" aria-label="Always expanded tabletop map">
+ <main class="tabletop-main" aria-label="Permanent tabletop">
   <nav class="map-meta-top" aria-label="Map status">
    <span><small>Coordinates</small><strong>@Session.WorldCoordinateLabel</strong></span>
    <span><small>Game Date</small><strong>Day 1</strong></span>
@@ -19,10 +30,13 @@
    <button type="button" @onclick="Session.CycleMapDirection"><small>Direction</small><strong>@Session.MapDirection</strong></button>
   </nav>
 
-  <div class="map-frame">
+  <section class="map-frame" aria-label="Map and side rails">
    <WorldMap />
-   <aside class="public-side-rail" aria-label="Public assets"><span class="side-rail-title">PUBLIC</span><PublicCardRail /></aside>
-  </div>
+   <aside class="public-side-rail" aria-label="Public assets">
+    <span class="side-rail-title">PUBLIC</span>
+    <PublicCardRail />
+   </aside>
+  </section>
 
   <footer class="map-meta-bottom" aria-label="Map details">
    <span><small>World Name</small><strong>@Session.MapName</strong></span>
@@ -31,11 +45,11 @@
    <span><small>GM Name</small><strong>@Session.GmName</strong></span>
    <span><small>Units / sq</small><strong>@Session.EffectiveGridDistance.ToString("0.##") @Session.EffectiveGridUnit</strong></span>
   </footer>
- </section>
+ </main>
 
- <section class="player-tool-dock @(_bottomExpanded?"expanded":"collapsed")" aria-label="Player tools">
+ <footer class="tabletop-footer @(_bottomExpanded?"expanded":"collapsed")">
   <div class="player-tool-launchers">
-   <button type="button" class="bottom-collapse" @onclick="ToggleBottom" aria-expanded="@_bottomExpanded">@(_bottomExpanded?"‹":"›")</button>
+   <button type="button" class="section-collapse-button footer-collapse" @onclick="ToggleBottom" aria-expanded="@_bottomExpanded" aria-controls="tabletop-footer-content">@(_bottomExpanded?"⌄":"⌃")</button>
    <button type="button" class="@PanelClass("public")" @onclick="OpenPublic">Player Public Assets</button>
    <button type="button" class="@PanelClass("private")" @onclick="OpenPrivate">Player Private Assets</button>
    <button type="button" class="@PanelClass("dice")" @onclick="OpenDice">Dice</button>
@@ -43,7 +57,7 @@
   </div>
   @if(_bottomExpanded)
   {
-   <div class="player-tool-content panel-@_bottomPanel">
+   <div id="tabletop-footer-content" class="player-tool-content panel-@_bottomPanel">
     @if(_bottomPanel=="public")
     {
      <HandRail />
@@ -59,28 +73,31 @@
     }
    </div>
   }
- </section>
+ </footer>
 
  <MmoZoneActions />
  <RistWelcomeTutorial />
 </div>
 
 <style>
-.tabletop-shell{height:100dvh;min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;background:#071118}
-.top-control-stack{position:relative;z-index:70;min-width:0;max-height:42dvh;overflow-y:auto;overscroll-behavior:contain;background:#081118}.top-control-stack>.topbar,.top-control-stack>.asset-slider-stack{margin:0!important;border-radius:0!important}
-.map-section{min-height:0;min-width:0;display:grid;grid-template-rows:27px minmax(0,1fr) 29px;overflow:hidden;border-block:1px solid #695326;background:#071118}
+.tabletop-shell{height:100dvh;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#071118;color:#d8c58e}
+.tabletop-header,.tabletop-footer{position:relative;z-index:70;flex:0 0 auto;min-width:0;background:#081118;border-color:#725a28}.tabletop-header{border-bottom:1px solid #725a28}.tabletop-footer{border-top:1px solid #725a28;z-index:60}
+.header-collapse-row{display:flex;min-height:28px;border-bottom:1px solid #40351e}.section-collapse-button{border:1px solid #5c4925;border-radius:7px;background:#111a21;color:#d5bf82;font:700 9px/1.1 system-ui}.header-collapse-row .section-collapse-button{margin:3px 6px;padding:4px 9px;display:flex;align-items:center;gap:7px}.tabletop-header-content{max-height:34dvh;overflow:auto;overscroll-behavior:contain}.tabletop-header-content>.topbar,.tabletop-header-content>.asset-slider-stack{margin:0!important;border-radius:0!important}.tabletop-header.collapsed .header-collapse-row{border-bottom:0}
+.tabletop-main{flex:1 1 auto;min-height:0;min-width:0;display:grid;grid-template-rows:27px minmax(0,1fr) 29px;overflow:hidden;background:#071118}
 .map-meta-top,.map-meta-bottom{display:flex;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1319;color:#c9b67e}.map-meta-top{border-bottom:1px solid #5d4a24}.map-meta-bottom{border-top:1px solid #5d4a24}.map-meta-top::-webkit-scrollbar,.map-meta-bottom::-webkit-scrollbar{display:none}.map-meta-top>*,.map-meta-bottom>*{flex:0 0 auto;min-width:108px;height:100%;display:grid;grid-template-rows:9px 1fr;align-content:center;padding:2px 8px;border:0;border-right:1px solid #3f351e;background:transparent;color:inherit;text-align:left}.map-meta-top small,.map-meta-bottom small{font:700 7px/1 system-ui;text-transform:uppercase;letter-spacing:.07em;opacity:.65}.map-meta-top strong,.map-meta-bottom strong{font:700 9px/1.1 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.map-meta-bottom label{min-width:145px}.map-meta-bottom .gm-note{min-width:200px}.map-meta-bottom input{width:100%;min-width:0;border:0;border-bottom:1px solid #594a2b;background:#0f181f;color:#ded0a8;font:600 9px/1 system-ui;padding:1px 3px;outline:none}
-.map-frame{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 72px;overflow:hidden}.map-frame>.table-workspace{grid-column:1;min-width:0!important;min-height:0!important;height:100%!important;width:100%!important;display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important;margin:0!important;padding:0!important}.map-frame>.table-workspace>.staging-tray{grid-column:1!important;grid-row:1!important;height:100%!important;min-height:0!important;width:64px!important;max-width:64px!important;display:flex!important;flex-direction:column!important;overflow-y:auto!important;overflow-x:hidden!important;margin:0!important;border-radius:0!important;border-right:1px solid #5d4a24!important}.map-frame>.table-workspace>.staging-tray .circular-set,.map-frame>.table-workspace>.staging-tray .finite-set{display:flex!important;flex-direction:column!important;width:100%!important}.map-frame>.table-workspace>.staging-tray .rail-scroll-arrow{width:100%!important;min-height:26px!important;flex:0 0 26px!important}.map-frame>.table-workspace>.map-shell{grid-column:2!important;grid-row:1!important;min-height:0!important;height:100%!important;width:100%!important;margin:0!important;overflow:hidden!important}.map-frame>.table-workspace>.tile-browser{display:none!important}
-.public-side-rail{grid-column:2;min-width:0;min-height:0;display:grid;grid-template-rows:18px minmax(0,1fr);border-left:1px solid #6a5427;background:#091219;overflow:hidden}.side-rail-title{display:grid;place-items:center;color:#bca260;font:700 7px/1 system-ui;letter-spacing:.12em;border-bottom:1px solid #4b3d21}.public-side-rail .public-card-drop{position:static!important;height:100%!important;min-height:0!important;width:100%!important;max-width:100%!important;display:grid!important;grid-template-rows:25px minmax(0,1fr) 25px!important;grid-template-columns:1fr!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:transparent!important}.public-side-rail .public-card-strip{display:flex!important;flex-direction:column!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:4px!important}.public-side-rail .rail-scroll-arrow{width:100%!important;height:25px!important;min-height:25px!important}.public-side-rail .public-table-card{flex:0 0 auto!important;width:62px!important;max-width:62px!important;margin:auto!important}.public-side-rail .public-card-empty{writing-mode:vertical-rl;transform:rotate(180deg);margin:auto;font-size:8px;white-space:nowrap}
-.player-tool-dock{position:relative;z-index:60;min-width:0;background:#081118f4;border-top:1px solid #725a28}.player-tool-launchers{display:flex;align-items:stretch;gap:3px;min-height:36px;padding:3px;overflow-x:auto;scrollbar-width:none}.player-tool-launchers::-webkit-scrollbar{display:none}.player-tool-launchers button{flex:0 0 auto;min-height:32px;border:1px solid #5c4925;border-radius:7px;background:#111a21;color:#d5bf82;padding:5px 9px;font:700 9px/1.1 system-ui}.player-tool-launchers button.active{background:#19252d;border-color:#c19b45;color:#f0dca8}.player-tool-launchers .bottom-collapse{width:32px;padding:0;font-size:20px}.player-tool-content{max-height:29dvh;overflow:auto;border-top:1px solid #41361f}.player-tool-dock.collapsed .player-tool-content{display:none}.player-tool-content>.hand-rail,.player-tool-content .home-footer-stack{margin:0!important;border-radius:0!important}.player-tool-content.panel-dice .home-inline-chat{display:none!important}.player-tool-content.panel-chat .dice-footer{display:none!important}.player-tool-content.panel-chat .home-inline-chat{margin:0!important;border-radius:0!important}.tabletop-shell>.mmo-zone-actions{position:absolute!important}
-@@media(max-width:800px){.top-control-stack{max-height:36dvh}.map-section{grid-template-rows:25px minmax(0,1fr) 27px}.map-frame{grid-template-columns:minmax(0,1fr) 54px}.map-frame>.table-workspace{grid-template-columns:48px minmax(0,1fr)!important}.map-frame>.table-workspace>.staging-tray{width:48px!important;max-width:48px!important}.public-side-rail .public-table-card{width:46px!important;max-width:46px!important}.map-meta-top>*,.map-meta-bottom>*{min-width:92px;padding-inline:5px}.map-meta-bottom label{min-width:116px}.map-meta-bottom .gm-note{min-width:145px}.player-tool-launchers button{padding-inline:7px;font-size:8px}.player-tool-content{max-height:26dvh}}
+.map-frame{min-height:0;min-width:0;height:100%;display:grid;grid-template-columns:minmax(0,1fr) 72px;overflow:hidden;background:#071118}.map-frame>.table-workspace{grid-column:1;min-width:0!important;min-height:0!important;height:100%!important;width:100%!important;display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important;margin:0!important;padding:0!important;align-self:stretch!important}.map-frame>.table-workspace>.staging-tray{grid-column:1!important;grid-row:1!important;height:100%!important;min-height:0!important;width:64px!important;max-width:64px!important;display:flex!important;flex-direction:column!important;overflow-y:auto!important;overflow-x:hidden!important;margin:0!important;border-radius:0!important;border-right:1px solid #5d4a24!important}.map-frame>.table-workspace>.staging-tray .circular-set,.map-frame>.table-workspace>.staging-tray .finite-set{display:flex!important;flex-direction:column!important;width:100%!important}.map-frame>.table-workspace>.staging-tray .rail-scroll-arrow{width:100%!important;min-height:26px!important;flex:0 0 26px!important}.map-frame>.table-workspace>.map-shell{grid-column:2!important;grid-row:1!important;min-height:0!important;height:100%!important;width:100%!important;margin:0!important;overflow:hidden!important;align-self:stretch!important}.map-frame>.table-workspace>.tile-browser{display:none!important}
+.public-side-rail{grid-column:2;min-width:0;min-height:0;height:100%;display:grid;grid-template-rows:18px minmax(0,1fr);border-left:1px solid #6a5427;background:#091219;overflow:hidden}.side-rail-title{display:grid;place-items:center;color:#bca260;font:700 7px/1 system-ui;letter-spacing:.12em;border-bottom:1px solid #4b3d21}.public-side-rail .public-card-drop{position:static!important;height:100%!important;min-height:0!important;width:100%!important;max-width:100%!important;display:grid!important;grid-template-rows:25px minmax(0,1fr) 25px!important;grid-template-columns:1fr!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:transparent!important}.public-side-rail .public-card-strip{display:flex!important;flex-direction:column!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:4px!important}.public-side-rail .rail-scroll-arrow{width:100%!important;height:25px!important;min-height:25px!important}.public-side-rail .public-table-card{flex:0 0 auto!important;width:62px!important;max-width:62px!important;margin:auto!important}.public-side-rail .public-card-empty{writing-mode:vertical-rl;transform:rotate(180deg);margin:auto;font-size:8px;white-space:nowrap}
+.player-tool-launchers{display:flex;align-items:stretch;gap:3px;min-height:38px;padding:3px;overflow-x:auto;scrollbar-width:none}.player-tool-launchers::-webkit-scrollbar{display:none}.player-tool-launchers button{flex:0 0 auto;min-height:32px;border:1px solid #5c4925;border-radius:7px;background:#111a21;color:#d5bf82;padding:5px 9px;font:700 9px/1.1 system-ui}.player-tool-launchers button.active{background:#19252d;border-color:#c19b45;color:#f0dca8}.player-tool-launchers .footer-collapse{width:32px;padding:0;font-size:18px}.player-tool-content{max-height:28dvh;overflow:auto;border-top:1px solid #41361f;background:#081118}.player-tool-content>.hand-rail,.player-tool-content .home-footer-stack{margin:0!important;border-radius:0!important}.player-tool-content.panel-dice .home-inline-chat{display:none!important}.player-tool-content.panel-chat .dice-footer{display:none!important}.player-tool-content.panel-chat .home-inline-chat{margin:0!important;border-radius:0!important}.tabletop-shell>.mmo-zone-actions{position:absolute!important}
+@@media(max-width:800px){.tabletop-header-content{max-height:30dvh}.tabletop-main{grid-template-rows:25px minmax(0,1fr) 27px}.map-frame{grid-template-columns:minmax(0,1fr) 54px}.map-frame>.table-workspace{grid-template-columns:48px minmax(0,1fr)!important}.map-frame>.table-workspace>.staging-tray{width:48px!important;max-width:48px!important}.public-side-rail .public-table-card{width:46px!important;max-width:46px!important}.map-meta-top>*,.map-meta-bottom>*{min-width:92px;padding-inline:5px}.map-meta-bottom label{min-width:116px}.map-meta-bottom .gm-note{min-width:145px}.player-tool-launchers button{padding-inline:7px;font-size:8px}.player-tool-content{max-height:25dvh}.header-collapse-row{min-height:26px}}
 </style>
 
 @code{
+ bool _headerExpanded=true;
  bool _bottomExpanded=false;
  string _bottomPanel="dice";
  readonly CancellationTokenSource _autosaveCts=new();
  string PanelClass(string panel)=>_bottomExpanded&&_bottomPanel==panel?"active":"";
+ void ToggleHeader()=>_headerExpanded=!_headerExpanded;
  void ToggleBottom()=>_bottomExpanded=!_bottomExpanded;
  void OpenPanel(string panel){if(_bottomExpanded&&_bottomPanel==panel){_bottomExpanded=false;return;}_bottomPanel=panel;_bottomExpanded=true;}
  void OpenPublic()=>OpenPanel("public");
