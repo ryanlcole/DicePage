@@ -9,24 +9,25 @@ public sealed partial class WorldSession
 
     public void ChooseTutorialPath(string path)
     {
-        TutorialPath = path;
-        Role = path.Contains("Worldbuilder", StringComparison.Ordinal) ? "GM" : "PC";
-        TutorialStep = path.Contains("Worldbuilder", StringComparison.Ordinal) ? "map-source" : "player-start";
-        if(TutorialStep == "player-start") TutorialWelcomeOpen = false;
+        TutorialPath = path ?? "";
+        var worldbuilder = TutorialPath.Contains("Worldbuilder", StringComparison.Ordinal);
+        SetUserMode(worldbuilder ? "GameMaster" : "Player");
+        TutorialStep = worldbuilder ? "map-source" : "player-start";
+        if (TutorialStep == "player-start") TutorialWelcomeOpen = false;
         Notify();
     }
 
     public void ChooseTutorialMapSource(string source)
     {
-        TutorialMapSource = source;
-        if(source == "paint")
+        TutorialMapSource = source ?? "";
+        if (TutorialMapSource == "paint")
         {
             TutorialWelcomeOpen = false;
             Mode = "tile";
             Notify();
             return;
         }
-        TutorialStep = source == "attach" ? "map-attach" : "map-random";
+        TutorialStep = TutorialMapSource == "attach" ? "map-attach" : "map-random";
         Notify();
     }
 }
