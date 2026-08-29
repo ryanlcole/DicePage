@@ -11,7 +11,7 @@ public sealed partial class WorldSession
     {
         TutorialPath = path ?? "";
         var worldbuilder = TutorialPath.Contains("Worldbuilder", StringComparison.Ordinal);
-        SetUserMode(worldbuilder ? "GameMaster" : "Player");
+        ApplyUserMode(worldbuilder ? "GameMaster" : "Player");
         TutorialStep = worldbuilder ? "map-source" : "player-start";
         if (TutorialStep == "player-start") TutorialWelcomeOpen = false;
         Notify();
