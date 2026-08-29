@@ -1,22 +1,23 @@
 @implements IDisposable
 @inject WorldSession Session
 
-<aside class="recursion-cockpit" data-recursion-layer="@Session.ViewportLayer" aria-label="Recursive world layers">
+<aside class="recursion-cockpit" data-recursion-tier="@Session.ViewportTier" data-recursion-layer="@Session.ViewportTier" aria-label="Recursive world tiers">
     <div class="recursion-cockpit-frame" aria-hidden="true"></div>
-    <div class="recursion-layer-strip" role="toolbar" aria-label="Viewing layer">
-        @foreach (var layer in WorldSession.RecursionLayers)
+    <div class="recursion-layer-strip" role="toolbar" aria-label="Viewing tier">
+        @foreach (var tier in WorldSession.RecursionTiers)
         {
             <button type="button"
-                    class="recursion-layer-button @(Session.ViewportLayer==layer?"active":"")"
-                    data-layer="@layer"
-                    title="View @Pretty(layer) layer"
-                    aria-pressed="@(Session.ViewportLayer==layer)"
-                    @onclick="()=>Session.SetViewportLayer(layer)">
-                <span>@Short(layer)</span>
+                    class="recursion-layer-button @(Session.ViewportTier==tier?"active":"")"
+                    data-tier="@tier"
+                    data-layer="@tier"
+                    title="View @Pretty(tier) tier"
+                    aria-pressed="@(Session.ViewportTier==tier)"
+                    @onclick="()=>Session.SetViewportTier(tier)">
+                <span>@Short(tier)</span>
             </button>
         }
     </div>
-    <output class="recursion-layer-readout"><strong>@Pretty(Session.ViewportLayer)</strong><span>viewport</span></output>
+    <output class="recursion-layer-readout"><strong>@Pretty(Session.ViewportTier)</strong><span>viewport tier</span></output>
 </aside>
 
 @code {
@@ -24,9 +25,9 @@
     void Changed()=>_=InvokeAsync(StateHasChanged);
     public void Dispose()=>Session.Changed-=Changed;
     static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
-    static string Short(string layer)=>layer switch
+    static string Short(string tier)=>tier switch
     {
         "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","SITE"=>"S","ROOM"=>"RM",
-        "ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT","WEATHER"=>"WX",_=>"?"
+        "ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT",_=>"?"
     };
 }
