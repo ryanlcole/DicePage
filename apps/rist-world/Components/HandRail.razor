@@ -28,7 +28,15 @@
    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#hand-slider',1)" aria-label="Scroll hand right">›</button>
   </div>
  </div>
- <div class="token-placement-pane" aria-label="Token placement"><span class="player-tools-label">Tokens</span><div id="token-slider" class="token-choice-strip desktop-arrow-slider"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#token-slider',-1)" aria-label="Scroll tokens left">‹</button><button @onclick='()=>Session.StagePiece("mini")' aria-label="Add miniature to pallet"><span class="token-choice mini-choice">mini</span></button><button @onclick='()=>Session.StagePiece("pawn")' aria-label="Add pawn to pallet"><span class="token-choice pawn-choice">pawn</span></button><button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button><button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#token-slider',1)" aria-label="Scroll tokens right">›</button></div></div>
+ <div class="token-placement-pane" aria-label="Token placement">
+  <span class="player-tools-label">Tokens</span>
+  <div id="token-slider" class="token-choice-strip desktop-arrow-slider">
+   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#token-slider',-1)" aria-label="Scroll tokens left">‹</button>
+   <ElementalTokenSelector />
+   <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag map pin onto map"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#token-slider',1)" aria-label="Scroll tokens right">›</button>
+  </div>
+ </div>
 </section>
 @if(Session.HandOpen)
 {
@@ -44,6 +52,9 @@
  <div id="standard-slider" class="card-drawer-row standard-row desktop-arrow-slider" aria-label="Standard card game controls"><button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#standard-slider',-1)" aria-label="Scroll standard controls left">‹</button><div class="drawer-category-card" aria-hidden="true"><span class="category-card-back"></span><strong>Standard</strong></div><div class="standard-game-controls"><div class="standard-counts" aria-label="Card counts by type">@foreach(var type in Session.StandardCardTypes){<label><span>@type</span><input type="number" min="0" max="120" value="@Session.StandardTypeCount(type)" @onchange="e=>SetStandardCount(type,e)" /></label>}</div><label class="draw-only-setting"><input type="checkbox" checked="@Session.StandardDrawOnly" @onchange="e=>Session.SetStandardDrawOnly(e.Value is bool value&&value)" /><span>Draw only</span></label><button class="standard-save-icon" @onclick="SaveStandardDeck" aria-label="Save standard deck" title="Save standard deck"><span class="header-icon icon-save" aria-hidden="true"></span></button><label class="standard-load standard-load-icon" aria-label="Load standard deck" title="Load standard deck"><span class="header-icon icon-load" aria-hidden="true"></span><InputFile OnChange="LoadStandardDeck" accept=".ristdeck,.json,application/json" /></label><button class="standard-drawer-exit" @onclick="Session.CloseHand" aria-label="Close card sliders" title="Close card sliders"><span class="header-icon icon-exit" aria-hidden="true"></span></button></div><button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#standard-slider',1)" aria-label="Scroll standard controls right">›</button></div>
 </section>
 }
+<style>
+.token-placement-pane{position:relative;overflow:visible!important}.token-choice-strip{overflow:visible!important}
+</style>
 @code{
  async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
