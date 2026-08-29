@@ -18,7 +18,7 @@
    {
     @foreach(var card in Session.PublicCards)
     {
-     <button class="public-asset-card" style="@CardStyle(card)" title="@card.Name" @onclick="()=>Session.ShowCard(card.Field.ToCardItem())">
+     <button class="public-asset-card" style="@CardStyle(card)" title="@card.Name" @onclick="()=>Session.RollHandCardWithHistoryAsync(card)">
       @if(!string.IsNullOrWhiteSpace(card.Field.ImageDataUrl)){<img src="@card.Field.ImageDataUrl" alt="" />}
       else{<span>@Glyph(card)</span>}
       <small>@card.Name</small>
