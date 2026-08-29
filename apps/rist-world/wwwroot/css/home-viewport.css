@@ -1,14 +1,13 @@
 /*
  * RIST home viewport contract.
  * One structural order in both orientations:
- * header -> public assets -> pallet/map -> private assets -> dice/chat/legal.
+ * header -> public assets -> map -> private assets -> dice/chat/legal.
  * Orientation changes dimensions only; it must not move components into
  * implicit columns or absolute overlay layouts.
  */
 :root{
   --rist-header-h:54px;
   --rist-public-h:86px;
-  --rist-pallet-h:58px;
   --rist-private-h:86px;
   --rist-dice-h:64px;
   --rist-chat-h:58px;
@@ -69,6 +68,7 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 .rist .public-assets-items,
 .rist .private-assets-items{height:100%!important;min-height:0!important;padding:5px 4px!important}
 
+/* Pallet presentation is retired; staging state remains in WorldSession. */
 .rist>.table-workspace{
   grid-area:map!important;
   box-sizing:border-box!important;
@@ -76,55 +76,16 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   height:100%!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
   gap:0!important;
   overflow:hidden!important;
 }
-.rist>.table-workspace>.staging-tray{
-  box-sizing:border-box!important;
-  position:relative!important;
-  grid-column:1!important;
-  grid-row:1!important;
-  width:100%!important;
-  max-width:100%!important;
-  height:var(--rist-pallet-h)!important;
-  min-height:var(--rist-pallet-h)!important;
-  max-height:var(--rist-pallet-h)!important;
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  gap:8px!important;
-  margin:0!important;
-  padding:5px 10px!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  border-inline:0!important;
-  border-right:0!important;
-  border-radius:0!important;
-  border-bottom:1px solid #6e592c!important;
-  background:#0d1319!important;
-}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong{font-size:9px!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint strong::after{content:none!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span{font-size:11px!important}
-.rist>.table-workspace>.staging-tray.pallet .tray-hint span::after{content:none!important}
-
-/* Public Assets type filtering reuses the proven map staging/drag engine. */
-.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .tray-item{display:none!important}
-.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .tray-item:not(.pin){display:none!important}
-.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .tray-item:not(.mini){display:none!important}
-.rist.public-assets-tiles>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
-.rist.public-assets-terrain>.table-workspace>.staging-tray.pallet .tray-item:not(.tile){display:none!important}
-.rist.public-assets-cards>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-tokens>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-minis>.table-workspace>.staging-tray.pallet .zone-editor,
-.rist.public-assets-bits>.table-workspace>.staging-tray.pallet .zone-editor{display:none!important}
-
+.rist>.table-workspace>.staging-tray.pallet{display:none!important}
 .rist>.table-workspace>.map-shell{
   box-sizing:border-box!important;
   position:relative!important;
   grid-column:1!important;
-  grid-row:2!important;
+  grid-row:1!important;
   width:100%!important;
   max-width:100%!important;
   min-width:0!important;
@@ -154,6 +115,11 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   margin:0!important;
   overflow:hidden!important;
 }
+
+/* Encounter initiative remains a separate first row when play mode is active. */
+.rist>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
+.rist>.table-workspace>.encounter-control-rail{grid-column:1!important;grid-row:1!important;position:relative!important;max-width:100%!important}
+.rist>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
 
 .home-footer-stack{
   grid-area:footer!important;
@@ -203,7 +169,6 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   :root{
     --rist-header-h:50px;
     --rist-public-h:72px;
-    --rist-pallet-h:46px;
     --rist-private-h:72px;
     --rist-dice-h:54px;
     --rist-chat-h:54px;
@@ -220,10 +185,12 @@ html,body,#app{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
   .rist .asset-rail-header>strong{font-size:10px!important}
   .rist .asset-type-tabs button{height:25px!important;padding-inline:10px!important}
 
-  .rist>.table-workspace{grid-column:1!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:var(--rist-pallet-h) minmax(0,1fr)!important}
-  .rist>.table-workspace>.staging-tray{display:flex!important;grid-column:1!important;grid-row:1!important;flex-direction:row!important;width:100%!important;height:var(--rist-pallet-h)!important;min-height:var(--rist-pallet-h)!important;max-height:var(--rist-pallet-h)!important;margin:0!important;padding:3px 8px!important;overflow-x:auto!important;overflow-y:hidden!important;border-right:0!important}
-  .rist>.table-workspace>.map-shell{display:grid!important;grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important}
+  .rist>.table-workspace{grid-column:1!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+  .rist>.table-workspace>.staging-tray.pallet{display:none!important}
+  .rist>.table-workspace>.map-shell{display:grid!important;grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important}
   .rist>.table-workspace>.map-shell>.map{grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important}
+  .rist>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
+  .rist>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
 
   .home-footer-stack{
     height:64px!important;
