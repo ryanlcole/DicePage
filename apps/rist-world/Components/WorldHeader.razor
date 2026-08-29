@@ -14,7 +14,18 @@
   <span class="command-divider" aria-hidden="true"></span>
   @foreach(var family in AssetFamilies)
   {
-   <button type="button" class="command-button asset-launcher @(Session.AssetFamily==family&&Session.TileBrowserOpen?"active":"")" @onclick="()=>Session.OpenAssetFamily(family)">@family</button>
+   var hero=CategoryHero(family);
+   <button type="button" class="command-button asset-launcher @(Session.AssetFamily==family&&Session.TileBrowserOpen?"active":"")" @onclick="()=>Session.OpenAssetFamily(family)" title="@family" aria-label="@family">
+    @if(hero is not null)
+    {
+     <span class="header-asset-image tile-image-crop"><img src="@hero.Image" style="@CropStyle(hero)" alt="" draggable="false" /></span>
+    }
+    else
+    {
+     <span class="header-asset-fallback" aria-hidden="true">@FamilyGlyph(family)</span>
+    }
+    <span class="visually-hidden">@family</span>
+   </button>
   }
   <span class="command-divider" aria-hidden="true"></span>
   <button type="button" class="command-button" onclick="window.RistStartMenu?.open?.()">Settings</button>
@@ -36,9 +47,9 @@
 <style>
 .table-command-header{position:relative;z-index:70;background:#081118f3;border-bottom:1px solid #745d28;color:#dfcfaa}
 .command-wrap{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;padding:4px;min-width:0}
-.command-button,.brand-button{min-height:36px;border:1px solid #5e4b25;border-radius:7px;background:#111a21;color:#d9c38a;padding:5px 9px;font:700 10px/1.1 system-ui;display:inline-flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;white-space:nowrap}.command-button:active,.command-button.active{border-color:#d0a63f;background:#1a252d}.brand-button{min-width:118px;display:grid;grid-template-columns:auto auto;gap:3px;background:#0a1319}.brand-relic{font:700 15px/1 Georgia,serif;color:#e3c46f}.brand-game{font-size:9px;color:#b7a170}.command-button small{font-size:7px;opacity:.65;text-transform:uppercase;letter-spacing:.05em}.command-button strong{font-size:10px}.mode-button,.game-mode,.presentation-mode{display:grid;gap:1px}.game-mode.build strong{color:#d6b85c}.game-mode.test strong{color:#6ec8ff}.game-mode.live strong{color:#79d78b}.mmo-sandbox{padding-inline:7px}.mmo-mark{display:grid;place-items:center;width:25px;height:25px;border:1px solid #756333;border-radius:50%;font:700 18px/1 Georgia,serif;color:#83dbff;background:#10212a}.asset-launcher{min-width:64px}.command-divider{width:1px;align-self:stretch;background:#6a552a;margin:0 2px}.compact-icon{min-width:36px;font-size:17px;padding-inline:6px}
+.command-button,.brand-button{min-height:36px;border:1px solid #5e4b25;border-radius:7px;background:#111a21;color:#d9c38a;padding:5px 9px;font:700 10px/1.1 system-ui;display:inline-flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;white-space:nowrap}.command-button:active,.command-button.active{border-color:#d0a63f;background:#1a252d}.brand-button{min-width:118px;display:grid;grid-template-columns:auto auto;gap:3px;background:#0a1319}.brand-relic{font:700 15px/1 Georgia,serif;color:#e3c46f}.brand-game{font-size:9px;color:#b7a170}.command-button small{font-size:7px;opacity:.65;text-transform:uppercase;letter-spacing:.05em}.command-button strong{font-size:10px}.mode-button,.game-mode,.presentation-mode{display:grid;gap:1px}.game-mode.build strong{color:#d6b85c}.game-mode.test strong{color:#6ec8ff}.game-mode.live strong{color:#79d78b}.mmo-sandbox{padding-inline:7px}.mmo-mark{display:grid;place-items:center;width:25px;height:25px;border:1px solid #756333;border-radius:50%;font:700 18px/1 Georgia,serif;color:#83dbff;background:#10212a}.asset-launcher{width:44px;min-width:44px;height:44px;min-height:44px;padding:3px!important;overflow:hidden}.header-asset-image{position:relative;display:block;width:36px;height:36px;overflow:hidden;border-radius:5px;background:#081015}.header-asset-image img{position:absolute;display:block}.header-asset-fallback{display:grid;place-items:center;width:36px;height:36px;border-radius:5px;background:#0a141b;color:#d8bd72;font-size:18px}.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.command-divider{width:1px;align-self:stretch;background:#6a552a;margin:0 2px}.compact-icon{min-width:36px;font-size:17px;padding-inline:6px}
 .table-command-header>.asset-slider-stack{border-top:1px solid #5a4825}.header-action-menu{position:absolute;right:5px;top:calc(100% + 2px);z-index:90;display:grid;gap:6px;min-width:220px;padding:10px;border:1px solid #80662f;border-radius:9px;background:#0c151b;color:#dfcfaa;box-shadow:0 10px 30px #000b}.header-action-menu button,.header-action-menu label{min-height:36px;border:1px solid #5e4b25;border-radius:7px;background:#111a21;color:#ddc88f;padding:8px}.map-file-load{position:relative;overflow:hidden}.map-file-load input{position:absolute;inset:0;opacity:0}
-@@media(max-width:800px){.command-wrap{gap:3px;padding:3px}.command-button,.brand-button{min-height:32px;padding:4px 7px;font-size:9px;border-radius:6px}.brand-button{min-width:106px}.brand-relic{font-size:14px}.asset-launcher{min-width:58px}.command-divider{display:none}}
+@@media(max-width:800px){.command-wrap{gap:3px;padding:3px}.command-button,.brand-button{min-height:32px;padding:4px 7px;font-size:9px;border-radius:6px}.brand-button{min-width:106px}.brand-relic{font-size:14px}.asset-launcher{width:40px;min-width:40px;height:40px;min-height:40px;padding:2px!important}.header-asset-image,.header-asset-fallback{width:34px;height:34px}.command-divider{display:none}}
 </style>
 
 @code{
@@ -53,4 +64,9 @@
  void CloseLoginPrompt()=>_loginPromptOpen=false;
  async Task ContinueDiscordLogin(){_loginPromptOpen=false;await Session.ToggleLoginAsync();}
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
+ AtlasTile? CategoryHero(string category)=>Session.AtlasTiles.FirstOrDefault(x=>CategoryOf(x)==category);
+ static string CategoryOf(AtlasTile tile){if(Has(tile,"weapon","sword","axe","bow","spear","dagger","gun"))return "Weapons";if(Has(tile,"armor","armour","shield","helmet","helm"))return "Armor";if(Has(tile,"clothing","cloak","robe","shirt","pants","boots","garment"))return "Clothing";if(Has(tile,"container","bag","backpack","chest","box","pouch","barrel"))return "Containers";if(Has(tile,"caravan","wagon","cart","rolling stock","locomotive","train","ship","boat","vehicle"))return "Caravans";if(Has(tile,"card","deck"))return "Cards";if(Has(tile,"miniature","mini","sprite","figure","creature","character"))return "Miniatures";if(Has(tile,"scenery","terrain","tree","building","wall","door","furniture","object"))return "Scenery";if(Has(tile,"tile","floor","road","water","coast","hex","square"))return "Tiles";if(Has(tile,"token","chit","pawn","meeple","coin","chip","piece","marker"))return "Pieces";return "Misc";}
+ static bool Has(AtlasTile tile,params string[] terms){var text=$"{tile.Name} {tile.Layer} {tile.Directory} {tile.Folder}";return terms.Any(term=>text.Contains(term,StringComparison.OrdinalIgnoreCase));}
+ static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Caravans"=>"➜","Cards"=>"▣","Pieces"=>"●","Tiles"=>"◇","Scenery"=>"⌂","Weapons"=>"⚔","Armor"=>"⬟","Clothing"=>"♜","Containers"=>"□",_=>"+"};
+ static string CropStyle(AtlasTile t){if(t.SourceWidth<=0||t.SourceHeight<=0||t.CropWidth<=0||t.CropHeight<=0)return "width:100%;height:100%;object-fit:contain";var inv=System.Globalization.CultureInfo.InvariantCulture;return $"width:{(t.SourceWidth*100.0/t.CropWidth).ToString("0.###",inv)}%;height:{(t.SourceHeight*100.0/t.CropHeight).ToString("0.###",inv)}%;left:{(-t.CropX*100.0/t.CropWidth).ToString("0.###",inv)}%;top:{(-t.CropY*100.0/t.CropHeight).ToString("0.###",inv)}%;max-width:none;max-height:none";}
 }
