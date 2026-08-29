@@ -19,7 +19,7 @@ public sealed partial class WorldSession
         Notify();
     }
 
-    public void SetUserMode(string mode)
+    private void ApplyUserMode(string mode)
     {
         UserMode = mode switch
         {
@@ -29,6 +29,17 @@ public sealed partial class WorldSession
             _ => "Player"
         };
         Role = UserMode is "GameMaster" or "Moderator" ? "GM" : "PC";
+    }
+
+    public void SetUserMode(string mode)
+    {
+        ApplyUserMode(mode);
+        Notify();
+    }
+
+    public void SetRole(string role)
+    {
+        ApplyUserMode(role == "GM" ? "GameMaster" : "Player");
         Notify();
     }
 
@@ -61,4 +72,6 @@ public sealed partial class WorldSession
         MapDirection = MapDirection switch { "North" => "East", "East" => "South", "South" => "West", _ => "North" };
         Notify();
     }
+
+    private void ApplyTutorialUserMode(string mode) => ApplyUserMode(mode);
 }
