@@ -9,7 +9,7 @@
   ],
   shell:[
    'map-context-sidebar.js?v=5',
-   'recursion-layers.js?v=3',
+   'recursion-layers.js?v=4',
    'mmo-mode.js?v=4',
    'token-game-launcher.js?v=3',
    'start-menu.js?v=2',
