@@ -1,17 +1,127 @@
 (()=>{
- const fmt=n=>{const a=Math.abs(n);const d=a>=100?0:a>=10?1:a>=1?2:a>=.1?3:4;return (Math.abs(n)<1e-9?0:n).toFixed(d).replace(/\.0+$|(?<=\.[0-9]*?)0+$/,'').replace(/\.$/,'')};
- const parseScale=map=>{const s=map.querySelector('.status')?.textContent||'';const m=s.match(/([0-9]+(?:\.[0-9]+)?)\s*(mi|km|m|yd|ft)\/(?:sq|hex)/i);return m?{distance:Number(m[1])||1,unit:m[2]}:{distance:1,unit:''}};
- const tzKey='rist.context.timezone.v1';
- function visibleCenter(map){const stage=map.querySelector('.world-stage');if(!stage)return{x:0,y:0,unit:''};const mr=map.getBoundingClientRect(),sr=stage.getBoundingClientRect();if(mr.width<2||sr.width<2)return{x:0,y:0,unit:''};const scale=parseScale(map),cols=20,rows=13,halfX=cols*scale.distance/2,halfY=rows*scale.distance/2,cx=mr.left+mr.width/2,cy=mr.top+mr.height/2;return{x:Math.max(-halfX,Math.min(halfX,(((cx-sr.left)/sr.width)-.5)*cols*scale.distance)),y:Math.max(-halfY,Math.min(halfY,(.5-((cy-sr.top)/sr.height))*rows*scale.distance)),unit:scale.unit}}
- function currentZone(){try{return JSON.parse(localStorage.getItem(tzKey)||'null')||{mode:'utc',zone:'UTC',label:'UTC'}}catch{return{mode:'utc',zone:'UTC',label:'UTC'}}}
- function editContext(key,source){if(key==='utc'){openTimeEditor(source);return}document.dispatchEvent(new CustomEvent('rist:context-edit',{detail:{context:key,source}}))}
- function item(label,key){const b=document.createElement('button');b.type='button';b.className='world-context-action';b.dataset.context=key;b.innerHTML=`<strong>${label}:</strong> <span>EDIT</span>`;b.setAttribute('aria-label',`Edit ${label}`);b.onclick=()=>editContext(key,b);return b}
- function openTimeEditor(anchor){document.querySelector('.map-context-time-editor')?.remove();const current=currentZone(),box=document.createElement('div');box.className='map-context-time-editor';box.innerHTML=`<strong>Clock</strong><label><span>Display</span><select class="context-time-mode"><option value="utc">UTC</option><option value="local">Local</option><option value="zone">Other time zone</option></select></label><label class="context-time-zone-row"><span>Time zone</span><input class="context-time-zone" type="text" inputmode="text" placeholder="America/New_York" value="${current.mode==='zone'?(current.zone||'').replace(/"/g,'&quot;'):''}"></label><div class="context-time-actions"><button type="button" data-cancel>Cancel</button><button type="button" data-save>Apply</button></div>`;document.body.appendChild(box);const ar=anchor?.getBoundingClientRect?.()||{right:innerWidth/2,top:8};box.style.right=Math.max(8,innerWidth-ar.right)+'px';box.style.top=Math.min(innerHeight-box.offsetHeight-8,Math.max(8,ar.top+20))+'px';const mode=box.querySelector('.context-time-mode'),zoneRow=box.querySelector('.context-time-zone-row'),zone=box.querySelector('.context-time-zone');mode.value=current.mode||'utc';const sync=()=>zoneRow.hidden=mode.value!=='zone';mode.onchange=sync;sync();box.querySelector('[data-cancel]').onclick=()=>box.remove();box.querySelector('[data-save]').onclick=()=>{let next;if(mode.value==='local'){const z=Intl.DateTimeFormat().resolvedOptions().timeZone||'Local';next={mode:'local',zone:z,label:'LOCAL'}}else if(mode.value==='zone'){const z=(zone.value||'').trim();try{new Intl.DateTimeFormat(undefined,{timeZone:z}).format(new Date())}catch{zone.setCustomValidity('Enter a valid IANA time zone, for example America/New_York.');zone.reportValidity();return}next={mode:'zone',zone:z,label:z.split('/').pop()?.replace(/_/g,' ')||z}}else next={mode:'utc',zone:'UTC',label:'UTC'};localStorage.setItem(tzKey,JSON.stringify(next));box.remove();tick()}}
- function ensureTopStrip(){const header=document.querySelector('#header-slider');if(!header)return null;const rist=header.closest('.rist');if(!rist||!rist.parentNode)return null;let strip=document.querySelector('.world-context-strip');if(!strip){strip=document.createElement('section');strip.className='world-context-strip';strip.setAttribute('aria-label','World context');strip.append(item('Stars','stars'),item('Sky','sky'),item('Cal','cal'),item('UGC','ugc'));const date=document.createElement('span');date.className='world-context-readout world-context-date';date.innerHTML='<strong>Date:</strong> <time>--</time>';const utc=document.createElement('button');utc.type='button';utc.className='world-context-readout world-context-utc';utc.dataset.context='utc';utc.innerHTML='<strong>UTC:</strong> <time>--:--:--</time>';utc.onclick=()=>openTimeEditor(utc);strip.append(date,utc)}if(strip.nextSibling!==rist||strip.parentNode!==rist.parentNode)rist.parentNode.insertBefore(strip,rist);return strip}
- function fixToggleArt(){const s=document.querySelector('.mmo-art-sandbox'),m=document.querySelector('.mmo-art-mmo');if(s&&s.dataset.cacheFixed!=='1'){s.src='/Game/assets/ui/sandbox-toggle.webp?v=20260829';s.dataset.cacheFixed='1'}if(m&&m.dataset.cacheFixed!=='1'){m.src='/Game/assets/ui/mmo-toggle.webp?v=20260829';m.dataset.cacheFixed='1'}}
- function restoreGridAndPin(){document.querySelectorAll('.map-frame-pin-source').forEach(pin=>pin.classList.remove('map-frame-pin-source'));document.querySelectorAll('.world-stage').forEach(stage=>{const map=stage.closest('.map');const grid=map?.querySelector(':scope > .grid');if(grid)stage.insertBefore(grid,stage.children[1]||null);const inside=stage.querySelector(':scope > .grid');inside?.classList.remove('rist-glass-grid')});const tokenSlider=document.querySelector('#token-slider'),pin=document.querySelector('.token-pin-source');if(tokenSlider&&pin&&pin.parentElement!==tokenSlider){const next=tokenSlider.querySelector('.rail-scroll-next');tokenSlider.insertBefore(pin,next||null)}}
- function ensure(){document.querySelectorAll('.map-context-sidebar').forEach(x=>x.remove());restoreGridAndPin();document.querySelectorAll('.map-shell').forEach(shell=>{shell.classList.add('map-context-ready');shell.classList.remove('map-context-collapsed');const map=shell.querySelector(':scope > .map');if(!map)return;let coord=map.querySelector(':scope > .map-current-coordinates');if(!coord){coord=document.createElement('div');coord.className='map-current-coordinates';coord.setAttribute('aria-label','Current map coordinates');map.appendChild(coord)}const c=visibleCenter(map);coord.textContent=`${fmt(c.x)}, ${fmt(c.y)}${c.unit?` ${c.unit}`:''}`});ensureTopStrip();fixToggleArt()}
- function tick(){ensure();const now=new Date();document.querySelectorAll('.world-context-date time').forEach(x=>{x.textContent=new Intl.DateTimeFormat(undefined,{year:'numeric',month:'2-digit',day:'2-digit'}).format(now);x.dateTime=now.toISOString().slice(0,10)});document.querySelectorAll('.world-context-utc time').forEach(x=>{x.textContent=new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'UTC'}).format(now);x.dateTime=now.toISOString()})}
- window.RistWorldContext={edit:key=>{const source=document.querySelector(`.world-context-strip [data-context="${key}"]`)||document.querySelector('.header-settings-button');editContext(key,source)},openClock:()=>openTimeEditor(document.querySelector('.world-context-utc')||document.querySelector('.header-settings-button'))};
- let raf=0;const queue=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;ensure()})};new MutationObserver(queue).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','data-pan-x','data-pan-y','data-zoom']});addEventListener('resize',queue,{passive:true});addEventListener('pointermove',queue,{passive:true});addEventListener('wheel',queue,{passive:true});setInterval(tick,1000);document.addEventListener('DOMContentLoaded',tick);tick();
+ 'use strict';
+ const TZ_KEY='rist.context.timezone.v1';
+ const DEFAULT_ZONE={mode:'utc',zone:'UTC',label:'UTC'};
+ const fmt=n=>{
+  const a=Math.abs(n),d=a>=100?0:a>=10?1:a>=1?2:a>=.1?3:4;
+  return (a<1e-9?0:n).toFixed(d).replace(/\.0+$|(?<=\.[0-9]*?)0+$/,'').replace(/\.$/,'');
+ };
+ const parseScale=map=>{
+  const text=map.querySelector('.status')?.textContent||'';
+  const match=text.match(/([0-9]+(?:\.[0-9]+)?)\s*(mi|km|m|yd|ft)\/(?:sq|hex)/i);
+  return match?{distance:Number(match[1])||1,unit:match[2]}:{distance:1,unit:''};
+ };
+ function currentZone(){
+  try{return {...DEFAULT_ZONE,...(JSON.parse(localStorage.getItem(TZ_KEY)||'null')||{})}}
+  catch{return {...DEFAULT_ZONE}}
+ }
+ function visibleCenter(map){
+  const stage=map.querySelector('.world-stage');
+  if(!stage)return{x:0,y:0,unit:''};
+  const mapRect=map.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+  if(mapRect.width<2||stageRect.width<2)return{x:0,y:0,unit:''};
+  const scale=parseScale(map),cols=20,rows=13;
+  const halfX=cols*scale.distance/2,halfY=rows*scale.distance/2;
+  const cx=mapRect.left+mapRect.width/2,cy=mapRect.top+mapRect.height/2;
+  return{
+   x:Math.max(-halfX,Math.min(halfX,(((cx-stageRect.left)/stageRect.width)-.5)*cols*scale.distance)),
+   y:Math.max(-halfY,Math.min(halfY,(.5-((cy-stageRect.top)/stageRect.height))*rows*scale.distance)),
+   unit:scale.unit
+  };
+ }
+ function editContext(key,source){
+  if(key==='utc'){openTimeEditor(source);return}
+  document.dispatchEvent(new CustomEvent('rist:context-edit',{detail:{context:key,source}}));
+ }
+ function openTimeEditor(anchor){
+  document.querySelector('.map-context-time-editor')?.remove();
+  const current=currentZone();
+  const box=document.createElement('div');
+  box.className='map-context-time-editor';
+  box.innerHTML=`<strong>Clock</strong><label><span>Display</span><select class="context-time-mode"><option value="utc">UTC</option><option value="local">Local</option><option value="zone">Other time zone</option></select></label><label class="context-time-zone-row"><span>Time zone</span><input class="context-time-zone" type="text" inputmode="text" placeholder="America/New_York" value="${current.mode==='zone'?(current.zone||'').replace(/"/g,'&quot;'):''}"></label><div class="context-time-actions"><button type="button" data-cancel>Cancel</button><button type="button" data-save>Apply</button></div>`;
+  document.body.appendChild(box);
+  const rect=anchor?.getBoundingClientRect?.()||{right:innerWidth/2,top:8};
+  box.style.right=Math.max(8,innerWidth-rect.right)+'px';
+  box.style.top=Math.min(innerHeight-box.offsetHeight-8,Math.max(8,rect.top+20))+'px';
+  const mode=box.querySelector('.context-time-mode');
+  const zoneRow=box.querySelector('.context-time-zone-row');
+  const zone=box.querySelector('.context-time-zone');
+  mode.value=current.mode||'utc';
+  const sync=()=>zoneRow.hidden=mode.value!=='zone';
+  mode.onchange=sync;sync();
+  box.querySelector('[data-cancel]').onclick=()=>box.remove();
+  box.querySelector('[data-save]').onclick=()=>{
+   let next;
+   if(mode.value==='local'){
+    const value=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+    next={mode:'local',zone:value,label:'LOCAL'};
+   }else if(mode.value==='zone'){
+    const value=(zone.value||'').trim();
+    try{new Intl.DateTimeFormat(undefined,{timeZone:value}).format(new Date())}
+    catch{
+     zone.setCustomValidity('Enter a valid IANA time zone, for example America/New_York.');
+     zone.reportValidity();
+     return;
+    }
+    next={mode:'zone',zone:value,label:value.split('/').pop()?.replace(/_/g,' ')||value};
+   }else next={...DEFAULT_ZONE};
+   localStorage.setItem(TZ_KEY,JSON.stringify(next));
+   box.remove();
+   tick();
+  };
+ }
+ function ensureMapContext(){
+  document.querySelectorAll('.map-context-sidebar').forEach(node=>node.remove());
+  document.querySelectorAll('.map-shell').forEach(shell=>{
+   shell.classList.add('map-context-ready');
+   shell.classList.remove('map-context-collapsed');
+   const map=shell.querySelector(':scope > .map');
+   if(!map)return;
+   let coord=map.querySelector(':scope > .map-current-coordinates');
+   if(!coord){
+    coord=document.createElement('div');
+    coord.className='map-current-coordinates';
+    coord.setAttribute('aria-label','Current map coordinates');
+    map.appendChild(coord);
+   }
+   const center=visibleCenter(map);
+   coord.textContent=`${fmt(center.x)}, ${fmt(center.y)}${center.unit?` ${center.unit}`:''}`;
+  });
+ }
+ function tick(){
+  if(document.hidden)return;
+  const now=new Date(),config=currentZone(),zone=config.zone||'UTC';
+  let dateFormatter,timeFormatter;
+  try{
+   dateFormatter=new Intl.DateTimeFormat(undefined,{year:'numeric',month:'2-digit',day:'2-digit',timeZone:zone});
+   timeFormatter=new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:zone});
+  }catch{
+   dateFormatter=new Intl.DateTimeFormat(undefined,{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'});
+   timeFormatter=new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'UTC'});
+  }
+  document.querySelectorAll('.world-context-date time').forEach(node=>{
+   node.textContent=dateFormatter.format(now);
+   node.dateTime=now.toISOString().slice(0,10);
+  });
+  document.querySelectorAll('.world-context-utc').forEach(button=>{
+   const label=button.querySelector('strong');
+   if(label)label.textContent=`${config.label||'UTC'}:`;
+   const time=button.querySelector('time');
+   if(time){time.textContent=timeFormatter.format(now);time.dateTime=now.toISOString()}
+  });
+ }
+ window.RistWorldContext={
+  edit:key=>{
+   const source=document.querySelector(`.world-context-strip [data-context="${key}"]`)||document.querySelector('.header-settings-button');
+   editContext(key,source);
+  },
+  openClock:()=>openTimeEditor(document.querySelector('.world-context-utc')||document.querySelector('.header-settings-button'))
+ };
+ const queue=()=>window.RistRuntime?.frame?.('world-context',ensureMapContext)??requestAnimationFrame(ensureMapContext);
+ document.addEventListener('rist:dom-change',queue);
+ document.addEventListener('rist:viewport-change',queue);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){queue();tick()}});
+ setInterval(tick,1000);
+ queue();
+ tick();
 })();
