@@ -66,19 +66,19 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             }
             catch (HttpRequestException)
             {
-                return KeepIssuedSessionActive();
+                return FailClosedProfileVerification();
             }
             catch (TaskCanceledException)
             {
-                return KeepIssuedSessionActive();
+                return FailClosedProfileVerification();
             }
             catch
             {
-                return KeepIssuedSessionActive();
+                return FailClosedProfileVerification();
             }
         }
 
-        return KeepIssuedSessionActive();
+        return FailClosedProfileVerification();
     }
 
     private async Task<AuthProfile?> CompleteAccountAccessAsync()
@@ -164,20 +164,12 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         return Profile;
     }
 
-    private AuthProfile? KeepIssuedSessionActive()
+    private AuthProfile? FailClosedProfileVerification()
     {
-        if (string.IsNullOrWhiteSpace(_sessionToken))
-        {
-            Profile = null;
-            return null;
-        }
-
-        // The token came from the server-issued OAuth handoff. Do not demote the
-        // whole tabletop back to visitor mode merely because the optional profile
-        // lookup had a transient network/CORS failure. Protected AWS operations
-        // still validate this bearer token server-side.
-        Profile = new AuthProfile("", "Discord session", "");
-        return Profile;
+        Profile = null;
+        Account = null;
+        LastError = "Your RIST profile could not be verified. Please try again.";
+        return null;
     }
 
     public async Task BeginLoginAsync()
