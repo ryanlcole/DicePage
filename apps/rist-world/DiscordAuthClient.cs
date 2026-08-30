@@ -8,17 +8,23 @@ namespace RistWorld;
 
 public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
 {
+    private const string AccountProfileKey = "account/profile.json";
     private string _apiBaseUrl = "";
     private string? _sessionToken;
 
     public bool IsConfigured => Uri.TryCreate(_apiBaseUrl, UriKind.Absolute, out _);
     public string OwnerDiscordUserId { get; private set; } = "";
     public AuthProfile? Profile { get; private set; }
+    public AccountProfile? Account { get; private set; }
+    public string RistAccountId => Account?.AccountId ?? "";
+    public string LastError { get; private set; } = "";
     public bool IsOwnerDiscordAccount => Profile is not null && !string.IsNullOrWhiteSpace(OwnerDiscordUserId) && string.Equals(Profile.UserId, OwnerDiscordUserId, StringComparison.Ordinal);
     internal string? SessionToken => _sessionToken;
 
     public async Task<AuthProfile?> InitializeAsync()
     {
+        LastError = "";
+        Account = null;
         try
         {
             var config = await http.GetFromJsonAsync<AuthConfig>("auth-config.json");
@@ -29,6 +35,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         catch
         {
             Profile = null;
+            LastError = "Account service could not be initialized.";
             return null;
         }
 
@@ -43,10 +50,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             try
             {
                 Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
-                if (Profile is not null) return Profile;
+                if (Profile is not null)
+                    return await CompleteAccountAccessAsync();
 
-                // A completed request that returns null is the explicit 401 path in
-                // SendAsync. Only then is the browser session known to be invalid.
                 await ClearSessionAsync();
                 return null;
             }
@@ -75,6 +81,89 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         return KeepIssuedSessionActive();
     }
 
+    private async Task<AuthProfile?> CompleteAccountAccessAsync()
+    {
+        if (Profile is null) return null;
+
+        var intent = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.auth.intent"))?.Trim().ToLowerInvariant() ?? "";
+        AccountProfile? saved = null;
+        try
+        {
+            saved = await DownloadJsonAsync<AccountProfile>(AccountProfileKey);
+        }
+        catch (HttpRequestException)
+        {
+            LastError = "Your RIST profile could not be checked. Please try again.";
+            await ClearSessionAsync();
+            Profile = null;
+            return null;
+        }
+
+        if (intent == "signup")
+        {
+            if (saved is not null)
+            {
+                LastError = "A RIST profile already exists for this Discord account. Use Log In instead.";
+                await ClearAuthIntentAsync();
+                await ClearSessionAsync();
+                Profile = null;
+                return null;
+            }
+
+            var alias = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.alias"))?.Trim() ?? "";
+            var plan = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.plan"))?.Trim() ?? "player";
+            var terms = await js.InvokeAsync<string?>("localStorage.getItem", "rist.signup.termsAccepted");
+            if (alias.Length is < 1 or > 32 || !string.Equals(terms, "true", StringComparison.OrdinalIgnoreCase))
+            {
+                LastError = "Sign-up information is incomplete. Please start Sign Up again.";
+                await ClearAuthIntentAsync();
+                await ClearSessionAsync();
+                Profile = null;
+                return null;
+            }
+
+            plan = plan == "gm-player" ? "gm-player" : "player";
+            var created = new AccountProfile(
+                AccountId: Guid.NewGuid().ToString("D"),
+                PlayerAlias: alias,
+                Plan: plan,
+                CreatedAtUtc: DateTimeOffset.UtcNow,
+                TermsAcceptedAtUtc: DateTimeOffset.UtcNow,
+                TermsVersion: "2026-08-30");
+
+            try
+            {
+                await UploadTextAsync(AccountProfileKey, JsonSerializer.Serialize(created), "application/json");
+                Account = created;
+                await ClearSignupDraftAsync();
+                LastError = "";
+                return Profile;
+            }
+            catch
+            {
+                LastError = "Your RIST profile could not be created. Nothing was charged. Please try again.";
+                await ClearSessionAsync();
+                Profile = null;
+                return null;
+            }
+        }
+
+        if (saved is null)
+        {
+            LastError = intent == "login"
+                ? "No RIST profile is connected to this Discord account. Choose Sign Up first."
+                : "This Discord account does not have a RIST profile yet. Choose Sign Up to create one.";
+            await ClearAuthIntentAsync();
+            await ClearSessionAsync();
+            Profile = null;
+            return null;
+        }
+
+        Account = saved;
+        await ClearAuthIntentAsync();
+        return Profile;
+    }
+
     private AuthProfile? KeepIssuedSessionActive()
     {
         if (string.IsNullOrWhiteSpace(_sessionToken))
@@ -93,6 +182,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
 
     public async Task BeginLoginAsync()
     {
+        LastError = "";
         if (!IsConfigured) return;
         await js.InvokeVoidAsync("ristAuth.navigate", _apiBaseUrl + "/auth/login");
     }
@@ -104,6 +194,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             try { await SendAsync<object>(HttpMethod.Post, "/auth/logout"); } catch { }
         }
         Profile = null;
+        Account = null;
+        LastError = "";
+        await ClearAuthIntentAsync();
         await ClearSessionAsync();
     }
 
@@ -112,6 +205,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
             await SendAsync<object>(HttpMethod.Post, "/account/delete");
         Profile = null;
+        Account = null;
+        LastError = "";
+        await ClearSignupDraftAsync();
         await ClearSessionAsync();
     }
 
@@ -159,6 +255,17 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         return await response.Content.ReadFromJsonAsync<T>();
     }
 
+    private async Task ClearSignupDraftAsync()
+    {
+        await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.alias");
+        await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.plan");
+        await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.termsAccepted");
+        await ClearAuthIntentAsync();
+    }
+
+    private async Task ClearAuthIntentAsync()
+        => await js.InvokeVoidAsync("localStorage.removeItem", "rist.auth.intent");
+
     private async Task ClearSessionAsync()
     {
         _sessionToken = null;
@@ -167,6 +274,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
 
     public sealed record AuthConfig(string ApiBaseUrl, string? OwnerDiscordUserId = null);
     public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix);
+    public sealed record AccountProfile(string AccountId, string PlayerAlias, string Plan, DateTimeOffset CreatedAtUtc, DateTimeOffset TermsAcceptedAtUtc, string TermsVersion);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
