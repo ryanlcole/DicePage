@@ -1,96 +1,168 @@
+@using Microsoft.AspNetCore.Components.Forms
 @implements IDisposable
 @inject WorldSession Session
+@inject DiscordAuthClient Auth
 
 @if(Session.TileBrowserOpen)
 {
-<section class="asset-slider-stack" aria-label="Tabletop assets">
- <div class="asset-main-rail desktop-arrow-slider" id="asset-main-rail" aria-label="Asset categories">
-  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#asset-main-rail',-1)" aria-label="Scroll asset categories left">‹</button>
-  <div class="asset-horizontal-rail asset-category-rail">
-   @foreach(var category in Categories)
-   {
-    <button type="button" class="asset-category-button @(_openCategory==category?"active":"")" @onclick="()=>ToggleCategory(category)" aria-expanded="@(_openCategory==category)">
-     <span class="asset-category-art">
-      @if(CategoryHero(category) is { } hero)
-      {
-       <span class="asset-category-image tile-image-crop"><img src="@hero.Image" style="@CropStyle(hero)" alt="" draggable="false" /></span>
-      }
-      else
-      {
-       <span class="asset-family-fallback" aria-hidden="true">@FamilyGlyph(category)</span>
-      }
-     </span>
-     <strong>@category</strong>
-    </button>
-   }
-  </div>
-  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#asset-main-rail',1)" aria-label="Scroll asset categories right">›</button>
- </div>
+<section class="map-asset-inventory" aria-label="Asset library">
+ <header class="map-asset-toolbar">
+  <div class="map-asset-title"><strong>Assets</strong><span>@FilteredTiles.Count asset@(FilteredTiles.Count==1?"":"s")</span></div>
+  <input class="map-asset-search" type="search" placeholder="Search assets…" @bind="_query" @bind:event="oninput" aria-label="Search assets" />
+  <button type="button" class="map-asset-filter-toggle @(_filtersOpen?"active":"")" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
+  <label class="map-asset-upload @(!Session.IsLoggedIn?"disabled":"")" title="@(Session.IsLoggedIn?"Upload to your private AWS asset storage":"Log in to upload assets")">
+   <span>+ Upload</span>
+   <InputFile OnChange="UploadAssets" accept="image/png,image/webp,image/jpeg,image/gif" multiple disabled="@(!Session.IsLoggedIn||_uploading)" />
+  </label>
+  <button type="button" class="map-asset-close" @onclick="Close" aria-label="Close asset library">×</button>
+ </header>
 
- @if(!string.IsNullOrWhiteSpace(_openCategory))
+ @if(_filtersOpen)
  {
-  <div class="asset-child-rail" aria-label="@_openCategory folders">
-   <button type="button" class="asset-collapse-left" @onclick="Collapse" aria-label="Collapse @_openCategory">‹</button>
-   <span class="asset-rail-label">@_openCategory</span>
-   <div class="asset-horizontal-rail">
-    @foreach(var folder in _folderChoices)
-    {
-     <button type="button" class="asset-folder-button @(_folderKey==folder.Key?"active":"")" @onclick="()=>SelectFolder(folder.Key)">@folder.Label</button>
-    }
-   </div>
-  </div>
-  <div class="asset-child-rail asset-items-row" aria-label="@_openCategory assets">
-   <span class="asset-rail-label">Assets</span>
-   <div class="asset-horizontal-rail asset-item-rail">
-    @foreach(var tile in _currentTiles)
-    {
-     <button type="button" class="asset-item-button" @onclick="()=>Session.StageTile(tile)" title="@tile.Name — @tile.Author">
-      <span class="asset-item-image tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false" /></span>
-      <strong>@tile.Name</strong>
-     </button>
-    }
-    @if(_currentTiles.Count==0){<span class="asset-empty">No assets in this folder.</span>}
-   </div>
+  <div class="map-asset-filters" aria-label="Asset filters">
+   <select @bind="_source"><option value="all">All assets</option><option value="public">Shaelvien</option>@if(Session.IsLoggedIn){<option value="mine">My uploads</option>}</select>
+   <select @bind="_category"><option value="all">All categories</option>@foreach(var item in CategoryChoices){<option value="@item">@item</option>}</select>
+   <select @bind="_folder"><option value="all">All folders</option>@foreach(var item in FolderChoices){<option value="@item">@item</option>}</select>
+   <button type="button" @onclick="ClearFilters">Clear</button>
   </div>
  }
+
+ @if(!string.IsNullOrWhiteSpace(_status))
+ {
+  <div class="map-asset-status" role="status">@_status</div>
+ }
+
+ <div class="map-asset-grid">
+  @foreach(var tile in FilteredTiles)
+  {
+   <button type="button" class="map-asset-card @((IsPrivate(tile)?"private":"public"))" @onclick="()=>Choose(tile)" title="@tile.Name">
+    <span class="map-asset-preview tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" loading="lazy" draggable="false" /></span>
+    <strong>@tile.Name</strong>
+   </button>
+  }
+  @if(FilteredTiles.Count==0)
+  {
+   <div class="map-asset-empty">@(_loadingPrivate?"Loading your assets…":"No matching assets.")</div>
+  }
+ </div>
 </section>
 }
 
 <style>
 .table-workspace>.tile-browser:not(.card-browser){display:none!important}
-.map-viewer-overlays>.asset-slider-stack,.asset-slider-stack{position:absolute!important;left:8px!important;right:8px!important;top:8px!important;bottom:auto!important;z-index:42!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto!important;gap:3px!important;width:auto!important;height:auto!important;min-height:0!important;max-height:190px!important;padding:3px 5px!important;margin:0!important;border:1px solid #8d6a28!important;border-radius:10px!important;background:#0b141bf2!important;color:#e8dcc0!important;overflow:hidden!important;pointer-events:none!important;box-shadow:0 6px 18px #0008!important}
-.asset-slider-stack::before,.asset-slider-stack::after{content:none!important;display:none!important}
-.asset-slider-stack button,.asset-slider-stack .asset-horizontal-rail{pointer-events:auto!important}
-.asset-main-rail{position:relative!important;display:grid!important;grid-template-columns:30px minmax(0,1fr) 30px!important;align-items:stretch!important;gap:3px!important;min-width:0!important;height:64px!important;min-height:64px!important;overflow:hidden!important;background:transparent!important}
-.asset-horizontal-rail{display:flex!important;gap:6px!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-inline:contain!important;scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;background:transparent!important}.asset-horizontal-rail::-webkit-scrollbar{display:none!important}.asset-horizontal-rail>*{flex:0 0 auto!important;scroll-snap-align:start!important}
-.asset-category-rail{padding:1px 0!important}.asset-category-button{box-sizing:border-box!important;width:84px!important;height:60px!important;display:grid!important;grid-template-columns:38px 1fr!important;align-items:center!important;gap:4px!important;padding:4px!important;border:1px solid #675427!important;border-radius:8px!important;background:#101920!important;color:#d8c79d!important;text-align:left!important}.asset-category-button.active{border-color:#d0a63f!important;box-shadow:0 0 0 1px #d0a63f66,inset 0 0 14px #b8872030!important}.asset-category-art{position:relative!important;display:block!important;overflow:hidden!important;width:38px!important;height:50px!important;border-radius:6px!important;background:#071015!important}.asset-category-image{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important}.asset-category-image img,.asset-item-image img{position:absolute!important}.asset-category-button strong{font:700 9px/1.05 system-ui!important;color:#e6d29d!important;overflow-wrap:anywhere!important}.asset-family-fallback{position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;font:700 22px/1 Georgia,serif!important;color:#d7bb70!important;background:radial-gradient(circle,#263743,#091117 70%)!important}
-.asset-child-rail{box-sizing:border-box!important;display:grid!important;grid-template-columns:auto auto minmax(0,1fr)!important;align-items:center!important;gap:5px!important;min-width:0!important;min-height:34px!important;max-height:34px!important;border-top:1px solid #4a402b!important;padding-top:3px!important;overflow:hidden!important;background:transparent!important}.asset-items-row{grid-template-columns:auto minmax(0,1fr)!important;min-height:76px!important;max-height:76px!important}.asset-collapse-left{width:28px!important;height:28px!important;border:1px solid #8d6a28!important;border-radius:7px!important;background:#101920!important;color:#d6b765!important;font-size:20px!important}.asset-rail-label{max-width:76px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#c5aa69!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important;letter-spacing:.06em!important}.asset-folder-button{height:28px!important;min-width:76px!important;max-width:150px!important;padding:0 9px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111a21!important;color:#d9ceb3!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.asset-folder-button.active{border-color:#c59b3b!important;background:#18232b!important;color:#f3dfaa!important}
-.asset-item-rail{min-height:70px!important;max-height:70px!important}.asset-item-button{box-sizing:border-box!important;width:64px!important;height:66px!important;display:grid!important;grid-template-rows:48px auto!important;gap:2px!important;padding:3px!important;overflow:hidden!important;border:1px solid #4c432f!important;border-radius:7px!important;background:#0e171e!important;color:#ded3ba!important;text-align:left!important}.asset-item-image{position:relative!important;display:block!important;overflow:hidden!important;width:100%!important;height:48px!important;border-radius:4px!important;background:#080d11!important}.asset-item-button strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:7px!important}.asset-empty{align-self:center!important;padding:8px 12px!important;color:#9b927f!important;font-size:10px!important;white-space:nowrap!important}
-@@media(max-width:800px){.map-viewer-overlays>.asset-slider-stack,.asset-slider-stack{left:6px!important;right:6px!important;top:6px!important;max-height:186px!important;padding-inline:3px!important}.asset-main-rail{grid-template-columns:26px minmax(0,1fr) 26px!important}.asset-category-button{width:78px!important;height:58px!important;grid-template-columns:36px 1fr!important}.asset-category-art{width:36px!important;height:48px!important}.asset-rail-label{max-width:62px!important}.asset-folder-button{min-width:72px!important}.asset-item-button{width:62px!important}}
+.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{position:absolute!important;inset:8px!important;z-index:44!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto minmax(0,1fr)!important;align-content:start!important;width:auto!important;height:auto!important;max-height:calc(100% - 16px)!important;margin:0!important;padding:0!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#071015f5!important;color:#eee6d2!important;overflow:hidden!important;box-shadow:0 8px 28px #000b!important;backdrop-filter:blur(8px)!important;pointer-events:auto!important}
+.map-asset-toolbar{box-sizing:border-box!important;display:grid!important;grid-template-columns:auto minmax(110px,1fr) auto auto 36px!important;align-items:center!important;gap:6px!important;padding:7px!important;border-bottom:1px solid #51452b!important;background:#0b141bf8!important}.map-asset-title{min-width:62px!important;display:flex!important;flex-direction:column!important;gap:2px!important}.map-asset-title strong{color:#e1c77f!important;font:800 15px/1 system-ui!important}.map-asset-title span{color:#9e9787!important;font:600 8px/1 system-ui!important;text-transform:uppercase!important}.map-asset-search{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:36px!important;padding:0 10px!important;border:1px solid #5d4e2e!important;border-radius:8px!important;background:#0d171e!important;color:#fff!important;font-size:16px!important;outline:none!important}.map-asset-search:focus{border-color:#c49a3b!important}.map-asset-filter-toggle,.map-asset-upload,.map-asset-close{box-sizing:border-box!important;height:36px!important;display:grid!important;place-items:center!important;border:1px solid #725d30!important;border-radius:8px!important;background:#111920!important;color:#e1c77f!important;font:750 11px/1 system-ui!important;white-space:nowrap!important}.map-asset-filter-toggle{padding:0 10px!important}.map-asset-filter-toggle.active{background:#1b252d!important;border-color:#c49a3b!important}.map-asset-upload{position:relative!important;padding:0 11px!important;cursor:pointer!important;overflow:hidden!important}.map-asset-upload.disabled{opacity:.45!important}.map-asset-upload input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important}.map-asset-close{width:36px!important;padding:0!important;font-size:24px!important}.map-asset-filters{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;gap:6px!important;padding:6px 7px!important;border-bottom:1px solid #40371f!important;background:#0c151c!important}.map-asset-filters select,.map-asset-filters button{min-width:0!important;height:32px!important;padding:0 8px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111920!important;color:#ddd3bb!important;font-size:11px!important}.map-asset-status{padding:5px 8px!important;border-bottom:1px solid #40371f!important;color:#cdbb8c!important;background:#0c151c!important;font-size:10px!important}.map-asset-grid{box-sizing:border-box!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,1fr))!important;gap:7px!important;padding:7px!important;overflow:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}.map-asset-card{box-sizing:border-box!important;min-width:0!important;height:132px!important;display:grid!important;grid-template-rows:minmax(0,1fr) 27px!important;gap:0!important;padding:0!important;overflow:hidden!important;border:1px solid #4e432b!important;border-radius:9px!important;background:#0d171e!important;color:#e8dcc0!important;text-align:left!important}.map-asset-card:active,.map-asset-card:focus-visible{border-color:#d0a63f!important;box-shadow:inset 0 0 0 1px #d0a63f55!important}.map-asset-card.private{border-color:#526879!important}.map-asset-preview{position:relative!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;background:#050b0f!important}.map-asset-preview img{position:absolute!important}.map-asset-card strong{box-sizing:border-box!important;display:block!important;width:100%!important;padding:7px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#e1c77f!important;font:700 9px/1 system-ui!important}.map-asset-empty{grid-column:1/-1!important;align-self:start!important;padding:30px!important;text-align:center!important;color:#9d9687!important;font-size:12px!important}
+@@media(max-width:600px){.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{inset:5px!important;max-height:calc(100% - 10px)!important;border-radius:9px!important}.map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important;gap:5px!important;padding:5px!important}.map-asset-title{min-width:48px!important}.map-asset-title strong{font-size:13px!important}.map-asset-filter-toggle{width:34px!important;padding:0!important;font-size:0!important}.map-asset-filter-toggle::after{content:"☰"!important;font-size:16px!important}.map-asset-upload{width:34px!important;padding:0!important;font-size:0!important}.map-asset-upload>span{font-size:0!important}.map-asset-upload>span::after{content:"+"!important;font-size:22px!important}.map-asset-close{width:34px!important}.map-asset-filters{grid-template-columns:1fr 1fr!important}.map-asset-filters button{grid-column:2!important}.map-asset-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important}.map-asset-card{height:112px!important;grid-template-rows:minmax(0,1fr) 24px!important}.map-asset-card strong{padding:6px!important;font-size:8px!important}}
 </style>
 
 @code {
- static readonly string[] Categories=["Miniatures","Rolling Stock & Locomotives","Pawns & Meeples","Tokens & Chits","Tiles","Scenery & Terrain","Bits"];
- string _openCategory="";
- string _folderKey="";
- List<(string Key,string Label)> _folderChoices=[];
- List<AtlasTile> _currentTiles=[];
- IEnumerable<AtlasTile> AvailableTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal));
- protected override void OnInitialized(){Session.Changed+=Changed;Refresh();}
- void Changed(){Refresh();_ = InvokeAsync(StateHasChanged);}
+ const long MaxAssetBytes=20*1024*1024;
+ readonly List<AtlasTile> _privateTiles=[];
+ string _query="";
+ string _source="all";
+ string _category="all";
+ string _folder="all";
+ string _status="";
+ bool _filtersOpen;
+ bool _uploading;
+ bool _loadingPrivate;
+ bool _privateLoaded;
+
+ IEnumerable<AtlasTile> PublicTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal));
+ IEnumerable<AtlasTile> AllTiles=>PublicTiles.Concat(_privateTiles);
+ List<AtlasTile> FilteredTiles=>AllTiles
+  .Where(SourceMatch)
+  .Where(x=>_category=="all"||CategoryFor(x)==_category)
+  .Where(x=>_folder=="all"||FolderFor(x)==_folder)
+  .Where(SearchMatch)
+  .OrderBy(x=>IsPrivate(x)?0:1)
+  .ThenBy(x=>x.Name,StringComparer.OrdinalIgnoreCase)
+  .ToList();
+ List<string> CategoryChoices=>AllTiles.Select(CategoryFor).Distinct().OrderBy(x=>x).ToList();
+ List<string> FolderChoices=>AllTiles.Where(x=>_category=="all"||CategoryFor(x)==_category).Select(FolderFor).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x=>x).ToList();
+
+ protected override void OnInitialized(){Session.Changed+=Changed;if(Session.IsLoggedIn)_=LoadPrivateAssetsAsync();}
+ void Changed(){if(Session.IsLoggedIn&&Session.TileBrowserOpen&&!_privateLoaded&&!_loadingPrivate)_=LoadPrivateAssetsAsync();_ = InvokeAsync(StateHasChanged);}
  public void Dispose()=>Session.Changed-=Changed;
- void ToggleCategory(string category){if(_openCategory==category){Collapse();return;}_openCategory=category;_folderKey="";RefreshFolders();}
- void Collapse(){_openCategory="";_folderKey="";_folderChoices.Clear();_currentTiles.Clear();}
- void SelectFolder(string key){_folderKey=key;RefreshTiles();}
- void Refresh(){if(string.IsNullOrWhiteSpace(_openCategory))return;RefreshFolders();}
- void RefreshFolders(){var items=AvailableTiles.Where(x=>CategoryFor(x)==_openCategory).ToList();_folderChoices=items.Select(x=>(Key:FolderFor(x),Label:FolderFor(x))).Distinct().OrderBy(x=>x.Label).ToList();if(_folderChoices.Count>0){if(!_folderChoices.Any(x=>x.Key==_folderKey))_folderKey=_folderChoices[0].Key;RefreshTiles();}else _currentTiles.Clear();}
- void RefreshTiles()=>_currentTiles=AvailableTiles.Where(x=>CategoryFor(x)==_openCategory&&FolderFor(x)==_folderKey).ToList();
- AtlasTile? CategoryHero(string category)=>AvailableTiles.FirstOrDefault(x=>CategoryFor(x)==category);
+
+ void Close(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();}
+ void Choose(AtlasTile tile){Session.StageTile(tile);Close();}
+ void ClearFilters(){_source="all";_category="all";_folder="all";_query="";}
+ bool SourceMatch(AtlasTile tile)=>_source switch{"mine"=>IsPrivate(tile),"public"=>!IsPrivate(tile),_=>true};
+ bool SearchMatch(AtlasTile tile)=>string.IsNullOrWhiteSpace(_query)||$"{tile.Name} {tile.Directory} {tile.Folder} {CategoryFor(tile)}".Contains(_query.Trim(),StringComparison.OrdinalIgnoreCase);
+ static bool IsPrivate(AtlasTile tile)=>tile.Id.StartsWith("private:",StringComparison.Ordinal);
+
+ async Task UploadAssets(InputFileChangeEventArgs e)
+ {
+  if(!Session.IsLoggedIn){_status="Log in to upload private assets.";return;}
+  _uploading=true;_status="Uploading to your private AWS storage…";
+  try
+  {
+   foreach(var file in e.GetMultipleFiles(24))
+   {
+    var contentType=NormalizeImageType(file.ContentType,file.Name);
+    if(contentType is null){_status=$"Skipped {file.Name}: unsupported image type.";continue;}
+    if(file.Size>MaxAssetBytes){_status=$"Skipped {file.Name}: maximum size is 20 MB.";continue;}
+    await using var stream=file.OpenReadStream(MaxAssetBytes);
+    using var memory=new MemoryStream();
+    await stream.CopyToAsync(memory);
+    var safe=SafeFileName(file.Name);
+    var key=$"assets/{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid():N}-{safe}";
+    await Auth.UploadBytesAsync(key,memory.ToArray(),contentType);
+   }
+   _privateLoaded=false;
+   await LoadPrivateAssetsAsync(force:true);
+   _source="mine";
+   _status="Upload complete. Stored in your private AWS assets.";
+  }
+  catch(Exception ex){_status="Upload failed: "+ex.Message;}
+  finally{_uploading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task LoadPrivateAssetsAsync(bool force=false)
+ {
+  if(!Session.IsLoggedIn||(_privateLoaded&&!force)||_loadingPrivate)return;
+  _loadingPrivate=true;
+  try
+  {
+   var listing=await Auth.ListAsync("assets/");
+   var files=listing?.Items?.Where(x=>IsImageKey(x.Key)).OrderByDescending(x=>x.LastModified).Take(300).ToList()??[];
+   var loaded=new List<AtlasTile>();
+   foreach(var item in files)
+   {
+    var url=await Auth.DownloadUrlAsync(item.Key);
+    if(string.IsNullOrWhiteSpace(url))continue;
+    var file=Path.GetFileName(item.Key);
+    var dash=file.IndexOf('-');
+    var display=dash>=0&&dash<file.Length-1?file[(dash+1)..]:file;
+    display=Path.GetFileNameWithoutExtension(display).Replace('_',' ').Replace('-',' ');
+    loaded.Add(new AtlasTile("private:"+item.Key,display,url,"PRIVATE","Uploads","My Assets","You"));
+   }
+   _privateTiles.Clear();_privateTiles.AddRange(loaded);_privateLoaded=true;
+  }
+  catch(Exception ex){_status="Your private assets could not be loaded: "+ex.Message;}
+  finally{_loadingPrivate=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ static string? NormalizeImageType(string? type,string name)
+ {
+  var value=(type??"").ToLowerInvariant();
+  if(value is "image/png" or "image/webp" or "image/jpeg" or "image/gif")return value;
+  return Path.GetExtension(name).ToLowerInvariant() switch{".png"=>"image/png",".webp"=>"image/webp",".jpg" or ".jpeg"=>"image/jpeg",".gif"=>"image/gif",_=>null};
+ }
+ static bool IsImageKey(string key)=>Path.GetExtension(key).ToLowerInvariant() is ".png" or ".webp" or ".jpg" or ".jpeg" or ".gif";
+ static string SafeFileName(string name)
+ {
+  var file=Path.GetFileName(name);
+  var cleaned=new string(file.Select(c=>char.IsLetterOrDigit(c)||c is '.' or '-' or '_'?c:'-').ToArray()).Trim('-');
+  return string.IsNullOrWhiteSpace(cleaned)?"asset.png":cleaned;
+ }
  static string CategoryFor(AtlasTile asset)
  {
+  if(IsPrivate(asset))return "My Uploads";
   var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
   if(text.Contains("mini"))return "Miniatures";
-  if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock & Locomotives";
+  if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock";
   if(text.Contains("pawn")||text.Contains("meeple"))return "Pawns & Meeples";
   if(text.Contains("token")||text.Contains("chit")||text.Contains("marker")||text.Contains("pin"))return "Tokens & Chits";
   if(text.Contains("scenery")||text.Contains("terrain")||text.Contains("building")||text.Contains("tree"))return "Scenery & Terrain";
@@ -98,7 +170,6 @@
   return "Tiles";
  }
  static string FolderFor(AtlasTile asset)=>string.IsNullOrWhiteSpace(asset.Folder)?(string.IsNullOrWhiteSpace(asset.Directory)?asset.Author:asset.Directory):asset.Folder;
- static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Rolling Stock & Locomotives"=>"▰","Pawns & Meeples"=>"♙","Tokens & Chits"=>"●","Tiles"=>"◇","Scenery & Terrain"=>"▲","Bits"=>"◆",_=>"•"};
  static string CropStyle(AtlasTile tile)=>tile.SourceWidth>0&&tile.SourceHeight>0&&tile.CropWidth>0&&tile.CropHeight>0
   ? $"width:{tile.SourceWidth*100.0/tile.CropWidth:0.###}%;height:{tile.SourceHeight*100.0/tile.CropHeight:0.###}%;left:{-tile.CropX*100.0/tile.CropWidth:0.###}%;top:{-tile.CropY*100.0/tile.CropHeight:0.###}%;max-width:none;"
   : "width:100%;height:100%;object-fit:contain;left:0;top:0;";
