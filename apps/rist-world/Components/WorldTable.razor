@@ -10,15 +10,19 @@
  <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
  <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
 </section>
-<div class="rist @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
+<div class="rist prototype-shell @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
- <WorldHeader />
- <PublicCardRail />
+
+ <div class="rist-primary-shell">
+  <WorldHeader />
+  <PublicCardRail />
+  <WorldMap />
+  <HandRail />
+  <WorldFooter />
+ </div>
+
  <AssetLibrary />
- <WorldMap />
  <RecursionCockpit />
- <HandRail />
- <WorldFooter />
  <CharacterMixer />
  <MmoZoneActions />
  <RistWelcomeTutorial />
