@@ -4,7 +4,6 @@
 @if(Session.TileBrowserOpen)
 {
 <section class="asset-slider-stack" aria-label="Tabletop assets">
- <button type="button" class="map-viewer-close" @onclick="Session.ToggleTileBrowser" aria-label="Close asset library">×</button>
  <div class="asset-main-rail desktop-arrow-slider" id="asset-main-rail" aria-label="Asset categories">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#asset-main-rail',-1)" aria-label="Scroll asset categories left">‹</button>
   <div class="asset-horizontal-rail asset-category-rail">
@@ -73,7 +72,8 @@
  string _openCategory="";
  string _folderKey="";
  List<(string Key,string Label)> _folderChoices=[];
- List<ThirdPartyAsset> _currentTiles=[];
+ List<AtlasTile> _currentTiles=[];
+ IEnumerable<AtlasTile> ThirdPartyTiles=>Session.AtlasTiles.Where(x=>x.Id.StartsWith("thirdparty:",StringComparison.Ordinal));
  protected override void OnInitialized(){Session.Changed+=Changed;Refresh();}
  void Changed(){Refresh();_ = InvokeAsync(StateHasChanged);}
  public void Dispose()=>Session.Changed-=Changed;
@@ -81,11 +81,13 @@
  void Collapse(){_openCategory="";_folderKey="";_folderChoices.Clear();_currentTiles.Clear();}
  void SelectFolder(string key){_folderKey=key;RefreshTiles();}
  void Refresh(){if(string.IsNullOrWhiteSpace(_openCategory))return;RefreshFolders();}
- void RefreshFolders(){var items=Session.ThirdPartyAssets.Where(x=>CategoryFor(x)==_openCategory).ToList();_folderChoices=items.Select(x=>(Key:FolderFor(x),Label:FolderFor(x))).Distinct().OrderBy(x=>x.Label).ToList();if(_folderChoices.Count>0){if(!_folderChoices.Any(x=>x.Key==_folderKey))_folderKey=_folderChoices[0].Key;RefreshTiles();}else _currentTiles.Clear();}
- void RefreshTiles()=>_currentTiles=Session.ThirdPartyAssets.Where(x=>CategoryFor(x)==_openCategory&&FolderFor(x)==_folderKey).ToList();
- ThirdPartyAsset? CategoryHero(string category)=>Session.ThirdPartyAssets.FirstOrDefault(x=>CategoryFor(x)==category);
- static string CategoryFor(ThirdPartyAsset asset)=>asset.Kind switch{"mini"=>"Miniatures","rolling-stock"=>"Rolling Stock & Locomotives","pawn"=>"Pawns & Meeples","pin"=>"Tokens & Chits","tile"=>"Tiles","terrain"=>"Scenery & Terrain","bit"=>"Bits",_=>"Tiles"};
- static string FolderFor(ThirdPartyAsset asset)=>string.IsNullOrWhiteSpace(asset.Collection)?asset.Author:asset.Collection;
+ void RefreshFolders(){var items=ThirdPartyTiles.Where(x=>CategoryFor(x)==_openCategory).ToList();_folderChoices=items.Select(x=>(Key:FolderFor(x),Label:FolderFor(x))).Distinct().OrderBy(x=>x.Label).ToList();if(_folderChoices.Count>0){if(!_folderChoices.Any(x=>x.Key==_folderKey))_folderKey=_folderChoices[0].Key;RefreshTiles();}else _currentTiles.Clear();}
+ void RefreshTiles()=>_currentTiles=ThirdPartyTiles.Where(x=>CategoryFor(x)==_openCategory&&FolderFor(x)==_folderKey).ToList();
+ AtlasTile? CategoryHero(string category)=>ThirdPartyTiles.FirstOrDefault(x=>CategoryFor(x)==category);
+ static string CategoryFor(AtlasTile asset)=>asset.Directory switch{"Miniatures (Minis)"=>"Miniatures","Rolling Stock & Locomotives"=>"Rolling Stock & Locomotives","Pawns & Meeples"=>"Pawns & Meeples","Tokens & Chits"=>"Tokens & Chits","Tiles"=>"Tiles","Scenery & Terrain"=>"Scenery & Terrain","Bits"=>"Bits",_=>"Tiles"};
+ static string FolderFor(AtlasTile asset)=>string.IsNullOrWhiteSpace(asset.Folder)?asset.Author:asset.Folder;
  static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Rolling Stock & Locomotives"=>"▰","Pawns & Meeples"=>"♙","Tokens & Chits"=>"●","Tiles"=>"◇","Scenery & Terrain"=>"▲","Bits"=>"◆",_=>"•"};
- string CropStyle(ThirdPartyAsset tile)=>Session.AtlasCropStyle(tile);
+ static string CropStyle(AtlasTile tile)=>tile.SourceWidth>0&&tile.SourceHeight>0&&tile.CropWidth>0&&tile.CropHeight>0
+  ? $"width:{tile.SourceWidth*100.0/tile.CropWidth:0.###}%;height:{tile.SourceHeight*100.0/tile.CropHeight:0.###}%;left:{-tile.CropX*100.0/tile.CropWidth:0.###}%;top:{-tile.CropY*100.0/tile.CropHeight:0.###}%;max-width:none;"
+  : "width:100%;height:100%;object-fit:contain;left:0;top:0;";
 }
