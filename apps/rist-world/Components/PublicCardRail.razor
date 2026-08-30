@@ -19,7 +19,7 @@
    {
     @if(Session.PublicCards.Count==0)
     {
-     <span class="public-assets-empty">@(Session.IsLoggedIn?"No public cards staged.":"Log in for additional features.")</span>
+     <span class="public-assets-empty rail-drop-prompt">Drag public assets here</span>
     }
     else
     {
@@ -35,7 +35,7 @@
    }
    else
    {
-    <span class="public-assets-empty">Public @AssetTypeLabel.ToLowerInvariant() are staged here.</span>
+    <span class="public-assets-empty rail-drop-prompt">Drag public assets here</span>
    }
   </div>
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#public-assets-slider',1)" aria-label="Scroll public assets right">›</button>
