@@ -1,0 +1,31 @@
+@inject WorldSession Session
+
+<style>
+ .character-language-panel{position:absolute;left:8%;right:8%;bottom:12%;z-index:8;display:grid;gap:5px;padding:8px;border:1px solid rgba(114,93,48,.75);border-radius:8px;background:rgba(8,13,18,.86);color:#eee6d2;box-sizing:border-box;max-height:34%;overflow:auto}
+ .character-language-panel header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+ .character-language-panel header strong{font:800 11px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#d7be80}
+ .character-language-panel header small{font:10px/1.2 system-ui;color:#a99f88}
+ .character-language-row{display:grid;grid-template-columns:minmax(0,1fr) 84px 28px;gap:5px;align-items:center}
+ .character-language-row input{box-sizing:border-box;width:100%;height:28px;min-width:0;border:1px solid #725d30;border-radius:5px;background:#111920;color:#eee6d2;padding:4px 6px;font-size:12px}
+ .character-language-row button,.character-language-add{height:28px;border:1px solid #725d30;border-radius:5px;background:#111920;color:#d7be80;font-weight:800}
+ .character-language-row output{font:700 10px/1.2 system-ui;color:#bfb59e;text-align:right}
+</style>
+
+<section class="character-language-panel" aria-label="Character languages">
+ <header><strong>Languages</strong><small>Linguistics affects comprehension</small></header>
+ @foreach(var language in Session.CharacterLanguages)
+ {
+  <div class="character-language-row">
+   <input value="@language.Name" readonly="@(!Session.CharacterEditMode || language.Name.Equals("Common",StringComparison.OrdinalIgnoreCase))" @onchange="e=>Rename(language,e)" aria-label="Language name" />
+   <label><input type="number" min="0" max="100" value="@language.Proficiency" readonly="@(!Session.CharacterEditMode)" @onchange="e=>SetProficiency(language,e)" aria-label="@language.Name proficiency percentage" /></label>
+   @if(!language.Name.Equals("Common",StringComparison.OrdinalIgnoreCase)){<button type="button" @onclick="()=>Session.RemoveCharacterLanguage(language)" disabled="@(!Session.CharacterEditMode)" aria-label="Remove @language.Name">×</button>}else{<output title="Common is always available">C</output>}
+  </div>
+ }
+ @if(Session.CharacterEditMode){<button type="button" class="character-language-add" @onclick="()=>Session.AddCharacterLanguage()">+ Language</button>}
+</section>
+
+@code{
+ protected override void OnInitialized()=>Session.EnsureCharacterLanguages();
+ void Rename(CharacterLanguage language,ChangeEventArgs e)=>Session.RenameCharacterLanguage(language,e.Value?.ToString()??"");
+ void SetProficiency(CharacterLanguage language,ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetCharacterLanguageProficiency(language,value);}
+}
