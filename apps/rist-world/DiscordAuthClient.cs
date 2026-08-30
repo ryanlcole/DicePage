@@ -204,15 +204,18 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     }
 
     public async Task UploadTextAsync(string key, string text, string contentType)
+        => await UploadBytesAsync(key, Encoding.UTF8.GetBytes(text), contentType);
+
+    public async Task UploadBytesAsync(string key, byte[] bytes, string contentType)
     {
         var request = new UploadRequest(key, contentType);
         var post = await SendAsync<PresignedPost>(HttpMethod.Post, "/storage/upload", request)
             ?? throw new InvalidOperationException("Private upload could not be prepared.");
         using var form = new MultipartFormDataContent();
         foreach (var field in post.Fields) form.Add(new StringContent(field.Value), field.Key);
-        var bytes = new ByteArrayContent(Encoding.UTF8.GetBytes(text));
-        bytes.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-        form.Add(bytes, "file", Path.GetFileName(key));
+        var body = new ByteArrayContent(bytes);
+        body.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+        form.Add(body, "file", Path.GetFileName(key));
         using var result = await http.PostAsync(post.Url, form);
         result.EnsureSuccessStatusCode();
     }
