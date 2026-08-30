@@ -57,7 +57,6 @@
   }
 
   await Session.LoadPrivateCheckpointAsync();
-  await Session.LoadThirdPartyStarterAssetsAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
  }
 
