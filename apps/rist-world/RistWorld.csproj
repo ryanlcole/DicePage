@@ -13,5 +13,6 @@
   <Target Name="PrepareUnifiedRistCss" BeforeTargets="PrepareForBuild">
     <Exec Command="python &quot;$(MSBuildProjectDirectory)/prepare_css.py&quot;" />
     <Exec Command="python &quot;$(MSBuildProjectDirectory)/apply_prototype_shell.py&quot;" />
+    <Exec Command="python &quot;$(MSBuildProjectDirectory)/apply_map_viewer_shell.py&quot;" />
   </Target>
 </Project>
