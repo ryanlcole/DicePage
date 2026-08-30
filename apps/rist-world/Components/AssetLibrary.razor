@@ -31,7 +31,7 @@
  {
   <div class="asset-child-rail" aria-label="@_openCategory folders">
    <button type="button" class="asset-collapse-left" @onclick="Collapse" aria-label="Collapse @_openCategory">‹</button>
-   <span class="asset-rail-label">@_openCategory folders</span>
+   <span class="asset-rail-label">@_openCategory</span>
    <div class="asset-horizontal-rail">
     @foreach(var folder in _folderChoices)
     {
@@ -40,7 +40,7 @@
    </div>
   </div>
   <div class="asset-child-rail asset-items-row" aria-label="@_openCategory assets">
-   <span class="asset-rail-label">@_openCategory</span>
+   <span class="asset-rail-label">Assets</span>
    <div class="asset-horizontal-rail asset-item-rail">
     @foreach(var tile in _currentTiles)
     {
@@ -58,13 +58,15 @@
 
 <style>
 .table-workspace>.tile-browser:not(.card-browser){display:none!important}
-.asset-slider-stack{position:relative;z-index:42;display:grid;gap:3px;padding:3px 5px;border-block:1px solid #8d6a28;background:#0b141bcc;color:#e8dcc0}
-.asset-main-rail{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:stretch;gap:3px;min-width:0}
-.asset-horizontal-rail{display:flex;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}.asset-horizontal-rail::-webkit-scrollbar{display:none}.asset-horizontal-rail>*{flex:0 0 auto;scroll-snap-align:start}
-.asset-category-rail{padding:1px 0}.asset-category-button{width:84px;height:64px;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:4px;padding:4px;border:1px solid #675427;border-radius:8px;background:#101920;color:#d8c79d;text-align:left}.asset-category-button.active{border-color:#d0a63f;box-shadow:0 0 0 1px #d0a63f66,inset 0 0 14px #b8872030}.asset-category-art{position:relative;display:block;overflow:hidden;width:42px;height:52px;border-radius:6px;background:#071015}.asset-category-image{position:absolute;inset:0;width:100%;height:100%;display:block}.asset-category-image img,.asset-item-image img{position:absolute}.asset-category-button strong{font:700 9px/1.05 system-ui;color:#e6d29d;overflow-wrap:anywhere}.asset-family-fallback{position:absolute;inset:0;display:grid;place-items:center;font:700 22px/1 Georgia,serif;color:#d7bb70;background:radial-gradient(circle,#263743,#091117 70%)}
-.asset-child-rail{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:5px;min-width:0;min-height:38px;border-top:1px solid #4a402b;padding-top:3px}.asset-items-row{grid-template-columns:auto minmax(0,1fr)}.asset-collapse-left{width:28px;height:30px;border:1px solid #8d6a28;border-radius:7px;background:#101920;color:#d6b765;font-size:20px}.asset-rail-label{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c5aa69;font:700 8px/1 system-ui;text-transform:uppercase;letter-spacing:.06em}.asset-folder-button{height:30px;min-width:82px;max-width:160px;padding:0 9px;border:1px solid #554a31;border-radius:7px;background:#111a21;color:#d9ceb3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-folder-button.active{border-color:#c59b3b;background:#18232b;color:#f3dfaa}
-.asset-item-rail{min-height:70px}.asset-item-button{width:68px;height:68px;display:grid;grid-template-rows:50px auto;gap:2px;padding:3px;overflow:hidden;border:1px solid #4c432f;border-radius:7px;background:#0e171e;color:#ded3ba;text-align:left}.asset-item-image{position:relative;display:block;overflow:hidden;width:100%;height:50px;border-radius:4px;background:#080d11}.asset-item-button strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7px}.asset-empty{align-self:center;padding:8px 12px;color:#9b927f;font-size:10px}
-@@media(max-width:800px){.asset-slider-stack{padding-inline:3px}.asset-main-rail{grid-template-columns:26px minmax(0,1fr) 26px}.asset-category-button{width:78px;height:60px;grid-template-columns:38px 1fr}.asset-category-art{width:38px;height:48px}.asset-rail-label{max-width:76px}.asset-folder-button{min-width:76px}.asset-item-button{width:64px}}
+.map-viewer-overlays>.asset-slider-stack,.asset-slider-stack{position:absolute!important;left:8px!important;right:8px!important;top:8px!important;bottom:auto!important;z-index:42!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto!important;gap:3px!important;width:auto!important;height:auto!important;min-height:0!important;max-height:190px!important;padding:3px 5px!important;margin:0!important;border:1px solid #8d6a28!important;border-radius:10px!important;background:#0b141bf2!important;color:#e8dcc0!important;overflow:hidden!important;pointer-events:none!important;box-shadow:0 6px 18px #0008!important}
+.asset-slider-stack::before,.asset-slider-stack::after{content:none!important;display:none!important}
+.asset-slider-stack button,.asset-slider-stack .asset-horizontal-rail{pointer-events:auto!important}
+.asset-main-rail{position:relative!important;display:grid!important;grid-template-columns:30px minmax(0,1fr) 30px!important;align-items:stretch!important;gap:3px!important;min-width:0!important;height:64px!important;min-height:64px!important;overflow:hidden!important;background:transparent!important}
+.asset-horizontal-rail{display:flex!important;gap:6px!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-inline:contain!important;scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;background:transparent!important}.asset-horizontal-rail::-webkit-scrollbar{display:none!important}.asset-horizontal-rail>*{flex:0 0 auto!important;scroll-snap-align:start!important}
+.asset-category-rail{padding:1px 0!important}.asset-category-button{box-sizing:border-box!important;width:84px!important;height:60px!important;display:grid!important;grid-template-columns:38px 1fr!important;align-items:center!important;gap:4px!important;padding:4px!important;border:1px solid #675427!important;border-radius:8px!important;background:#101920!important;color:#d8c79d!important;text-align:left!important}.asset-category-button.active{border-color:#d0a63f!important;box-shadow:0 0 0 1px #d0a63f66,inset 0 0 14px #b8872030!important}.asset-category-art{position:relative!important;display:block!important;overflow:hidden!important;width:38px!important;height:50px!important;border-radius:6px!important;background:#071015!important}.asset-category-image{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important}.asset-category-image img,.asset-item-image img{position:absolute!important}.asset-category-button strong{font:700 9px/1.05 system-ui!important;color:#e6d29d!important;overflow-wrap:anywhere!important}.asset-family-fallback{position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;font:700 22px/1 Georgia,serif!important;color:#d7bb70!important;background:radial-gradient(circle,#263743,#091117 70%)!important}
+.asset-child-rail{box-sizing:border-box!important;display:grid!important;grid-template-columns:auto auto minmax(0,1fr)!important;align-items:center!important;gap:5px!important;min-width:0!important;min-height:34px!important;max-height:34px!important;border-top:1px solid #4a402b!important;padding-top:3px!important;overflow:hidden!important;background:transparent!important}.asset-items-row{grid-template-columns:auto minmax(0,1fr)!important;min-height:76px!important;max-height:76px!important}.asset-collapse-left{width:28px!important;height:28px!important;border:1px solid #8d6a28!important;border-radius:7px!important;background:#101920!important;color:#d6b765!important;font-size:20px!important}.asset-rail-label{max-width:76px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#c5aa69!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important;letter-spacing:.06em!important}.asset-folder-button{height:28px!important;min-width:76px!important;max-width:150px!important;padding:0 9px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111a21!important;color:#d9ceb3!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.asset-folder-button.active{border-color:#c59b3b!important;background:#18232b!important;color:#f3dfaa!important}
+.asset-item-rail{min-height:70px!important;max-height:70px!important}.asset-item-button{box-sizing:border-box!important;width:64px!important;height:66px!important;display:grid!important;grid-template-rows:48px auto!important;gap:2px!important;padding:3px!important;overflow:hidden!important;border:1px solid #4c432f!important;border-radius:7px!important;background:#0e171e!important;color:#ded3ba!important;text-align:left!important}.asset-item-image{position:relative!important;display:block!important;overflow:hidden!important;width:100%!important;height:48px!important;border-radius:4px!important;background:#080d11!important}.asset-item-button strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:7px!important}.asset-empty{align-self:center!important;padding:8px 12px!important;color:#9b927f!important;font-size:10px!important;white-space:nowrap!important}
+@@media(max-width:800px){.map-viewer-overlays>.asset-slider-stack,.asset-slider-stack{left:6px!important;right:6px!important;top:6px!important;max-height:186px!important;padding-inline:3px!important}.asset-main-rail{grid-template-columns:26px minmax(0,1fr) 26px!important}.asset-category-button{width:78px!important;height:58px!important;grid-template-columns:36px 1fr!important}.asset-category-art{width:36px!important;height:48px!important}.asset-rail-label{max-width:62px!important}.asset-folder-button{min-width:72px!important}.asset-item-button{width:62px!important}}
 </style>
 
 @code {
@@ -73,7 +75,7 @@
  string _folderKey="";
  List<(string Key,string Label)> _folderChoices=[];
  List<AtlasTile> _currentTiles=[];
- IEnumerable<AtlasTile> ThirdPartyTiles=>Session.AtlasTiles.Where(x=>x.Id.StartsWith("thirdparty:",StringComparison.Ordinal));
+ IEnumerable<AtlasTile> AvailableTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal));
  protected override void OnInitialized(){Session.Changed+=Changed;Refresh();}
  void Changed(){Refresh();_ = InvokeAsync(StateHasChanged);}
  public void Dispose()=>Session.Changed-=Changed;
@@ -81,11 +83,21 @@
  void Collapse(){_openCategory="";_folderKey="";_folderChoices.Clear();_currentTiles.Clear();}
  void SelectFolder(string key){_folderKey=key;RefreshTiles();}
  void Refresh(){if(string.IsNullOrWhiteSpace(_openCategory))return;RefreshFolders();}
- void RefreshFolders(){var items=ThirdPartyTiles.Where(x=>CategoryFor(x)==_openCategory).ToList();_folderChoices=items.Select(x=>(Key:FolderFor(x),Label:FolderFor(x))).Distinct().OrderBy(x=>x.Label).ToList();if(_folderChoices.Count>0){if(!_folderChoices.Any(x=>x.Key==_folderKey))_folderKey=_folderChoices[0].Key;RefreshTiles();}else _currentTiles.Clear();}
- void RefreshTiles()=>_currentTiles=ThirdPartyTiles.Where(x=>CategoryFor(x)==_openCategory&&FolderFor(x)==_folderKey).ToList();
- AtlasTile? CategoryHero(string category)=>ThirdPartyTiles.FirstOrDefault(x=>CategoryFor(x)==category);
- static string CategoryFor(AtlasTile asset)=>asset.Directory switch{"Miniatures (Minis)"=>"Miniatures","Rolling Stock & Locomotives"=>"Rolling Stock & Locomotives","Pawns & Meeples"=>"Pawns & Meeples","Tokens & Chits"=>"Tokens & Chits","Tiles"=>"Tiles","Scenery & Terrain"=>"Scenery & Terrain","Bits"=>"Bits",_=>"Tiles"};
- static string FolderFor(AtlasTile asset)=>string.IsNullOrWhiteSpace(asset.Folder)?asset.Author:asset.Folder;
+ void RefreshFolders(){var items=AvailableTiles.Where(x=>CategoryFor(x)==_openCategory).ToList();_folderChoices=items.Select(x=>(Key:FolderFor(x),Label:FolderFor(x))).Distinct().OrderBy(x=>x.Label).ToList();if(_folderChoices.Count>0){if(!_folderChoices.Any(x=>x.Key==_folderKey))_folderKey=_folderChoices[0].Key;RefreshTiles();}else _currentTiles.Clear();}
+ void RefreshTiles()=>_currentTiles=AvailableTiles.Where(x=>CategoryFor(x)==_openCategory&&FolderFor(x)==_folderKey).ToList();
+ AtlasTile? CategoryHero(string category)=>AvailableTiles.FirstOrDefault(x=>CategoryFor(x)==category);
+ static string CategoryFor(AtlasTile asset)
+ {
+  var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
+  if(text.Contains("mini"))return "Miniatures";
+  if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock & Locomotives";
+  if(text.Contains("pawn")||text.Contains("meeple"))return "Pawns & Meeples";
+  if(text.Contains("token")||text.Contains("chit")||text.Contains("marker")||text.Contains("pin"))return "Tokens & Chits";
+  if(text.Contains("scenery")||text.Contains("terrain")||text.Contains("building")||text.Contains("tree"))return "Scenery & Terrain";
+  if(text.Contains("bit"))return "Bits";
+  return "Tiles";
+ }
+ static string FolderFor(AtlasTile asset)=>string.IsNullOrWhiteSpace(asset.Folder)?(string.IsNullOrWhiteSpace(asset.Directory)?asset.Author:asset.Directory):asset.Folder;
  static string FamilyGlyph(string category)=>category switch{"Miniatures"=>"♟","Rolling Stock & Locomotives"=>"▰","Pawns & Meeples"=>"♙","Tokens & Chits"=>"●","Tiles"=>"◇","Scenery & Terrain"=>"▲","Bits"=>"◆",_=>"•"};
  static string CropStyle(AtlasTile tile)=>tile.SourceWidth>0&&tile.SourceHeight>0&&tile.CropWidth>0&&tile.CropHeight>0
   ? $"width:{tile.SourceWidth*100.0/tile.CropWidth:0.###}%;height:{tile.SourceHeight*100.0/tile.CropHeight:0.###}%;left:{-tile.CropX*100.0/tile.CropWidth:0.###}%;top:{-tile.CropY*100.0/tile.CropHeight:0.###}%;max-width:none;"
