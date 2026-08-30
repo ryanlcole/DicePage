@@ -4,43 +4,28 @@
 
 @if(Session.AccountViewerOpen && !Session.IsLoggedIn)
 {
- <section class="map-account-viewer" role="dialog" aria-modal="false" aria-label="Sign up or log in">
-  <header class="map-viewer-header"><strong>RIST Account</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close account viewer">×</button></header>
+ <section class="map-account-viewer" role="dialog" aria-modal="false" aria-label="Create RIST profile">
+  <header class="map-viewer-header"><strong>Profile</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close profile">×</button></header>
   <div class="map-account-body">
    <section class="map-account-card">
-    <nav class="map-auth-tabs" role="tablist" aria-label="Account access">
-     <button type="button" class="@(_mode=="signup"?"active":"")" @onclick="ShowSignup">Sign Up</button>
-     <button type="button" class="@(_mode=="login"?"active":"")" @onclick="ShowLogin">Log In</button>
-    </nav>
     @if(!string.IsNullOrWhiteSpace(Auth.LastError))
     {
      <p class="storage-status" role="alert">@Auth.LastError</p>
     }
-    @if(_mode=="signup")
-    {
-     <div class="map-auth-form">
-      <h2>Create your RIST account</h2>
-      <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name other players will see" /></label>
-      <fieldset class="map-plan-picker"><legend>Choose your intended plan</legend>
-       <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
-       <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
-      </fieldset>
-      <p class="map-chat-empty">Discord verifies and reconnects your RIST account. Membership payment is not collected during sign-up.</p>
-      <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
-      <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Sign up with Discord</button>
-     </div>
-    }
-    else
-    {
-     <div class="map-auth-form map-login-form">
-      <h2>Welcome back</h2>
-      <p>Use the Discord account already connected to your RIST profile.</p>
-      <button class="discord-login-primary" @onclick="Session.BeginAccountLoginAsync">Log in with Discord</button>
-     </div>
-    }
     <div class="map-auth-form">
-     <p class="map-chat-empty">Want to support RIST development separately? PayPal donations are voluntary and do not activate or renew a membership plan.</p>
-     <a class="discord-login-primary" href="https://www.paypal.com/donate/?hosted_button_id=J7TNXEDSK9WYN" target="_blank" rel="noopener noreferrer">Support RIST with PayPal</a>
+     <h2>Create your RIST profile</h2>
+     <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name other players will see" /></label>
+     <fieldset class="map-plan-picker"><legend>Choose your intended plan</legend>
+      <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
+      <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
+     </fieldset>
+     <div class="map-auth-form">
+      <p class="map-chat-empty">Want to support RIST development separately? PayPal donations are voluntary and do not activate or renew a membership plan.</p>
+      <a class="discord-login-primary" href="https://www.paypal.com/donate/?hosted_button_id=J7TNXEDSK9WYN" target="_blank" rel="noopener noreferrer">Support RIST with PayPal</a>
+     </div>
+     <p class="map-chat-empty">Discord verifies your identity and reconnects this profile later. Membership payment is not collected during sign-up.</p>
+     <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+     <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Continue with Discord</button>
     </div>
    </section>
 
@@ -62,14 +47,11 @@
 }
 
 @code{
- string _mode="signup";
  bool _auto;
  int _delaySeconds=5;
  CancellationTokenSource? _autoCts;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
  protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
- void ShowSignup()=>_mode="signup";
- void ShowLogin()=>_mode="login";
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
  void SelectGmPlayerPlan(){Session.PendingPlan="gm-player";Session.Notify();}
  void Next()=>Session.AdvanceDialogue();
