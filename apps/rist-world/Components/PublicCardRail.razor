@@ -14,7 +14,7 @@
  <div id="public-assets-slider" class="public-assets-strip desktop-arrow-slider">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#public-assets-slider',-1)" aria-label="Scroll public assets left">‹</button>
   <div class="public-assets-items">
-   <button class="token-pin-source public-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag public map pin onto map" title="Map pin"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+   <button class="token-pin-source public-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag public map pin onto map" title="Map pin"><span class="map-pin-icon" aria-hidden="true"></span></button>
    @if(Session.PublicAssetType is "all" or "cards")
    {
     @if(Session.PublicCards.Count==0)
