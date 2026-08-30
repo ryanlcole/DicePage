@@ -1,67 +1,79 @@
 /*
  * RIST button artwork contract.
- * Normal button artwork is centered both vertically and horizontally,
- * preserves its intrinsic aspect ratio, and scales to the available control
- * height while allowing width to follow the scaled image. Intentional tile
- * crop windows and sprite-sheet renderers are not targeted here.
+ *
+ * Ordinary button artwork is centered horizontally and vertically. The image
+ * is scaled from the available button/section height; its width is then the
+ * natural width produced by that proportional scale. No fixed square, crop,
+ * stretch, or arbitrary width cap is applied.
+ *
+ * Intentional tile crop windows and sprite-sheet renderers are excluded and
+ * retain their own rendering math.
  */
 
-/* Direct artwork inside normal controls. */
+/* Any ordinary button whose artwork is a direct image uses the image's scaled
+   width instead of forcing the artwork into a square/fixed-width box. */
+.rist button:has(> img),
+.rist button:has(> .token-preview > img),
+.rist button:has(> .mmo-toggle-art > img),
+.rist .public-asset-card:has(> img),
+.rist .compact-hand-card:has(> img),
+.rist .standard-hand-card:has(> img) {
+  box-sizing:border-box!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  aspect-ratio:auto!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+
+/* Direct image artwork: height is the sizing authority; width follows the
+   intrinsic aspect ratio of the scaled image. */
 .rist button > img,
-.rist .mmo-toggle-art > img,
-.rist button > .token-preview > img {
+.rist button > .token-preview > img,
+.rist button > .mmo-toggle-art > img,
+.rist .public-asset-card > img,
+.rist .compact-hand-card > img,
+.rist .standard-hand-card > img {
   display:block!important;
   width:auto!important;
   height:100%!important;
-  max-width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
   max-height:100%!important;
   object-fit:contain!important;
   object-position:center center!important;
   margin:auto!important;
   justify-self:center!important;
   align-self:center!important;
+  flex:none!important;
 }
 
-/* Asset rails: the control width follows the fitted artwork instead of
-   forcing every asset into a square. */
-.rist .public-assets-items .public-asset-card:has(>img),
-.rist .private-assets-items .compact-hand-card:has(>img),
-.rist .private-assets-items .standard-hand-card:has(>img) {
-  box-sizing:border-box!important;
+/* Asset rails fit their controls to the section height. The resulting button
+   width is allowed to follow the proportionally scaled artwork. */
+.rist .public-assets-items .public-asset-card:has(> img),
+.rist .private-assets-items .compact-hand-card:has(> img),
+.rist .private-assets-items .standard-hand-card:has(> img) {
   flex:0 0 auto!important;
-  width:auto!important;
-  min-width:0!important;
   height:calc(100% - 6px)!important;
   max-height:calc(100% - 6px)!important;
-  aspect-ratio:auto!important;
-  display:grid!important;
-  place-items:center!important;
   padding:3px!important;
-  overflow:hidden!important;
 }
 
-.rist .public-assets-items .public-asset-card > img,
-.rist .private-assets-items .compact-hand-card > img,
-.rist .private-assets-items .standard-hand-card > img {
-  display:block!important;
-  width:auto!important;
-  height:100%!important;
-  max-width:min(40vw,160px)!important;
-  max-height:100%!important;
-  object-fit:contain!important;
-  object-position:center center!important;
-  margin:auto!important;
-}
-
-/* Image wrappers used by miniature/token buttons follow the same contract. */
-.rist button > .token-preview {
+/* Image wrappers used by miniature/token buttons obey the same centering and
+   height-first sizing contract instead of becoming a square wrapper. */
+.rist button > .token-preview,
+.rist button > .mmo-toggle-art {
   display:grid!important;
   place-items:center!important;
   width:auto!important;
   height:100%!important;
-  max-width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
   max-height:100%!important;
   overflow:hidden!important;
+  margin:auto!important;
 }
 
 /* Deliberate crop/sprite systems keep their own rendering math. */
