@@ -5,7 +5,7 @@
  {
   <section class="tile-browser library-deck-browser" aria-label="Tile library">
    <header>
-    <div class="tile-browser-title"><strong>Asset library</strong><small>Open a deck, choose what you need, then select it to stage for use.</small></div>
+    <div class="tile-browser-title"><strong>Asset library</strong><small>Open a deck to draw its contents to the right. Drag assets to the pallet.</small></div>
     <label class="tileset-upload" title="@(Session.IsLoggedIn?"Upload and split a tileset":"Log in to upload tilesets")" aria-label="Upload tileset"><span aria-hidden="true">+</span><InputFile OnChange="ImportTileset" accept="image/png,image/webp,image/jpeg" disabled="@(!Session.IsLoggedIn||ImportingTileset)" /></label>
    </header>
    @if(!string.IsNullOrWhiteSpace(ImportStatus)){<div class="tileset-import-status" role="status">@ImportStatus</div>}
@@ -73,8 +73,8 @@
       {
        @foreach(var tile in BrowserTiles)
        {
-        <button class="library-tile" title="@tile.Name — @tile.Author. Select to stage for use." @onclick="()=>Session.StageTile(tile)">
-         <span class="tile-drag-source tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
+        <button class="library-tile" title="@tile.Name — @tile.Author. Drag its image to the pallet.">
+         <span class="tile-drag-source tile-image-crop" @onpointerdown="e=>BeginAtlasDrag(tile,e)" @onpointerdown:stopPropagation="true"><img src="@tile.Image" style="@CropStyle(tile)" alt="" draggable="false"/></span><span>@tile.Name</span>
         </button>
        }
        @if(!BrowserTiles.Any()){<p class="library-deck-empty">This folder is empty.</p>}
@@ -92,6 +92,22 @@
    <ol class="initiative-strip">@for(var index=0;index<Session.Pieces.Count;index++){var piece=Session.Pieces[index];<li><span>@(index+1)</span><strong>@Pretty(piece.Kind)</strong></li>}@if(Session.Pieces.Count==0){<li class="initiative-empty">Place tokens to begin.</li>}</ol>
    <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#initiative-slider',1)" aria-label="Scroll initiative forward"><span class="arrow-horizontal">›</span><span class="arrow-vertical">↓</span></button>
    <div class="encounter-timer"><time datetime="@Session.EncounterElapsedIso">@Session.EncounterElapsedText</time><button @onclick="Session.ToggleEncounterTimer">@(Session.EncounterTimerRunning?"Pause":"Start")</button><button @onclick="Session.ResetEncounterTimer">Reset</button></div>
+  </aside>
+ }
+ else
+ {
+  <aside id="pallet-slider" class="staging-tray pallet desktop-arrow-slider desktop-arrow-adaptive" aria-label="Tile pallet">
+   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#pallet-slider',-1)" aria-label="Scroll pallet backward"><span class="arrow-horizontal">‹</span><span class="arrow-vertical">↑</span></button>
+   @if(Session.StagedAssets.Count==0){<div class="tray-hint"><strong>PALLET</strong><span>Drag tiles here.</span></div>}
+   @if(Session.CanEditTiles)
+   {
+    <div class="zone-editor" aria-label="Terrain zone editor"><button class="zone-mode-button map-lock-button @(!Session.MapLocked?"active":"")" @onclick="Session.ToggleMapLock" aria-pressed="@(!Session.MapLocked)" title="@(Session.MapLocked?"Unlock map":"Lock map")"><span class="map-lock-glyph @(Session.MapLocked?"locked":"unlocked")" aria-hidden="true"></span></button>@if(Session.HasSelectedZone){<strong>@Session.SelectedZoneTerrain zone</strong><button @onclick="Session.ToggleSelectedZoneLock">@(Session.SelectedZoneLocked?"Unlock zone":"Lock zone")</button><label><span>Zone label</span><input value="@Session.SelectedZoneLabel" @onchange="e=>Session.SetSelectedZoneLabel(e.Value?.ToString()??string.Empty)" placeholder="Add label" /></label>}</div>
+   }
+   @foreach(var staged in Session.StagedAssets)
+   {
+    <button class="tray-item @staged.Kind" title="Drag onto map. Double-click to remove from tray." @onpointerdown="e=>BeginTrayDrag(staged,e)" @onpointerdown:stopPropagation="true" @ondblclick="()=>Session.RemoveStaged(staged.Key)">@if(staged.Kind=="tile"){<span class="tile-image-crop" style="@CropBoxStyle(staged)"><img src="@staged.Image" style="@CropStyle(staged)" alt="@staged.Name" /></span>}else if(staged.Kind=="mini"){<span class="token-preview"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block" /></span>}else{<span class="token-preview">@staged.Name</span>}<small>@staged.Name</small></button>
+   }
+   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#pallet-slider',1)" aria-label="Scroll pallet forward"><span class="arrow-horizontal">›</span><span class="arrow-vertical">↓</span></button>
   </aside>
  }
 
@@ -136,6 +152,7 @@
      }
     }
    </div>
+   <div class="status">@Session.MapName • @StatusText • @Session.WorldCoordinateLabel • drag • pinch • @($"{G.Zoom:0.0}x")</div>
   </div>
  </section>
  @if(Dragging)
