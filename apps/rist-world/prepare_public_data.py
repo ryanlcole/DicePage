@@ -1,11 +1,150 @@
 from pathlib import Path
+from collections import deque
 import json
+import shutil
+import subprocess
+import sys
 
 root = Path(__file__).resolve().parents[2]
 tactical = root / 'apps' / 'tactical'
 web = root / 'apps' / 'rist-world' / 'wwwroot'
 data_dir = web / 'data'
 data_dir.mkdir(parents=True, exist_ok=True)
+
+
+def _load_pillow():
+    try:
+        from PIL import Image
+        return Image
+    except ImportError:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'Pillow==11.3.0'])
+        from PIL import Image
+        return Image
+
+
+def _median(values):
+    ordered = sorted(values)
+    return ordered[len(ordered) // 2] if ordered else 0
+
+
+def _remove_edge_background(image):
+    """Remove only background-colored pixels connected to the image edge.
+
+    This is deliberately safer than deleting every light/dark pixel in the image:
+    foreground highlights and internal negative space are preserved unless they are
+    actually connected to the outer background.
+    """
+    rgba = image.convert('RGBA')
+    width, height = rgba.size
+    if width < 2 or height < 2:
+        return rgba, False
+
+    pixels = rgba.load()
+    if any(pixels[x, y][3] < 250 for x, y in ((0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1))):
+        return rgba, True
+
+    step = max(1, min(width, height) // 96)
+    border = []
+    for x in range(0, width, step):
+        border.append(pixels[x, 0][:3])
+        border.append(pixels[x, height - 1][:3])
+    for y in range(0, height, step):
+        border.append(pixels[0, y][:3])
+        border.append(pixels[width - 1, y][:3])
+
+    bg = tuple(_median([p[channel] for p in border]) for channel in range(3))
+    threshold = 58
+    feather_start = 24
+
+    def distance(rgb):
+        return ((rgb[0] - bg[0]) ** 2 + (rgb[1] - bg[1]) ** 2 + (rgb[2] - bg[2]) ** 2) ** 0.5
+
+    seen = bytearray(width * height)
+    queue = deque()
+
+    def seed(x, y):
+        idx = y * width + x
+        if seen[idx]:
+            return
+        if distance(pixels[x, y][:3]) <= threshold:
+            seen[idx] = 1
+            queue.append((x, y))
+
+    for x in range(width):
+        seed(x, 0)
+        seed(x, height - 1)
+    for y in range(height):
+        seed(0, y)
+        seed(width - 1, y)
+
+    removed = 0
+    while queue:
+        x, y = queue.popleft()
+        r, g, b, a = pixels[x, y]
+        d = distance((r, g, b))
+        if d <= feather_start:
+            alpha = 0
+        else:
+            alpha = int(255 * (d - feather_start) / max(1, threshold - feather_start))
+        alpha = min(a, max(0, min(255, alpha)))
+        if alpha < a:
+            removed += 1
+            pixels[x, y] = (r, g, b, alpha)
+        for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+            if nx < 0 or ny < 0 or nx >= width or ny >= height:
+                continue
+            idx = ny * width + nx
+            if seen[idx]:
+                continue
+            if distance(pixels[nx, ny][:3]) <= threshold:
+                seen[idx] = 1
+                queue.append((nx, ny))
+
+    return rgba, removed > 0
+
+
+def normalize_imported_images():
+    source_root = web / 'assets' / 'chat-imports' / '2026-08-30'
+    output_root = web / 'assets' / 'normalized' / 'chat-imports' / '2026-08-30'
+    manifest_path = web / 'assets' / 'normalized' / 'manifest.json'
+    if output_root.exists():
+        shutil.rmtree(output_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    Image = _load_pillow()
+    manifest = []
+    for source in sorted(source_root.rglob('*')):
+        if not source.is_file() or source.suffix.lower() not in {'.jpg', '.jpeg', '.webp'}:
+            continue
+        # Tiny placeholder/corrupt stubs should not become inventory assets.
+        if source.stat().st_size < 256:
+            continue
+        relative = source.relative_to(source_root)
+        target = (output_root / relative).with_suffix('.png')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with Image.open(source) as opened:
+                normalized, transparent = _remove_edge_background(opened)
+                normalized.save(target, 'PNG', optimize=True)
+        except Exception as exc:
+            print(f'asset-normalize-skip source={source} error={exc}')
+            continue
+
+        source_web = 'assets/chat-imports/2026-08-30/' + relative.as_posix()
+        target_web = 'assets/normalized/chat-imports/2026-08-30/' + target.relative_to(output_root).as_posix()
+        manifest.append({
+            'source': source_web,
+            'png': target_web,
+            'sourceFormat': source.suffix.lower().lstrip('.'),
+            'transparent': transparent,
+        })
+
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, separators=(',', ':')), encoding='utf-8')
+    return manifest
+
+
+normalized_assets = normalize_imported_images()
 
 # The Drive/AWS catalog is the canonical Shaelvien asset registry for both
 # visitors and authenticated users. Do not rebuild a second public catalog
@@ -86,4 +225,4 @@ footer_css = '''<style id="paypal-footer-layout">
 home = home.replace('</head>', footer_css + '</head>', 1)
 home_path.write_text(home, encoding='utf-8')
 
-print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled homepage_paypal=official-art footer_mark=transparent')
+print(f'canonical_assets={len(rows)} cards={len(cards)} normalized_assets={len(normalized_assets)} legacy_asset_catalog=disabled homepage_paypal=official-art footer_mark=transparent')
