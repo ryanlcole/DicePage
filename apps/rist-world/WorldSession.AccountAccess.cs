@@ -3,7 +3,9 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     public bool AccountViewerOpen { get; private set; }
+    public string PendingDisplayName { get; set; } = "";
     public string PendingPlayerAlias { get; set; } = "";
+    public string PendingProfileNote { get; set; } = "";
     public string PendingPlan { get; set; } = "player";
     public bool PendingTermsAccepted { get; set; }
 
@@ -22,12 +24,16 @@ public sealed partial class WorldSession
 
     public async Task BeginAccountSignupAsync()
     {
+        PendingDisplayName = PendingDisplayName.Trim();
         PendingPlayerAlias = PendingPlayerAlias.Trim();
-        if (PendingPlayerAlias.Length == 0 || !PendingTermsAccepted) return;
+        PendingProfileNote = PendingProfileNote.Trim();
+        if (PendingDisplayName.Length == 0 || PendingPlayerAlias.Length == 0 || !PendingTermsAccepted) return;
         PendingPlan = PendingPlan is "gm-player" ? "gm-player" : "player";
 
         await js.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "signup");
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.displayName", PendingDisplayName);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.alias", PendingPlayerAlias);
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.profileNote", PendingProfileNote);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.plan", PendingPlan);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.termsAccepted", "true");
 
