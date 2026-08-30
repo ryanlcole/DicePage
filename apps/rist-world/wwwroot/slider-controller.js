@@ -5,10 +5,9 @@
   '#private-assets-slider':'.private-assets-items',
   '#footer-slider':'.dice-circular-set',
   '#asset-main-rail':'.asset-horizontal-rail',
-  '#pallet-slider':'.tray-scroll-track',
   '#initiative-slider':'.initiative-strip'
  };
- const FALLBACKS=['.header-circular-set','.public-assets-items','.private-assets-items','.dice-circular-set','.asset-horizontal-rail','.initiative-strip','.tray-scroll-track'];
+ const FALLBACKS=['.header-circular-set','.public-assets-items','.private-assets-items','.dice-circular-set','.asset-horizontal-rail','.initiative-strip'];
 
  function shellFor(target){return typeof target==='string'?document.querySelector(target):target;}
  function railFor(shell,selector){
@@ -18,6 +17,20 @@
   if(shell.id&&SELECTORS[`#${shell.id}`]){const node=shell.querySelector(SELECTORS[`#${shell.id}`]);if(node)return node;}
   for(const candidate of FALLBACKS){const node=shell.querySelector(candidate);if(node)return node;}
   return shell;
+ }
+
+ function ensureAssetHint(selector,text){
+  const rail=document.querySelector(selector);
+  if(!rail)return;
+  let hint=rail.querySelector(':scope > .rist-rail-drop-hint');
+  if(!hint){
+   hint=document.createElement('span');
+   hint.className='rist-rail-drop-hint';
+   hint.setAttribute('aria-hidden','true');
+   hint.style.cssText='flex:0 0 auto;align-self:center;padding:0 10px;color:#8f8879;font:700 10px/1 system-ui;white-space:nowrap;pointer-events:none;';
+   rail.appendChild(hint);
+  }
+  hint.textContent=text;
  }
 
  function normalize(shell,rail){
@@ -88,9 +101,17 @@
   },{passive:false});
  }
 
+ function applyReleasePlacement(){
+  const pallet=document.querySelector('#pallet-slider');
+  if(pallet){pallet.style.display='none';pallet.setAttribute('aria-hidden','true');}
+  ensureAssetHint('#public-assets-slider .public-assets-items','Drag public assets here');
+  ensureAssetHint('#private-assets-slider .private-assets-items','Drag private assets here');
+ }
+
  function bindAll(){
+  applyReleasePlacement();
   for(const selector of Object.keys(SELECTORS))bind(document.querySelector(selector));
-  document.querySelectorAll('.desktop-arrow-slider').forEach(bind);
+  document.querySelectorAll('.desktop-arrow-slider').forEach(shell=>{if(shell.id!=='pallet-slider')bind(shell);});
  }
 
  window.ristWorld=window.ristWorld||{};
