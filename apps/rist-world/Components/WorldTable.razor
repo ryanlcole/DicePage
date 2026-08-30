@@ -17,16 +17,19 @@
  <main class="release-world-shell" aria-label="RIST world table">
   <section class="release-region release-menu-region" aria-label="Main menu"><WorldHeader /></section>
   <section class="release-region release-public-region" aria-label="Public assets"><PublicCardRail /></section>
-  <section class="release-region release-map-region" aria-label="Recursive world map"><WorldMap /></section>
+  <section class="release-region release-map-region map-viewer-region" aria-label="Recursive world map and menu viewer">
+   <WorldMap />
+   <div class="map-viewer-overlays" aria-live="polite">
+    <AssetLibrary />
+    <RecursionCockpit />
+    <CharacterMixer />
+    <MmoZoneActions />
+    <RistWelcomeTutorial />
+   </div>
+  </section>
   <section class="release-region release-private-region" aria-label="Private assets"><HandRail /></section>
   <section class="release-region release-footer-region" aria-label="Character dice and chat"><WorldFooter /></section>
  </main>
-
- <AssetLibrary />
- <RecursionCockpit />
- <CharacterMixer />
- <MmoZoneActions />
- <RistWelcomeTutorial />
 </div>
 
 @code{
