@@ -18,6 +18,23 @@
   return shell;
  }
 
+ function normalizeRail(shell,rail){
+  rail.style.boxSizing='border-box';
+  rail.style.width='100%';
+  rail.style.maxWidth='100%';
+  rail.style.minWidth='0';
+  rail.style.overflowX='auto';
+  rail.style.overflowY='hidden';
+  rail.style.webkitOverflowScrolling='touch';
+  rail.style.touchAction='pan-x';
+  rail.style.scrollBehavior='smooth';
+  rail.style.scrollbarWidth='none';
+  if(shell.matches?.('#header-slider,#footer-slider')){
+   shell.style.overflow='hidden';
+   rail.style.flexWrap='nowrap';
+  }
+ }
+
  function pageAmount(rail){return Math.max(96,Math.floor(rail.clientWidth*.78));}
 
  function scrollRail(selector,direction){
@@ -27,14 +44,11 @@
  }
 
  function bindRail(shell){
-  if(!shell||shell.dataset.ristSliderBound==='1')return;
+  if(!shell)return;
   const rail=resolveRail(shell);if(!rail)return;
+  normalizeRail(shell,rail);
+  if(shell.dataset.ristSliderBound==='1')return;
   shell.dataset.ristSliderBound='1';
-  rail.style.overflowX='auto';
-  rail.style.overflowY='hidden';
-  rail.style.webkitOverflowScrolling='touch';
-  rail.style.touchAction='pan-x';
-  rail.style.scrollBehavior='smooth';
 
   let pointerId=null,startX=0,startLeft=0,moved=false;
   rail.addEventListener('pointerdown',e=>{
@@ -57,9 +71,10 @@
   rail.addEventListener('pointerup',finish);
   rail.addEventListener('pointercancel',finish);
   rail.addEventListener('wheel',e=>{
-   if(Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
    if(rail.scrollWidth<=rail.clientWidth+2)return;
-   rail.scrollLeft+=e.deltaY;e.preventDefault();
+   const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+   rail.scrollLeft+=delta;
+   e.preventDefault();
   },{passive:false});
  }
 
