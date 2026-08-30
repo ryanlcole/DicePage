@@ -27,7 +27,7 @@
   ]
  };
  const styles={
-  tabletop:[],
+  tabletop:['css/button-artwork-fit.css?v=1'],
   shell:['css/character-universal.css?v=universal-badge-1'],
   interaction:[
    'css/art-studio.css?v=20260829-consolidated-1',
