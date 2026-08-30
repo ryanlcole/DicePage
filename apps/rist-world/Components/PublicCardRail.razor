@@ -43,7 +43,7 @@
 </section>
 
 @code{
- static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
+ static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens / Chits"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns / Meeples"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
  string AssetTypeLabel=>AssetTypes.First(x=>x.Key==Session.PublicAssetType).Label;
  async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
