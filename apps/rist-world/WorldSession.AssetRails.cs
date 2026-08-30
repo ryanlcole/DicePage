@@ -4,7 +4,7 @@ public sealed partial class WorldSession
 {
     static readonly HashSet<string> AssetRailTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "all","cards","tokens","minis","tiles","terrain","bits"
+        "all","cards","tokens","minis","rolling-stock","pawns","tiles","terrain","bits"
     };
 
     public string PublicAssetType { get; private set; } = "all";
