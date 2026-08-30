@@ -23,6 +23,7 @@
  function state(){const s=spec();return{mode:s.key,label:s.label,audience:s.audience,sumEnabled:currentSum(),gm:isGm(),discrete:s.key==='gm-discrete'}}
  function ensureToggle(rail){let btn=rail.querySelector(':scope > .roll-visibility-toggle');if(btn)return btn;btn=document.createElement('button');btn.type='button';btn.className='roll-visibility-toggle';btn.addEventListener('click',cycle);rail.prepend(btn);return btn}
  function publishRollIntent(target){const s=state();document.dispatchEvent(new CustomEvent('rist:dice-roll-intent',{detail:{...s,die:target.getAttribute('aria-label')||'die'}}))}
+ function applyDiscreteMask(s){const masked=s.key==='gm-discrete'&&!isGm();document.body.classList.toggle('rist-gm-discrete-mask',masked);if(masked){document.querySelectorAll('.world-stage .rolled-die').forEach(die=>{die.setAttribute('title','Discrete roll');die.setAttribute('aria-label','Discrete dice roll result hidden from player')})}}
  function apply(){
   const shell=footer(),rail=shell?.querySelector('.release-footer-track,.dice-circular-set');if(!shell||!rail)return;
   const s=spec(),sumEnabled=currentSum();fallbackMode=s.key;fallbackSum=sumEnabled;localStorage.setItem(MODE_KEY,s.key);localStorage.setItem(SUM_KEY,String(sumEnabled));shell.style.setProperty('--roll-mode-bg',s.color);shell.style.background=s.color;rail.style.background=s.color;
@@ -34,8 +35,10 @@
 #footer-slider[data-roll-visibility="group"],#footer-slider[data-roll-visibility="group"] .release-footer-track{background:#0c4c86!important}
 #footer-slider[data-roll-visibility="gm"],#footer-slider[data-roll-visibility="gm"] .release-footer-track{background:#b85b12!important}
 #footer-slider[data-roll-visibility="gm-discrete"],#footer-slider[data-roll-visibility="gm-discrete"] .release-footer-track{background:#8d1818!important}
+.rist-gm-discrete-mask .world-stage .rolled-die{filter:blur(9px) saturate(.45)!important;transform:scale(.94)!important}
 `;document.head.appendChild(style)}
   const sum=shell.querySelector('.sum');if(sum)sum.hidden=!sumEnabled||s.key==='gm-discrete';
+  applyDiscreteMask(s);
   if(lastMode!==s.key){lastMode=s.key;document.dispatchEvent(new CustomEvent('rist:dice-visibility-changed',{detail:state()}))}
   if(lastSum!==sumEnabled){lastSum=sumEnabled;document.dispatchEvent(new CustomEvent('rist:dice-sum-setting-changed',{detail:{enabled:sumEnabled}}))}
  }
