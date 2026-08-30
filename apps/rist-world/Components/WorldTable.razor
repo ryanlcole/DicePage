@@ -2,6 +2,145 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
+<style>
+ /* One physical rail height across the table. The map remains the only flexible region. */
+ .rist.release-world{
+  --rist-rail-h:86px!important;
+  --rist-header-h:86px!important;
+  --rist-public-h:86px!important;
+  --rist-private-h:86px!important;
+  --rist-dice-h:86px!important;
+  --rist-chat-h:86px!important;
+ }
+ .rist.release-world .release-menu-region,
+ .rist.release-world .release-public-region,
+ .rist.release-world .release-private-region{
+  box-sizing:border-box!important;
+  height:var(--rist-rail-h)!important;
+  min-height:var(--rist-rail-h)!important;
+  max-height:var(--rist-rail-h)!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world #header-slider,
+ .rist.release-world .public-assets-rail,
+ .rist.release-world .private-assets-rail{
+  box-sizing:border-box!important;
+  height:var(--rist-rail-h)!important;
+  min-height:var(--rist-rail-h)!important;
+  max-height:var(--rist-rail-h)!important;
+ }
+
+ /* Buttons shrink-wrap their visible artwork instead of owning arbitrary fixed widths. */
+ .rist.release-world #header-slider .release-root-track>.root-menu-button,
+ .rist.release-world #header-slider .header-icon-button,
+ .rist.release-world #header-slider .control,
+ .rist.release-world #header-slider .scale-stack{
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:78px!important;
+  min-height:78px!important;
+  max-height:78px!important;
+  padding:5px!important;
+ }
+ .rist.release-world #header-slider .release-root-track>.root-menu-button:not(.root-menu-text){
+  width:max-content!important;
+ }
+ .rist.release-world #header-slider .root-menu-art,
+ .rist.release-world #header-slider .mmo-toggle-art{
+  flex:0 0 auto!important;
+ }
+
+ .rist.release-world .public-assets-items>button,
+ .rist.release-world .private-assets-items>button,
+ .rist.release-world .private-assets-items .hand-card-wrap,
+ .rist.release-world .public-assets-rail .token-pin-source,
+ .rist.release-world .private-assets-rail .token-pin-source{
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+ }
+ .rist.release-world .public-assets-items .public-asset-card,
+ .rist.release-world .private-assets-items .compact-hand-card,
+ .rist.release-world .private-assets-items .standard-hand-card,
+ .rist.release-world .public-assets-rail .token-pin-source,
+ .rist.release-world .private-assets-rail .token-pin-source{
+  height:74px!important;
+  min-height:74px!important;
+  max-height:74px!important;
+  padding:4px!important;
+ }
+ .rist.release-world .public-assets-items .public-asset-card>img,
+ .rist.release-world .private-assets-items .compact-hand-card>img,
+ .rist.release-world .private-assets-items .standard-hand-card>img{
+  display:block!important;
+  width:auto!important;
+  height:66px!important;
+  min-width:0!important;
+  max-width:none!important;
+  max-height:66px!important;
+  object-fit:contain!important;
+ }
+
+ /* Footer tray and roleplay output use exactly the same physical height as every rail. */
+ .rist.release-world .release-footer-stack .inline-chat-output,
+ .rist.release-world .release-footer-stack .footer-dock,
+ .rist.release-world .release-footer-stack .home-inline-chat,
+ .rist.release-world .release-footer-stack #footer-slider,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track{
+  box-sizing:border-box!important;
+  height:var(--rist-rail-h)!important;
+  min-height:var(--rist-rail-h)!important;
+  max-height:var(--rist-rail-h)!important;
+ }
+ .rist.release-world .release-footer-stack>.inline-chat-output{grid-row:1!important}
+ .rist.release-world .release-footer-stack>.footer-dock{grid-row:2!important}
+ .rist.release-world .release-footer-region>.release-footer-stack{
+  grid-template-rows:var(--rist-rail-h) var(--rist-rail-h) 14px!important;
+ }
+
+ /* Dice/footer controls also shrink-wrap their artwork. Text-only controls keep only the space their label needs. */
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.die-button,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.die-control,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.roll-history-toggle,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.clear-dice,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.card,
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.footer-character-button,
+ .rist.release-world .release-footer-stack .dice-tray-toggle{
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+ }
+ .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.die-button{
+  padding:3px!important;
+ }
+ .rist.release-world .release-footer-stack #footer-slider .die-button .die-sprite{
+  display:block!important;
+  height:70px!important;
+  width:calc(70px * var(--die-aspect,1))!important;
+  min-width:0!important;
+  max-width:none!important;
+ }
+ .rist.release-world .release-footer-stack .dice-tray-toggle{
+  height:78px!important;
+  min-height:78px!important;
+  padding:5px!important;
+ }
+ .rist.release-world .release-footer-stack .dice-tray-toggle .dice-bag-toggle-art{
+  display:block!important;
+  width:auto!important;
+  height:66px!important;
+  max-width:none!important;
+  max-height:66px!important;
+ }
+</style>
+
 <section class="world-context-strip" aria-label="World context">
  <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
  <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
