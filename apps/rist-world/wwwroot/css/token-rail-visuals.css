@@ -1,1 +1,57 @@
 .coin-token-source,.character-token-source{position:relative!important;overflow:hidden!important}.coin-choice,.character-front-token{width:46px!important;height:46px!important;margin:auto!important}.coin-choice{position:relative!important;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important}.coin-choice::before,.coin-choice::after,.coin-choice{filter:drop-shadow(0 2px 2px #0008)}.coin-choice::before,.coin-choice::after{content:"";position:absolute;border-radius:50%;border:2px solid #f0c45e;box-shadow:inset 0 0 0 2px #7d5418,inset 0 0 8px #f4d77b99;background:radial-gradient(circle at 38% 34%,#fff3b0 0 8%,#d9a735 10% 38%,#8b5d18 40% 58%,#d6a337 60% 100%)}.coin-choice::before{width:32px;height:32px;left:4px;top:10px}.coin-choice::after{width:29px;height:29px;right:1px;top:3px}.coin-token-source::after{content:"";position:absolute;width:25px;height:25px;border-radius:50%;border:2px solid #dbad42;left:21px;top:28px;background:radial-gradient(circle at 38% 34%,#fff1aa 0 7%,#b97d22 9% 42%,#6f4512 44% 58%,#cb8e27 60% 100%);box-shadow:0 2px 3px #0009;pointer-events:none}.character-front-token{display:block!important;border:2px solid #d7ab35!important;border-radius:10px!important;background:#111820 center/cover no-repeat!important;color:transparent!important;box-shadow:inset 0 0 0 1px #74c8e055}.character-front-token.has-character-token{background-position:center!important;background-size:cover!important}.character-front-token.no-character-token{background-image:radial-gradient(circle,#d9b95333,#10171d 70%)!important}.character-front-token.no-character-token::after{content:"♟";display:grid;place-items:center;width:100%;height:100%;color:#f2dfac;font-size:25px}.calforth-token-button{flex:0 0 64px!important;width:64px!important;height:64px!important}.rist.auth-visitor .calforth-token-button{pointer-events:auto!important;filter:none!important;opacity:1!important}
+
+/* Static tabletop artwork recovery. These controls must not depend on the old
+   /Game asset mount, which is not part of the Blazor wwwroot deployment. */
+.header-mmo-button .mmo-toggle-art.mmo-toggle-image{
+ display:grid!important;place-items:center!important;width:100%!important;height:100%!important;
+ background:url("../assets/ui/sandbox-toggle.webp?v=20260829-recovery-1") center/contain no-repeat!important;
+ overflow:hidden!important
+}
+.header-mmo-button.mmo-art-active .mmo-toggle-art.mmo-toggle-image{
+ background-image:url("../assets/ui/mmo-toggle.webp?v=20260829-recovery-1")!important
+}
+.header-mmo-button .mmo-toggle-image img{display:none!important}
+
+/* Map pin: render the pin directly so a missing sprite cannot turn into a
+   browser broken-image placeholder. */
+.icon-pin.map-pin-icon,.map-pin-icon{
+ position:relative!important;display:block!important;box-sizing:border-box!important;
+ width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;
+ background:#d94b3f!important;background-image:none!important;
+ border:2px solid #f6e6b3!important;border-radius:50% 50% 50% 0!important;
+ transform:rotate(-45deg)!important;box-shadow:0 2px 5px #0008!important
+}
+.icon-pin.map-pin-icon::after,.map-pin-icon::after{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ width:9px!important;height:9px!important;border:0!important;border-radius:50%!important;
+ background:#fff!important;transform:translate(-50%,-50%)!important
+}
+.piece.pin .map-pin-icon{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important}
+
+/* WORLD miniatures are represented by coins. The former PNG target does not
+   exist in this branch, so hide the failed image and draw the coin natively. */
+.token-preview:has(>img[src*="main-world-coin"]),
+.piece.mini:has(>img[src*="main-world-coin"]){
+ position:relative!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important
+}
+.token-preview>img[src*="main-world-coin"],.piece.mini>img[src*="main-world-coin"]{display:none!important}
+.token-preview:has(>img[src*="main-world-coin"])::before,
+.piece.mini:has(>img[src*="main-world-coin"])::before{
+ content:"";display:block;box-sizing:border-box;width:86%;height:86%;border-radius:50%;
+ border:2px solid #f0c45e;background:radial-gradient(circle at 36% 31%,#fff4b5 0 7%,#d9a735 9% 38%,#845716 40% 57%,#d8a63a 59% 100%);
+ box-shadow:inset 0 0 0 2px #765018,inset 0 0 8px #f4d77b99,0 2px 4px #000a
+}
+.token-preview:has(>img[src*="main-world-coin"])::after,
+.piece.mini:has(>img[src*="main-world-coin"])::after{
+ content:"✦";position:absolute;inset:0;display:grid;place-items:center;color:#5d3b0d;font:900 44%/1 Georgia,serif;text-shadow:0 1px #f8dc83
+}
+
+/* Non-world miniature fallback, for the likewise absent main-token.png. */
+.token-preview>img[src*="main-token"],.piece.mini>img[src*="main-token"]{display:none!important}
+.token-preview:has(>img[src*="main-token"]),.piece.mini:has(>img[src*="main-token"]){
+ position:relative!important;background:radial-gradient(circle,#d2b55e 0 18%,#26394a 20% 68%,#111a21 70%)!important;
+ border:2px solid #d7b85a!important;color:#f3e2ae!important
+}
+.token-preview:has(>img[src*="main-token"])::after,.piece.mini:has(>img[src*="main-token"])::after{
+ content:"♟";position:absolute;inset:0;display:grid;place-items:center;font-size:65%;color:#f3dfac
+}
