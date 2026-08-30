@@ -24,6 +24,7 @@ env:
   PLATFORM_STACK: rist-platform
   PRODUCTION_DOMAIN: relicgamemaster.com
   PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
+  ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
 
 jobs:
   build-and-deploy:
@@ -46,6 +47,30 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Wait for required AWS artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            assets/ui/mmo-toggle.webp
+            assets/ui/sandbox-toggle.webp
+            assets/ui/map-pin.svg
+            assets/ui/icons/door.svg
+            assets/ui/icons/mode.svg
+            assets/ui/icons/assets.svg
+            assets/ui/icons/browse.svg
+            assets/ui/icons/role.svg
+            assets/ui/icons/grid.svg
+            assets/ui/icons/scale.svg
+            assets/ui/icons/save.svg
+            assets/ui/icons/load.svg
+            assets/spritesheets/magic-coins.webp
+          )
+          for path in "${required[@]}"; do
+            echo "Waiting for CDN asset: $path"
+            curl --fail --location --retry 18 --retry-delay 5 --retry-all-errors --output /dev/null "${ASSET_BASE_URL}${path}"
+          done
 
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
@@ -155,8 +180,6 @@ jobs:
           grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
           grep -q 'QAStaging' /tmp/launcher-index.html
 
-          # Story scenes are persistent media currently managed outside this workflow.
-          # Report missing scenes without turning an otherwise healthy application deploy red.
           STORY_MISSING=0
           for i in 1 2 3 4 5 6; do
             if ! curl --fail --location --retry 2 --retry-delay 2 --output "/tmp/relic-story-${i}.jpg" "${URL}relic-story-${i}.jpg"; then
