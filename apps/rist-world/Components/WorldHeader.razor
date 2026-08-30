@@ -6,7 +6,7 @@
 <header id="header-slider" class="release-root-rail desktop-arrow-slider" aria-label="Main menu">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll main menu left">‹</button>
  <div class="header-circular-set release-root-track">
-  <button class="root-menu-button door-button @(Session.IsLoggedIn?"active":"login-pulse")" @onclick="DoorClicked" aria-label="@(Session.IsLoggedIn?"Log out":"Sign up or log in")"><span class="root-menu-art icon-exit" aria-hidden="true"></span><small>@(Session.IsLoggedIn?"Exit":"Login")</small></button>
+  <button class="root-menu-button door-button @(Session.AccountViewerOpen?"active":"")" @onclick="DoorClicked" aria-expanded="@Session.AccountViewerOpen" aria-label="@(Session.IsLoggedIn?"Exit RIST":"Enter RIST")"><span class="root-menu-art icon-exit" aria-hidden="true"></span><small>@(Session.IsLoggedIn?"Exit":"Enter")</small></button>
   <button type="button" class="root-menu-button @ModeRootClass" @onclick="ToggleModeRoot" aria-expanded="@ModeRootOpen" aria-label="Table mode"><span class="root-menu-art icon-encounter" aria-hidden="true"></span><small>Mode</small></button>
   <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@AssetsRootOpen" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><small>Assets</small></button>
   <button type="button" class="root-menu-button @RoleRootClass" @onclick="ToggleRoleRoot" aria-expanded="@RoleRootOpen" aria-label="Role"><span class="root-menu-art icon-role" aria-hidden="true"></span><small>@RoleLabel</small></button>
@@ -49,7 +49,7 @@
  void ToggleRoot(string key)=>_openRoot=_openRoot==key?string.Empty:key;
  void ToggleModeRoot()=>ToggleRoot("mode"); void ToggleAssetsRoot()=>ToggleRoot("assets"); void ToggleRoleRoot()=>ToggleRoot("role"); void ToggleGridRoot()=>ToggleRoot("grid"); void ToggleScaleRoot()=>ToggleRoot("scale");
  void CloseRoot()=>_openRoot=string.Empty;
- async Task DoorClicked(){_openRoot=string.Empty;if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}Session.OpenAccountViewer();}
+ async Task DoorClicked(){_openRoot=string.Empty;if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}if(Session.AccountViewerOpen)Session.CloseAccountViewer();else Session.OpenAccountViewer();}
  void SelectMode(string value){Session.SetTableMode(value);_openRoot=string.Empty;}
  void SelectAsset(string value){_assetRootSelection=value;if(value=="cards"){if(!Session.CardBrowserOpen)Session.ToggleCardBrowser();_openRoot=string.Empty;return;}Session.PieceKind=value switch{"tokens"=>"pin","minis"=>"mini","pawns"=>"pawn","tiles"=>"tile","bits"=>"bit",_=>value};if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();Session.Notify();_openRoot=string.Empty;}
  void OpenAssetLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
