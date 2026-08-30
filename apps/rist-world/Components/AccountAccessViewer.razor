@@ -21,11 +21,11 @@
      <div class="map-auth-form">
       <h2>Create your RIST account</h2>
       <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name other players will see" /></label>
-      <fieldset class="map-plan-picker"><legend>Choose your plan</legend>
+      <fieldset class="map-plan-picker"><legend>Choose your intended plan</legend>
        <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
        <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
       </fieldset>
-      <p class="map-chat-empty">No payment is collected during sign-up. Discord is used to verify and reconnect your account.</p>
+      <p class="map-chat-empty">Discord verifies and reconnects your RIST account. Membership payment is not collected during sign-up.</p>
       <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
       <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Sign up with Discord</button>
      </div>
@@ -38,6 +38,10 @@
       <button class="discord-login-primary" @onclick="Session.BeginAccountLoginAsync">Log in with Discord</button>
      </div>
     }
+    <div class="map-auth-form">
+     <p class="map-chat-empty">Want to support RIST development separately? PayPal donations are voluntary and do not activate or renew a membership plan.</p>
+     <a class="discord-login-primary" href="https://www.paypal.com/donate/?hosted_button_id=J7TNXEDSK9WYN" target="_blank" rel="noopener noreferrer">Support RIST with PayPal</a>
+    </div>
    </section>
 
    <section class="map-chat-output" aria-label="Chat output" aria-live="polite">
@@ -63,6 +67,7 @@
  int _delaySeconds=5;
  CancellationTokenSource? _autoCts;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
+ protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
  void ShowSignup()=>_mode="signup";
  void ShowLogin()=>_mode="login";
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
