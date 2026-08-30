@@ -10,16 +10,17 @@
  <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
  <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
 </section>
-<div class="rist prototype-shell @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
+
+<div class="rist release-world @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
 
- <div class="rist-primary-shell">
-  <WorldHeader />
-  <PublicCardRail />
-  <WorldMap />
-  <HandRail />
-  <WorldFooter />
- </div>
+ <main class="release-world-shell" aria-label="RIST world table">
+  <section class="release-region release-menu-region" aria-label="Main menu"><WorldHeader /></section>
+  <section class="release-region release-public-region" aria-label="Public assets"><PublicCardRail /></section>
+  <section class="release-region release-map-region" aria-label="Recursive world map"><WorldMap /></section>
+  <section class="release-region release-private-region" aria-label="Private assets"><HandRail /></section>
+  <section class="release-region release-footer-region" aria-label="Character dice and chat"><WorldFooter /></section>
+ </main>
 
  <AssetLibrary />
  <RecursionCockpit />
