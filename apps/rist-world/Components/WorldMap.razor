@@ -128,6 +128,7 @@
    }
    <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
     <div class="base ocean-world" aria-label="Shaelvien ocean world"></div>
+    @if(!Session.HasBaseMapTilemap){<img src="@Session.WorldMapUrl" alt="Naeja world map" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none" />}
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
