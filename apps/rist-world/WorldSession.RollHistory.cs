@@ -6,8 +6,8 @@ public sealed partial class WorldSession
     public string ActiveRollCardName { get; private set; } = "";
     public string RollVisibilityMode { get; private set; } = "public";
     public bool DiceSumEnabled { get; private set; } = true;
-    public bool DiceValuesVisibleToUser => RollVisibilityMode != "gm-discrete";
-    public bool DiceSumVisibleToUser => DiceSumEnabled && DiceValuesVisibleToUser;
+    public bool DiceValuesVisibleToUser => RollVisibilityMode != "gm-discrete" || Role == "GM";
+    public bool DiceSumVisibleToUser => (RollVisibilityMode == "gm-discrete" && Role == "GM") || (DiceSumEnabled && DiceValuesVisibleToUser);
     public string RollVisibilityLabel => RollVisibilityMode switch
     {
         "test" => "Test Roll",
