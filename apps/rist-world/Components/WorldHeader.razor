@@ -3,6 +3,21 @@
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
 
+<style>
+#header-slider .root-menu-art{display:block!important;width:46px!important;height:46px!important;margin:auto!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;filter:none!important;transform:none!important}
+#header-slider .root-menu-art::before,#header-slider .root-menu-art::after{content:none!important}
+#header-slider .root-menu-art.icon-exit{background-image:url('assets/ui/icons/door.svg')!important}
+#header-slider .root-menu-art.icon-encounter{background-image:url('assets/ui/icons/mode.svg')!important}
+#header-slider .root-menu-art.icon-assets{width:40px!important;height:48px!important;border-radius:4px;background-image:url('assets/cards/shaelvien_card_back.jpg')!important;background-size:cover!important;box-shadow:0 1px 4px #0008!important}
+#header-slider .root-menu-art.icon-role{background-image:url('assets/ui/icons/role.svg')!important}
+#header-slider .root-menu-art.icon-grid{background-image:url('assets/ui/icons/grid.svg')!important}
+#header-slider .root-menu-art.icon-scale{background-image:url('assets/ui/icons/scale.svg')!important}
+#header-slider .root-menu-art.icon-save{background-image:url('assets/ui/icons/save.svg')!important}
+#header-slider .root-menu-art.icon-load{background-image:url('assets/ui/icons/load.svg')!important}
+#header-slider .header-mmo-button .mmo-toggle-art{display:block!important;width:54px!important;height:46px!important;margin:auto!important;background:url('assets/ui/sandbox-toggle.webp') center/contain no-repeat!important}
+#header-slider .header-mmo-button.mmo-art-active .mmo-toggle-art{background-image:url('assets/ui/mmo-toggle.webp')!important}
+</style>
+
 <header id="header-slider" class="release-root-rail desktop-arrow-slider" aria-label="Main menu">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll main menu left">‹</button>
  <div class="header-circular-set release-root-track">
