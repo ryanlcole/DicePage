@@ -47,16 +47,33 @@ jobs:
           ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/assets/*' '/worlds/*' '/atlas/*' '/cards/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID"
       - name: Verify critical CDN assets
+        shell: bash
         run: |
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/mmo.webp "${ASSET_BASE_URL}assets/ui/mmo-toggle.webp"
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/sandbox.webp "${ASSET_BASE_URL}assets/ui/sandbox-toggle.webp"
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/map-pin.svg "${ASSET_BASE_URL}assets/ui/map-pin.svg"
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/magic-coins.webp "${ASSET_BASE_URL}assets/spritesheets/magic-coins.webp"
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/humanoids.webp "${ASSET_BASE_URL}assets/spritesheets/directional-humanoids.webp"
-          test $(stat -c%s /tmp/mmo.webp) -gt 1000
-          test $(stat -c%s /tmp/sandbox.webp) -gt 1000
-          test $(stat -c%s /tmp/map-pin.svg) -gt 300
-          test $(stat -c%s /tmp/magic-coins.webp) -gt 1000
-          test $(stat -c%s /tmp/humanoids.webp) -gt 1000
+          set -euo pipefail
+          verify_asset() {
+            local path="$1"
+            local min_bytes="$2"
+            local target="/tmp/$(basename "$path")"
+            curl --fail --location --retry 6 --retry-delay 5 --output "$target" "${ASSET_BASE_URL}${path}"
+            test "$(stat -c%s "$target")" -gt "$min_bytes"
+          }
+
+          # Standalone static controls. These must never be served as atlas crops.
+          verify_asset assets/ui/mmo-toggle.webp 1000
+          verify_asset assets/ui/sandbox-toggle.webp 1000
+          verify_asset assets/ui/map-pin.svg 300
+          verify_asset assets/ui/icons/door.svg 100
+          verify_asset assets/ui/icons/mode.svg 100
+          verify_asset assets/ui/icons/assets.svg 100
+          verify_asset assets/ui/icons/browse.svg 100
+          verify_asset assets/ui/icons/role.svg 100
+          verify_asset assets/ui/icons/grid.svg 100
+          verify_asset assets/ui/icons/scale.svg 100
+          verify_asset assets/ui/icons/save.svg 100
+          verify_asset assets/ui/icons/load.svg 100
+
+          # Functional multi-frame sprite sheets are intentional.
+          verify_asset assets/spritesheets/magic-coins.webp 1000
+          verify_asset assets/spritesheets/directional-humanoids.webp 1000
 
 # Deployment trigger: OIDC trust repaired 2026-08-27
