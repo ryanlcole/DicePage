@@ -25,9 +25,12 @@ public sealed partial class WorldSession
         PendingPlayerAlias = PendingPlayerAlias.Trim();
         if (PendingPlayerAlias.Length == 0 || !PendingTermsAccepted) return;
         PendingPlan = PendingPlan is "gm-player" ? "gm-player" : "player";
+
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "signup");
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.alias", PendingPlayerAlias);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.plan", PendingPlan);
         await js.InvokeVoidAsync("localStorage.setItem", "rist.signup.termsAccepted", "true");
+
         AccountViewerOpen = false;
         Notify();
         await ToggleLoginAsync();
@@ -35,6 +38,7 @@ public sealed partial class WorldSession
 
     public async Task BeginAccountLoginAsync()
     {
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "login");
         AccountViewerOpen = false;
         Notify();
         await ToggleLoginAsync();
