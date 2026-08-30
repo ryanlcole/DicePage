@@ -16,6 +16,7 @@
  <div id="private-assets-slider" class="private-assets-strip desktop-arrow-slider">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#private-assets-slider',-1)" aria-label="Scroll private assets left">‹</button>
   <div class="private-assets-items">
+   <span class="private-assets-empty rail-drop-prompt">Drag private assets here</span>
    @if(_assetType is "all" or "cards")
    {
     <button class="compact-hand-card hand-deck-card" @onclick="Session.StandardDeckClick" aria-expanded="@Session.HandOpen" aria-label="Open private card deck"><span class="hand-toggle-card-back" aria-hidden="true"></span></button>
@@ -43,10 +44,6 @@
     <ElementalTokenSelector />
     <button class="token-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag private map pin onto map"><span class="map-pin-icon" aria-hidden="true"></span></button>
    }
-   @if(_assetType is "minis" or "tiles" or "terrain" or "bits")
-   {
-    <span class="private-assets-empty">No private @AssetTypeLabel.ToLowerInvariant() staged.</span>
-   }
   </div>
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#private-assets-slider',1)" aria-label="Scroll private assets right">›</button>
  </div>
@@ -68,7 +65,7 @@
 }
 
 @code{
- static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
+ static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens / Chits"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns / Meeples"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
  string _assetType="all";
  string AssetTypeLabel=>AssetTypes.First(x=>x.Key==_assetType).Label;
  void SelectAssetType(string type){_assetType=type;if(type is not "all" and not "cards"&&Session.HandOpen)Session.CloseHand();}
