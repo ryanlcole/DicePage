@@ -7,8 +7,6 @@
 .token-pin-source .map-pin-icon{width:48px;height:48px;pointer-events:none}
 .placed-pin{cursor:pointer;touch-action:manipulation}
 
-/* Keep the historical icon-pin markup wired to the current GPS pin artwork.
-   This avoids asset/class drift between the token rail, drag ghost, and placed pins. */
-.map-pin-icon{position:relative;display:block;width:22px;height:22px;border-radius:50% 50% 50% 0!important;transform:rotate(-45deg);background:#d94b3f!important;border:2px solid #f6e6b3!important;box-shadow:0 2px 5px #0008!important;box-sizing:border-box}
-.map-pin-icon::before{content:none!important}
-.map-pin-icon::after{content:""!important;position:absolute;width:31.8%;height:31.8%;border-radius:50%;background:#fff;left:50%;top:50%;transform:translate(-50%,-50%)}
+/* One map-pin artwork authority: the AWS/CloudFront asset synced from wwwroot/assets/ui/map-pin.svg. */
+.map-pin-icon{display:block;width:22px;height:22px;background-color:transparent!important;background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/map-pin.svg?v=20260829-aws-1")!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;border:0!important;border-radius:0!important;transform:none!important;box-shadow:none!important;box-sizing:border-box}
+.map-pin-icon::before,.map-pin-icon::after{content:none!important}
