@@ -62,4 +62,27 @@ cards = json.loads(
     encoding='utf-8'
 )
 
-print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled')
+# Homepage footer: keep the studio mark and PayPal control together above the
+# copyright. Use PayPal-hosted official Donate button artwork rather than a
+# locally imitated brand button. The existing managed PayPal destination is
+# intentionally preserved.
+home_path = root / 'site' / 'relic-home' / 'index.html'
+home = home_path.read_text(encoding='utf-8')
+old_footer = '<footer><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal">Donate with PayPal</a></footer>'
+new_footer = '<footer class="relic-site-footer"><div class="footer-support-row"><div class="footer-relic-mark" role="img" aria-label="ReLiC ornamental mark"></div><a class="paypal-donate" href="https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9" target="_blank" rel="noopener noreferrer" aria-label="Donate to ReLiCGameMaster with PayPal"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal"></a></div><p class="footer-copyright">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</p></footer>'
+if old_footer not in home:
+    raise ValueError('Homepage footer signature changed; update the footer migration before deploying')
+home = home.replace(old_footer, new_footer, 1)
+
+footer_css = '''<style id="paypal-footer-layout">
+.relic-site-footer{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important}
+.footer-support-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:nowrap}
+.relic-site-footer .paypal-donate{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;line-height:0!important}
+.relic-site-footer .paypal-donate img{display:block;width:auto;height:auto;max-width:147px;border:0}
+.relic-site-footer .footer-copyright{width:100%;margin:0!important}
+@media(max-width:420px){.footer-support-row{gap:12px}.relic-site-footer .paypal-donate img{max-width:132px}}
+</style>'''
+home = home.replace('</head>', footer_css + '</head>', 1)
+home_path.write_text(home, encoding='utf-8')
+
+print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled homepage_paypal=official-art')
