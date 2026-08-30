@@ -20,6 +20,7 @@
   <section class="release-region release-map-region map-viewer-region" aria-label="Recursive world map and menu viewer">
    <WorldMap />
    <div class="map-viewer-overlays" aria-live="polite">
+    @if(Session.CardBrowserOpen){<button type="button" class="map-viewer-close map-global-close" @onclick="Session.ToggleCardBrowser" aria-label="Close card library">×</button>}
     <AccountAccessViewer />
     <AssetLibrary />
     <RecursionCockpit />
