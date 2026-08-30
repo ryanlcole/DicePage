@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject WorldSession Session
+@inject DiscordAuthClient Auth
 
 @if(Session.AccountViewerOpen && !Session.IsLoggedIn)
 {
@@ -11,6 +12,10 @@
      <button type="button" class="@(_mode=="signup"?"active":"")" @onclick="ShowSignup">Sign Up</button>
      <button type="button" class="@(_mode=="login"?"active":"")" @onclick="ShowLogin">Log In</button>
     </nav>
+    @if(!string.IsNullOrWhiteSpace(Auth.LastError))
+    {
+     <p class="storage-status" role="alert">@Auth.LastError</p>
+    }
     @if(_mode=="signup")
     {
      <div class="map-auth-form">
@@ -20,6 +25,7 @@
        <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
        <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
       </fieldset>
+      <p class="map-chat-empty">No payment is collected during sign-up. Discord is used to verify and reconnect your account.</p>
       <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
       <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Sign up with Discord</button>
      </div>
@@ -28,7 +34,7 @@
     {
      <div class="map-auth-form map-login-form">
       <h2>Welcome back</h2>
-      <p>Use the Discord account connected to your RIST account.</p>
+      <p>Use the Discord account already connected to your RIST profile.</p>
       <button class="discord-login-primary" @onclick="Session.BeginAccountLoginAsync">Log in with Discord</button>
      </div>
     }
