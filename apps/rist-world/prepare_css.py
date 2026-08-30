@@ -53,7 +53,6 @@ FINAL_AUTHORITY = r'''
  --rist-gold-bright:#d7be80;
  --rist-panel:#0d1319;
  --rist-control:#111920;
- --rist-icon-base:"https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons";
  --rist-header-h:54px!important;
  --rist-public-h:86px!important;
  --rist-private-h:86px!important;
@@ -80,25 +79,40 @@ FINAL_AUTHORITY = r'''
  filter:none!important;transform:none!important;pointer-events:none!important
 }
 .rist #header-slider .header-icon::before,.rist #header-slider .header-icon::after{content:none!important}
-.rist #header-slider .icon-exit{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/door.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-encounter{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/mode.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-assets{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/assets.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-browse{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/browse.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-role{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/role.svg?v=20260830-clean-1")!important}
-.rist #header-slider [class*="icon-grid-"]{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/grid.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-scale{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/scale.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-save{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/save.svg?v=20260830-clean-1")!important}
-.rist #header-slider .icon-load{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/load.svg?v=20260830-clean-1")!important}
+.rist #header-slider .icon-exit{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/door.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-encounter{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/mode.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-assets{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/assets.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-browse{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/browse.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-role{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/role.svg?v=20260830-clean-2")!important}
+.rist #header-slider [class*="icon-grid-"]{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/grid.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-scale{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/scale.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-save{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/save.svg?v=20260830-clean-2")!important}
+.rist #header-slider .icon-load{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/load.svg?v=20260830-clean-2")!important}
 .rist #header-slider .control select{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important}
 .rist #header-slider .scale-stack{box-sizing:border-box!important;flex:0 0 96px!important;width:96px!important;height:48px!important;display:grid!important;align-content:center!important;padding:4px!important;border:1px solid var(--rist-gold)!important;border-radius:10px!important;background:var(--rist-control)!important}
 
+/* Static icon utilities used outside the header also use individual files. */
+.rist .standard-save-icon .header-icon,.rist .standard-load-icon .header-icon,.rist .standard-drawer-exit .header-icon{
+ display:block!important;width:28px!important;height:28px!important;margin:auto!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important
+}
+.rist .standard-save-icon .icon-save{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/save.svg?v=20260830-clean-2")!important}
+.rist .standard-load-icon .icon-load{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/load.svg?v=20260830-clean-2")!important}
+.rist .standard-drawer-exit .icon-exit{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/icons/door.svg?v=20260830-clean-2")!important}
+.rist .standard-save-icon .header-icon::before,.rist .standard-save-icon .header-icon::after,.rist .standard-load-icon .header-icon::before,.rist .standard-load-icon .header-icon::after,.rist .standard-drawer-exit .header-icon::before,.rist .standard-drawer-exit .header-icon::after{content:none!important}
+
 /* MMO is already a standalone static image pair. */
-.rist .header-mmo-button .mmo-toggle-art{display:block!important;width:100%!important;height:100%!important;background:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/sandbox-toggle.webp?v=20260830-clean-1") center/contain no-repeat!important}
-.rist .header-mmo-button.mmo-art-active .mmo-toggle-art{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/mmo-toggle.webp?v=20260830-clean-1")!important}
+.rist .header-mmo-button .mmo-toggle-art{display:block!important;width:100%!important;height:100%!important;background:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/sandbox-toggle.webp?v=20260830-clean-2") center/contain no-repeat!important}
+.rist .header-mmo-button.mmo-art-active .mmo-toggle-art{background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/mmo-toggle.webp?v=20260830-clean-2")!important}
 .rist .header-mmo-button .mmo-toggle-art>img{display:none!important}
 
 /* ----- shared public/private asset rails --------------------------------- */
-.rist>.public-assets-rail,.rist>.private-assets-rail{overflow:hidden!important;background:var(--rist-panel)!important}
+.rist>.public-assets-rail,.rist>.private-assets-rail{overflow:hidden!important;background:var(--rist-panel)!important;color:#eee6d3!important}
+.rist .asset-rail-header{min-width:0!important;display:flex!important;align-items:center!important;gap:8px!important;padding:3px 8px!important;border-bottom:1px solid #40371f!important;overflow:hidden!important}
+.rist .asset-rail-header>strong{flex:0 0 auto!important;color:var(--rist-gold-bright)!important;font:800 10px/1 system-ui!important;letter-spacing:.13em!important;text-transform:uppercase!important;white-space:nowrap!important}
+.rist .asset-type-tabs{min-width:0!important;display:flex!important;gap:4px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
+.rist .asset-type-tabs::-webkit-scrollbar{display:none!important}
+.rist .asset-type-tabs button{flex:0 0 auto!important;height:27px!important;padding:0 10px!important;border:1px solid #51462d!important;border-radius:7px!important;background:var(--rist-control)!important;color:#a99d82!important;font:700 8px/1 system-ui!important;text-transform:uppercase!important}
+.rist .asset-type-tabs button.active{border-color:#c49a3b!important;background:#1b252d!important;color:#f1d68f!important}
 .rist .public-assets-strip,.rist .private-assets-strip{display:block!important;width:100%!important;min-width:0!important;height:100%!important;overflow:hidden!important}
 .rist .public-assets-items,.rist .private-assets-items{
  box-sizing:border-box!important;width:100%!important;min-width:0!important;height:100%!important;display:flex!important;align-items:center!important;gap:8px!important;
@@ -106,6 +120,7 @@ FINAL_AUTHORITY = r'''
 }
 .rist .public-assets-items::-webkit-scrollbar,.rist .private-assets-items::-webkit-scrollbar{display:none!important}
 .rist .public-assets-strip>.rail-scroll-arrow,.rist .private-assets-strip>.rail-scroll-arrow{display:none!important}
+.rist .public-assets-empty,.rist .private-assets-empty{color:#8f8879!important;font-size:10px!important;white-space:nowrap!important}
 .rist .public-assets-items>button,.rist .private-assets-items>button,.rist .private-assets-items .hand-card-wrap{
  box-sizing:border-box!important;flex:0 0 58px!important;width:58px!important;min-width:58px!important;max-width:58px!important
 }
@@ -116,6 +131,7 @@ FINAL_AUTHORITY = r'''
 .rist .public-assets-items .public-asset-card>img,.rist .private-assets-items .compact-hand-card>img,.rist .private-assets-items .standard-hand-card>img{
  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;margin:0!important
 }
+.rist .public-assets-items .public-asset-card small{display:none!important}
 .rist .private-assets-items .hand-toggle-card-back{display:block!important;width:100%!important;height:100%!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important}
 
 /* Map pin is one standalone AWS SVG. Never crop it as a sprite. */
@@ -125,14 +141,22 @@ FINAL_AUTHORITY = r'''
 }
 .rist .public-assets-rail .map-pin-icon,.rist .private-assets-rail .map-pin-icon{
  display:block!important;width:30px!important;height:36px!important;min-width:30px!important;min-height:36px!important;max-width:30px!important;max-height:36px!important;margin:auto!important;
- border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;background:transparent url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/map-pin.svg?v=20260830-clean-1") center/contain no-repeat!important;pointer-events:none!important
+ border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;background:transparent url("https://d2d6rnm6fnsp89.cloudfront.net/assets/ui/map-pin.svg?v=20260830-clean-2") center/contain no-repeat!important;pointer-events:none!important
 }
 .rist .map-pin-icon::before,.rist .map-pin-icon::after{content:none!important}
 .rist .piece.pin{background:transparent!important;border:0!important;box-shadow:none!important}.rist .piece.pin::after{content:none!important}
 
-/* True sprites retain frame math. */
+/* True sprites retain frame math; sprite sheets are the only intentional multi-image assets. */
 .rist .die-sprite,.rist .rolled-die,.rist .magic-coin-sprite,.rist .mixer-sprite,.rist .sprite-sheet,.rist [class*="sprite-"]{max-width:none}
-.rist .elemental-token-selector{height:46px!important;display:flex!important;align-items:center!important}.rist .elemental-token-active{width:58px!important;height:46px!important;min-width:58px!important;min-height:46px!important;padding:3px!important}.rist .elemental-token-active .magic-coin-sprite{width:38px!important;height:38px!important}
+.rist .elemental-token-selector{position:relative!important;flex:0 0 auto!important;height:46px!important;display:flex!important;align-items:center!important;overflow:visible!important;z-index:18!important}
+.rist .elemental-token-active,.rist .elemental-token-option{display:grid!important;place-items:center!important;padding:3px!important;border:1px solid #745c25!important;border-radius:9px!important;background:#111a21!important;color:#e8d49a!important}
+.rist .elemental-token-active{width:58px!important;height:46px!important;min-width:58px!important;min-height:46px!important}
+.rist .elemental-token-active:active,.rist .elemental-token-option:active,.rist .elemental-token-option.selected{border-color:#d7ad49!important;background:#1a2730!important;box-shadow:inset 0 0 0 1px #d7ad4966!important}
+.rist .magic-coin-sprite{display:block!important;width:38px!important;height:38px!important;background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/assets/spritesheets/magic-coins.webp?v=20260830-clean-2")!important;background-repeat:no-repeat!important;background-size:600% 1500%!important;background-position-x:0%;filter:drop-shadow(0 2px 2px #0009)}
+.rist .magic-coin-animated{animation:magic-coin-cycle 900ms linear infinite}
+.rist .elemental-token-menu{position:absolute!important;z-index:120!important;left:0!important;bottom:calc(100% + 8px)!important;width:232px!important;display:grid!important;grid-template-columns:repeat(5,42px)!important;gap:4px!important;padding:7px!important;border:1px solid #96752e!important;border-radius:10px!important;background:#0a1218f5!important;box-shadow:0 -8px 26px #000b!important;backdrop-filter:blur(6px)}
+.rist .elemental-token-option{width:42px!important;height:42px!important;padding:2px!important}.rist .elemental-token-option .magic-coin-sprite{width:36px!important;height:36px!important}
+@keyframes magic-coin-cycle{0%,16.65%{background-position-x:0%}16.66%,33.31%{background-position-x:20%}33.32%,49.97%{background-position-x:40%}49.98%,66.63%{background-position-x:60%}66.64%,83.29%{background-position-x:80%}83.3%,100%{background-position-x:100%}}
 
 /* ----- footer/legal ------------------------------------------------------- */
 .rist .home-footer-stack{box-sizing:border-box!important;height:var(--rist-footer-h)!important;min-height:var(--rist-footer-h)!important;max-height:var(--rist-footer-h)!important;grid-template-rows:var(--rist-dice-h) var(--rist-chat-h) var(--rist-legal-h)!important;overflow:hidden!important}
