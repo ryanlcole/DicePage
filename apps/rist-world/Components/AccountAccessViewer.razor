@@ -1,0 +1,68 @@
+@implements IDisposable
+@inject WorldSession Session
+
+@if(Session.AccountViewerOpen && !Session.IsLoggedIn)
+{
+ <section class="map-account-viewer" role="dialog" aria-modal="false" aria-label="Sign up or log in">
+  <header class="map-viewer-header"><strong>RIST Account</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close account viewer">×</button></header>
+  <div class="map-account-body">
+   <section class="map-account-card">
+    <nav class="map-auth-tabs" role="tablist" aria-label="Account access">
+     <button type="button" class="@(_mode=="signup"?"active":"")" @onclick="()=>_mode="signup"">Sign Up</button>
+     <button type="button" class="@(_mode=="login"?"active":"")" @onclick="()=>_mode="login"">Log In</button>
+    </nav>
+    @if(_mode=="signup")
+    {
+     <div class="map-auth-form">
+      <h2>Create your RIST account</h2>
+      <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name other players will see" /></label>
+      <fieldset class="map-plan-picker"><legend>Choose your plan</legend>
+       <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="()=>SetPlan("player")"><strong>Player</strong><span>$5 / month</span></button>
+       <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="()=>SetPlan("gm-player")"><strong>GM + Player</strong><span>$15 / month</span></button>
+      </fieldset>
+      <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+      <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Sign up with Discord</button>
+     </div>
+    }
+    else
+    {
+     <div class="map-auth-form map-login-form">
+      <h2>Welcome back</h2>
+      <p>Use the Discord account connected to your RIST account.</p>
+      <button class="discord-login-primary" @onclick="Session.BeginAccountLoginAsync">Log in with Discord</button>
+     </div>
+    }
+   </section>
+
+   <section class="map-chat-output" aria-label="Chat output" aria-live="polite">
+    <header><strong>Chat</strong><div class="chat-playback-controls"><button type="button" @onclick="Next">Next</button><button type="button" class="@(_auto?"active":"")" @onclick="ToggleAuto">Auto</button><label><span>Delay</span><select value="@_delaySeconds" @onchange="DelayChanged"><option value="2">2 sec</option><option value="3">3 sec</option><option value="5">5 sec</option><option value="8">8 sec</option><option value="10">10 sec</option></select></label></div></header>
+    <div class="map-chat-slide">
+     @if(Session.DialogueOpen || !string.IsNullOrWhiteSpace(Session.DialogueText))
+     {
+      <article><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></article>
+     }
+     else
+     {
+      <p class="map-chat-empty">Chat output will appear here.</p>
+     }
+    </div>
+   </section>
+  </div>
+ </section>
+}
+
+@code{
+ string _mode="signup";
+ bool _auto;
+ int _delaySeconds=5;
+ CancellationTokenSource? _autoCts;
+ bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
+ void SetPlan(string plan){Session.PendingPlan=plan;Session.Notify();}
+ void Next()=>Session.AdvanceDialogue();
+ void ToggleAuto(){_auto=!_auto;if(_auto)StartAuto();else StopAuto();}
+ void DelayChanged(ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var delay))_delaySeconds=Math.Clamp(delay,2,10);if(_auto)StartAuto();}
+ void StartAuto(){StopAuto();_auto=true;_autoCts=new();_ = AutoLoop(_autoCts.Token);}
+ void StopAuto(){_autoCts?.Cancel();_autoCts?.Dispose();_autoCts=null;}
+ async Task AutoLoop(CancellationToken token){try{while(!token.IsCancellationRequested){await Task.Delay(TimeSpan.FromSeconds(_delaySeconds),token);if(Session.DialogueOpen||!string.IsNullOrWhiteSpace(Session.DialogueText))await InvokeAsync(Session.AdvanceDialogue);}}catch(OperationCanceledException){}}
+ public void Dispose()=>StopAuto();
+}
