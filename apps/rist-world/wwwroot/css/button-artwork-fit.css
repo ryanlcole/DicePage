@@ -1,0 +1,74 @@
+/*
+ * RIST button artwork contract.
+ * Normal button artwork is centered both vertically and horizontally,
+ * preserves its intrinsic aspect ratio, and scales to the available control
+ * height while allowing width to follow the scaled image. Intentional tile
+ * crop windows and sprite-sheet renderers are not targeted here.
+ */
+
+/* Direct artwork inside normal controls. */
+.rist button > img,
+.rist .mmo-toggle-art > img,
+.rist button > .token-preview > img {
+  display:block!important;
+  width:auto!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  margin:auto!important;
+  justify-self:center!important;
+  align-self:center!important;
+}
+
+/* Asset rails: the control width follows the fitted artwork instead of
+   forcing every asset into a square. */
+.rist .public-assets-items .public-asset-card:has(>img),
+.rist .private-assets-items .compact-hand-card:has(>img),
+.rist .private-assets-items .standard-hand-card:has(>img) {
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:calc(100% - 6px)!important;
+  max-height:calc(100% - 6px)!important;
+  aspect-ratio:auto!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:3px!important;
+  overflow:hidden!important;
+}
+
+.rist .public-assets-items .public-asset-card > img,
+.rist .private-assets-items .compact-hand-card > img,
+.rist .private-assets-items .standard-hand-card > img {
+  display:block!important;
+  width:auto!important;
+  height:100%!important;
+  max-width:min(40vw,160px)!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  margin:auto!important;
+}
+
+/* Image wrappers used by miniature/token buttons follow the same contract. */
+.rist button > .token-preview {
+  display:grid!important;
+  place-items:center!important;
+  width:auto!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+}
+
+/* Deliberate crop/sprite systems keep their own rendering math. */
+.rist .tile-image-crop > img,
+.rist .die-sprite,
+.rist .mixer-sprite,
+.rist .sprite-sheet,
+.rist [class*="sprite-"] {
+  object-position:initial;
+}
