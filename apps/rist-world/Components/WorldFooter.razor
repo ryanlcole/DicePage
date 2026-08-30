@@ -1,6 +1,22 @@
 @inject WorldSession Session
-<div class="home-footer-stack release-footer-stack">
- <footer id="footer-slider" class="footer dice-footer release-root-rail desktop-arrow-slider" aria-label="Character and dice tray">
+<style>
+ .rist .release-footer-stack{position:relative!important;display:grid!important;grid-template-rows:58px 14px!important;height:72px!important;min-height:72px!important;max-height:72px!important;overflow:hidden!important}
+ .rist .release-footer-stack #footer-slider{position:absolute!important;left:0!important;right:0!important;bottom:14px!important;width:100%!important;min-width:100%!important;max-width:100%!important;height:58px!important;min-height:58px!important;max-height:58px!important;z-index:2!important;overflow:hidden!important;background:#0d1319!important;transition:opacity .16s ease,visibility .16s ease!important}
+ .rist .release-footer-stack #footer-slider .release-footer-track{box-sizing:border-box!important;width:100%!important;min-width:100%!important;height:100%!important;display:flex!important;align-items:center!important;gap:6px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:4px 46px 4px 8px!important;scrollbar-width:none!important}
+ .rist .release-footer-stack #footer-slider .release-footer-track::-webkit-scrollbar{display:none!important}
+ .rist .release-footer-stack #footer-slider .rail-scroll-arrow{display:none!important}
+ .rist .release-footer-stack .home-inline-chat{position:absolute!important;left:0!important;right:0!important;bottom:14px!important;box-sizing:border-box!important;width:100%!important;height:58px!important;min-height:58px!important;max-height:58px!important;z-index:3!important;padding-right:48px!important;background:#0d1319!important;transition:opacity .16s ease,visibility .16s ease!important}
+ .rist .release-footer-stack.dice-tray-open #footer-slider{z-index:4!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+ .rist .release-footer-stack:not(.dice-tray-open) #footer-slider{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+ .rist .release-footer-stack.dice-tray-open .home-inline-chat{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+ .rist .release-footer-stack:not(.dice-tray-open) .home-inline-chat{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+ .rist .release-footer-stack .dice-tray-toggle{position:absolute!important;right:5px!important;bottom:19px!important;z-index:6!important;box-sizing:border-box!important;width:40px!important;height:40px!important;display:grid!important;place-items:center!important;padding:2px!important;border:1px solid #725d30!important;border-radius:9px!important;background:#111920!important;color:#d7be80!important;box-shadow:0 2px 7px #0008!important}
+ .rist .release-footer-stack .dice-tray-toggle .die-sprite{display:block!important;width:31px!important;height:31px!important;pointer-events:none!important}
+ .rist .release-footer-stack .dice-tray-toggle .d20-fallback{font:800 11px/1 system-ui!important;letter-spacing:-.04em!important}
+ .rist .release-footer-stack .site-copyright-notice{grid-row:2!important;align-self:end!important;width:100%!important}
+</style>
+<div class="home-footer-stack release-footer-stack @(_diceTrayOpen?"dice-tray-open":"chat-cover-open")">
+ <footer id="footer-slider" class="footer dice-footer release-root-rail desktop-arrow-slider" aria-label="Character and dice tray" aria-hidden="@(!_diceTrayOpen)">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#footer-slider',-1)" aria-label="Scroll character and dice left">‹</button>
   <div class="circular-set dice-circular-set release-footer-track">
    <button type="button" class="footer-character-button" @onclick="Session.OpenMixer" aria-label="Open character sheet">
@@ -20,7 +36,7 @@
     else if(die.Key=="d5-penalty")
     {
      <div class="die-control d5-control penalty-d5" draggable="true" @ondragstart="()=>Session.BeginDiceDrag(die.Key)">
-      <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option>}</select>
+      <select @bind="Session.PenaltyD5Value" aria-label="Penalty D5 value">@for(var i=1;i<=5;i++){<option value="@i">-@i</option></select>
       <button class="die-button" title="@(Session.EditingHandCard is null?"Roll selected penalty":"Add selected penalty die to open bag")" aria-label="Roll selected penalty die" @onclick="()=>DieClick(die.Key,Session.PenaltyD5Value)"><span class="die-sprite die-@die.Key" style="@DieSpriteStyle(die,die.RestFrame)"></span></button>
      </div>
     }
@@ -37,11 +53,14 @@
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#footer-slider',1)" aria-label="Scroll character and dice right">›</button>
  </footer>
 
- <section class="home-inline-chat" aria-label="Chat">
+ <section class="home-inline-chat" aria-label="Chat" aria-hidden="@_diceTrayOpen">
   <button type="button" class="history-scroll-button chat-history-toggle" @onclick="()=>_chatHistoryOpen=true" aria-label="Open chat history" title="Chat history"><span aria-hidden="true">📜</span></button>
   <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="@ChatPrompt"></textarea></label>
   <button class="home-chat-send" @onclick="SendInlineChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
  </section>
+ <button type="button" class="dice-tray-toggle" @onclick="ToggleDiceTray" aria-label="@(_diceTrayOpen?"Show chat":"Show dice tray")" title="@(_diceTrayOpen?"Chat":"Dice")">
+  @if(D20 is not null){<span class="die-sprite die-d20" style="@DieSpriteStyle(D20,D20.RestFrame)"></span>}else{<span class="d20-fallback">d20</span>}
+ </button>
  <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
 </div>
 
@@ -89,7 +108,10 @@
  readonly List<(string Speaker,string Text)> _history=[];
  bool _chatHistoryOpen;
  bool _rollHistoryOpen;
+ bool _diceTrayOpen;
+ DiceSpec? D20=>Session.DiceSet.FirstOrDefault(d=>d.Key=="d20");
  string ChatPrompt=>$"{Session.DialogueSpeaker} Says";
+ void ToggleDiceTray()=>_diceTrayOpen=!_diceTrayOpen;
  void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();}
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollWithHistoryAsync(key,magnitude);}
  static string DieSpriteStyle(DiceSpec die,int frame){var col=frame%die.Columns;var row=frame/die.Columns;var x=die.Columns<=1?0:col*100.0/(die.Columns-1);var y=die.Rows<=1?0:row*100.0/(die.Rows-1);return $"--die-aspect:{die.VisualAspect};background-image:url('{die.Image}?v=release-1');background-size:{die.Columns*100}% {die.Rows*100}%;background-position:{x:0.###}% {y:0.###}%";}
