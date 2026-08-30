@@ -4,61 +4,46 @@
 
 @if(Session.AccountViewerOpen && !Session.IsLoggedIn)
 {
- <section class="map-account-viewer" role="dialog" aria-modal="false" aria-label="Create RIST profile">
-  <header class="map-viewer-header"><strong>Profile</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close profile">×</button></header>
-  <div class="map-account-body">
-   <section class="map-account-card">
+ <section class="map-account-viewer signup-profile-viewer" role="dialog" aria-modal="false" aria-label="Create RIST profile">
+  <header class="map-viewer-header"><strong>Create Profile</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close profile">×</button></header>
+  <div class="map-account-body signup-profile-body">
+   <section class="map-account-card signup-profile-card">
     @if(!string.IsNullOrWhiteSpace(Auth.LastError))
     {
      <p class="storage-status" role="alert">@Auth.LastError</p>
     }
-    <div class="map-auth-form">
-     <h2>Create your RIST profile</h2>
-     <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name other players will see" /></label>
-     <fieldset class="map-plan-picker"><legend>Choose your intended plan</legend>
+    <div class="map-auth-form signup-profile-form">
+     <h2>RIST profile</h2>
+     <p class="map-chat-empty">Set the profile details other players will see. Discord is the next step and is used only to verify and reconnect the account.</p>
+     <label><span>Display name</span><input maxlength="48" autocomplete="name" @bind="Session.PendingDisplayName" placeholder="Your profile name" /></label>
+     <label><span>Player alias</span><input maxlength="32" autocomplete="nickname" @bind="Session.PendingPlayerAlias" placeholder="Name shown at the table" /></label>
+     <label><span>Profile note <small>(optional)</small></span><textarea maxlength="240" @bind="Session.PendingProfileNote" placeholder="A short introduction, play style, or GM note"></textarea></label>
+     <fieldset class="map-plan-picker"><legend>Intended plan</legend>
       <button type="button" class="@(Session.PendingPlan=="player"?"selected":"")" @onclick="SelectPlayerPlan"><strong>Player</strong><span>$5 / month</span></button>
       <button type="button" class="@(Session.PendingPlan=="gm-player"?"selected":"")" @onclick="SelectGmPlayerPlan"><strong>GM + Player</strong><span>$15 / month</span></button>
      </fieldset>
-     <div class="map-auth-form">
-      <p class="map-chat-empty">Want to support RIST development separately? PayPal donations are voluntary and do not activate or renew a membership plan.</p>
-      <a class="discord-login-primary" href="https://www.paypal.com/donate/?hosted_button_id=J7TNXEDSK9WYN" target="_blank" rel="noopener noreferrer">Support RIST with PayPal</a>
-     </div>
-     <p class="map-chat-empty">Discord verifies your identity and reconnects this profile later. Membership payment is not collected during sign-up.</p>
      <label class="map-terms"><input type="checkbox" @bind="Session.PendingTermsAccepted" /><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
-     <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Continue with Discord</button>
-    </div>
-   </section>
-
-   <section class="map-chat-output" aria-label="Chat output" aria-live="polite">
-    <header><strong>Chat</strong><div class="chat-playback-controls"><button type="button" @onclick="Next">Next</button><button type="button" class="@(_auto?"active":"")" @onclick="ToggleAuto">Auto</button><label><span>Delay</span><select value="@_delaySeconds" @onchange="DelayChanged"><option value="2">2 sec</option><option value="3">3 sec</option><option value="5">5 sec</option><option value="8">8 sec</option><option value="10">10 sec</option></select></label></div></header>
-    <div class="map-chat-slide">
-     @if(Session.DialogueOpen || !string.IsNullOrWhiteSpace(Session.DialogueText))
-     {
-      <article><strong>@Session.DialogueSpeaker</strong><p>@Session.DialogueText</p></article>
-     }
-     else
-     {
-      <p class="map-chat-empty">Chat output will appear here.</p>
-     }
+     <button class="discord-login-primary" @onclick="Session.BeginAccountSignupAsync" disabled="@(!CanSignup)">Continue to Discord login</button>
+     <small class="signup-discord-note">Your profile is kept in this RIST flow first; Discord authorization follows after Continue.</small>
     </div>
    </section>
   </div>
  </section>
 }
 
+<style>
+.signup-profile-viewer .signup-profile-body{display:block!important;max-width:720px!important;margin:0 auto!important;width:100%!important}
+.signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}
+.signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}
+.signup-profile-form label>span{display:block;margin-bottom:4px}
+.signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}
+.signup-discord-note{display:block;text-align:center;margin-top:6px}
+</style>
+
 @code{
- bool _auto;
- int _delaySeconds=5;
- CancellationTokenSource? _autoCts;
- bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
+ bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
  protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
  void SelectGmPlayerPlan(){Session.PendingPlan="gm-player";Session.Notify();}
- void Next()=>Session.AdvanceDialogue();
- void ToggleAuto(){_auto=!_auto;if(_auto)StartAuto();else StopAuto();}
- void DelayChanged(ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var delay))_delaySeconds=Math.Clamp(delay,2,10);if(_auto)StartAuto();}
- void StartAuto(){StopAuto();_auto=true;_autoCts=new();_ = AutoLoop(_autoCts.Token);}
- void StopAuto(){_autoCts?.Cancel();_autoCts?.Dispose();_autoCts=null;}
- async Task AutoLoop(CancellationToken token){try{while(!token.IsCancellationRequested){await Task.Delay(TimeSpan.FromSeconds(_delaySeconds),token);if(Session.DialogueOpen||!string.IsNullOrWhiteSpace(Session.DialogueText))await InvokeAsync(Session.AdvanceDialogue);}}catch(OperationCanceledException){}}
- public void Dispose()=>StopAuto();
+ public void Dispose(){}
 }
