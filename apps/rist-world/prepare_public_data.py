@@ -77,6 +77,7 @@ home = home.replace(old_footer, new_footer, 1)
 footer_css = '''<style id="paypal-footer-layout">
 .relic-site-footer{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important}
 .footer-support-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:nowrap}
+.relic-site-footer .footer-relic-mark{background-color:transparent!important;border-radius:0!important;box-shadow:none!important;mix-blend-mode:screen!important}
 .relic-site-footer .paypal-donate{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;line-height:0!important}
 .relic-site-footer .paypal-donate img{display:block;width:auto;height:auto;max-width:147px;border:0}
 .relic-site-footer .footer-copyright{width:100%;margin:0!important}
@@ -85,4 +86,4 @@ footer_css = '''<style id="paypal-footer-layout">
 home = home.replace('</head>', footer_css + '</head>', 1)
 home_path.write_text(home, encoding='utf-8')
 
-print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled homepage_paypal=official-art')
+print(f'canonical_assets={len(rows)} cards={len(cards)} legacy_asset_catalog=disabled homepage_paypal=official-art footer_mark=transparent')
