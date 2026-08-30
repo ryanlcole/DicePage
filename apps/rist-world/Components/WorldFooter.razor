@@ -53,12 +53,12 @@
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#footer-slider',1)" aria-label="Scroll character and dice right">›</button>
  </footer>
 
- <section class="home-inline-chat" aria-label="Chat" aria-hidden="@_diceTrayOpen">
-  <button type="button" class="history-scroll-button chat-history-toggle" @onclick="()=>_chatHistoryOpen=true" aria-label="Open chat history" title="Chat history"><span aria-hidden="true">📜</span></button>
-  <label class="home-chat-compose"><span>@Session.DialogueSpeaker</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="@ChatPrompt"></textarea></label>
+ <section class="home-inline-chat" aria-label="Roleplay" aria-hidden="@_diceTrayOpen">
+  <button type="button" class="history-scroll-button chat-history-toggle" @onclick="()=>_chatHistoryOpen=true" aria-label="Open roleplay history" title="Roleplay history"><span aria-hidden="true">📜</span></button>
+  <label class="home-chat-compose"><span>Roleplay</span><textarea @bind="Session.ChatDraft" @bind:event="oninput" maxlength="1200" placeholder="@ChatPrompt"></textarea></label>
   <button class="home-chat-send" @onclick="SendInlineChat" disabled="@string.IsNullOrWhiteSpace(Session.ChatDraft)">Send</button>
  </section>
- <button type="button" class="dice-tray-toggle" @onclick="ToggleDiceTray" aria-label="@(_diceTrayOpen?"Show chat":"Show dice tray")" title="@(_diceTrayOpen?"Chat":"Dice")">
+ <button type="button" class="dice-tray-toggle" @onclick="ToggleDiceTray" aria-label="@(_diceTrayOpen?"Show roleplay":"Show dice tray")" title="@(_diceTrayOpen?"Roleplay":"Dice")">
   @if(D20 is not null){<span class="die-sprite die-d20" style="@DieSpriteStyle(D20,D20.RestFrame)"></span>}else{<span class="d20-fallback">d20</span>}
  </button>
  <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
@@ -67,11 +67,11 @@
 @if(_chatHistoryOpen)
 {
  <div class="history-scroll-scrim" @onclick="()=>_chatHistoryOpen=false">
-  <section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Chat history" @onclick:stopPropagation="true">
-   <header><strong>Chat History</strong><button @onclick="()=>_chatHistoryOpen=false" aria-label="Close chat history">×</button></header>
+  <section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Roleplay history" @onclick:stopPropagation="true">
+   <header><strong>Roleplay History</strong><button @onclick="()=>_chatHistoryOpen=false" aria-label="Close roleplay history">×</button></header>
    <div class="history-scroll-body">
     @foreach(var message in _history){<article class="chat-history-entry"><strong>@message.Speaker</strong><p>@message.Text</p></article>}
-    @if(_history.Count==0){<p class="history-empty">No chat messages yet.</p>}
+    @if(_history.Count==0){<p class="history-empty">No roleplay messages yet.</p>}
    </div>
   </section>
  </div>
@@ -110,7 +110,7 @@
  bool _rollHistoryOpen;
  bool _diceTrayOpen;
  DiceSpec? D20=>Session.DiceSet.FirstOrDefault(d=>d.Key=="d20");
- string ChatPrompt=>$"{Session.DialogueSpeaker} Says";
+ string ChatPrompt=>"Roleplay";
  void ToggleDiceTray()=>_diceTrayOpen=!_diceTrayOpen;
  void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text));Session.SendChat();}
  async Task DieClick(string key,int? magnitude){if(Session.MixerOpen&&Session.CharacterEditMode&&Session.EditingHandCard is not null){Session.AddDiceBagEntry(key);return;}await Session.RollWithHistoryAsync(key,magnitude);}
