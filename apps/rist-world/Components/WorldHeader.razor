@@ -6,7 +6,7 @@
 <header id="header-slider" class="release-root-rail desktop-arrow-slider" aria-label="Main menu">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll main menu left">‹</button>
  <div class="header-circular-set release-root-track">
-  <button class="root-menu-button door-button @(Session.AccountViewerOpen?"active":"")" @onclick="DoorClicked" aria-expanded="@Session.AccountViewerOpen" aria-label="@(Session.IsLoggedIn?"Exit RIST":"Enter RIST")"><span class="root-menu-art icon-exit" aria-hidden="true"></span><small>@(Session.IsLoggedIn?"Exit":"Enter")</small></button>
+  <button class="root-menu-button door-button @AccountRootClass" @onclick="DoorClicked" aria-expanded="@AccountRootOpen" aria-label="@(Session.IsLoggedIn?"Exit RIST":"Login")"><span class="root-menu-art icon-exit" aria-hidden="true"></span><small>@(Session.IsLoggedIn?"Exit":"Login")</small></button>
   <button type="button" class="root-menu-button @ModeRootClass" @onclick="ToggleModeRoot" aria-expanded="@ModeRootOpen" aria-label="Table mode"><span class="root-menu-art icon-encounter" aria-hidden="true"></span><small>Mode</small></button>
   <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@AssetsRootOpen" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><small>Assets</small></button>
   <button type="button" class="root-menu-button @RoleRootClass" @onclick="ToggleRoleRoot" aria-expanded="@RoleRootOpen" aria-label="Role"><span class="root-menu-art icon-role" aria-hidden="true"></span><small>@RoleLabel</small></button>
@@ -20,6 +20,7 @@
  </div>
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#header-slider',1)" aria-label="Scroll main menu right">›</button>
 
+ @if(AccountRootOpen){<section class="root-menu-panel compact-root-panel" aria-label="Account access"><strong>Account</strong><div class="root-choice-grid two-choice"><button @onclick="OpenSignup">Sign Up</button><button @onclick="SignInAsync">Sign In</button></div></section>}
  @if(ModeRootOpen){<section class="root-menu-panel" aria-label="Choose table mode"><strong>Table Mode</strong><div class="root-choice-grid">@foreach(var mode in Modes){<button class="@(Session.TableMode==mode.Key?"selected":"")" @onclick="()=>SelectMode(mode.Key)">@mode.Label</button>}</div></section>}
  @if(AssetsRootOpen){<section class="root-menu-panel" aria-label="Choose asset type"><strong>Assets</strong><div class="root-choice-grid">@foreach(var kind in AssetKinds){<button class="@AssetChoiceClass(kind.Key)" @onclick="()=>SelectAsset(kind.Key)">@kind.Label</button>}</div></section>}
  @if(RoleRootOpen){<section class="root-menu-panel compact-root-panel" aria-label="Choose role"><strong>Role</strong><div class="root-choice-grid two-choice">@if(Session.CanManageCurrentMap){<button class="@GmChoiceClass" @onclick="SelectGm">GameMaster</button>}<button class="@PcChoiceClass" @onclick="SelectPc">RolePlayer</button></div></section>}
@@ -36,8 +37,8 @@
  static readonly string[] Units=["mi","km","m","yd","ft"];
  string _openRoot=string.Empty;
  string _assetRootSelection="all";
- bool ModeRootOpen=>_openRoot=="mode"; bool AssetsRootOpen=>_openRoot=="assets"; bool RoleRootOpen=>_openRoot=="role"; bool GridRootOpen=>_openRoot=="grid"; bool ScaleRootOpen=>_openRoot=="scale";
- string ModeRootClass=>ModeRootOpen?"active":string.Empty; string AssetsRootClass=>AssetsRootOpen||Session.CardBrowserOpen||Session.TileBrowserOpen?"active":string.Empty; string RoleRootClass=>RoleRootOpen?"active":string.Empty; string GridRootClass=>GridRootOpen?"active":string.Empty; string ScaleRootClass=>ScaleRootOpen?"active":string.Empty;
+ bool AccountRootOpen=>_openRoot=="account"; bool ModeRootOpen=>_openRoot=="mode"; bool AssetsRootOpen=>_openRoot=="assets"; bool RoleRootOpen=>_openRoot=="role"; bool GridRootOpen=>_openRoot=="grid"; bool ScaleRootOpen=>_openRoot=="scale";
+ string AccountRootClass=>AccountRootOpen||Session.AccountViewerOpen?"active":string.Empty; string ModeRootClass=>ModeRootOpen?"active":string.Empty; string AssetsRootClass=>AssetsRootOpen||Session.CardBrowserOpen||Session.TileBrowserOpen?"active":string.Empty; string RoleRootClass=>RoleRootOpen?"active":string.Empty; string GridRootClass=>GridRootOpen?"active":string.Empty; string ScaleRootClass=>ScaleRootOpen?"active":string.Empty;
  string RoleLabel=>Session.Role=="GM"?"GM":"RP";
  string GridLabel=>Session.GridStyle switch{"square"=>"Square","hex"=>"Hex",_=>"No Grid"};
  string GmChoiceClass=>Session.Role=="GM"?"selected":string.Empty; string PcChoiceClass=>Session.Role=="PC"?"selected":string.Empty;
@@ -48,7 +49,9 @@
  public void Dispose()=>Session.Changed-=SessionChanged;
  void ToggleRoot(string key)=>_openRoot=_openRoot==key?string.Empty:key;
  void ToggleModeRoot()=>ToggleRoot("mode"); void ToggleAssetsRoot()=>ToggleRoot("assets"); void ToggleRoleRoot()=>ToggleRoot("role"); void ToggleGridRoot()=>ToggleRoot("grid"); void ToggleScaleRoot()=>ToggleRoot("scale");
- async Task DoorClicked(){_openRoot=string.Empty;if(Session.IsLoggedIn){await Session.ToggleLoginAsync();return;}if(Session.AccountViewerOpen)Session.CloseAccountViewer();else Session.OpenAccountViewer();}
+ async Task DoorClicked(){if(Session.IsLoggedIn){_openRoot=string.Empty;await Session.ToggleLoginAsync();return;}if(Session.AccountViewerOpen)Session.CloseAccountViewer();ToggleRoot("account");}
+ void OpenSignup(){_openRoot=string.Empty;Session.OpenAccountViewer();}
+ async Task SignInAsync(){_openRoot=string.Empty;await Session.BeginAccountLoginAsync();}
  void SelectMode(string value){Session.SetTableMode(value);_openRoot=string.Empty;}
  void SelectAsset(string value){_assetRootSelection=value;if(value=="cards"){if(!Session.CardBrowserOpen)Session.ToggleCardBrowser();_openRoot=string.Empty;return;}Session.PieceKind=value switch{"tokens"=>"pin","minis"=>"mini","pawns"=>"pawn","tiles"=>"tile","bits"=>"bit",_=>value};if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();Session.Notify();_openRoot=string.Empty;}
  void OpenAssetLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
