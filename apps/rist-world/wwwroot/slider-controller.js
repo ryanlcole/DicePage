@@ -34,7 +34,6 @@
   shell.style.overflow='hidden';
   rail.style.boxSizing='border-box';
   rail.style.minWidth='0';
-  rail.style.maxWidth='none';
   rail.style.overflowX='auto';
   rail.style.overflowY='hidden';
   rail.style.webkitOverflowScrolling='touch';
@@ -46,6 +45,22 @@
   for(const child of rail.children){
    if(child.classList.contains('rail-scroll-arrow'))continue;
    child.style.flexShrink='0';
+  }
+
+  // The primary menu is a three-column shell: arrow | viewport | arrow.
+  // Older header rules allowed the middle flex row to grow to its content width,
+  // leaving no overflow for Safari to scroll. Give it an explicit finite viewport.
+  if(shell.id==='header-slider'){
+   const prev=shell.querySelector(':scope > .rail-scroll-prev');
+   const next=shell.querySelector(':scope > .rail-scroll-next');
+   const prevWidth=prev?.getBoundingClientRect().width||30;
+   const nextWidth=next?.getBoundingClientRect().width||30;
+   const available=Math.max(1,Math.floor(shell.getBoundingClientRect().width-prevWidth-nextWidth));
+   rail.style.width=`${available}px`;
+   rail.style.maxWidth=`${available}px`;
+   rail.style.justifyContent='flex-start';
+  }else{
+   rail.style.maxWidth='none';
   }
  }
 
@@ -59,8 +74,7 @@
   if(!rail)return;
   normalize(shell,rail);
   const dir=Number(direction)<0?-1:1;
-  const next=rail.scrollLeft+(dir*pageAmount(rail));
-  rail.scrollTo({left:next,top:0,behavior:'smooth'});
+  rail.scrollBy({left:dir*pageAmount(rail),top:0,behavior:'smooth'});
  }
 
  function bind(shell){
@@ -80,7 +94,7 @@
    startLeft=rail.scrollLeft;
    moved=false;
    try{rail.setPointerCapture(pointerId);}catch{}
-  });
+  },true);
   rail.addEventListener('pointermove',e=>{
    if(pointerId!==e.pointerId)return;
    const dx=e.clientX-startX;
@@ -88,14 +102,14 @@
    if(!moved)return;
    rail.scrollLeft=startLeft-dx;
    e.preventDefault();
-  },{passive:false});
+  },{passive:false,capture:true});
   const finish=e=>{
    if(pointerId!==e.pointerId)return;
    try{rail.releasePointerCapture(pointerId);}catch{}
    pointerId=null;
   };
-  rail.addEventListener('pointerup',finish);
-  rail.addEventListener('pointercancel',finish);
+  rail.addEventListener('pointerup',finish,true);
+  rail.addEventListener('pointercancel',finish,true);
   rail.addEventListener('wheel',e=>{
    if(rail.scrollWidth<=rail.clientWidth+2)return;
    const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
