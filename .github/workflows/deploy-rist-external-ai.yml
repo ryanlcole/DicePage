@@ -1,0 +1,105 @@
+name: Deploy RIST External AI Defensive Runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-external-ai.yml'
+      - 'infra/aws/rist_external_ai_handler.py'
+      - '.github/workflows/deploy-rist-external-ai.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
+  STACK_NAME: rist-external-ai
+  AUTH_STACK: rist-discord-storage
+  PRODUCTION_ORIGIN: https://relicgamemaster.com
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate disabled external AI stack
+        run: sam validate --lint --template-file infra/aws/rist-external-ai.yml
+
+      - name: Compile defensive runtime
+        run: python -m py_compile infra/aws/rist_external_ai_handler.py
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve deployed Discord identity table
+        shell: bash
+        run: |
+          set -euo pipefail
+          IDENTITY_TABLE=$(aws cloudformation describe-stack-resource \
+            --stack-name "$AUTH_STACK" \
+            --logical-resource-id IdentityTable \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          test -n "$IDENTITY_TABLE"
+          test "$IDENTITY_TABLE" != "None"
+          echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
+
+      - name: Deploy defensive runtime with external access locked
+        env:
+          OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARAMS=(
+            "IdentityTableName=$IDENTITY_TABLE"
+            "FrontendOrigin=$PRODUCTION_ORIGIN"
+            "OwnerReleased=false"
+          )
+          if [ -n "${OWNER_USER_ID:-}" ]; then
+            PARAMS+=("OwnerUserId=$OWNER_USER_ID")
+          fi
+          sam deploy \
+            --template-file infra/aws/rist-external-ai.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides "${PARAMS[@]}"
+
+      - name: Assert external AI remains owner-locked
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASED=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ExternalAiOwnerReleased'].OutputValue" --output text)
+          test "$RELEASED" = "false"
+
+      - name: Export human operator API config
+        shell: bash
+        run: |
+          set -euo pipefail
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
+          printf '{"apiBaseUrl":"%s","ownerReleased":false}\n' "$API" > external-ai-config.json
+          cat external-ai-config.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rist-external-ai-config
+          path: external-ai-config.json
+          retention-days: 7
