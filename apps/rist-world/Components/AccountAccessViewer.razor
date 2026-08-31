@@ -31,7 +31,7 @@
       <button type="button" class="discord-login-primary" @onclick="ApproveGuardianAsync" disabled="@(!_guardianAdultAttested||_saving)">@(_saving?"Saving…":"Approve requested content")</button>
       <button type="button" @onclick="DenyGuardianAsync" disabled="@_saving">Keep mature content blocked</button>
      </div>
-     <small class="signup-discord-note">This approval is tied to this consent request. Future requests for additional mature-content categories require new guardian consent.</small>
+     <small class="signup-discord-note">This consent is stored by ReLiC as a server-side authorization for this child account. Future requests for additional categories require new guardian consent.</small>
     </div>
    </section>
   </div>
@@ -77,11 +77,11 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 
      <section class="content-access-card" aria-label="Content allowances">
       <div class="content-access-heading">
-       <div><strong>Content Allowances</strong><small>Campaigns disclose mature-content reasons before access.</small></div>
+       <div><strong>Content Allowances</strong><small>Campaigns and rated assets disclose the reasons for their restrictions.</small></div>
        <span class="age-access-state">@BandLabel(_selectedBand)</span>
       </div>
 
-      <p class="content-note">General content does not require an age declaration. Mature categories are opt-in. 18+ access excludes sexual-content categories; 21+ can opt into them individually.</p>
+      <p class="content-note">General content needs no age declaration. Mature categories are individually opt-in. 18+ and guardian-controlled minor access exclude sexual-content categories; 21+ users may choose those categories separately.</p>
 
       <div class="access-band-picker" role="group" aria-label="Content access level">
        <button type="button" class="@BandClass(ContentAllowancePolicy.General)" @onclick="()=>SelectBand(ContentAllowancePolicy.General)"><strong>General</strong><span>No mature content</span></button>
@@ -92,18 +92,18 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 
       @if(_selectedBand==ContentAllowancePolicy.General)
       {
-       <div class="content-empty"><strong>Mature content blocked</strong><span>Campaign content tagged with any mature descriptor will not be shown without changing these allowances.</span></div>
+       <div class="content-empty"><strong>Mature content blocked</strong><span>Campaigns and assets tagged with a mature descriptor stay unavailable unless these allowances are changed.</span></div>
       }
       else
       {
        <div class="content-descriptors">
-        @foreach(var descriptor in VisibleDescriptors())
+        @foreach(var descriptor in ContentAllowancePolicy.Descriptors)
         {
          var checkedNow=_requested.Contains(descriptor.Id);
-         var locked=_selectedBand==ContentAllowancePolicy.Adult18 && descriptor.MinimumBand==ContentAllowancePolicy.Adult21;
+         var locked=DescriptorLocked(descriptor);
          <label class="content-descriptor @(locked?"locked":"")">
           <input type="checkbox" checked="@checkedNow" disabled="@locked" @onchange="e=>ToggleDescriptor(descriptor.Id,e.Value as bool?==true)" />
-          <span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small>@if(locked){<em>Requires 21+ allowance</em>}</span>
+          <span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small>@if(locked){<em>21+ only</em>}</span>
          </label>
         }
        </div>
@@ -125,12 +125,12 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
         @if(Auth.Account?.ContentAccess?.GuardianConsentAtUtc is not null)
         {
          <span class="age-access-state verified">Approved</span>
-         <p>Only the categories previously approved by the guardian are available. Selecting additional categories creates a new consent request.</p>
+         <p>Only the categories approved by the guardian are available. Requesting a different set blocks mature content until the new guardian decision is completed.</p>
         }
         else
         {
          <span class="age-access-state">Required</span>
-         <p>All mature content stays blocked until a parent or guardian signs in separately and approves the requested categories.</p>
+         <p>All mature content stays blocked until a parent or legal guardian signs in separately and approves the requested non-sexual mature categories.</p>
         }
        </div>
        <button type="button" class="discord-login-primary" @onclick="RequestGuardianAsync" disabled="@_saving">@(_saving?"Opening guardian login…":"Request guardian consent")</button>
@@ -147,21 +147,7 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 }
 
 <style>
-.signup-profile-viewer .signup-profile-body{display:block!important;max-width:760px!important;margin:0 auto!important;width:100%!important}
-.signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}
-.signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}
-.signup-profile-form label>span{display:block;margin-bottom:4px}
-.signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}
-.signup-discord-note{display:block;text-align:center;margin-top:6px}
-.content-access-card{display:grid;gap:12px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}
-.content-access-heading,.guardian-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.content-access-heading>div{display:grid;gap:2px}.content-access-heading small{color:#9e9278}
-.age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}
-.content-note,.guardian-state p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}.guardian-state p{flex-basis:100%}
-.access-band-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.access-band-picker button{display:grid;gap:2px;text-align:left;padding:10px;border:1px solid #514936;background:#111b23;color:#c9c0ac;border-radius:8px}.access-band-picker button.selected{border-color:#a78e48;background:#1a241f}.access-band-picker span{font-size:10px;color:#9e9278}
-.content-descriptors,.content-reason-list{display:grid;gap:7px}.content-descriptor{display:grid!important;grid-template-columns:auto 1fr;gap:9px;align-items:start!important;padding:9px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-descriptor>span{display:grid!important;gap:2px}.content-descriptor small,.content-descriptor em,.content-reason-list span{display:block;color:#9e9278;font-size:10px;line-height:1.35}.content-descriptor em{color:#b89a58}.content-descriptor.locked{opacity:.65}
-.content-empty,.content-reason-list article{display:grid;gap:4px;padding:10px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-empty span{font-size:11px;color:#9e9278}
-.content-attestation,.guardian-attestation{align-items:flex-start!important}.content-attestation input,.guardian-attestation input{margin-top:3px}.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@@media(max-width:560px){.access-band-picker,.consent-actions{grid-template-columns:1fr}}
+.signup-profile-viewer .signup-profile-body{display:block!important;max-width:760px!important;margin:0 auto!important;width:100%!important}.signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}.signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}.signup-profile-form label>span{display:block;margin-bottom:4px}.signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}.signup-discord-note{display:block;text-align:center;margin-top:6px}.content-access-card{display:grid;gap:12px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}.content-access-heading,.guardian-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.content-access-heading>div{display:grid;gap:2px}.content-access-heading small{color:#9e9278}.age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}.content-note,.guardian-state p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}.guardian-state p{flex-basis:100%}.access-band-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.access-band-picker button{display:grid;gap:2px;text-align:left;padding:10px;border:1px solid #514936;background:#111b23;color:#c9c0ac;border-radius:8px}.access-band-picker button.selected{border-color:#a78e48;background:#1a241f}.access-band-picker span{font-size:10px;color:#9e9278}.content-descriptors,.content-reason-list{display:grid;gap:7px}.content-descriptor{display:grid!important;grid-template-columns:auto 1fr;gap:9px;align-items:start!important;padding:9px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-descriptor>span{display:grid!important;gap:2px}.content-descriptor small,.content-descriptor em,.content-reason-list span{display:block;color:#9e9278;font-size:10px;line-height:1.35}.content-descriptor em{color:#b89a58}.content-descriptor.locked{opacity:.55}.content-empty,.content-reason-list article{display:grid;gap:4px;padding:10px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-empty span{font-size:11px;color:#9e9278}.content-attestation,.guardian-attestation{align-items:flex-start!important}.content-attestation input,.guardian-attestation input{margin-top:3px}.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}@@media(max-width:560px){.access-band-picker,.consent-actions{grid-template-columns:1fr}}
 </style>
 
 @code{
@@ -196,13 +182,19 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
   _ageAttested=false;
   _requested.Clear();
   if(band==ContentAllowancePolicy.Minor)
-   foreach(var id in Auth.GuardianApprovedDescriptors)_requested.Add(id);
+   foreach(var id in Auth.GuardianApprovedDescriptors.Where(id=>ContentAllowancePolicy.AllowedForBand(ContentAllowancePolicy.Minor).Contains(id,StringComparer.Ordinal)))_requested.Add(id);
  }
+ bool DescriptorLocked(ContentAllowancePolicy.ContentDescriptor descriptor)=>
+  (_selectedBand==ContentAllowancePolicy.Adult18||_selectedBand==ContentAllowancePolicy.Minor)&&descriptor.MinimumBand==ContentAllowancePolicy.Adult21;
  string BandClass(string band)=>_selectedBand==band?"selected":"";
  string BandLabel(string band)=>band switch{ContentAllowancePolicy.Minor=>"Under 18",ContentAllowancePolicy.Adult18=>"18+",ContentAllowancePolicy.Adult21=>"21+",_=>"General"};
- IEnumerable<ContentAllowancePolicy.ContentDescriptor> VisibleDescriptors()=>ContentAllowancePolicy.Descriptors;
  ContentAllowancePolicy.ContentDescriptor? Descriptor(string id)=>ContentAllowancePolicy.Descriptors.FirstOrDefault(x=>x.Id==id);
- void ToggleDescriptor(string id,bool value){if(value)_requested.Add(id);else _requested.Remove(id);}
+ void ToggleDescriptor(string id,bool value)
+ {
+  var descriptor=Descriptor(id);
+  if(descriptor is null||DescriptorLocked(descriptor))return;
+  if(value)_requested.Add(id);else _requested.Remove(id);
+ }
 
  async Task SaveContentAsync()
  {
@@ -215,8 +207,10 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
   if(_saving)return;_saving=true;
   try
   {
+   var minorAllowed=ContentAllowancePolicy.AllowedForBand(ContentAllowancePolicy.Minor);
+   var requested=_requested.Where(id=>minorAllowed.Contains(id,StringComparer.Ordinal)).ToArray();
    await Auth.SetContentAccessAsync(ContentAllowancePolicy.Minor,[],true);
-   await Auth.BeginGuardianConsentAsync(_requested);
+   await Auth.BeginGuardianConsentAsync(requested);
   }
   finally{_saving=false;}
  }
