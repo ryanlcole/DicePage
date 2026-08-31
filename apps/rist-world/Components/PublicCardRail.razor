@@ -16,26 +16,26 @@
   <div class="public-assets-items">
    <button class="token-pin-source public-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag public map pin onto map" title="Map pin"><span class="map-pin-icon" aria-hidden="true"></span></button>
    <div class="z-axis-controls" aria-label="Z axis navigation">
-    <details class="z-axis-menu">
-     <summary title="Navigate or add tiers">Tier <b>@Session.TierIndex</b></summary>
-     <div class="z-axis-dropdown">
+    <label class="z-axis-select" title="Navigate to an available tier or add one">
+     <span>Tier</span>
+     <select value="@Session.TierIndex" @onchange="ChangeTier" aria-label="Tier">
       @foreach(var tier in Session.AvailableTierIndices)
       {
-       <button type="button" class="@(tier==Session.TierIndex?"active":"")" @onclick="()=>Session.NavigateToTier(tier)">Tier @tier <small>z @(tier*WorldSession.LayersPerTier)</small></button>
+       <option value="@tier">@tier · z@(tier*WorldSession.LayersPerTier)</option>
       }
-      <button type="button" class="z-axis-add" disabled="@(!Session.CanAddTier)" @onclick="Session.AddTier">＋ Add Tier</button>
-     </div>
-    </details>
-    <details class="z-axis-menu">
-     <summary title="Select or add layers">Layer <b>@Session.LayerOffset</b></summary>
-     <div class="z-axis-dropdown">
+      <option value="__add" disabled="@(!Session.CanAddTier)">＋ Add Tier</option>
+     </select>
+    </label>
+    <label class="z-axis-select" title="Select an available layer or add one">
+     <span>Layer</span>
+     <select value="@Session.LayerOffset" @onchange="ChangeLayer" aria-label="Layer">
       @foreach(var layer in Session.AvailableLayerOffsets)
       {
-       <button type="button" class="@(layer==Session.LayerOffset?"active":"")" @onclick="()=>Session.NavigateToLayer(layer)">Layer @layer <small>z @(Session.TierIndex*WorldSession.LayersPerTier+layer)</small></button>
+       <option value="@layer">@layer · z@(Session.TierIndex*WorldSession.LayersPerTier+layer)</option>
       }
-      <button type="button" class="z-axis-add" disabled="@(!Session.CanAddLayer)" @onclick="Session.AddLayer">＋ Add Layer</button>
-     </div>
-    </details>
+      <option value="__add" disabled="@(!Session.CanAddLayer)">＋ Add Layer</option>
+     </select>
+    </label>
    </div>
    @if(Session.PublicAssetType is "all" or "cards")
    {
@@ -65,23 +65,17 @@
 </section>
 
 <style>
-.z-axis-controls{display:flex;align-items:stretch;gap:4px;flex:0 0 auto;position:relative;z-index:12}
-.z-axis-menu{position:relative;flex:0 0 auto}
-.z-axis-menu>summary{list-style:none;display:flex;align-items:center;justify-content:center;gap:4px;min-width:64px;height:100%;box-sizing:border-box;padding:4px 8px;border:1px solid rgba(217,168,47,.55);border-radius:6px;background:rgba(16,13,9,.9);color:#ead8ad;font-size:11px;line-height:1;cursor:pointer;user-select:none}
-.z-axis-menu>summary::-webkit-details-marker{display:none}
-.z-axis-menu[open]>summary,.z-axis-menu>summary:hover{border-color:#d9a82f;background:rgba(54,40,18,.96)}
-.z-axis-menu>summary b{font-size:10px;color:#fff2bd;font-weight:700}
-.z-axis-dropdown{position:absolute;left:0;bottom:calc(100% + 5px);display:grid;min-width:132px;max-height:240px;overflow:auto;padding:5px;border:1px solid rgba(217,168,47,.7);border-radius:7px;background:#15110c;box-shadow:0 8px 22px rgba(0,0,0,.55)}
-.z-axis-dropdown button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:4px;background:transparent;color:#ead8ad;text-align:left;white-space:nowrap;cursor:pointer}
-.z-axis-dropdown button:hover,.z-axis-dropdown button.active{background:rgba(217,168,47,.17);color:#fff2bd}
-.z-axis-dropdown button small{opacity:.62;font-size:9px}
-.z-axis-dropdown button.z-axis-add{margin-top:4px;border-top:1px solid rgba(217,168,47,.24);border-radius:0 0 4px 4px;color:#d9a82f}
-.z-axis-dropdown button:disabled{opacity:.38;cursor:not-allowed}
+.release-world .public-assets-items>.z-axis-controls{display:flex!important;align-items:stretch!important;gap:4px!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:36px!important}
+.release-world .z-axis-select{box-sizing:border-box!important;display:grid!important;grid-template-rows:11px 1fr!important;width:78px!important;min-width:78px!important;height:36px!important;padding:2px 4px!important;border:1px solid #5f4d29!important;border-radius:6px!important;background:#10181d!important;color:#c6b88d!important;overflow:hidden!important}
+.release-world .z-axis-select>span{font:800 7px/9px system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#d7be80!important;text-align:center!important}
+.release-world .z-axis-select>select{box-sizing:border-box!important;width:100%!important;height:19px!important;min-height:19px!important;margin:0!important;padding:0 2px!important;border:0!important;outline:0!important;background:#172229!important;color:#fff0bd!important;font:800 9px/19px system-ui!important;text-align:center!important;cursor:pointer!important}
 </style>
 
 @code{
  static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens / Chits"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns / Meeples"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
  string AssetTypeLabel=>AssetTypes.First(x=>x.Key==Session.PublicAssetType).Label;
+ void ChangeTier(ChangeEventArgs e){var value=e.Value?.ToString();if(value=="__add")Session.AddTier();else if(int.TryParse(value,out var tier))Session.NavigateToTier(tier);}
+ void ChangeLayer(ChangeEventArgs e){var value=e.Value?.ToString();if(value=="__add")Session.AddLayer();else if(int.TryParse(value,out var layer))Session.NavigateToLayer(layer);}
  async Task BeginPinDrag(PointerEventArgs e){Session.BeginHeaderPinDrag();await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task EndPinDrag(PointerEventArgs e){var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
  void CancelPinDrag(PointerEventArgs e)=>Session.EndHeaderPinDrag();
