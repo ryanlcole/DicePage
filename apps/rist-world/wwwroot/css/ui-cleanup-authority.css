@@ -37,9 +37,8 @@ html body .rist.release-world .release-footer-stack .chat-mode-rail button{
  transform:none!important;
 }
 
-/* Public/Private title and asset filters share one compact row:
-   Public Assets  < All Cards ... >
-   Private Assets < All Cards ... > */
+/* Public/Private title and filters are one row. Each filter slider repeats its own
+   left/right chevrons and the first real option (All) is never covered. */
 html body .rist.release-world .asset-rail-header{
  position:relative!important;
  display:flex!important;
@@ -72,22 +71,25 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs{
  height:22px!important;
  min-height:22px!important;
  max-height:22px!important;
- padding:0 18px!important;
+ padding:0!important;
  align-items:center!important;
  gap:4px!important;
  overflow-x:auto!important;
  overflow-y:hidden!important;
  scrollbar-width:none!important;
  -webkit-overflow-scrolling:touch!important;
+ scroll-padding-inline:22px!important;
 }
 html body .rist.release-world .asset-rail-header>.asset-type-tabs::-webkit-scrollbar{display:none!important}
 html body .rist.release-world .asset-rail-header>.asset-type-tabs::before,
 html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{
+ content:''!important;
  position:sticky!important;
- z-index:6!important;
+ z-index:8!important;
  top:0!important;
- flex:0 0 14px!important;
- width:14px!important;
+ flex:0 0 18px!important;
+ width:18px!important;
+ min-width:18px!important;
  height:22px!important;
  display:grid!important;
  place-items:center!important;
@@ -96,8 +98,8 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{
  font:900 17px/22px system-ui!important;
  pointer-events:none!important;
 }
-html body .rist.release-world .asset-rail-header>.asset-type-tabs::before{content:'‹'!important;left:0!important;margin-left:-18px!important;margin-right:0!important}
-html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{content:'›'!important;right:0!important;margin-left:0!important;margin-right:-18px!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::before{content:'‹'!important;left:0!important;margin:0!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{content:'›'!important;right:0!important;margin:0!important}
 html body .rist.release-world .asset-rail-header>.asset-type-tabs>button:not(.asset-filter-arrow){
  flex:0 0 auto!important;
  width:auto!important;
@@ -109,29 +111,8 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button:not(.as
  line-height:20px!important;
  border-radius:7px!important;
 }
-html body .rist.release-world .asset-filter-arrow{
- position:absolute!important;
- bottom:0!important;
- z-index:5!important;
- width:20px!important;
- min-width:20px!important;
- max-width:20px!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
- padding:0!important;
- margin:0!important;
- border:0!important;
- border-radius:0!important;
- background:#0b141b!important;
- color:#e0c77f!important;
- font:900 18px/22px system-ui!important;
- display:grid!important;
- place-items:center!important;
- touch-action:manipulation!important;
-}
-html body .rist.release-world .asset-filter-arrow.prev{left:0!important}
-html body .rist.release-world .asset-filter-arrow.next{right:0!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs>button:first-of-type{margin-left:0!important}
+html body .rist.release-world .asset-filter-arrow{display:none!important}
 
 /* Chat mode rail: Scripts / Audience / Dialect share one baseline and one control height. */
 html body .rist.release-world .release-footer-stack .chat-mode-rail{
