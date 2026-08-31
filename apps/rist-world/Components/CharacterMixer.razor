@@ -68,7 +68,8 @@
                             @foreach (var field in Session.CharacterFields.Where(WorldSession.IsFlareField).Take(8)){<article class="reference-entry-tile"><strong>@field.Name</strong><p>@field.Description</p></article>}
                         }
                     </div>
-                    <textarea class="entries-notes" @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Rules, abilities, languages, feats, records, and notes" aria-label="Page notes"></textarea>
+                    @if(_page==2){<LanguagePanel />}
+                    <textarea class="entries-notes" @bind="Session.CharacterNotes" readonly="@(!Session.CharacterEditMode)" placeholder="Rules, abilities, feats, records, and notes" aria-label="Page notes"></textarea>
                 }
                 else if (_page == 3)
                 {
@@ -128,7 +129,7 @@
     int _portraitX=50;
     int _portraitY=50;
 
-    protected override void OnInitialized(){Session.EnsureCharacterSheetFields();Session.Changed+=SessionChanged;Library.Changed+=LibraryChanged;}
+    protected override void OnInitialized(){Session.EnsureCharacterSheetFields();Session.EnsureCharacterLanguages();Session.Changed+=SessionChanged;Library.Changed+=LibraryChanged;}
     protected override async Task OnParametersSetAsync(){if(Session.MixerOpen&&Session.IsLoggedIn)await Library.EnsureLoadedAsync();}
     void SessionChanged()=>_=InvokeAsync(StateHasChanged);
     void LibraryChanged()=>_=InvokeAsync(StateHasChanged);
