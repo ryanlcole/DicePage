@@ -1,0 +1,77 @@
+name: Deploy RIST Translation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-translation.yml'
+      - 'infra/aws/translation/**'
+      - '.github/workflows/deploy-rist-translation.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
+  STACK_NAME: rist-translation
+  AUTH_STACK: rist-discord-storage
+  PRODUCTION_ORIGIN: https://relicgamemaster.com
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate translation template
+        run: sam validate --lint --template-file infra/aws/rist-translation.yml
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve Discord identity table
+        shell: bash
+        run: |
+          set -euo pipefail
+          IDENTITY_TABLE=$(aws cloudformation describe-stack-resource \
+            --stack-name "$AUTH_STACK" \
+            --logical-resource-id IdentityTable \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          if [ -z "$IDENTITY_TABLE" ] || [ "$IDENTITY_TABLE" = "None" ]; then
+            echo "Identity table could not be resolved from $AUTH_STACK"
+            exit 1
+          fi
+          echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
+
+      - name: Deploy translation service
+        shell: bash
+        run: |
+          set -euo pipefail
+          sam deploy \
+            --template-file infra/aws/rist-translation.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              "IdentityTableName=$IDENTITY_TABLE" \
+              "FrontendOrigin=$PRODUCTION_ORIGIN"
+
+      - name: Show translation endpoint
+        run: |
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='TranslationApiBaseUrl'].OutputValue" --output text)
+          echo "Translation API: $API"
