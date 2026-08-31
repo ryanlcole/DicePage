@@ -5,10 +5,22 @@ public sealed partial class WorldSession
     public string OperatingMode { get; private set; } = "mmo";
     public bool IsMmoMode => string.Equals(OperatingMode, "mmo", StringComparison.Ordinal);
 
+    public async Task SetOperatingModeAsync(string value)
+    {
+        if(!IsLoggedIn)return;
+        RestoreOperatingMode(value);
+        Notify();
+        await SaveAsync();
+        await AutoSavePrivateAsync();
+    }
+
+    public Task SetSandboxModeAsync() => SetOperatingModeAsync("sandbox");
+    public Task SetMmoModeAsync() => SetOperatingModeAsync("mmo");
+
     public async Task BeginPersonalZone()
     {
         if(!IsLoggedIn)return;
-        OperatingMode = "sandbox";
+        RestoreOperatingMode("sandbox");
         PlacedTiles.Clear();
         Pieces.Clear();
         StagedAssets.Clear();
@@ -31,7 +43,7 @@ public sealed partial class WorldSession
     public async Task ClaimShaelvienZone()
     {
         if(!IsLoggedIn)return;
-        OperatingMode = "mmo";
+        RestoreOperatingMode("mmo");
         PlacedTiles.Clear();
         Pieces.Clear();
         StagedAssets.Clear();
