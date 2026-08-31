@@ -1,0 +1,23 @@
+/*
+ * Canonical empty RIST world cube.
+ *
+ * A new cube is 100 x 100 logical one-mile cells. Ocean 071 is rendered as
+ * the implicit terrain layer rather than creating 10,000 DOM nodes or saved
+ * placement records. Authored terrain remains sparse and sits above it.
+ *
+ * The URL follows the existing drive-tiles CDN convention. Keeping this in
+ * component-scoped CSS prevents the default world terrain from leaking into
+ * the asset browser or other surfaces.
+ */
+.world-map.ocean-world {
+    background-color: #0a3040;
+    background-image: url("https://assets.relicgamemaster.com/tilesets/world/terrain/ocean/ocean-071/tile-01-01.jpg");
+    background-repeat: repeat;
+    background-position: 0 0;
+    background-size: 1% 1%;
+}
+
+/* Legacy fallback map art must never cover the canonical Ocean 071 cube. */
+.world-map.ocean-world > img:first-of-type {
+    display: none;
+}
