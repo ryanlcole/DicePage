@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RIST external-AI defensive fiction, Life Token, rumor, and human review authority
+
+Parameters:
+  IdentityTableName:
+    Type: String
+    Description: Existing Discord auth/session DynamoDB table
+  FrontendOrigin:
+    Type: String
+    Default: https://relicgamemaster.com
+  OwnerUserId:
+    Type: String
+    Default: ''
+    Description: RIST platform owner user UUID
+  OwnerReleased:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Master external-agent release. Deployment workflow intentionally pins this false.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 256
+    Tracing: Active
+    Environment:
+      Variables:
+        IDENTITY_TABLE: !Ref IdentityTableName
+        AI_STATE_TABLE: !Ref ExternalAiStateTable
+        AI_AUDIT_TABLE: !Ref ExternalAiAuditTable
+        OWNER_USER_ID: !Ref OwnerUserId
+        OWNER_RELEASED: !Ref OwnerReleased
+        FRONTEND_ORIGIN: !Ref FrontendOrigin
+
+Resources:
+  ExternalAiStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ExternalAiAuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ExternalAiHumanApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref FrontendOrigin]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, OPTIONS]
+        MaxAge: 300
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  ExternalAiHumanFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_external_ai_handler.human_handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
+      Events:
+        Status:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/status, Method: GET }
+        LifeReplenish:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/life/replenish, Method: POST }
+        NpcReview:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/npc/review, Method: POST }
+
+  ExternalAiSecurityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_external_ai_handler.security_handler
+      ReservedConcurrentExecutions: 5
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
+
+Outputs:
+  ExternalAiHumanApiBaseUrl:
+    Description: Human-authenticated external-AI operator API
+    Value: !Sub https://${ExternalAiHumanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  ExternalAiSecurityFunctionArn:
+    Description: Internal-only classified security-event conversion Lambda; intentionally has no public route
+    Value: !GetAtt ExternalAiSecurityFunction.Arn
+  ExternalAiOwnerReleased:
+    Description: Effective deployment-time master external-agent release flag
+    Value: !Ref OwnerReleased
