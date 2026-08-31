@@ -80,6 +80,19 @@ html body .rist.release-world #header-slider .header-icon-button{
  padding-right:4px!important;
 }
 
+/* Asset rail arrows stay visible but stop consuming map/asset width. */
+html body .rist.release-world .release-public-region .public-assets-strip,
+html body .rist.release-world .release-private-region .private-assets-strip{
+ grid-template-columns:30px minmax(0,1fr) 30px!important;
+}
+html body .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-arrow,
+html body .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-arrow{
+ width:30px!important;
+ min-width:30px!important;
+ max-width:30px!important;
+ padding:0!important;
+}
+
 /* Coordinate rulers are thin framing strips, not full UI rows. */
 html body .rist.release-world .release-map-region>.table-workspace>.map-shell{
  grid-template-rows:var(--rist-map-frame-h) minmax(0,1fr) var(--rist-map-frame-h)!important;
