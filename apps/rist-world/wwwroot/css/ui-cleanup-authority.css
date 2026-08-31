@@ -1,0 +1,136 @@
+/* Compact text/baseline cleanup and filter arrow authority. */
+html body .world-context-strip{
+ display:flex!important;
+ align-items:center!important;
+ padding-block:0!important;
+}
+html body .world-context-strip>.world-context-action,
+html body .world-context-strip>.world-context-readout,
+html body .rist.release-world .asset-rail-header>.asset-type-tabs>button,
+html body .rist.release-world .release-footer-stack .chat-mode-rail>button{
+ box-sizing:border-box!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ margin:0!important;
+ padding-block:0!important;
+ line-height:20px!important;
+ vertical-align:middle!important;
+ white-space:nowrap!important;
+}
+html body .world-context-strip>.world-context-action,
+html body .world-context-strip>.world-context-readout{
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ margin-inline:4px 0!important;
+ padding-inline:9px!important;
+ border-radius:7px!important;
+}
+html body .world-context-strip strong,
+html body .world-context-strip span,
+html body .world-context-strip time,
+html body .rist.release-world .asset-rail-header strong,
+html body .rist.release-world .asset-rail-header button,
+html body .rist.release-world .release-footer-stack .chat-mode-rail button{
+ line-height:20px!important;
+ transform:none!important;
+}
+
+/* Keep Public/Private label above the filters, but make every filter border hug one text line. */
+html body .rist.release-world .asset-rail-header{
+ position:relative!important;
+ grid-template-rows:9px 19px!important;
+}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs{
+ box-sizing:border-box!important;
+ position:relative!important;
+ height:19px!important;
+ min-height:19px!important;
+ max-height:19px!important;
+ padding:0 22px!important;
+ align-items:center!important;
+}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs>button:not(.asset-filter-arrow){
+ height:17px!important;
+ min-height:17px!important;
+ max-height:17px!important;
+ padding:0 8px!important;
+ line-height:15px!important;
+ border-radius:5px!important;
+}
+html body .rist.release-world .asset-filter-arrow{
+ position:absolute!important;
+ bottom:0!important;
+ z-index:5!important;
+ width:20px!important;
+ min-width:20px!important;
+ max-width:20px!important;
+ height:19px!important;
+ min-height:19px!important;
+ max-height:19px!important;
+ padding:0!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:#0b141b!important;
+ color:#e0c77f!important;
+ font:900 18px/19px system-ui!important;
+ display:grid!important;
+ place-items:center!important;
+ touch-action:manipulation!important;
+}
+html body .rist.release-world .asset-filter-arrow.prev{left:0!important}
+html body .rist.release-world .asset-filter-arrow.next{right:0!important}
+
+/* Chat mode rail: Scripts / Audience / Dialect share one baseline and one control height. */
+html body .rist.release-world .release-footer-stack .chat-mode-rail{
+ display:flex!important;
+ align-items:center!important;
+ gap:4px!important;
+ padding:3px 5px!important;
+}
+html body .rist.release-world .release-footer-stack .chat-mode-rail>button{
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ padding:0 8px!important;
+ border-radius:7px!important;
+ font-size:9px!important;
+ line-height:20px!important;
+}
+html body .rist.release-world .release-footer-stack .chat-mode-rail .chat-blue-value{
+ color:#69b9ff!important;
+ font-weight:900!important;
+ margin-left:3px!important;
+}
+html body .rist.release-world .rist-ooc-toggle{display:none!important}
+
+/* Scripts opens over the map instead of consuming layout space. */
+html body .rist.release-world .release-map-region{position:relative!important}
+.rist-script-window{
+ position:absolute;
+ inset:8px;
+ z-index:1150;
+ box-sizing:border-box;
+ display:grid;
+ grid-template-rows:28px minmax(0,1fr) 34px;
+ border:1px solid #806a38;
+ border-radius:8px;
+ background:rgba(7,13,18,.96);
+ box-shadow:0 10px 28px rgba(0,0,0,.48);
+ overflow:hidden;
+}
+.rist-script-window[hidden]{display:none!important}
+.rist-script-tabs{display:flex;align-items:stretch;gap:2px;overflow-x:auto;overflow-y:hidden;border-bottom:1px solid #5d4c29;background:#0c151b;scrollbar-width:none}
+.rist-script-tabs::-webkit-scrollbar{display:none}
+.rist-script-tabs button{flex:0 0 auto;height:28px;padding:0 10px;border:0;border-right:1px solid #3f351f;background:#111920;color:#b9ad8b;font:800 9px/28px system-ui;white-space:nowrap}
+.rist-script-tabs button.active{color:#f1dfaa;background:#1b252d}
+.rist-script-tabs .script-close{margin-left:auto;position:sticky;right:0;width:30px;padding:0;background:#111920;color:#e2cf98;font-size:18px}
+.rist-script-log{overflow:auto;padding:8px 10px;color:#e7e1d3;font:11px/1.35 system-ui}
+.rist-script-entry{margin:0 0 6px;padding:0 0 6px;border-bottom:1px solid rgba(114,93,48,.28)}
+.rist-script-entry strong{color:#d7be80}
+.rist-script-empty{margin:10px;color:#78828a}
+.rist-script-compose{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:4px;padding:4px;border-top:1px solid #4f4227;background:#0d151b}
+.rist-script-compose input{min-width:0;width:100%;box-sizing:border-box;border:1px solid #725d30;border-radius:6px;background:#081015;color:#eee6d2;padding:4px 7px;font-size:16px}
+.rist-script-compose button{border:1px solid #725d30;border-radius:6px;background:#111920;color:#d7be80;font-weight:800}
