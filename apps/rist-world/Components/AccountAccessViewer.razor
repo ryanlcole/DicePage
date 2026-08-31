@@ -30,6 +30,49 @@
   </div>
  </section>
 }
+else if(Session.AccountViewerOpen && Session.IsLoggedIn)
+{
+ <section class="map-account-viewer signup-profile-viewer" role="dialog" aria-modal="false" aria-label="RIST account">
+  <header class="map-viewer-header"><strong>Account</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close account">×</button></header>
+  <div class="map-account-body signup-profile-body">
+   <section class="map-account-card signup-profile-card">
+    <div class="map-auth-form signup-profile-form age-access-panel">
+     <h2>@(Auth.Account?.PlayerAlias ?? Auth.Profile?.DisplayName ?? "RIST account")</h2>
+     @if(!string.IsNullOrWhiteSpace(Auth.LastError))
+     {
+      <p class="storage-status" role="alert">@Auth.LastError</p>
+     }
+     <section class="age-access-card" aria-label="Age access status">
+      <div>
+       <strong>21+ access</strong>
+       @if(Auth.Age21Verified)
+       {
+        <span class="age-access-state verified">Verified</span>
+       }
+       else
+       {
+        <span class="age-access-state">Not verified</span>
+       }
+      </div>
+      @if(Auth.Age21Verified)
+      {
+       <p>Your account has a 21+ eligibility result. ReLiC does not keep the identity evidence used to produce it.</p>
+      }
+      else if(Auth.AgeVerificationAvailable)
+      {
+       <p>The verifier handles the age check directly. ReLiC receives only the eligibility result needed for access and does not receive your ID image, date of birth, address, or license number.</p>
+       <button type="button" class="discord-login-primary" @onclick="BeginAgeCheckAsync" disabled="@_startingAgeCheck">@(_startingAgeCheck?"Opening verifier…":"Verify 21+ access")</button>
+      }
+      else
+      {
+       <p>Age verification is not configured on this deployment yet.</p>
+      }
+     </section>
+    </div>
+   </section>
+  </div>
+ </section>
+}
 
 <style>
 .signup-profile-viewer .signup-profile-body{display:block!important;max-width:720px!important;margin:0 auto!important;width:100%!important}
@@ -38,12 +81,17 @@
 .signup-profile-form label>span{display:block;margin-bottom:4px}
 .signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}
 .signup-discord-note{display:block;text-align:center;margin-top:6px}
+.age-access-card{display:grid;gap:10px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}
+.age-access-card>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.age-access-card p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}
+.age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}
 </style>
 
 @code{
+ bool _startingAgeCheck;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
  protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
  void SelectGmPlayerPlan(){Session.PendingPlan="gm-player";Session.Notify();}
+ async Task BeginAgeCheckAsync(){if(_startingAgeCheck)return;_startingAgeCheck=true;try{await Auth.BeginAgeVerificationAsync();}finally{_startingAgeCheck=false;}}
  public void Dispose(){}
 }
