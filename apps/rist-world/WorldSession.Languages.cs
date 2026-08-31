@@ -22,6 +22,8 @@ public sealed partial class WorldSession
     {
         if (CharacterLanguages.Count == 0) CharacterLanguages.Add(new("Common", 100));
         if (!CharacterLanguages.Any(x => x.Name.Equals("Common", StringComparison.OrdinalIgnoreCase))) CharacterLanguages.Insert(0, new("Common", 100));
+        var common = CharacterLanguages.First(x => x.Name.Equals("Common", StringComparison.OrdinalIgnoreCase));
+        common.Proficiency = 100;
         if (!CharacterLanguages.Any(x => x.Name.Equals(ActiveRoleplayLanguage, StringComparison.OrdinalIgnoreCase))) ActiveRoleplayLanguage = "Common";
     }
 
@@ -50,7 +52,7 @@ public sealed partial class WorldSession
     public void SetCharacterLanguageProficiency(CharacterLanguage language, int percent)
     {
         if (!CharacterEditMode) return;
-        language.Proficiency = Math.Clamp(percent, 0, 100);
+        language.Proficiency = language.Name.Equals("Common", StringComparison.OrdinalIgnoreCase) ? 100 : Math.Clamp(percent, 0, 100);
         Notify();
     }
 
@@ -88,8 +90,8 @@ public sealed partial class WorldSession
     public int RoleplayLegibilityPercent(string language, string text)
     {
         if (language.Equals("Common", StringComparison.OrdinalIgnoreCase)) return 100;
-        if (Role == "GM" && GmLanguageResolutionMode == "percent") return GmLanguageLegibilityPercent;
-        if (Role == "GM" && GmLanguageResolutionMode == "manual") return 100;
+        if (GmLanguageResolutionMode == "percent") return GmLanguageLegibilityPercent;
+        if (GmLanguageResolutionMode == "manual") return 100;
 
         var proficiency = CharacterLanguages.FirstOrDefault(x => x.Name.Equals(language, StringComparison.OrdinalIgnoreCase))?.Proficiency ?? 0;
         var roll = StableLinguisticsRoll(text, language);
@@ -102,7 +104,7 @@ public sealed partial class WorldSession
         if (string.IsNullOrEmpty(text)) return text;
         language = string.IsNullOrWhiteSpace(language) ? "Common" : language;
         if (language.Equals("Common", StringComparison.OrdinalIgnoreCase)) return text;
-        if (Role == "GM" && GmLanguageResolutionMode == "manual" && !string.IsNullOrWhiteSpace(GmManualLanguageResponse)) return GmManualLanguageResponse;
+        if (GmLanguageResolutionMode == "manual" && !string.IsNullOrWhiteSpace(GmManualLanguageResponse)) return GmManualLanguageResponse;
         return MaskByLegibility(text, RoleplayLegibilityPercent(language, text));
     }
 
