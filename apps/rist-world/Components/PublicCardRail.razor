@@ -65,6 +65,12 @@
 </section>
 
 <style>
+/* Public/private asset sliders are exactly twice the context (Stars) row. */
+.rist.release-world{--rw-public:calc(var(--rw-context)*2)!important;--rw-private:calc(var(--rw-context)*2)!important}
+.release-world .release-public-region>.public-assets-rail,.release-world .release-private-region>.private-assets-rail{grid-template-rows:20px minmax(0,1fr)!important}
+.release-world .asset-rail-header{height:20px!important;min-height:20px!important;max-height:20px!important;padding:1px 6px!important}
+.release-world .asset-type-tabs{height:18px!important}
+.release-world .asset-type-tabs button{height:17px!important;min-height:17px!important;line-height:15px!important}
 .release-world .public-assets-items>.z-axis-controls{display:flex!important;align-items:stretch!important;gap:4px!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:36px!important}
 .release-world .z-axis-select{box-sizing:border-box!important;display:grid!important;grid-template-rows:11px 1fr!important;width:78px!important;min-width:78px!important;height:36px!important;padding:2px 4px!important;border:1px solid #5f4d29!important;border-radius:6px!important;background:#10181d!important;color:#c6b88d!important;overflow:hidden!important}
 .release-world .z-axis-select>span{font:800 7px/9px system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#d7be80!important;text-align:center!important}
