@@ -5,6 +5,7 @@
  // MMO is authoritative for a new/unknown preference. Preserve an explicit
  // Sandbox/local choice made by an existing user.
  let mode=saved==='local'?'local':'shaelvien';
+ let syncQueued=false;
 
  const rail=()=>document.querySelector('#header-slider .release-root-track');
  const mmoButton=()=>document.querySelector('.header-mmo-button');
@@ -32,8 +33,6 @@
    mmo.innerHTML='<strong>MMO</strong>';
   }
 
-  // The operating-context selector belongs directly after the login door,
-  // independently of table mode and GM/RolePlayer role selection.
   const door=track.querySelector('.door-button');
   if(door&&door.nextElementSibling!==mmo)door.insertAdjacentElement('afterend',mmo);
 
@@ -51,6 +50,15 @@
 
   bind(mmo,'shaelvien');
   bind(sandbox,'local');
+ }
+
+ function controlsNeedSync(){
+  const track=rail();
+  if(!track)return false;
+  const mmo=mmoButton(),sandbox=sandboxButton();
+  if(!mmo||!sandbox)return true;
+  const door=track.querySelector('.door-button');
+  return !!(door&&door.nextElementSibling!==mmo)||mmo.nextElementSibling!==sandbox;
  }
 
  function render(emit=false){
@@ -76,6 +84,18 @@
   if(emit)document.dispatchEvent(new CustomEvent('rist:mmo-mode',{detail:{mode,canAiEdit:owner,ownsCurrentZone:owns}}));
  }
 
+ function scheduleControlSync(){
+  // PLC reports every DOM mutation. Only react when Blazor has actually
+  // replaced or moved the world-mode controls; never render in response to
+  // mutations made by render() itself.
+  if(syncQueued||!controlsNeedSync())return;
+  syncQueued=true;
+  requestAnimationFrame(()=>{
+   syncQueued=false;
+   if(controlsNeedSync())render(false);
+  });
+ }
+
  function apply(next,persist=true){
   mode=next==='local'?'local':'shaelvien';
   if(persist)localStorage.setItem(KEY,mode);
@@ -92,7 +112,7 @@
  }
 
  document.addEventListener('pointerdown',guard,true);
- document.addEventListener('rist:dom-change',()=>render(false));
+ document.addEventListener('rist:dom-change',scheduleControlSync);
  document.addEventListener('rist:mmo-build',()=>render(true));
  window.RistMMO={toggle,setMode:apply,get mode(){return mode},get canAiEdit(){return canAiEdit()}};
  render(false);
