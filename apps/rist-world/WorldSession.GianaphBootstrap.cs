@@ -3,8 +3,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     public const string OriginMapId = "MapU000X000Y000Z";
-    const string DefaultMapAlias = "map1";
-    const string OwnerOriginAlias = "Geanaph";
+    public const string OriginMapAlias = "Geanaph";
     bool _originMapApplied;
 
     public string MapId { get; private set; } = OriginMapId;
@@ -25,12 +24,11 @@ public sealed partial class WorldSession
     }
 
     // Kept under the existing method name so the component partial does not need
-    // a migration-only patch. This now initializes the neutral coordinate origin,
-    // not a campaign-specific world.
+    // a migration-only patch. This initializes the public coordinate origin.
     public void EnsureGianaphWorld()
     {
         MapId = OriginMapId;
-        MapName = auth.IsOwnerDiscordAccount ? OwnerOriginAlias : DefaultMapAlias;
+        MapName = OriginMapAlias;
         GridDistance = 1;
         DistanceUnit = "mi";
         GridCalibrationZoom = 1;
