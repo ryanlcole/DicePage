@@ -51,20 +51,14 @@ jobs:
           }
           DISCORD_CLIENT_ID=$(get_param DiscordClientId)
           DISCORD_SECRET_ARN=$(get_param DiscordClientSecretArn)
-          YOTI_SDK_ID=$(get_param YotiSdkId)
-          YOTI_API_KEY_SECRET_ARN=$(get_param YotiApiKeySecretArn)
           if [ -z "$DISCORD_CLIENT_ID" ] || [ "$DISCORD_CLIENT_ID" = "None" ]; then
             echo "Could not resolve DiscordClientId from $STACK_NAME"; exit 1
           fi
           if [ -z "$DISCORD_SECRET_ARN" ] || [ "$DISCORD_SECRET_ARN" = "None" ]; then
             echo "Could not resolve DiscordClientSecretArn from $STACK_NAME"; exit 1
           fi
-          if [ "$YOTI_SDK_ID" = "None" ]; then YOTI_SDK_ID=""; fi
-          if [ "$YOTI_API_KEY_SECRET_ARN" = "None" ]; then YOTI_API_KEY_SECRET_ARN=""; fi
           echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
           echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
-          echo "YOTI_SDK_ID=$YOTI_SDK_ID" >> "$GITHUB_ENV"
-          echo "YOTI_API_KEY_SECRET_ARN=$YOTI_API_KEY_SECRET_ARN" >> "$GITHUB_ENV"
 
       - name: Deploy production Discord auth return
         shell: bash
@@ -82,8 +76,6 @@ jobs:
             --parameter-overrides \
               "DiscordClientId=$DISCORD_CLIENT_ID" \
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
-              "YotiSdkId=$YOTI_SDK_ID" \
-              "YotiApiKeySecretArn=$YOTI_API_KEY_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
               "FrontendUrl=$PRODUCTION_GAME_URL" \
               "SessionHours=$SESSION_HOURS"
@@ -107,9 +99,4 @@ jobs:
           test "$FRONTEND_URL" = "$PRODUCTION_GAME_URL"
           test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
           test "$DEPLOYED_SESSION_HOURS" = "$SESSION_HOURS"
-          echo "Discord auth returns to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
-          if [ -n "$YOTI_SDK_ID" ] && [ -n "$YOTI_API_KEY_SECRET_ARN" ]; then
-            echo "Yoti 21+ verifier configuration preserved"
-          else
-            echo "Yoti 21+ verifier remains disabled until credentials are configured"
-          fi
+          echo "Discord auth, guardian consent, and asset rating authority return to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
