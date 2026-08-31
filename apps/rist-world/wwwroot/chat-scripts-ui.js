@@ -61,8 +61,11 @@
  }
  function syncAudience(button){
   if(!button)return;
-  const text=`Audience: ${audience}`;
-  if(button.textContent!==text)button.textContent=text;
+  const current=button.querySelector('.chat-blue-value')?.textContent?.trim();
+  if(current!==audience){
+   const value=document.createElement('span');value.className='chat-blue-value';value.textContent=audience;
+   button.replaceChildren(document.createTextNode('Audience: '),value);
+  }
   button.title='Change message audience';
   button.setAttribute('aria-label',`Audience ${audience}. Tap to change.`);
   document.querySelector('.home-inline-chat')?.setAttribute('data-chat-audience',audience.toLowerCase());
