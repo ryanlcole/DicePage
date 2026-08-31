@@ -8,26 +8,65 @@ identity = ddb.Table(os.environ['IDENTITY_TABLE'])
 cache = ddb.Table(os.environ['CACHE_TABLE'])
 origin = os.environ['FRONTEND_ORIGIN'].rstrip('/')
 
+# Anonymous UI translation is intentionally limited to text shipped by ReLiC.
+# This prevents the public homepage endpoint from becoming a free arbitrary
+# translation proxy. Authenticated roleplay uses /chat/translate instead.
 UI_TEXT = {
-    # Shared / navigation
+    # Shared navigation / controls
     'About','Shaelvien','RIST','Game Now','Enter Shaelvien','Discover ReLiC','GAME NOW',
-    'The Studio','The Game · The World','The Platform','The Open Table','Your Game',
-    'A Shared Creative Ecosystem','START','Exit','Back','World','Dice','Language','Video','Picture','Sound','Effects','Manage Storage','Account',
+    'START','Exit','Back','World','Dice','Language','Video','Picture','Sound','Effects','Manage Storage','Account',
     'Stars','Sky','Calendar','UGC','Clock','Edit','Show SUM','Enabled','Disabled','Loading…',
     'Primary language','Private-game handling','System mechanics','Set percentage','GM typed response','Legibility %','Manual response',
     'Cloud Usage','View usage','Import Campaign','Import','Export Campaign','Export','Request Help',
     'Profile','Player Alias','Discord ID','Personal Details','Manage','Parental Controls','Email Preferences','Manage emails','Linked Accounts','Manage accounts','Help',
-    'Build Worlds Together','Journey Beyond Your Campaign','Share Your Imagination','NOW ENTERING','Core Rule TTRPG · Persistent World','Powered by RIST',
-    'Multiple GameMasters. One Living World.','Artists Become Part of the Table','Accessible by Design. Inclusive by Default.','Play Across Devices.','Different Worlds Need Different Boundaries',
-    'Recursive Immersive Sandbox Table Top','A Core Rule TTRPG built for a world that can keep growing.','Use the tools without surrendering the table.',
-    'The campaign is part of the world—not the edge of it.',
-    'Common means ordinary human speech and is presented in each user’s primary language. In-world languages still require a matching character language; Linguistics determines partial comprehension.',
+    'Exactly what the player should read',
+
+    # Start/settings menu explanatory copy
+    'Edit shared world context and display time.',
     'GameMaster table controls. Disabling SUM leaves the dice visible but requires players to add their own results.',
-    'System mechanics uses the character’s language proficiency plus Linguistics. Percentage gives the GM direct control. Manual response lets the GM author exactly what the player receives.',
+    "Common means ordinary human speech and is presented in each user's primary language. In-world languages still require a matching character language; Linguistics determines partial comprehension.",
+    "System mechanics uses the character's language proficiency plus Linguistics. Percentage gives the GM direct control. Manual response lets the GM author exactly what the player receives.",
     'These controls affect private-game language resolution.',
     'Your character sheet languages and Linguistics determine what in-world speech you can read.',
     'Only the GameMaster can change this setting.','This setting applies to the table.',
-    'Exactly what the player should read',
+    'Picture Mode','Brightness','Contrast','Gamma','Motion','Aspect','Exposure','Highlights','Shadows','Saturation','Temperature','Sharpness','Opacity',
+    'Master','Music','Effects','Voice','Ambient','UI','Sound Apps','Future integrations','Particles','Weather','Lighting','Parallax / 3D','Animation',
+    'Mixing-board foundation. Shaelvien tileset controls and external sound-app integrations can plug into these channels.',
+    'Player image, alias and personal account details','Log in with Discord','Unavailable',
+
+    # Homepage headings / calls to action
+    'Build Worlds Together','Journey Beyond Your Campaign','Share Your Imagination','NOW ENTERING','Core Rule TTRPG · Persistent World','Powered by RIST',
+    'The Studio','The Game · The World','The Platform','The Open Table','Your Game','A Shared Creative Ecosystem',
+    'Multiple GameMasters. One Living World.','Artists Become Part of the Table','Accessible by Design. Inclusive by Default.','Play Across Devices.','Different Worlds Need Different Boundaries','A Business Built Around Participation',
+    'Recursive Immersive Sandbox Table Top','A Core Rule TTRPG built for a world that can keep growing.','Use the tools without surrendering the table.',
+    'The campaign is part of the world—not the edge of it.','The World Is Opening','Create something worth entering.',
+    'AI transparency:','players','Built for','Donate with PayPal',
+
+    # Homepage body copy. Strong-tag paragraphs are also represented by their
+    # exact adjacent text-node fragments because browser localization operates
+    # on rendered text nodes rather than rewriting HTML.
+    'is a Core Rule TTRPG and persistent shared world.',
+    'is the recursive tabletop technology beneath it—connecting world creation, roleplaying, tactical encounters, maps, cards, dice, miniatures, tokens, animated sprites, scenery, media, and persistent spaces without losing the freedom of the table.',
+    'Friends & family testing is opening first as the world moves toward wider public testing.',
+    'ReLiCGameMaster is creating a digital tabletop ecosystem where maps, dice, cards, miniatures, tokens, animated sprites, character sheets, terrain, scenery, worlds, rules, and stories can live in the same space while retaining the recognizable language of tabletop play.',
+    'The ambition is larger than reproducing a physical table on a screen: give players somewhere to play and grow, GameMasters somewhere to create together, storytellers somewhere to build continuity, artists somewhere their work can become playable, and developers a foundation that can expand without forcing every game into the same shape.',
+    "Shaelvien can be played as its own tabletop roleplaying game. In MMO Mode, its Core Rules become the shared world's enforced rules of play, allowing many players and GameMasters to participate without every table becoming a different reality. Characters, places, encounters, time, consequences, and progression can persist beyond a single session.",
+    "RIST is the tabletop environment beneath Shaelvien: a recursive play and creation space for worlds within worlds, from global travel to tactical encounters and the objects inside a character's pack. Maps, tiles, cards, dice, miniatures, tokens, animated sprites, scenery, terrain, media, and player tools can all share one extensible table.",
+    "Outside Shaelvien's MMO Mode, RIST is designed as a flexible tabletop studio rather than a mandatory rules engine. Build with its tools, bring a system your group already plays, create your own, or use the table as a foundation for board games, card games, tactical games, interactive media, and original worlds.",
+    'RIST connects the people who build, run, illustrate, populate, and explore worlds while keeping authority, attribution, access, and ownership visible.',
+    "GameMasters can collaborate instead of operating isolated tables: build neighboring regions, share campaigns, run simultaneous events, hand travelers between adventures, and contribute to the same persistent Shaelvien while permissions protect each creator's authority. A GM can remain a player in the greater world while still governing the places entrusted to them.",
+    'A Shaelvien character is meant to build a history. Progress can follow the player beyond a single adventure as characters travel between compatible campaigns, GameMasters, regions, and communities. In MMO Mode, shared Core Rules and progression boundaries make that travel possible without one campaign casually rewriting the balance of another.',
+    'Creators can offer tiles, miniatures, tokens, sprites, scenery, cards, maps, and other playable assets. Free contributions can retain visible creator attribution and, when provided, a donation or support link. Commercial creator offerings can be discovered where the artwork is actually used—not separated from the game experience.',
+    'AI-generated or AI-assisted material should be identified clearly rather than presented as human-created artwork, while creator and license information follows third-party assets through the library.',
+    'RIST is being designed so more people can reach the same table through different paths: scalable and readable interfaces, keyboard, touch and controller-friendly interaction, adaptable presentation, and support for players with visual, hearing, speech, or mobility needs. Accessibility changes how someone reaches and experiences the world—not whether they belong in it.',
+    'Flexible character and worldbuilding tools avoid unnecessarily forcing identity, culture, body, or character concepts into assumptions inherited from a single game system.',
+    'RIST is being built around a browser-first, device-flexible foundation so the same table can be reached from desktop computers, laptops, tablets, and phones without treating one device as the only proper way to play. Player interaction is being designed around mouse, keyboard, touch, and controller input, with layouts that adapt to the available screen rather than simply shrinking a desktop interface.',
+    'The longer-term platform direction includes console-friendly play where platform requirements allow it, while keeping shared characters, worlds, campaigns, and tabletop state consistent across supported devices.',
+    'Shared play does not mean every destination is appropriate for every player. Worlds, regions, campaigns, and experiences can use age and content-rating zones so access follows the audience a creator intended. This gives GameMasters room to tell different kinds of stories while creating clearer protections for younger players.',
+    'ReLiCGameMaster is designed so revenue can come from the services that make a persistent ecosystem possible rather than turning player attention into the product. The developing model includes hosted and persistent world services, paid GameMaster sessions, creator asset sales, and optional ecosystem services—while free assets, creator donations, locally run tables, and user-owned content remain meaningful parts of RIST. Exact marketplace fees and revenue shares will be published when those programs are ready rather than promised before they are finalized.',
+    'Built for',
+    '· GameMasters · worldbuilders · artists · storytellers · developers · creators · different devices · different ways to play',
+    'Shaelvien and RIST are moving through active development toward persistent testing, Kickstarter, and broader public access. Build a place, tell a story, create an asset, guide a campaign—or become someone whose journey continues beyond it.',
 }
 
 
