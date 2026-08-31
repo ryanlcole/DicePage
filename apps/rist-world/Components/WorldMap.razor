@@ -112,7 +112,7 @@
  }
 
  <section class="map-shell">
-  <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive Shaelvien map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
+  <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive @Session.MapIdentityLabel map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true"><button type="button" @onclick="ZoomOut">−</button><button type="button" @onclick="ZoomIn">+</button></div>
    @if(Session.LockedTileMenuOpen)
    {
@@ -126,9 +126,8 @@
    {
     <div class="recursive-region-actions" role="toolbar" aria-label="Local region selection" @onpointerdown:stopPropagation="true"><strong>@Session.RecursiveRegionSelectionCount tile@(Session.RecursiveRegionSelectionCount==1?"":"s") selected</strong><button @onclick="Session.CommitRecursiveRegion" disabled="@(!Session.HasRecursiveRegionSelection)">Commit to @Session.NextRecursiveLayer</button><button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button></div>
    }
-   <div class="world-stage" style="transform:@StageTransform" aria-label="Shaelvien world map">
-    <div class="base ocean-world" aria-label="Shaelvien ocean world"></div>
-    @if(!Session.HasBaseMapTilemap){<img src="@Session.WorldMapUrl" alt="Naeja world map" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none" />}
+   <div class="world-stage" style="transform:@StageTransform" aria-label="@Session.MapIdentityLabel world map">
+    <div class="base ocean-world" aria-label="@Session.MapIdentityLabel ocean base"></div>
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
@@ -153,7 +152,7 @@
      }
     }
    </div>
-   <div class="status">@Session.MapName • @StatusText • @Session.WorldCoordinateLabel • drag • pinch • @($"{G.Zoom:0.0}x")</div>
+   <div class="status">@Session.MapIdentityLabel • @StatusText • @Session.WorldCoordinateLabel • drag • pinch • @($"{G.Zoom:0.0}x")</div>
   </div>
  </section>
  @if(Dragging)
