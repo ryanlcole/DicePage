@@ -46,6 +46,18 @@ html body .rist.release-world #header-slider .mmo-toggle-art{
  background-size:contain!important;
 }
 
+/* Rooted URLs prevent the menu artwork from resolving relative to a stylesheet or nested route. */
+html body .rist.release-world #header-slider .root-menu-art.icon-exit{background-image:url('/assets/ui/icons/door.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-encounter{background-image:url('/assets/ui/icons/mode.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-assets{background-image:url('/assets/cards/shaelvien_card_back.jpg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-role{background-image:url('/assets/ui/icons/role.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-grid{background-image:url('/assets/ui/icons/grid.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-scale{background-image:url('/assets/ui/icons/scale.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-save{background-image:url('/assets/ui/icons/save.svg')!important}
+html body .rist.release-world #header-slider .root-menu-art.icon-load{background-image:url('/assets/ui/icons/load.svg')!important}
+html body .rist.release-world #header-slider .header-mmo-button .mmo-toggle-art{background-image:url('/assets/ui/sandbox-toggle.webp')!important}
+html body .rist.release-world #header-slider .header-mmo-button.mmo-art-active .mmo-toggle-art{background-image:url('/assets/ui/mmo-toggle.webp')!important}
+
 /* Card back and Sandbox/MMO artwork keep their native proportions. */
 html body .rist.release-world #header-slider .root-menu-art.icon-assets{
  width:calc(var(--menu-art-h) * .704545)!important;
