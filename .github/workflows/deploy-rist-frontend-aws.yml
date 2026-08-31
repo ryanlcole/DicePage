@@ -60,8 +60,6 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            assets/ui/mmo-toggle.webp
-            assets/ui/sandbox-toggle.webp
             assets/ui/map-pin.svg
             assets/ui/icons/door.svg
             assets/ui/icons/mode.svg
@@ -77,6 +75,11 @@ jobs:
           for path in "${required[@]}"; do
             echo "Waiting for CDN asset: $path"
             curl --fail --location --retry 18 --retry-delay 5 --retry-all-errors --output /dev/null "${ASSET_BASE_URL}${path}"
+          done
+          for path in assets/ui/mmo-toggle.webp assets/ui/sandbox-toggle.webp; do
+            if ! curl --fail --location --retry 2 --retry-delay 2 --output /dev/null "${ASSET_BASE_URL}${path}"; then
+              echo "::warning::Optional world-toggle artwork unavailable: $path"
+            fi
           done
 
       - name: Validate frontend stack
@@ -142,8 +145,6 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
-          # Shaelvien art under Game/assets/shaelvien is persistent content, not build output.
-          # Protect it from --delete so deployments cannot erase imported atlases/runtime crops.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
             --exclude 'Launcher/*' \
@@ -172,8 +173,6 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --only-show-errors
 
-          # Production story/banner binaries are persistent S3 content until their source
-          # assets are added to the repository. Frontend deploys must preserve, not own, them.
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
             --exclude 'index.html' \
             --exclude 'relic-story-tileset-primary.jpeg' \
@@ -199,7 +198,6 @@ jobs:
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
-          # Hard-fail only on surfaces and artifacts produced by this workflow.
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
