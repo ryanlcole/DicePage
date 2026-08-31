@@ -10,6 +10,7 @@ public sealed partial class WorldSession
     public string GmLanguageResolutionMode { get; private set; } = "system";
     public int GmLanguageLegibilityPercent { get; private set; } = 100;
     public string GmManualLanguageResponse { get; private set; } = "";
+    public string ActiveRoleplayDialectLabel => ActiveRoleplayLanguage.Equals("Common", StringComparison.OrdinalIgnoreCase) ? "Universal" : ActiveRoleplayLanguage;
 
     public int LinguisticsValue => CharacterFields
         .Where(characterField => characterField.Name.Contains("lingu", StringComparison.OrdinalIgnoreCase)
@@ -106,31 +107,93 @@ public sealed partial class WorldSession
         language = string.IsNullOrWhiteSpace(language) ? "Common" : language;
         if (language.Equals("Common", StringComparison.OrdinalIgnoreCase)) return text;
         if (GmLanguageResolutionMode == "manual" && !string.IsNullOrWhiteSpace(GmManualLanguageResponse)) return GmManualLanguageResponse;
-        return MaskByLegibility(text, RoleplayLegibilityPercent(language, text));
+        return ScrambleByLegibility(text, language, RoleplayLegibilityPercent(language, text));
     }
 
     private int StableLinguisticsRoll(string text, string language)
+        => (int)(StableHash($"roll|{CharacterName}|{language}|{text}") % 101u);
+
+    /* The canonical/original message is never mutated. This method creates only the viewer's
+       representation. Unrevealed words become stable five-letter dialect tokens, while the
+       language roll determines exactly how many word positions are restored to the original. */
+    private static string ScrambleByLegibility(string text, string language, int percent)
+    {
+        percent = Math.Clamp(percent, 0, 100);
+        if (percent >= 100) return text;
+
+        var parts = SplitPreservingWhitespace(text);
+        var wordPositions = Enumerable.Range(0, parts.Count)
+            .Where(i => ContainsWordCharacter(parts[i]))
+            .ToArray();
+        if (wordPositions.Length == 0) return text;
+
+        var revealCount = (int)Math.Round(wordPositions.Length * percent / 100.0, MidpointRounding.AwayFromZero);
+        revealCount = Math.Clamp(revealCount, 0, wordPositions.Length);
+        var revealed = wordPositions
+            .OrderBy(i => StableHash($"reveal|{language}|{text}|{i}"))
+            .Take(revealCount)
+            .ToHashSet();
+
+        foreach (var i in wordPositions)
+        {
+            if (revealed.Contains(i)) continue;
+            parts[i] = ScrambleWord(parts[i], language, text, i);
+        }
+        return string.Concat(parts);
+    }
+
+    private static List<string> SplitPreservingWhitespace(string text)
+    {
+        var result = new List<string>();
+        if (text.Length == 0) return result;
+        var start = 0;
+        var whitespace = char.IsWhiteSpace(text[0]);
+        for (var i = 1; i < text.Length; i++)
+        {
+            var nextWhitespace = char.IsWhiteSpace(text[i]);
+            if (nextWhitespace == whitespace) continue;
+            result.Add(text[start..i]);
+            start = i;
+            whitespace = nextWhitespace;
+        }
+        result.Add(text[start..]);
+        return result;
+    }
+
+    private static bool ContainsWordCharacter(string value)
+        => value.Any(char.IsLetterOrDigit);
+
+    private static string ScrambleWord(string token, string language, string text, int position)
+    {
+        var first = 0;
+        while (first < token.Length && !char.IsLetterOrDigit(token[first])) first++;
+        var last = token.Length - 1;
+        while (last >= first && !char.IsLetterOrDigit(token[last])) last--;
+        if (first > last) return token;
+
+        const string alphabet = "abcdefghijklmnopqrstuvwxyz";
+        var seed = StableHash($"mask|{language}|{text}|{position}|{token}");
+        Span<char> code = stackalloc char[5];
+        for (var i = 0; i < code.Length; i++)
+        {
+            seed = unchecked(seed * 1664525u + 1013904223u);
+            code[i] = alphabet[(int)(seed % (uint)alphabet.Length)];
+        }
+        return string.Concat(token[..first], new string(code), token[(last + 1)..]);
+    }
+
+    private static uint StableHash(string value)
     {
         unchecked
         {
-            var hash = 17;
-            foreach (var c in $"{CharacterName}|{language}|{text}") hash = hash * 31 + c;
-            return Math.Abs(hash % 101);
+            var hash = 2166136261u;
+            foreach (var c in value)
+            {
+                hash ^= c;
+                hash *= 16777619u;
+            }
+            return hash;
         }
-    }
-
-    private static string MaskByLegibility(string text, int percent)
-    {
-        if (percent >= 100) return text;
-        if (percent <= 0) return string.Concat(text.Select(c => char.IsWhiteSpace(c) || char.IsPunctuation(c) ? c : '•'));
-        var words = text.Split(' ');
-        for (var i = 0; i < words.Length; i++)
-        {
-            var reveal = Math.Abs(HashCode.Combine(words[i], i, text.Length)) % 100 < percent;
-            if (reveal) continue;
-            words[i] = string.Concat(words[i].Select(c => char.IsLetterOrDigit(c) ? '•' : c));
-        }
-        return string.Join(' ', words);
     }
 }
 
