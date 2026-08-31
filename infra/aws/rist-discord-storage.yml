@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: RIST Discord authentication and private per-user storage
+Description: RIST Discord authentication, minimal age eligibility verification, and private per-user storage
 
 Parameters:
   DiscordClientId:
@@ -9,6 +9,14 @@ Parameters:
   DiscordClientSecretArn:
     Type: String
     Description: Secrets Manager ARN containing the Discord client secret
+  YotiSdkId:
+    Type: String
+    Default: ''
+    Description: Optional Yoti Age Verification SDK ID; blank keeps age verification disabled
+  YotiApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: Optional Secrets Manager ARN containing the Yoti Age Verification API key
   FrontendOrigin:
     Type: String
     Default: https://ryanlcole.github.io
@@ -21,6 +29,11 @@ Parameters:
     Default: 12
     MinValue: 1
     MaxValue: 168
+
+Conditions:
+  HasYotiVerifier: !And
+    - !Not [!Equals [!Ref YotiSdkId, '']]
+    - !Not [!Equals [!Ref YotiApiKeySecretArn, '']]
 
 Resources:
   PrivateStorageBucket:
@@ -94,6 +107,8 @@ Resources:
         Variables:
           DISCORD_CLIENT_ID: !Ref DiscordClientId
           DISCORD_SECRET_ARN: !Ref DiscordClientSecretArn
+          YOTI_SDK_ID: !Ref YotiSdkId
+          YOTI_API_KEY_SECRET_ARN: !Ref YotiApiKeySecretArn
           FRONTEND_URL: !Ref FrontendUrl
           FRONTEND_ORIGIN: !Ref FrontendOrigin
           SESSION_HOURS: !Ref SessionHours
@@ -107,7 +122,9 @@ Resources:
         - Statement:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
-              Resource: !Ref DiscordClientSecretArn
+              Resource:
+                - !Ref DiscordClientSecretArn
+                - !If [HasYotiVerifier, !Ref YotiApiKeySecretArn, !Ref DiscordClientSecretArn]
       Events:
         Login:
           Type: HttpApi
@@ -124,6 +141,15 @@ Resources:
         Logout:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /auth/logout, Method: POST }
+        AgeStart:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /age/start, Method: POST }
+        AgeCallback:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /age/callback, Method: GET }
+        AgeStatus:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /age/status, Method: GET }
         Upload:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /storage/upload, Method: POST }
@@ -147,6 +173,9 @@ Resources:
         CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
         BUCKET = os.environ["STORAGE_BUCKET"]
         SESSION_SECONDS = int(os.environ["SESSION_HOURS"]) * 3600
+        YOTI_SDK_ID = os.environ.get("YOTI_SDK_ID", "").strip()
+        YOTI_API_KEY_SECRET_ARN = os.environ.get("YOTI_API_KEY_SECRET_ARN", "").strip()
+        YOTI_API = "https://age.yoti.com"
         DISCORD_USER_AGENT = "ReLiCGameMaster-RIST/1.0"
         ALLOWED_TYPES = {
             "application/json", "application/zip", "image/png", "image/jpeg",
@@ -166,17 +195,21 @@ Resources:
             payload = "" if body is None else json.dumps(body, separators=(",", ":"))
             return {"statusCode": status, "headers": headers, "body": payload}
 
+        def frontend_target(state):
+            sep = "&" if "?" in FRONTEND else "?"
+            return FRONTEND + sep + "rist_age=" + urllib.parse.quote(state)
+
         def frontend_error(code):
             sep = "&" if "?" in FRONTEND else "?"
             return response(302, location=FRONTEND + sep + "rist_auth_error=" + urllib.parse.quote(code))
 
-        def secret_value():
-            result = sm.get_secret_value(SecretId=os.environ["DISCORD_SECRET_ARN"])
+        def read_secret(secret_arn, names):
+            result = sm.get_secret_value(SecretId=secret_arn)
             raw = result.get("SecretString")
             if not raw and result.get("SecretBinary"):
                 raw = base64.b64decode(result["SecretBinary"]).decode()
             if not raw:
-                raise ValueError("Discord client secret is empty")
+                raise ValueError("Secret is empty")
             raw = raw.strip()
             try:
                 value = json.loads(raw)
@@ -185,10 +218,37 @@ Resources:
             if isinstance(value, str):
                 return value.strip()
             if isinstance(value, dict):
-                secret = value.get("client_secret") or value.get("clientSecret") or value.get("secret")
-                if secret:
-                    return str(secret).strip()
-            raise ValueError("Discord client secret has an unsupported format")
+                for name in names:
+                    secret = value.get(name)
+                    if secret:
+                        return str(secret).strip()
+            raise ValueError("Secret has an unsupported format")
+
+        def secret_value():
+            return read_secret(os.environ["DISCORD_SECRET_ARN"], ("client_secret", "clientSecret", "secret"))
+
+        def yoti_configured():
+            return bool(YOTI_SDK_ID and YOTI_API_KEY_SECRET_ARN)
+
+        def yoti_api_key():
+            return read_secret(YOTI_API_KEY_SECRET_ARN, ("api_key", "apiKey", "token", "key", "secret"))
+
+        def yoti_request(method, path, payload=None):
+            data = None if payload is None else json.dumps(payload, separators=(",", ":")).encode()
+            req = urllib.request.Request(
+                YOTI_API + path,
+                data=data,
+                method=method,
+                headers={
+                    "Authorization": "Bearer " + yoti_api_key(),
+                    "Yoti-Sdk-Id": YOTI_SDK_ID,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "User-Agent": DISCORD_USER_AGENT
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return json.loads(r.read())
 
         def api_base(event):
             ctx = event["requestContext"]
@@ -206,6 +266,9 @@ Resources:
             if not item or int(item.get("expiresAt", 0)) <= int(time.time()):
                 return None
             return item
+
+        def age_record(user_id):
+            return ddb.get_item(Key={"pk": "age#" + user_id}).get("Item")
 
         def safe_key(raw):
             raw = urllib.parse.unquote(raw or "").replace("\\", "/").strip("/")
@@ -313,20 +376,105 @@ Resources:
                     return response(400, {"error": "Invalid or expired login handoff"})
                 return response(200, {"sessionToken": saved["sessionToken"]})
 
+            if route == "GET /age/callback":
+                session_id = query.get("sessionId") or query.get("session_id") or ""
+                check_key = {"pk": "agecheck#" + session_id}
+                saved = ddb.get_item(Key=check_key).get("Item") if session_id else None
+                if not saved or int(saved.get("expiresAt", 0)) <= now or not yoti_configured():
+                    return response(302, location=frontend_target("invalid"))
+                try:
+                    result = yoti_request("GET", "/api/v1/sessions/" + urllib.parse.quote(session_id, safe="") + "/result")
+                    if str(result.get("reference_id") or "") != str(saved.get("reference") or ""):
+                        return response(302, location=frontend_target("invalid"))
+                    status = str(result.get("status") or "").upper()
+                    if status == "COMPLETE":
+                        ddb.put_item(Item={
+                            "pk": "age#" + saved["userId"],
+                            "over21": True,
+                            "verifiedAt": now,
+                            "provider": "yoti"
+                        })
+                        ddb.delete_item(Key=check_key)
+                        return response(302, location=frontend_target("verified"))
+                    if status in ("FAIL", "CANCELLED", "EXPIRED"):
+                        ddb.delete_item(Key=check_key)
+                        return response(302, location=frontend_target("not_verified"))
+                    if status == "ERROR":
+                        ddb.delete_item(Key=check_key)
+                        return response(302, location=frontend_target("error"))
+                    return response(302, location=frontend_target("pending"))
+                except Exception as exc:
+                    print("Age verification callback error", type(exc).__name__, str(exc)[:1000])
+                    return response(302, location=frontend_target("error"))
+
             session = auth(event)
             if not session:
                 return response(401, {"error": "Authentication required"})
 
             if route == "GET /me":
+                verified = bool((age_record(session["userId"]) or {}).get("over21"))
                 return response(200, {
                     "userId": session["userId"], "displayName": session["username"],
-                    "storagePrefix": "users/" + session["userId"] + "/"
+                    "storagePrefix": "users/" + session["userId"] + "/",
+                    "age21Verified": verified,
+                    "ageVerificationAvailable": yoti_configured()
                 })
 
             if route == "POST /auth/logout":
                 header = event["headers"]["authorization"].split(" ", 1)[1]
                 ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
                 return response(204)
+
+            if route == "GET /age/status":
+                verified = bool((age_record(session["userId"]) or {}).get("over21"))
+                return response(200, {"over21": verified, "available": yoti_configured()})
+
+            if route == "POST /age/start":
+                if (age_record(session["userId"]) or {}).get("over21"):
+                    return response(200, {"verified": True})
+                if not yoti_configured():
+                    return response(503, {"error": "Age verifier is not configured"})
+                reference = secrets.token_urlsafe(24)
+                callback_url = api_base(event) + "/age/callback"
+                payload = {
+                    "type": "OVER",
+                    "ttl": 900,
+                    "reference_id": reference,
+                    "callback": {"auto": True, "url": callback_url},
+                    "cancel_url": frontend_target("cancelled"),
+                    "retry_enabled": True,
+                    "resume_enabled": True,
+                    "synchronous_checks": True,
+                    "block_biometric_consent": True,
+                    "age_estimation": {"allowed": False, "threshold": 21},
+                    "doc_scan": {"allowed": False, "threshold": 21},
+                    "digital_id": {"allowed": True, "threshold": 21, "retry_limit": 2},
+                    "credit_card": {"allowed": True, "threshold": 21, "retry_limit": 2},
+                    "mobile": {"allowed": True, "threshold": 21, "retry_limit": 2}
+                }
+                try:
+                    created = yoti_request("POST", "/api/v1/sessions", payload)
+                    session_id = str(created.get("id") or "")
+                    if not session_id:
+                        raise ValueError("Yoti did not return a session ID")
+                    ddb.put_item(Item={
+                        "pk": "agecheck#" + session_id,
+                        "userId": session["userId"],
+                        "reference": reference,
+                        "expiresAt": now + 1200
+                    })
+                    service_url = "https://age.yoti.com?" + urllib.parse.urlencode({
+                        "sessionId": session_id,
+                        "sdkId": YOTI_SDK_ID
+                    })
+                    return response(200, {"url": service_url, "verified": False})
+                except urllib.error.HTTPError as exc:
+                    detail = exc.read().decode("utf-8", "replace")[:1000]
+                    print("Age verification start HTTP error", exc.code, detail)
+                    return response(502, {"error": "Age verifier rejected the request"})
+                except Exception as exc:
+                    print("Age verification start error", type(exc).__name__, str(exc)[:1000])
+                    return response(502, {"error": "Age verifier could not be reached"})
 
             prefix = "users/" + session["userId"] + "/"
 
@@ -343,6 +491,7 @@ Resources:
                     if not result.get("IsTruncated"):
                         break
                     continuation = result.get("NextContinuationToken")
+                ddb.delete_item(Key={"pk": "age#" + session["userId"]})
                 header = event["headers"]["authorization"].split(" ", 1)[1]
                 ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
                 return response(204)
@@ -388,5 +537,7 @@ Outputs:
     Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   DiscordCallbackUrl:
     Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/auth/callback
+  AgeVerificationCallbackUrl:
+    Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/age/callback
   PrivateStorageBucketName:
     Value: !Ref PrivateStorageBucket
