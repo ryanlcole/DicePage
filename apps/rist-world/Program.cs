@@ -11,5 +11,8 @@ builder.Services.AddScoped<AssetRatingClient>();
 builder.Services.AddScoped<AwsAuthorityClient>();
 builder.Services.AddScoped<PrivateCardLibrary>();
 builder.Services.AddScoped<ExternalAiAccessPolicy>();
+builder.Services.AddScoped<AiVillainConversionPolicy>();
+builder.Services.AddScoped<AiInjectionFictionPolicy>();
+builder.Services.AddScoped<AiFloodDamagePolicy>();
 builder.Services.AddScoped<WorldSession>();
 await builder.Build().RunAsync();
