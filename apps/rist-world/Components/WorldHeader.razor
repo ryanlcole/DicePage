@@ -4,15 +4,15 @@
 @inject DiscordAuthClient Auth
 
 <style>
-/* Compact text-first header. Artwork is reserved for controls that benefit from a visual asset. */
-#header-slider .release-root-track{--rail-gap:4px!important;--rail-item-h:calc(100% - (var(--rail-gap) * 2))!important;align-items:center!important;padding-block:var(--rail-gap)!important;gap:4px!important}
-#header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:var(--rail-item-h)!important;min-height:var(--rail-item-h)!important;max-height:var(--rail-item-h)!important;padding:0 8px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;white-space:nowrap!important;color:#d7be80!important;font:800 10px/1 system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important}
+/* Match the main header controls to the compact context row above: content-width, 22px high. */
+#header-slider .release-root-track{--rail-gap:4px!important;--rail-item-h:22px!important;align-items:center!important;padding-block:0!important;gap:4px!important}
+#header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:22px!important;min-height:22px!important;max-height:22px!important;padding:0 9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;border-radius:7px!important;color:#d7be80!important;font:800 10px/20px system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important}
 #header-slider .release-root-track>.root-menu-button>strong{font:inherit!important;color:inherit!important;white-space:nowrap!important}
 
-/* Assets remains image-based, but the button sizes to its actual content. */
-#header-slider .root-menu-art.icon-assets{display:block!important;box-sizing:border-box!important;flex:0 0 auto!important;width:calc(var(--rail-item-h) - 10px)!important;min-width:calc(var(--rail-item-h) - 10px)!important;height:calc(var(--rail-item-h) - 10px)!important;min-height:calc(var(--rail-item-h) - 10px)!important;margin:0!important;aspect-ratio:1 / 1!important;background-image:url('assets/normalized/chat-imports/2026-08-30/uploaded-references/IMG_7741.png')!important;background-size:400% 300%!important;background-position:66.667% 0%!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important}
+/* Assets remains image-based, while the button still follows the same 22px row geometry. */
+#header-slider .root-menu-art.icon-assets{display:block!important;box-sizing:border-box!important;flex:0 0 auto!important;width:16px!important;min-width:16px!important;height:16px!important;min-height:16px!important;margin:0!important;aspect-ratio:1 / 1!important;background-image:url('assets/normalized/chat-imports/2026-08-30/uploaded-references/IMG_7741.png')!important;background-size:400% 300%!important;background-position:66.667% 0%!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important}
 #header-slider .root-menu-art.icon-assets::before,#header-slider .root-menu-art.icon-assets::after{content:none!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){width:auto!important;min-width:0!important;padding:0 8px 0 4px!important}
+#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){width:auto!important;min-width:0!important;padding:0 9px 0 5px!important}
 
 #header-slider .release-root-track>.root-menu-button>small{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 @@media (hover:hover) and (pointer:fine){
