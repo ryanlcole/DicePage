@@ -42,30 +42,21 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
      {
       <p class="storage-status" role="alert">@Auth.LastError</p>
      }
-     <section class="age-access-card" aria-label="Age access status">
+     <section class="age-access-card" aria-label="NSFW content access">
       <div>
-       <strong>21+ access</strong>
-       @if(Auth.Age21Verified)
-       {
-        <span class="age-access-state verified">Verified</span>
-       }
-       else
-       {
-        <span class="age-access-state">Not verified</span>
-       }
+       <strong>NSFW content</strong>
+       <span class="age-access-state @(Auth.NsfwAccessEnabled?"verified":"")">@(Auth.NsfwAccessEnabled?"Enabled":"Off")</span>
       </div>
-      @if(Auth.Age21Verified)
+      @if(Auth.NsfwAccessEnabled)
       {
-       <p>Your account has a 21+ eligibility result. ReLiC does not keep the identity evidence used to produce it.</p>
-      }
-      else if(Auth.AgeVerificationAvailable)
-      {
-       <p>The verifier handles the age check directly. ReLiC receives only the eligibility result needed for access and does not receive your ID image, date of birth, address, or license number.</p>
-       <button type="button" class="discord-login-primary" @onclick="BeginAgeCheckAsync" disabled="@_startingAgeCheck">@(_startingAgeCheck?"Opening verifier…":"Verify 21+ access")</button>
+       <p>Optional NSFW content is enabled for this account. You may turn it off at any time.</p>
+       <button type="button" class="discord-login-primary" @onclick="DisableNsfwAsync" disabled="@_savingNsfw">@(_savingNsfw?"Saving…":"Turn off NSFW content")</button>
       }
       else
       {
-       <p>Age verification is not configured on this deployment yet.</p>
+       <p>NSFW content is hidden by default. ReLiC does not need your birth date, ID, photo, address, or other identity evidence for this preference.</p>
+       <label class="map-terms nsfw-attestation"><input type="checkbox" @bind="_age21Attested" /><span>I certify that I am 21 years of age or older and choose to access NSFW content.</span></label>
+       <button type="button" class="discord-login-primary" @onclick="EnableNsfwAsync" disabled="@(!_age21Attested || _savingNsfw)">@(_savingNsfw?"Saving…":"Enable NSFW content")</button>
       }
      </section>
     </div>
@@ -84,14 +75,17 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 .age-access-card{display:grid;gap:10px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}
 .age-access-card>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.age-access-card p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}
 .age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}
+.nsfw-attestation{align-items:flex-start!important}.nsfw-attestation input{margin-top:3px}
 </style>
 
 @code{
- bool _startingAgeCheck;
+ bool _age21Attested;
+ bool _savingNsfw;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
  protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
  void SelectGmPlayerPlan(){Session.PendingPlan="gm-player";Session.Notify();}
- async Task BeginAgeCheckAsync(){if(_startingAgeCheck)return;_startingAgeCheck=true;try{await Auth.BeginAgeVerificationAsync();}finally{_startingAgeCheck=false;}}
+ async Task EnableNsfwAsync(){if(_savingNsfw||!_age21Attested)return;_savingNsfw=true;try{await Auth.SetNsfwAccessAsync(true,true);}finally{_savingNsfw=false;}}
+ async Task DisableNsfwAsync(){if(_savingNsfw)return;_savingNsfw=true;try{await Auth.SetNsfwAccessAsync(false,false);_age21Attested=false;}finally{_savingNsfw=false;}}
  public void Dispose(){}
 }
