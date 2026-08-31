@@ -6,6 +6,7 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - 'apps/rist-world/wwwroot/assets/**'
+      - 'apps/rist-world/prepare_public_data.py'
       - 'apps/rist-world/prepare_aws_assets.py'
       - '.github/workflows/sync-rist-assets-aws.yml'
   workflow_dispatch:
@@ -29,7 +30,12 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
-      - run: python apps/rist-world/prepare_public_data.py
+      - name: Prepare image tooling
+        run: |
+          python -m venv build/asset-tools-venv
+          build/asset-tools-venv/bin/python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Normalize public assets and inventory
+        run: build/asset-tools-venv/bin/python apps/rist-world/prepare_public_data.py
       - run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
