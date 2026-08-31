@@ -148,7 +148,7 @@
  public void Dispose()=>Session.Changed-=Changed;
 
  void Close(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();}
- void Choose(AtlasTile tile){Session.StageTile(tile);Close();}
+ void Choose(AtlasTile tile){Session.StageTile(tile);}
  void ClearFilters(){_source="all";_category="all";_folder="all";_query="";}
  bool SourceMatch(AtlasTile tile)=>_source switch{"mine"=>IsPrivate(tile),"public"=>!IsPrivate(tile),_=>true};
  bool SearchMatch(AtlasTile tile)=>string.IsNullOrWhiteSpace(_query)||$"{tile.Name} {tile.Directory} {tile.Folder} {CategoryFor(tile)}".Contains(_query.Trim(),StringComparison.OrdinalIgnoreCase);
