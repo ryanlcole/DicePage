@@ -8,7 +8,7 @@ html body .rist.release-world{
  --rist-assets-h:calc(var(--rist-assets-menu-h) + var(--rist-assets-slider-h))!important;
  --rist-menu-h:var(--rist-n)!important;
  --rist-roleplay-h:var(--rist-n)!important;
- --rist-map-frame-h:14px!important;
+ --rist-map-frame-h:0px!important;
  height:calc(100dvh - var(--rist-compact-text-row-h))!important;
  max-height:calc(100dvh - var(--rist-compact-text-row-h))!important;
 }
@@ -190,7 +190,7 @@ html body .rist.release-world .release-private-region .private-assets-strip>.rai
  padding:0!important;
 }
 
-/* Coordinate rulers are thin framing strips, not full UI rows. */
+/* Coordinate rulers overlay the canvas; do not reserve blank rows above/below the map. */
 html body .rist.release-world .release-map-region>.table-workspace>.map-shell{
  grid-template-rows:var(--rist-map-frame-h) minmax(0,1fr) var(--rist-map-frame-h)!important;
 }
