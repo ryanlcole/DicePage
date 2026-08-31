@@ -1,6 +1,6 @@
-/* RIST footer density authority.
+/* RIST compact row authority.
    The Stars/context strip is the canonical compact-row height: 28px total,
-   with 22px controls inside it. Chat controls mirror that geometry. */
+   with 22px controls inside it. Chat and asset rows mirror that geometry. */
 
 html body .rist.release-world{
  --rist-chat-mode-row-h:28px;
@@ -8,6 +8,57 @@ html body .rist.release-world{
  --rist-chat-dock-h:56px;
  --rist-footer-h:113px!important;
  --rw-footer:113px!important;
+ --rist-assets-menu-h:var(--rist-n)!important;
+ --rist-assets-slider-h:var(--rist-n)!important;
+ --rist-assets-h:calc(var(--rist-n) * 2)!important;
+}
+
+/* Public and Private each contain two rows. Each row = one Stars/context row. */
+html body .rist.release-world>.release-world-shell{
+ grid-template-rows:var(--rist-menu-h) var(--rist-assets-h) minmax(0,1fr) var(--rist-assets-h) var(--rist-footer-h)!important;
+}
+html body .rist.release-world .release-public-region,
+html body .rist.release-world .release-private-region,
+html body .rist.release-world .release-public-region>.public-assets-rail,
+html body .rist.release-world .release-private-region>.private-assets-rail{
+ height:var(--rist-assets-h)!important;
+ min-height:var(--rist-assets-h)!important;
+ max-height:var(--rist-assets-h)!important;
+}
+html body .rist.release-world .release-public-region>.public-assets-rail,
+html body .rist.release-world .release-private-region>.private-assets-rail{
+ grid-template-rows:var(--rist-n) var(--rist-n)!important;
+}
+html body .rist.release-world .release-public-region .asset-rail-header,
+html body .rist.release-world .release-private-region .asset-rail-header{
+ height:var(--rist-n)!important;
+ min-height:var(--rist-n)!important;
+ max-height:var(--rist-n)!important;
+}
+html body .rist.release-world .release-public-region .public-assets-strip,
+html body .rist.release-world .release-private-region .private-assets-strip,
+html body .rist.release-world .release-public-region .public-assets-items,
+html body .rist.release-world .release-private-region .private-assets-items,
+html body .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-arrow,
+html body .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-arrow{
+ height:var(--rist-n)!important;
+ min-height:var(--rist-n)!important;
+ max-height:var(--rist-n)!important;
+}
+html body .rist.release-world .public-assets-items .public-asset-card,
+html body .rist.release-world .private-assets-items .compact-hand-card,
+html body .rist.release-world .private-assets-items .standard-hand-card,
+html body .rist.release-world .public-assets-rail .token-pin-source,
+html body .rist.release-world .private-assets-rail .token-pin-source{
+ height:calc(var(--rist-n) - 8px)!important;
+ min-height:calc(var(--rist-n) - 8px)!important;
+ max-height:calc(var(--rist-n) - 8px)!important;
+}
+html body .rist.release-world .public-assets-items>.z-axis-controls,
+html body .rist.release-world .z-axis-select{
+ height:calc(var(--rist-n) - 8px)!important;
+ min-height:calc(var(--rist-n) - 8px)!important;
+ max-height:calc(var(--rist-n) - 8px)!important;
 }
 
 html body .rist.release-world .release-footer-region{
