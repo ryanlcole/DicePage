@@ -10,7 +10,7 @@
   shell:[
    'map-context-sidebar.js?v=5',
    'recursion-layers.js?v=5',
-   'mmo-mode.js?v=6',
+   'mmo-mode.js?v=7',
    'token-game-launcher.js?v=3',
    'start-menu.js?v=2',
    'js/faux-depth.js?v=3'
