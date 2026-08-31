@@ -1,0 +1,68 @@
+/* RIST row-density authority.
+   The Stars/context row is the canonical single-row height (42px in WorldTable).
+   This file intentionally uses higher-specificity selectors so component inline styles
+   cannot re-expand the menu or roleplay output after the document styles load. */
+
+html body .rist.release-world{
+ --rist-menu-h:var(--rist-n)!important;
+ --rist-roleplay-h:var(--rist-n)!important;
+}
+
+/* Login/main menu rail = exactly one Stars/context row. */
+html body .rist.release-world .release-menu-region,
+html body .rist.release-world .release-menu-region>#header-slider,
+html body .rist.release-world #header-slider .release-root-track{
+ height:var(--rist-n)!important;
+ min-height:var(--rist-n)!important;
+ max-height:var(--rist-n)!important;
+}
+
+html body .rist.release-world #header-slider .release-root-track>.root-menu-button,
+html body .rist.release-world #header-slider .header-icon-button,
+html body .rist.release-world #header-slider .control,
+html body .rist.release-world #header-slider .scale-stack{
+ height:calc(var(--rist-n) - 8px)!important;
+ min-height:calc(var(--rist-n) - 8px)!important;
+ max-height:calc(var(--rist-n) - 8px)!important;
+ padding:3px!important;
+}
+
+/* Artwork height follows the rail; width follows artwork aspect ratio. */
+html body .rist.release-world #header-slider .root-menu-art,
+html body .rist.release-world #header-slider .header-icon,
+html body .rist.release-world #header-slider .mmo-toggle-art{
+ height:calc(var(--rist-n) - 14px)!important;
+ min-height:0!important;
+ max-height:calc(var(--rist-n) - 14px)!important;
+ width:auto!important;
+ min-width:0!important;
+ max-width:none!important;
+ aspect-ratio:auto!important;
+ background-size:contain!important;
+}
+
+/* Roleplay output = exactly one Stars/context row. */
+html body .rist.release-world .release-footer-stack>.inline-chat-output{
+ height:var(--rist-n)!important;
+ min-height:var(--rist-n)!important;
+ max-height:var(--rist-n)!important;
+ padding:4px 8px!important;
+}
+
+html body .rist.release-world .release-footer-region>.release-footer-stack{
+ grid-template-rows:var(--rist-n) 56px 14px!important;
+ height:calc(var(--rist-n) + 70px)!important;
+ min-height:calc(var(--rist-n) + 70px)!important;
+ max-height:calc(var(--rist-n) + 70px)!important;
+}
+
+html body .rist.release-world .release-footer-region{
+ height:calc(var(--rist-n) + 70px)!important;
+ min-height:calc(var(--rist-n) + 70px)!important;
+ max-height:calc(var(--rist-n) + 70px)!important;
+}
+
+html body .rist.release-world{
+ --rist-footer-h:calc(var(--rist-n) + 70px)!important;
+ --rw-footer:calc(var(--rist-n) + 70px)!important;
+}
