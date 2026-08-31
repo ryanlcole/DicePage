@@ -17,6 +17,8 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public AuthProfile? Profile { get; private set; }
     public AccountProfile? Account { get; private set; }
     public string RistAccountId => Account?.AccountId ?? "";
+    public bool Age21Verified => Profile?.Age21Verified == true;
+    public bool AgeVerificationAvailable => Profile?.AgeVerificationAvailable == true;
     public string LastError { get; private set; } = "";
     public bool IsOwnerDiscordAccount => Profile is not null && !string.IsNullOrWhiteSpace(OwnerDiscordUserId) && string.Equals(Profile.UserId, OwnerDiscordUserId, StringComparison.Ordinal);
     internal string? SessionToken => _sessionToken;
@@ -179,6 +181,50 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("ristAuth.navigate", _apiBaseUrl + "/auth/login");
     }
 
+    public async Task BeginAgeVerificationAsync()
+    {
+        LastError = "";
+        if (!IsConfigured || string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            LastError = "Log in before verifying age access.";
+            return;
+        }
+
+        try
+        {
+            var result = await SendAsync<AgeVerificationStart>(HttpMethod.Post, "/age/start");
+            if (result?.Verified == true)
+            {
+                await RefreshProfileAsync();
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(result?.Url))
+            {
+                LastError = "Age verification is not available yet.";
+                return;
+            }
+            await js.InvokeVoidAsync("ristAuth.navigate", result.Url);
+        }
+        catch
+        {
+            LastError = "Age verification could not be started. Please try again.";
+        }
+    }
+
+    public async Task<AuthProfile?> RefreshProfileAsync()
+    {
+        if (!IsConfigured || string.IsNullOrWhiteSpace(_sessionToken)) return Profile;
+        try
+        {
+            Profile = await SendAsync<AuthProfile>(HttpMethod.Get, "/me");
+            return Profile;
+        }
+        catch
+        {
+            return Profile;
+        }
+    }
+
     public async Task LogoutAsync()
     {
         if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
@@ -268,8 +314,9 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     }
 
     public sealed record AuthConfig(string ApiBaseUrl, string? OwnerDiscordUserId = null);
-    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix);
+    public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix, bool Age21Verified = false, bool AgeVerificationAvailable = false);
     public sealed record AccountProfile(string AccountId, string PlayerAlias, string Plan, DateTimeOffset CreatedAtUtc, DateTimeOffset TermsAcceptedAtUtc, string TermsVersion);
+    public sealed record AgeVerificationStart(string? Url, bool Verified = false);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
