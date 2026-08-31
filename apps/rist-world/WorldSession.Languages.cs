@@ -171,12 +171,15 @@ public sealed partial class WorldSession
         while (last >= first && !char.IsLetterOrDigit(token[last])) last--;
         if (first > last) return token;
 
-        const string alphabet = "abcdefghijklmnopqrstuvwxyz";
+        // Five-letter dialect words stay speech-friendly for future TTS: consonant-vowel-consonant-vowel-consonant.
+        const string consonants = "bcdfghjklmnprstvwxyz";
+        const string vowels = "aeiou";
         var seed = StableHash($"mask|{language}|{text}|{position}|{token}");
         Span<char> code = stackalloc char[5];
         for (var i = 0; i < code.Length; i++)
         {
             seed = unchecked(seed * 1664525u + 1013904223u);
+            var alphabet = i % 2 == 0 ? consonants : vowels;
             code[i] = alphabet[(int)(seed % (uint)alphabet.Length)];
         }
         return string.Concat(token[..first], new string(code), token[(last + 1)..]);
