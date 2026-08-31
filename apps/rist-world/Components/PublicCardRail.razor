@@ -15,6 +15,28 @@
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#public-assets-slider',-1)" aria-label="Scroll public assets left">‹</button>
   <div class="public-assets-items">
    <button class="token-pin-source public-pin-source" @onpointerdown="BeginPinDrag" @onpointerup="EndPinDrag" @onpointercancel="CancelPinDrag" @oncontextmenu:preventDefault aria-label="Drag public map pin onto map" title="Map pin"><span class="map-pin-icon" aria-hidden="true"></span></button>
+   <div class="z-axis-controls" aria-label="Z axis navigation">
+    <details class="z-axis-menu">
+     <summary title="Navigate or add tiers">Tier <b>@Session.TierIndex</b></summary>
+     <div class="z-axis-dropdown">
+      @foreach(var tier in Session.AvailableTierIndices)
+      {
+       <button type="button" class="@(tier==Session.TierIndex?"active":"")" @onclick="()=>Session.NavigateToTier(tier)">Tier @tier <small>z @(tier*WorldSession.LayersPerTier)</small></button>
+      }
+      <button type="button" class="z-axis-add" disabled="@(!Session.CanAddTier)" @onclick="Session.AddTier">＋ Add Tier</button>
+     </div>
+    </details>
+    <details class="z-axis-menu">
+     <summary title="Select or add layers">Layer <b>@Session.LayerOffset</b></summary>
+     <div class="z-axis-dropdown">
+      @foreach(var layer in Session.AvailableLayerOffsets)
+      {
+       <button type="button" class="@(layer==Session.LayerOffset?"active":"")" @onclick="()=>Session.NavigateToLayer(layer)">Layer @layer <small>z @(Session.TierIndex*WorldSession.LayersPerTier+layer)</small></button>
+      }
+      <button type="button" class="z-axis-add" disabled="@(!Session.CanAddLayer)" @onclick="Session.AddLayer">＋ Add Layer</button>
+     </div>
+    </details>
+   </div>
    @if(Session.PublicAssetType is "all" or "cards")
    {
     @if(Session.PublicCards.Count==0)
@@ -41,6 +63,21 @@
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#public-assets-slider',1)" aria-label="Scroll public assets right">›</button>
  </div>
 </section>
+
+<style>
+.z-axis-controls{display:flex;align-items:stretch;gap:4px;flex:0 0 auto;position:relative;z-index:12}
+.z-axis-menu{position:relative;flex:0 0 auto}
+.z-axis-menu>summary{list-style:none;display:flex;align-items:center;justify-content:center;gap:4px;min-width:64px;height:100%;box-sizing:border-box;padding:4px 8px;border:1px solid rgba(217,168,47,.55);border-radius:6px;background:rgba(16,13,9,.9);color:#ead8ad;font-size:11px;line-height:1;cursor:pointer;user-select:none}
+.z-axis-menu>summary::-webkit-details-marker{display:none}
+.z-axis-menu[open]>summary,.z-axis-menu>summary:hover{border-color:#d9a82f;background:rgba(54,40,18,.96)}
+.z-axis-menu>summary b{font-size:10px;color:#fff2bd;font-weight:700}
+.z-axis-dropdown{position:absolute;left:0;bottom:calc(100% + 5px);display:grid;min-width:132px;max-height:240px;overflow:auto;padding:5px;border:1px solid rgba(217,168,47,.7);border-radius:7px;background:#15110c;box-shadow:0 8px 22px rgba(0,0,0,.55)}
+.z-axis-dropdown button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:4px;background:transparent;color:#ead8ad;text-align:left;white-space:nowrap;cursor:pointer}
+.z-axis-dropdown button:hover,.z-axis-dropdown button.active{background:rgba(217,168,47,.17);color:#fff2bd}
+.z-axis-dropdown button small{opacity:.62;font-size:9px}
+.z-axis-dropdown button.z-axis-add{margin-top:4px;border-top:1px solid rgba(217,168,47,.24);border-radius:0 0 4px 4px;color:#d9a82f}
+.z-axis-dropdown button:disabled{opacity:.38;cursor:not-allowed}
+</style>
 
 @code{
  static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens / Chits"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns / Meeples"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
