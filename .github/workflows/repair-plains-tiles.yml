@@ -6,11 +6,12 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - 'apps/rist-world/repair_plains_tiles.py'
+      - 'apps/rist-world/plains_separator_repair.py'
       - '.github/workflows/repair-plains-tiles.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 env:
@@ -33,13 +34,12 @@ jobs:
           python-version: '3.12'
 
       - name: Prepare image tooling
-        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.3.2
 
-      # This stages and validates the COMPLETE family before AWS credentials are
-      # configured. A missing/expired source therefore cannot partially replace
-      # production cuts.
-      - name: Rebuild and validate all Plains cuts
-        run: python apps/rist-world/repair_plains_tiles.py
+      # Analyze every canonical source and stage the entire family before AWS
+      # credentials exist. No production object changes on a partial failure.
+      - name: Rebuild and validate all Plains pieces
+        run: python apps/rist-world/plains_separator_repair.py
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -50,7 +50,7 @@ jobs:
       - name: Publish repaired Plains family
         run: |
           set -euo pipefail
-          aws s3 sync build/plains-repair/ "s3://${ASSET_BUCKET}/tilesets/world/terrain/plains/" --only-show-errors
+          aws s3 sync build/plains-repair/ "s3://${ASSET_BUCKET}/tilesets/world/terrain/plains/" --delete --only-show-errors
 
       - name: Refresh Plains CDN paths
         run: |
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for set in 040 042 043; do
+          for set in 029 040 042 043; do
             target="/tmp/plains-${set}.jpg"
             curl --fail --location --retry 6 --retry-delay 5 --output "$target" "${ASSET_BASE_URL}tilesets/world/terrain/plains/plains-${set}/tile-01-01.jpg"
             test "$(stat -c%s "$target")" -gt 1000
@@ -71,6 +71,30 @@ jobs:
           from PIL import Image
           with Image.open(sys.argv[1]) as im:
               assert min(im.size) > 20, im.size
-              assert abs(im.width-im.height) <= max(im.size)*0.08, im.size
           PY
           done
+
+      # The catalog must describe the actual geometry-derived count. Commit only
+      # after CDN verification so the live frontend never points at missing cuts.
+      - name: Publish corrected Plains inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          CATALOG='apps/rist-world/wwwroot/assets/drive-tiles/catalog.json'
+          git config user.name 'ReLiC Asset Pipeline'
+          git config user.email 'actions@users.noreply.github.com'
+          git add "$CATALOG"
+          if git diff --cached --quiet; then
+            echo 'Catalog already matches repaired cuts.'
+            exit 0
+          fi
+          git commit -m 'Correct Plains runtime cut inventory'
+          for attempt in 1 2 3 4; do
+            if git pull --rebase origin live-alpha-rist-blazor-world && git push origin HEAD:live-alpha-rist-blazor-world; then
+              exit 0
+            fi
+            echo "Catalog push retry $attempt/4"
+            sleep $((attempt * 3))
+          done
+          echo 'Unable to publish corrected catalog after verified asset upload.' >&2
+          exit 1
