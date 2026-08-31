@@ -27,18 +27,44 @@ html body .rist.release-world #header-slider .scale-stack{
  padding:3px!important;
 }
 
-/* Artwork height follows the rail; width follows artwork aspect ratio. */
+/* Background artwork has no intrinsic CSS width. The rail determines artwork height;
+   explicit aspect ratios turn that height back into the correct border/button width. */
 html body .rist.release-world #header-slider .root-menu-art,
 html body .rist.release-world #header-slider .header-icon,
 html body .rist.release-world #header-slider .mmo-toggle-art{
- height:calc(var(--rist-n) - 14px)!important;
- min-height:0!important;
- max-height:calc(var(--rist-n) - 14px)!important;
- width:auto!important;
+ --menu-art-h:calc(var(--rist-n) - 14px);
+ display:block!important;
+ height:var(--menu-art-h)!important;
+ min-height:var(--menu-art-h)!important;
+ max-height:var(--menu-art-h)!important;
+ width:var(--menu-art-h)!important;
+ min-width:var(--menu-art-h)!important;
+ max-width:var(--menu-art-h)!important;
+ background-position:center!important;
+ background-repeat:no-repeat!important;
+ background-size:contain!important;
+}
+
+/* Card back and Sandbox/MMO artwork keep their native proportions. */
+html body .rist.release-world #header-slider .root-menu-art.icon-assets{
+ width:calc(var(--menu-art-h) * .704545)!important;
+ min-width:calc(var(--menu-art-h) * .704545)!important;
+ max-width:calc(var(--menu-art-h) * .704545)!important;
+}
+html body .rist.release-world #header-slider .mmo-toggle-art{
+ width:calc(var(--menu-art-h) * 1.173913)!important;
+ min-width:calc(var(--menu-art-h) * 1.173913)!important;
+ max-width:calc(var(--menu-art-h) * 1.173913)!important;
+}
+
+/* Button borders hug the resulting artwork width plus two small side gaps. */
+html body .rist.release-world #header-slider .release-root-track>.root-menu-button:not(.root-menu-text),
+html body .rist.release-world #header-slider .header-icon-button{
+ width:max-content!important;
  min-width:0!important;
  max-width:none!important;
- aspect-ratio:auto!important;
- background-size:contain!important;
+ padding-left:4px!important;
+ padding-right:4px!important;
 }
 
 /* Roleplay output = exactly one Stars/context row. */
