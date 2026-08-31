@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
+@inject AssetRatingClient Ratings
 
 @if(Session.TileBrowserOpen)
 {
@@ -10,10 +11,7 @@
   <div class="map-asset-title"><strong>Assets</strong><span>@FilteredTiles.Count asset@(FilteredTiles.Count==1?"":"s")</span></div>
   <input class="map-asset-search" type="search" placeholder="Search assets…" @bind="_query" @bind:event="oninput" aria-label="Search assets" />
   <button type="button" class="map-asset-filter-toggle @(_filtersOpen?"active":"")" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
-  <label class="map-asset-upload @(!Session.IsLoggedIn?"disabled":"")" title="@(Session.IsLoggedIn?"Upload to your private AWS asset storage":"Log in to upload assets")">
-   <span>+ Upload</span>
-   <InputFile OnChange="UploadAssets" accept="image/png,image/webp,image/jpeg,image/gif" multiple disabled="@(!Session.IsLoggedIn||_uploading)" />
-  </label>
+  <button type="button" class="map-asset-upload @(!Session.IsLoggedIn?"disabled":"")" disabled="@(!Session.IsLoggedIn||_uploading)" @onclick="OpenUploadRating" title="@(Session.IsLoggedIn?"Rate and upload assets":"Log in to upload assets")">+ Upload</button>
   <button type="button" class="map-asset-close" @onclick="Close" aria-label="Close asset library">×</button>
  </header>
 
@@ -35,29 +33,84 @@
  <div class="map-asset-grid">
   @foreach(var tile in FilteredTiles)
   {
-   <button type="button" class="map-asset-card @((IsPrivate(tile)?"private":"public"))" @onclick="()=>Choose(tile)" title="@tile.Name">
-    <span class="map-asset-preview tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" loading="lazy" draggable="false" /></span>
-    <strong>@tile.Name</strong>
-   </button>
+   var rating=RatingFor(tile);
+   <article class="map-asset-card @((IsPrivate(tile)?"private":"public"))">
+    <button type="button" class="map-asset-choose" @onclick="()=>Choose(tile)" title="@tile.Name">
+     <span class="map-asset-preview tile-image-crop"><img src="@tile.Image" style="@CropStyle(tile)" alt="" loading="lazy" draggable="false" /></span>
+     <strong>@tile.Name</strong>
+    </button>
+    <div class="asset-rating-row">
+     <span>@RatingLabel(rating)</span>
+     @if(Session.IsLoggedIn && rating is not null)
+     {
+      <button type="button" @onclick="()=>OpenReport(tile,rating)">Report rating</button>
+     }
+    </div>
+   </article>
   }
   @if(FilteredTiles.Count==0)
   {
-   <div class="map-asset-empty">@(_loadingPrivate?"Loading your assets…":"No matching assets.")</div>
+   <div class="map-asset-empty">@(_loadingPrivate?"Loading your assets…":"No matching assets are allowed by your content settings.")</div>
   }
  </div>
 </section>
 }
 
+@if(_uploadRatingOpen)
+{
+ <section class="asset-rating-modal" role="dialog" aria-modal="true" aria-label="Rate uploaded assets">
+  <div class="asset-rating-dialog">
+   <header><strong>Rate assets before upload</strong><button type="button" @onclick="CloseUploadRating">×</button></header>
+   <p>The provider must describe the content before an asset enters the library. Choose <strong>General</strong> only when none of the mature-content reasons apply.</p>
+   <label class="rating-choice general"><input type="checkbox" checked="@_providerGeneral" @onchange="e=>SetProviderGeneral(e.Value as bool?==true)" /><span><strong>General / none of these</strong><small>No mature-content descriptor applies.</small></span></label>
+   <div class="rating-choices">
+    @foreach(var descriptor in ContentAllowancePolicy.Descriptors)
+    {
+     <label class="rating-choice"><input type="checkbox" checked="@_providerDescriptors.Contains(descriptor.Id)" @onchange="e=>ToggleProviderDescriptor(descriptor.Id,e.Value as bool?==true)" /><span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small></span></label>
+    }
+   </div>
+   <div class="rating-upload-action @(!CanUploadRated?"disabled":"")">
+    <span>@(CanUploadRated?"Choose images to add":"Choose a rating first")</span>
+    <InputFile OnChange="UploadAssets" accept="image/png,image/webp,image/jpeg,image/gif" multiple disabled="@(!CanUploadRated||_uploading)" />
+   </div>
+   <small>These provider-selected reasons become the asset's initial restrictions. Users may report an incorrect rating.</small>
+  </div>
+ </section>
+}
+
+@if(_reportTile is not null && _reportRating is not null)
+{
+ <section class="asset-rating-modal" role="dialog" aria-modal="true" aria-label="Report asset rating">
+  <div class="asset-rating-dialog">
+   <header><strong>Suggest rating correction</strong><button type="button" @onclick="CloseReport">×</button></header>
+   <p><strong>@_reportTile.Name</strong> is currently restricted for: <strong>@RatingReasons(_reportRating.EffectiveDescriptors)</strong>.</p>
+   <p>Select what you believe the rating should say. Reports are queued for manual review. More than five different signed-in users reporting the asset automatically <strong>tightens</strong> restrictions while review is pending; reports can never automatically lower restrictions.</p>
+   <label class="rating-choice general"><input type="checkbox" checked="@_reportGeneral" @onchange="e=>SetReportGeneral(e.Value as bool?==true)" /><span><strong>General / none of these</strong><small>I believe no mature-content descriptor applies.</small></span></label>
+   <div class="rating-choices">
+    @foreach(var descriptor in ContentAllowancePolicy.Descriptors)
+    {
+     <label class="rating-choice"><input type="checkbox" checked="@_reportDescriptors.Contains(descriptor.Id)" @onchange="e=>ToggleReportDescriptor(descriptor.Id,e.Value as bool?==true)" /><span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small></span></label>
+    }
+   </div>
+   <button type="button" class="rating-submit" disabled="@(!CanReport||_reporting)" @onclick="SubmitReportAsync">@(_reporting?"Sending…":"Submit rating report")</button>
+  </div>
+ </section>
+}
+
 <style>
 .table-workspace>.tile-browser:not(.card-browser){display:none!important}
-.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{position:absolute!important;inset:8px!important;z-index:44!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto minmax(0,1fr)!important;align-content:start!important;width:auto!important;height:auto!important;max-height:calc(100% - 16px)!important;margin:0!important;padding:0!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#071015f5!important;color:#eee6d2!important;overflow:hidden!important;box-shadow:0 8px 28px #000b!important;backdrop-filter:blur(8px)!important;pointer-events:auto!important}
-.map-asset-toolbar{box-sizing:border-box!important;display:grid!important;grid-template-columns:auto minmax(110px,1fr) auto auto 36px!important;align-items:center!important;gap:6px!important;padding:7px!important;border-bottom:1px solid #51452b!important;background:#0b141bf8!important}.map-asset-title{min-width:62px!important;display:flex!important;flex-direction:column!important;gap:2px!important}.map-asset-title strong{color:#e1c77f!important;font:800 15px/1 system-ui!important}.map-asset-title span{color:#9e9787!important;font:600 8px/1 system-ui!important;text-transform:uppercase!important}.map-asset-search{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:36px!important;padding:0 10px!important;border:1px solid #5d4e2e!important;border-radius:8px!important;background:#0d171e!important;color:#fff!important;font-size:16px!important;outline:none!important}.map-asset-search:focus{border-color:#c49a3b!important}.map-asset-filter-toggle,.map-asset-upload,.map-asset-close{box-sizing:border-box!important;height:36px!important;display:grid!important;place-items:center!important;border:1px solid #725d30!important;border-radius:8px!important;background:#111920!important;color:#e1c77f!important;font:750 11px/1 system-ui!important;white-space:nowrap!important}.map-asset-filter-toggle{padding:0 10px!important}.map-asset-filter-toggle.active{background:#1b252d!important;border-color:#c49a3b!important}.map-asset-upload{position:relative!important;padding:0 11px!important;cursor:pointer!important;overflow:hidden!important}.map-asset-upload.disabled{opacity:.45!important}.map-asset-upload input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important}.map-asset-close{width:36px!important;padding:0!important;font-size:24px!important}.map-asset-filters{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;gap:6px!important;padding:6px 7px!important;border-bottom:1px solid #40371f!important;background:#0c151c!important}.map-asset-filters select,.map-asset-filters button{min-width:0!important;height:32px!important;padding:0 8px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111920!important;color:#ddd3bb!important;font-size:11px!important}.map-asset-status{padding:5px 8px!important;border-bottom:1px solid #40371f!important;color:#cdbb8c!important;background:#0c151c!important;font-size:10px!important}.map-asset-grid{box-sizing:border-box!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(112px,1fr))!important;gap:7px!important;padding:7px!important;overflow:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}.map-asset-card{box-sizing:border-box!important;min-width:0!important;height:132px!important;display:grid!important;grid-template-rows:minmax(0,1fr) 27px!important;gap:0!important;padding:0!important;overflow:hidden!important;border:1px solid #4e432b!important;border-radius:9px!important;background:#0d171e!important;color:#e8dcc0!important;text-align:left!important}.map-asset-card:active,.map-asset-card:focus-visible{border-color:#d0a63f!important;box-shadow:inset 0 0 0 1px #d0a63f55!important}.map-asset-card.private{border-color:#526879!important}.map-asset-preview{position:relative!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;background:#050b0f!important}.map-asset-preview img{position:absolute!important}.map-asset-card strong{box-sizing:border-box!important;display:block!important;width:100%!important;padding:7px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#e1c77f!important;font:700 9px/1 system-ui!important}.map-asset-empty{grid-column:1/-1!important;align-self:start!important;padding:30px!important;text-align:center!important;color:#9d9687!important;font-size:12px!important}
-@@media(max-width:600px){.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{inset:5px!important;max-height:calc(100% - 10px)!important;border-radius:9px!important}.map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important;gap:5px!important;padding:5px!important}.map-asset-title{min-width:48px!important}.map-asset-title strong{font-size:13px!important}.map-asset-filter-toggle{width:34px!important;padding:0!important;font-size:0!important}.map-asset-filter-toggle::after{content:"☰"!important;font-size:16px!important}.map-asset-upload{width:34px!important;padding:0!important;font-size:0!important}.map-asset-upload>span{font-size:0!important}.map-asset-upload>span::after{content:"+"!important;font-size:22px!important}.map-asset-close{width:34px!important}.map-asset-filters{grid-template-columns:1fr 1fr!important}.map-asset-filters button{grid-column:2!important}.map-asset-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important}.map-asset-card{height:112px!important;grid-template-rows:minmax(0,1fr) 24px!important}.map-asset-card strong{padding:6px!important;font-size:8px!important}}
+.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{position:absolute!important;inset:8px!important;z-index:44!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto minmax(0,1fr)!important;width:auto!important;height:auto!important;max-height:calc(100% - 16px)!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#071015f5!important;color:#eee6d2!important;overflow:hidden!important;box-shadow:0 8px 28px #000b!important;backdrop-filter:blur(8px)!important;pointer-events:auto!important}
+.map-asset-toolbar{display:grid!important;grid-template-columns:auto minmax(110px,1fr) auto auto 36px!important;align-items:center!important;gap:6px!important;padding:7px!important;border-bottom:1px solid #51452b!important;background:#0b141bf8!important}.map-asset-title{min-width:62px!important;display:flex!important;flex-direction:column!important;gap:2px!important}.map-asset-title strong{color:#e1c77f!important;font:800 15px/1 system-ui!important}.map-asset-title span{color:#9e9787!important;font:600 8px/1 system-ui!important;text-transform:uppercase!important}.map-asset-search{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:36px!important;padding:0 10px!important;border:1px solid #5d4e2e!important;border-radius:8px!important;background:#0d171e!important;color:#fff!important;font-size:16px!important}.map-asset-filter-toggle,.map-asset-upload,.map-asset-close{height:36px!important;border:1px solid #725d30!important;border-radius:8px!important;background:#111920!important;color:#e1c77f!important;font:750 11px/1 system-ui!important}.map-asset-filter-toggle{padding:0 10px!important}.map-asset-upload{padding:0 11px!important}.map-asset-upload.disabled{opacity:.45!important}.map-asset-close{width:36px!important;font-size:24px!important}.map-asset-filters{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;gap:6px!important;padding:6px 7px!important;border-bottom:1px solid #40371f!important;background:#0c151c!important}.map-asset-filters select,.map-asset-filters button{min-width:0!important;height:32px!important;padding:0 8px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111920!important;color:#ddd3bb!important}.map-asset-status{padding:5px 8px!important;border-bottom:1px solid #40371f!important;color:#cdbb8c!important;background:#0c151c!important;font-size:10px!important}.map-asset-grid{min-height:0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(122px,1fr))!important;gap:7px!important;padding:7px!important;overflow:auto!important}.map-asset-card{min-width:0!important;height:154px!important;display:grid!important;grid-template-rows:minmax(0,1fr) 24px!important;overflow:hidden!important;border:1px solid #4e432b!important;border-radius:9px!important;background:#0d171e!important}.map-asset-card.private{border-color:#526879!important}.map-asset-choose{min-width:0!important;display:grid!important;grid-template-rows:minmax(0,1fr) 27px!important;padding:0!important;border:0!important;background:transparent!important;color:#e8dcc0!important;text-align:left!important;overflow:hidden!important}.map-asset-preview{position:relative!important;display:block!important;overflow:hidden!important;background:#050b0f!important}.map-asset-preview img{position:absolute!important}.map-asset-choose strong{padding:7px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#e1c77f!important;font:700 9px/1 system-ui!important}.asset-rating-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:3px!important;padding:2px 5px!important;border-top:1px solid #342f25!important;font-size:7px!important;color:#aaa18d!important}.asset-rating-row button{border:0!important;background:transparent!important;color:#c9a85d!important;font-size:7px!important;padding:2px!important}.map-asset-empty{grid-column:1/-1!important;padding:30px!important;text-align:center!important;color:#9d9687!important}
+.asset-rating-modal{position:fixed!important;inset:0!important;z-index:120!important;display:grid!important;place-items:center!important;padding:12px!important;background:#000b!important}.asset-rating-dialog{width:min(720px,100%)!important;max-height:min(760px,92vh)!important;display:grid!important;gap:10px!important;padding:14px!important;overflow:auto!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#0b141b!important;color:#eee6d2!important}.asset-rating-dialog>header{display:flex!important;justify-content:space-between!important;align-items:center!important;color:#e1c77f!important}.asset-rating-dialog>header button{width:32px!important;height:32px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#111920!important;color:#e1c77f!important;font-size:20px!important}.asset-rating-dialog p{margin:0!important;color:#bbb09a!important;font-size:12px!important;line-height:1.45!important}.rating-choices{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}.rating-choice{display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;align-items:start!important;padding:9px!important;border:1px solid #403a2d!important;border-radius:7px!important;background:#0e1920!important}.rating-choice>span{display:grid!important;gap:2px!important}.rating-choice small{color:#9e9278!important;font-size:9px!important;line-height:1.35!important}.rating-choice.general{border-color:#6c5c35!important}.rating-upload-action{position:relative!important;height:42px!important;display:grid!important;place-items:center!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important;overflow:hidden!important}.rating-upload-action.disabled{opacity:.45!important}.rating-upload-action input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important}.rating-submit{height:42px!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important}
+@@media(max-width:600px){.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{inset:5px!important}.map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important;padding:5px!important}.map-asset-filter-toggle{width:34px!important;font-size:0!important}.map-asset-filter-toggle::after{content:"☰"!important;font-size:16px!important}.map-asset-upload{width:34px!important;padding:0!important;font-size:0!important}.map-asset-upload::after{content:"+"!important;font-size:22px!important}.map-asset-close{width:34px!important}.map-asset-filters{grid-template-columns:1fr 1fr!important}.map-asset-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important}.map-asset-card{height:132px!important}.rating-choices{grid-template-columns:1fr!important}}
 </style>
 
 @code {
  const long MaxAssetBytes=20*1024*1024;
  readonly List<AtlasTile> _privateTiles=[];
+ readonly Dictionary<string,AssetRatingClient.AssetRating> _ratings=new(StringComparer.Ordinal);
+ readonly HashSet<string> _providerDescriptors=new(StringComparer.Ordinal);
+ readonly HashSet<string> _reportDescriptors=new(StringComparer.Ordinal);
  string _query="";
  string _source="all";
  string _category="all";
@@ -67,10 +120,17 @@
  bool _uploading;
  bool _loadingPrivate;
  bool _privateLoaded;
+ bool _uploadRatingOpen;
+ bool _providerGeneral;
+ AtlasTile? _reportTile;
+ AssetRatingClient.AssetRating? _reportRating;
+ bool _reportGeneral;
+ bool _reporting;
 
  IEnumerable<AtlasTile> PublicTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal));
  IEnumerable<AtlasTile> AllTiles=>PublicTiles.Concat(_privateTiles);
  List<AtlasTile> FilteredTiles=>AllTiles
+  .Where(ContentAllowed)
   .Where(SourceMatch)
   .Where(x=>_category=="all"||CategoryFor(x)==_category)
   .Where(x=>_folder=="all"||FolderFor(x)==_folder)
@@ -80,6 +140,8 @@
   .ToList();
  List<string> CategoryChoices=>AllTiles.Select(CategoryFor).Distinct().OrderBy(x=>x).ToList();
  List<string> FolderChoices=>AllTiles.Where(x=>_category=="all"||CategoryFor(x)==_category).Select(FolderFor).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x=>x).ToList();
+ bool CanUploadRated=>_providerGeneral||_providerDescriptors.Count>0;
+ bool CanReport=>_reportGeneral||_reportDescriptors.Count>0;
 
  protected override void OnInitialized(){Session.Changed+=Changed;if(Session.IsLoggedIn)_=LoadPrivateAssetsAsync();}
  void Changed(){if(Session.IsLoggedIn&&Session.TileBrowserOpen&&!_privateLoaded&&!_loadingPrivate)_=LoadPrivateAssetsAsync();_ = InvokeAsync(StateHasChanged);}
@@ -91,13 +153,33 @@
  bool SourceMatch(AtlasTile tile)=>_source switch{"mine"=>IsPrivate(tile),"public"=>!IsPrivate(tile),_=>true};
  bool SearchMatch(AtlasTile tile)=>string.IsNullOrWhiteSpace(_query)||$"{tile.Name} {tile.Directory} {tile.Folder} {CategoryFor(tile)}".Contains(_query.Trim(),StringComparison.OrdinalIgnoreCase);
  static bool IsPrivate(AtlasTile tile)=>tile.Id.StartsWith("private:",StringComparison.Ordinal);
+ string AssetId(AtlasTile tile)=>IsPrivate(tile)?tile.Id["private:".Length..]:tile.Id;
+ AssetRatingClient.AssetRating? RatingFor(AtlasTile tile)=>_ratings.TryGetValue(AssetId(tile),out var rating)?rating:null;
+ bool ContentAllowed(AtlasTile tile)
+ {
+  var rating=RatingFor(tile);
+  return rating is null||rating.EffectiveDescriptors.Length==0||Auth.CampaignContentAllowed(rating.EffectiveDescriptors);
+ }
+ string RatingLabel(AssetRatingClient.AssetRating? rating)=>rating is null?"Legacy · General":rating.EffectiveDescriptors.Length==0?"General":$"Rated · {rating.EffectiveDescriptors.Length}";
+ string RatingReasons(IEnumerable<string> ids)
+ {
+  var labels=ids.Select(id=>ContentAllowancePolicy.Descriptors.FirstOrDefault(x=>x.Id==id)?.Label).Where(x=>!string.IsNullOrWhiteSpace(x)).ToArray();
+  return labels.Length==0?"General / none":string.Join(", ",labels!);
+ }
+
+ void OpenUploadRating(){_providerDescriptors.Clear();_providerGeneral=false;_uploadRatingOpen=true;}
+ void CloseUploadRating(){if(!_uploading)_uploadRatingOpen=false;}
+ void SetProviderGeneral(bool value){_providerGeneral=value;if(value)_providerDescriptors.Clear();}
+ void ToggleProviderDescriptor(string id,bool value){_providerGeneral=false;if(value)_providerDescriptors.Add(id);else _providerDescriptors.Remove(id);}
 
  async Task UploadAssets(InputFileChangeEventArgs e)
  {
   if(!Session.IsLoggedIn){_status="Log in to upload private assets.";return;}
-  _uploading=true;_status="Uploading to your private AWS storage…";
+  if(!CanUploadRated){_status="Choose a content rating before uploading.";return;}
+  _uploading=true;_status="Uploading rated assets to your private AWS storage…";
   try
   {
+   var uploaded=0;
    foreach(var file in e.GetMultipleFiles(24))
    {
     var contentType=NormalizeImageType(file.ContentType,file.Name);
@@ -109,11 +191,16 @@
     var safe=SafeFileName(file.Name);
     var key=$"assets/{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid():N}-{safe}";
     await Auth.UploadBytesAsync(key,memory.ToArray(),contentType);
+    var rating=await Ratings.RegisterAsync(key,_providerDescriptors,_providerGeneral);
+    if(rating is null)throw new InvalidOperationException($"{file.Name} uploaded but its required content rating could not be registered.");
+    _ratings[key]=rating;
+    uploaded++;
    }
    _privateLoaded=false;
    await LoadPrivateAssetsAsync(force:true);
    _source="mine";
-   _status="Upload complete. Stored in your private AWS assets.";
+   _uploadRatingOpen=false;
+   _status=$"{uploaded} rated asset{(uploaded==1?"":"s")} added to your library.";
   }
   catch(Exception ex){_status="Upload failed: "+ex.Message;}
   finally{_uploading=false;await InvokeAsync(StateHasChanged);}
@@ -128,8 +215,12 @@
    var listing=await Auth.ListAsync("assets/");
    var files=listing?.Items?.Where(x=>IsImageKey(x.Key)).OrderByDescending(x=>x.LastModified).Take(300).ToList()??[];
    var loaded=new List<AtlasTile>();
+   var unrated=0;
    foreach(var item in files)
    {
+    var rating=await Ratings.GetAsync(item.Key);
+    if(rating is null){unrated++;continue;}
+    _ratings[item.Key]=rating;
     var url=await Auth.DownloadUrlAsync(item.Key);
     if(string.IsNullOrWhiteSpace(url))continue;
     var file=Path.GetFileName(item.Key);
@@ -139,9 +230,38 @@
     loaded.Add(new AtlasTile("private:"+item.Key,display,url,"PRIVATE","Uploads","My Assets","You"));
    }
    _privateTiles.Clear();_privateTiles.AddRange(loaded);_privateLoaded=true;
+   if(unrated>0)_status=$"{unrated} older upload{(unrated==1?" is":"s are")} hidden until a provider content rating is assigned.";
   }
   catch(Exception ex){_status="Your private assets could not be loaded: "+ex.Message;}
   finally{_loadingPrivate=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ void OpenReport(AtlasTile tile,AssetRatingClient.AssetRating rating)
+ {
+  _reportTile=tile;_reportRating=rating;_reportGeneral=false;_reportDescriptors.Clear();
+  foreach(var id in rating.EffectiveDescriptors)_reportDescriptors.Add(id);
+ }
+ void CloseReport(){if(!_reporting){_reportTile=null;_reportRating=null;_reportDescriptors.Clear();_reportGeneral=false;}}
+ void SetReportGeneral(bool value){_reportGeneral=value;if(value)_reportDescriptors.Clear();}
+ void ToggleReportDescriptor(string id,bool value){_reportGeneral=false;if(value)_reportDescriptors.Add(id);else _reportDescriptors.Remove(id);}
+ async Task SubmitReportAsync()
+ {
+  if(_reporting||_reportTile is null||_reportRating is null||!CanReport)return;
+  _reporting=true;
+  try
+  {
+   var result=await Ratings.ReportAsync(AssetId(_reportTile),_reportDescriptors,_reportGeneral);
+   if(result is null)throw new InvalidOperationException("The report could not be recorded.");
+   var old=_reportRating;
+   var updated=new AssetRatingClient.AssetRating(old.AssetId,old.ProviderDescriptors,result.EffectiveDescriptors,result.UniqueReportCount,result.ManualReviewRequired,result.AutoRestricted,old.RatingVersion);
+   _ratings[old.AssetId]=updated;
+   _status=result.RestrictionChanged
+    ?$"Report recorded. {result.UniqueReportCount} different accounts have reported this asset; restrictions were automatically tightened and the uploader was alerted. Manual review remains queued."
+    :$"Report recorded for manual review ({result.UniqueReportCount} different signed-in reporter{(result.UniqueReportCount==1?"":"s")}).";
+   CloseReport();
+  }
+  catch(Exception ex){_status="Rating report failed: "+ex.Message;}
+  finally{_reporting=false;await InvokeAsync(StateHasChanged);}
  }
 
  static string? NormalizeImageType(string? type,string name)
