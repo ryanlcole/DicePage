@@ -10,5 +10,6 @@ builder.Services.AddScoped<DiscordAuthClient>();
 builder.Services.AddScoped<AssetRatingClient>();
 builder.Services.AddScoped<AwsAuthorityClient>();
 builder.Services.AddScoped<PrivateCardLibrary>();
+builder.Services.AddScoped<ExternalAiAccessPolicy>();
 builder.Services.AddScoped<WorldSession>();
 await builder.Build().RunAsync();
