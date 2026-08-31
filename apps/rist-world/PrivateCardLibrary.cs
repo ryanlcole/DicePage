@@ -6,6 +6,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
 {
     const string CustomKey = "cards/decks/custom-cards.json";
     const string SpellbookKey = "cards/spellbooks/active-character.json";
+    const string TimelapseCardId = "shaelvien-spell-timelapse";
     static readonly JsonSerializerOptions JsonOptions = new(){PropertyNameCaseInsensitive=true};
 
     readonly Dictionary<string,LibraryCard> _cardsById = new(StringComparer.Ordinal);
@@ -20,6 +21,21 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
     public bool Loading { get; private set; }
     public bool Loaded { get; private set; }
     public string Status { get; private set; } = "";
+
+    void EnsureCoreShaelvienCards()
+    {
+        if(Cards.Any(card=>card.Id.Equals(TimelapseCardId,StringComparison.Ordinal)))return;
+        Cards.Insert(0,new LibraryCard
+        {
+            Id=TimelapseCardId,
+            Name="Timelapse",
+            Type="Spell",
+            School="Time",
+            Source="Shaelvien",
+            Description="Reveals the recent sequence of change within a bounded scene as accelerated visual echoes. Timelapse observes the passage of events; it does not reverse or rewrite them.",
+            Custom=false
+        });
+    }
 
     void RebuildCardIndex()
     {
@@ -70,6 +86,7 @@ public sealed class PrivateCardLibrary(DiscordAuthClient auth)
                 if(spellbook?.CardIds is not null)SpellbookIds.AddRange(spellbook.CardIds);
             }
             catch{}
+            EnsureCoreShaelvienCards();
             RebuildCardIndex();
             Loaded=true;
         }
