@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RIST Common and interface translation service using Amazon Translate
+
+Parameters:
+  IdentityTableName:
+    Type: String
+    Description: Existing Discord auth/session DynamoDB table
+  FrontendOrigin:
+    Type: String
+    Default: https://relicgamemaster.com
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 256
+    Tracing: Active
+
+Resources:
+  TranslationCache:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  TranslationApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref FrontendOrigin]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [POST, OPTIONS]
+        MaxAge: 300
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  TranslationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: translation/
+      Handler: index.handler
+      Environment:
+        Variables:
+          IDENTITY_TABLE: !Ref IdentityTableName
+          CACHE_TABLE: !Ref TranslationCache
+          FRONTEND_ORIGIN: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
+        - DynamoDBCrudPolicy: { TableName: !Ref TranslationCache }
+        - Statement:
+            - Effect: Allow
+              Action:
+                - translate:TranslateText
+                - translate:ListLanguages
+              Resource: '*'
+      Events:
+        UiTranslate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TranslationApi
+            Path: /ui/translate
+            Method: POST
+        ChatTranslate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TranslationApi
+            Path: /chat/translate
+            Method: POST
+
+Outputs:
+  TranslationApiBaseUrl:
+    Value: !Sub https://${TranslationApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  TranslationCacheTableName:
+    Value: !Ref TranslationCache
