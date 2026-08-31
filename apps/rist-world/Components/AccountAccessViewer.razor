@@ -75,6 +75,17 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
      <h2>@(Auth.Account?.PlayerAlias ?? Auth.Profile?.DisplayName ?? "RIST account")</h2>
      @if(!string.IsNullOrWhiteSpace(Auth.LastError)){<p class="storage-status" role="alert">@Auth.LastError</p>}
 
+     @if(_assetAlerts.Count>0)
+     {
+      <section class="account-alerts" aria-label="Asset rating alerts">
+       <div class="content-access-heading"><div><strong>Asset rating alerts</strong><small>Restrictions changed after community reports.</small></div><span class="age-access-state">@_assetAlerts.Count</span></div>
+       @foreach(var alert in _assetAlerts)
+       {
+        <article class="account-alert"><strong>Asset restrictions tightened</strong><p>@alert.Message</p><small>@RatingReasons(alert.EffectiveDescriptors) · @alert.UniqueReporterCount different signed-in reports</small></article>
+       }
+      </section>
+     }
+
      <section class="content-access-card" aria-label="Content allowances">
       <div class="content-access-heading">
        <div><strong>Content Allowances</strong><small>Campaigns and rated assets disclose the reasons for their restrictions.</small></div>
@@ -147,16 +158,18 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 }
 
 <style>
-.signup-profile-viewer .signup-profile-body{display:block!important;max-width:760px!important;margin:0 auto!important;width:100%!important}.signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}.signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}.signup-profile-form label>span{display:block;margin-bottom:4px}.signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}.signup-discord-note{display:block;text-align:center;margin-top:6px}.content-access-card{display:grid;gap:12px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}.content-access-heading,.guardian-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.content-access-heading>div{display:grid;gap:2px}.content-access-heading small{color:#9e9278}.age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}.content-note,.guardian-state p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}.guardian-state p{flex-basis:100%}.access-band-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.access-band-picker button{display:grid;gap:2px;text-align:left;padding:10px;border:1px solid #514936;background:#111b23;color:#c9c0ac;border-radius:8px}.access-band-picker button.selected{border-color:#a78e48;background:#1a241f}.access-band-picker span{font-size:10px;color:#9e9278}.content-descriptors,.content-reason-list{display:grid;gap:7px}.content-descriptor{display:grid!important;grid-template-columns:auto 1fr;gap:9px;align-items:start!important;padding:9px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-descriptor>span{display:grid!important;gap:2px}.content-descriptor small,.content-descriptor em,.content-reason-list span{display:block;color:#9e9278;font-size:10px;line-height:1.35}.content-descriptor em{color:#b89a58}.content-descriptor.locked{opacity:.55}.content-empty,.content-reason-list article{display:grid;gap:4px;padding:10px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-empty span{font-size:11px;color:#9e9278}.content-attestation,.guardian-attestation{align-items:flex-start!important}.content-attestation input,.guardian-attestation input{margin-top:3px}.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}@@media(max-width:560px){.access-band-picker,.consent-actions{grid-template-columns:1fr}}
+.signup-profile-viewer .signup-profile-body{display:block!important;max-width:760px!important;margin:0 auto!important;width:100%!important}.signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}.signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}.signup-profile-form label>span{display:block;margin-bottom:4px}.signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}.signup-discord-note{display:block;text-align:center;margin-top:6px}.content-access-card,.account-alerts{display:grid;gap:12px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}.account-alerts{margin-bottom:12px;border-color:#8a6336}.account-alert{display:grid;gap:4px;padding:10px;border:1px solid #5d4930;border-radius:7px;background:#17150f}.account-alert strong{color:#e1c77f}.account-alert p{margin:0;color:#d2c7af;font-size:11px;line-height:1.4}.account-alert small{color:#a99b80;font-size:9px}.content-access-heading,.guardian-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.content-access-heading>div{display:grid;gap:2px}.content-access-heading small{color:#9e9278}.age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}.content-note,.guardian-state p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}.guardian-state p{flex-basis:100%}.access-band-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.access-band-picker button{display:grid;gap:2px;text-align:left;padding:10px;border:1px solid #514936;background:#111b23;color:#c9c0ac;border-radius:8px}.access-band-picker button.selected{border-color:#a78e48;background:#1a241f}.access-band-picker span{font-size:10px;color:#9e9278}.content-descriptors,.content-reason-list{display:grid;gap:7px}.content-descriptor{display:grid!important;grid-template-columns:auto 1fr;gap:9px;align-items:start!important;padding:9px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-descriptor>span{display:grid!important;gap:2px}.content-descriptor small,.content-descriptor em,.content-reason-list span{display:block;color:#9e9278;font-size:10px;line-height:1.35}.content-descriptor em{color:#b89a58}.content-descriptor.locked{opacity:.55}.content-empty,.content-reason-list article{display:grid;gap:4px;padding:10px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-empty span{font-size:11px;color:#9e9278}.content-attestation,.guardian-attestation{align-items:flex-start!important}.content-attestation input,.guardian-attestation input{margin-top:3px}.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}@@media(max-width:560px){.access-band-picker,.consent-actions{grid-template-columns:1fr}}
 </style>
 
 @code{
  string _selectedBand=ContentAllowancePolicy.General;
  readonly HashSet<string> _requested=new(StringComparer.Ordinal);
+ readonly List<AssetRatingAlert> _assetAlerts=[];
  bool _ageAttested;
  bool _guardianAdultAttested;
  bool _saving;
  bool _draftLoaded;
+ bool _alertsLoaded;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
  bool CanSaveContent=>_selectedBand==ContentAllowancePolicy.General||_ageAttested;
 
@@ -172,6 +185,31 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
     foreach(var id in Auth.GuardianApprovedDescriptors)_requested.Add(id);
    await InvokeAsync(StateHasChanged);
   }
+  if(!_alertsLoaded&&Session.AccountViewerOpen&&Session.IsLoggedIn&&Auth.Account is not null)
+  {
+   _alertsLoaded=true;
+   await LoadAssetAlertsAsync();
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ async Task LoadAssetAlertsAsync()
+ {
+  try
+  {
+   var listing=await Auth.ListAsync("account/notifications/");
+   foreach(var item in (listing?.Items??[]).OrderByDescending(x=>x.LastModified).Take(20))
+   {
+    var alert=await Auth.DownloadJsonAsync<AssetRatingAlert>(item.Key);
+    if(alert is not null&&string.Equals(alert.Type,"asset-rating-auto-restriction",StringComparison.Ordinal))_assetAlerts.Add(alert);
+   }
+  }
+  catch { }
+ }
+ string RatingReasons(IEnumerable<string> ids)
+ {
+  var labels=ids.Select(id=>Descriptor(id)?.Label).OfType<string>().ToArray();
+  return labels.Length==0?"General / none":string.Join(", ",labels);
  }
 
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
@@ -217,4 +255,6 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
  async Task ApproveGuardianAsync(){if(_saving)return;_saving=true;try{await Auth.ApproveGuardianConsentAsync(_guardianAdultAttested);}finally{_saving=false;}}
  async Task DenyGuardianAsync(){if(_saving)return;_saving=true;try{await Auth.DenyGuardianConsentAsync();}finally{_saving=false;}}
  public void Dispose(){}
+
+ sealed record AssetRatingAlert(string Type,string AssetId,string[] EffectiveDescriptors,int UniqueReporterCount,long CreatedAt,string Message);
 }
