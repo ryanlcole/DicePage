@@ -17,17 +17,21 @@
   header.append(make(-1,'prev'),make(1,'next'));
  }
 
- function currentDialectText(button){
-  const value=button?.dataset?.dialectValue||button?.textContent?.replace(/^Dialect:\s*/i,'').trim()||'Universal';
-  return /^common$/i.test(value)?'Universal':value;
- }
  function decorateDialect(button){
   if(!button)return;
-  const raw=currentDialectText(button);
-  button.dataset.dialectValue=raw;
-  const wanted=`Dialect: ${raw}`;
-  if(button.textContent.trim()!==wanted){button.replaceChildren(document.createTextNode('Dialect:'),Object.assign(document.createElement('span'),{className:'chat-blue-value',textContent:raw}))}
-  button.setAttribute('aria-label',`Dialect ${raw}. Tap to change language.`);
+  const alreadyDecorated=!!button.querySelector('.chat-blue-value');
+  const internal=alreadyDecorated
+   ? (button.dataset.dialectInternal||'Common')
+   : (button.textContent?.replace(/^Dialect:\s*/i,'').trim()||'Common');
+  const display=/^common$/i.test(internal)?'Universal':internal;
+  const currentDisplay=button.querySelector('.chat-blue-value')?.textContent?.trim();
+  if(!alreadyDecorated||currentDisplay!==display){
+   button.dataset.dialectInternal=internal;
+   const value=document.createElement('span');value.className='chat-blue-value';value.textContent=display;
+   button.replaceChildren(document.createTextNode('Dialect: '),value);
+  }
+  button.setAttribute('aria-label',`Dialect ${display}. Tap to change language.`);
+  button.title='Change in-game language';
  }
 
  function ensureChatControls(){
@@ -36,7 +40,7 @@
   const scripts=rail.querySelector('.chat-history-toggle');
   const dialect=rail.querySelector('.roleplay-language-toggle');
   if(scripts){
-   scripts.textContent='Scripts';
+   if(scripts.textContent!=='Scripts')scripts.textContent='Scripts';
    scripts.title='Open chat scripts';
    scripts.setAttribute('aria-label','Open chat scripts');
    if(!scripts.dataset.scriptBound){
@@ -57,7 +61,8 @@
  }
  function syncAudience(button){
   if(!button)return;
-  button.textContent=`Audience: ${audience}`;
+  const text=`Audience: ${audience}`;
+  if(button.textContent!==text)button.textContent=text;
   button.title='Change message audience';
   button.setAttribute('aria-label',`Audience ${audience}. Tap to change.`);
   document.querySelector('.home-inline-chat')?.setAttribute('data-chat-audience',audience.toLowerCase());
@@ -131,7 +136,7 @@
   }finally{patching=false}
  }
  const observer=new MutationObserver(()=>queueMicrotask(patch));
- function start(){patch();observer.observe(document.body,{childList:true,subtree:true,characterData:true});document.addEventListener('rist:ooc-received',()=>{if(activeTab==='Out of Character'&&!scriptWindow?.hidden)renderScript()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scriptWindow&&!scriptWindow.hidden)closeScripts()})}
+ function start(){patch();observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('rist:ooc-received',()=>{if(activeTab==='Out of Character'&&!scriptWindow?.hidden)renderScript()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scriptWindow&&!scriptWindow.hidden)closeScripts()})}
  window.RistChatScripts={open:openScripts,close:closeScripts,getAudience:()=>audience,setAudience:value=>{if(audiences.includes(value)){audience=value;patch()}},refresh:renderScript};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
