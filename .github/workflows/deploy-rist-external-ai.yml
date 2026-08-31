@@ -10,6 +10,10 @@ on:
       - 'infra/aws/rist_external_ai_handler.py'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
+concurrency:
+  group: rist-external-ai-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: read
   id-token: write
@@ -57,21 +61,46 @@ jobs:
           test "$IDENTITY_TABLE" != "None"
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
 
-      - name: Recover failed external AI stack shell
+      - name: Stabilize and recover external AI stack
         shell: bash
         run: |
           set -euo pipefail
-          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+          if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          for attempt in $(seq 1 90); do
             STACK_STATUS=$(aws cloudformation describe-stacks \
               --stack-name "$STACK_NAME" \
               --query 'Stacks[0].StackStatus' \
-              --output text)
-            if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
-              echo "$STACK_NAME is ROLLBACK_COMPLETE; deleting failed shell before clean redeploy..."
-              aws cloudformation delete-stack --stack-name "$STACK_NAME"
-              aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
-              echo "Failed external AI stack shell deleted successfully."
-            fi
+              --output text 2>/dev/null || echo DELETE_COMPLETE)
+            case "$STACK_STATUS" in
+              CREATE_IN_PROGRESS|UPDATE_IN_PROGRESS|UPDATE_COMPLETE_CLEANUP_IN_PROGRESS|ROLLBACK_IN_PROGRESS|UPDATE_ROLLBACK_IN_PROGRESS|UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS|DELETE_IN_PROGRESS)
+                echo "Waiting for $STACK_NAME to stabilize from $STACK_STATUS..."
+                sleep 5
+                ;;
+              *)
+                break
+                ;;
+            esac
+          done
+
+          if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            exit 0
+          fi
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].StackStatus' \
+            --output text)
+
+          if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" || "$STACK_STATUS" == "UPDATE_ROLLBACK_COMPLETE" ]]; then
+            echo "$STACK_NAME is $STACK_STATUS; deleting failed shell before clean redeploy..."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+            echo "Failed external AI stack shell deleted successfully."
+          elif [[ "$STACK_STATUS" != "CREATE_COMPLETE" && "$STACK_STATUS" != "UPDATE_COMPLETE" ]]; then
+            echo "Stack did not reach a safe deploy state: $STACK_STATUS" >&2
+            exit 1
           fi
 
       - name: Deploy defensive runtime with external access locked
