@@ -2,7 +2,42 @@
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
 
-@if(Session.AccountViewerOpen && !Session.IsLoggedIn)
+@if(Auth.PendingGuardianRequest is not null)
+{
+ <section class="map-account-viewer signup-profile-viewer" role="dialog" aria-modal="true" aria-label="Guardian consent">
+  <header class="map-viewer-header"><strong>Guardian Consent</strong></header>
+  <div class="map-account-body signup-profile-body">
+   <section class="map-account-card signup-profile-card">
+    <div class="map-auth-form signup-profile-form content-access-panel">
+     <h2>Content allowance request</h2>
+     <p class="map-chat-empty"><strong>@Auth.PendingGuardianRequest.ChildAlias</strong> is requesting permission to access the content categories listed below.</p>
+     <div class="content-reason-list">
+      @foreach(var id in Auth.PendingGuardianRequest.RequestedDescriptors)
+      {
+       var descriptor=Descriptor(id);
+       if(descriptor is not null)
+       {
+        <article><strong>@descriptor.Label</strong><span>@descriptor.Reason</span></article>
+       }
+      }
+     </div>
+     @if(Auth.PendingGuardianRequest.RequestedDescriptors.Length==0)
+     {
+      <p class="content-note">No mature-content categories were requested. General content remains available.</p>
+     }
+     <label class="map-terms guardian-attestation"><input type="checkbox" @bind="_guardianAdultAttested" /><span>I certify that I am an adult parent or legal guardian and consent to this child accessing the content categories shown above.</span></label>
+     @if(!string.IsNullOrWhiteSpace(Auth.LastError)){<p class="storage-status" role="alert">@Auth.LastError</p>}
+     <div class="consent-actions">
+      <button type="button" class="discord-login-primary" @onclick="ApproveGuardianAsync" disabled="@(!_guardianAdultAttested||_saving)">@(_saving?"Saving…":"Approve requested content")</button>
+      <button type="button" @onclick="DenyGuardianAsync" disabled="@_saving">Keep mature content blocked</button>
+     </div>
+     <small class="signup-discord-note">This approval is tied to this consent request. Future requests for additional mature-content categories require new guardian consent.</small>
+    </div>
+   </section>
+  </div>
+ </section>
+}
+else if(Session.AccountViewerOpen && !Session.IsLoggedIn)
 {
  <section class="map-account-viewer signup-profile-viewer" role="dialog" aria-modal="false" aria-label="Create RIST profile">
   <header class="map-viewer-header"><strong>Create Profile</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close profile">×</button></header>
@@ -36,27 +71,73 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
   <header class="map-viewer-header"><strong>Account</strong><button type="button" class="map-viewer-close" @onclick="Session.CloseAccountViewer" aria-label="Close account">×</button></header>
   <div class="map-account-body signup-profile-body">
    <section class="map-account-card signup-profile-card">
-    <div class="map-auth-form signup-profile-form age-access-panel">
+    <div class="map-auth-form signup-profile-form content-access-panel">
      <h2>@(Auth.Account?.PlayerAlias ?? Auth.Profile?.DisplayName ?? "RIST account")</h2>
-     @if(!string.IsNullOrWhiteSpace(Auth.LastError))
-     {
-      <p class="storage-status" role="alert">@Auth.LastError</p>
-     }
-     <section class="age-access-card" aria-label="NSFW content access">
-      <div>
-       <strong>NSFW content</strong>
-       <span class="age-access-state @(Auth.NsfwAccessEnabled?"verified":"")">@(Auth.NsfwAccessEnabled?"Enabled":"Off")</span>
+     @if(!string.IsNullOrWhiteSpace(Auth.LastError)){<p class="storage-status" role="alert">@Auth.LastError</p>}
+
+     <section class="content-access-card" aria-label="Content allowances">
+      <div class="content-access-heading">
+       <div><strong>Content Allowances</strong><small>Campaigns disclose mature-content reasons before access.</small></div>
+       <span class="age-access-state">@BandLabel(_selectedBand)</span>
       </div>
-      @if(Auth.NsfwAccessEnabled)
+
+      <p class="content-note">General content does not require an age declaration. Mature categories are opt-in. 18+ access excludes sexual-content categories; 21+ can opt into them individually.</p>
+
+      <div class="access-band-picker" role="group" aria-label="Content access level">
+       <button type="button" class="@BandClass(ContentAllowancePolicy.General)" @onclick="()=>SelectBand(ContentAllowancePolicy.General)"><strong>General</strong><span>No mature content</span></button>
+       <button type="button" class="@BandClass(ContentAllowancePolicy.Minor)" @onclick="()=>SelectBand(ContentAllowancePolicy.Minor)"><strong>Under 18</strong><span>Guardian-controlled</span></button>
+       <button type="button" class="@BandClass(ContentAllowancePolicy.Adult18)" @onclick="()=>SelectBand(ContentAllowancePolicy.Adult18)"><strong>18+</strong><span>Mature, no sexual content</span></button>
+       <button type="button" class="@BandClass(ContentAllowancePolicy.Adult21)" @onclick="()=>SelectBand(ContentAllowancePolicy.Adult21)"><strong>21+</strong><span>All categories available by consent</span></button>
+      </div>
+
+      @if(_selectedBand==ContentAllowancePolicy.General)
       {
-       <p>Optional NSFW content is enabled for this account. You may turn it off at any time.</p>
-       <button type="button" class="discord-login-primary" @onclick="DisableNsfwAsync" disabled="@_savingNsfw">@(_savingNsfw?"Saving…":"Turn off NSFW content")</button>
+       <div class="content-empty"><strong>Mature content blocked</strong><span>Campaign content tagged with any mature descriptor will not be shown without changing these allowances.</span></div>
       }
       else
       {
-       <p>NSFW content is hidden by default. ReLiC does not need your birth date, ID, photo, address, or other identity evidence for this preference.</p>
-       <label class="map-terms nsfw-attestation"><input type="checkbox" @bind="_age21Attested" /><span>I certify that I am 21 years of age or older and choose to access NSFW content.</span></label>
-       <button type="button" class="discord-login-primary" @onclick="EnableNsfwAsync" disabled="@(!_age21Attested || _savingNsfw)">@(_savingNsfw?"Saving…":"Enable NSFW content")</button>
+       <div class="content-descriptors">
+        @foreach(var descriptor in VisibleDescriptors())
+        {
+         var checkedNow=_requested.Contains(descriptor.Id);
+         var locked=_selectedBand==ContentAllowancePolicy.Adult18 && descriptor.MinimumBand==ContentAllowancePolicy.Adult21;
+         <label class="content-descriptor @(locked?"locked":"")">
+          <input type="checkbox" checked="@checkedNow" disabled="@locked" @onchange="e=>ToggleDescriptor(descriptor.Id,e.Value as bool?==true)" />
+          <span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small>@if(locked){<em>Requires 21+ allowance</em>}</span>
+         </label>
+        }
+       </div>
+      }
+
+      @if(_selectedBand==ContentAllowancePolicy.Adult18)
+      {
+       <label class="map-terms content-attestation"><input type="checkbox" @bind="_ageAttested" /><span>I certify that I am 18 years of age or older and consent to the selected mature-content categories.</span></label>
+      }
+      else if(_selectedBand==ContentAllowancePolicy.Adult21)
+      {
+       <label class="map-terms content-attestation"><input type="checkbox" @bind="_ageAttested" /><span>I certify that I am 21 years of age or older and consent to the selected mature-content categories.</span></label>
+      }
+
+      @if(_selectedBand==ContentAllowancePolicy.Minor)
+      {
+       <div class="guardian-state">
+        <strong>Guardian consent</strong>
+        @if(Auth.Account?.ContentAccess?.GuardianConsentAtUtc is not null)
+        {
+         <span class="age-access-state verified">Approved</span>
+         <p>Only the categories previously approved by the guardian are available. Selecting additional categories creates a new consent request.</p>
+        }
+        else
+        {
+         <span class="age-access-state">Required</span>
+         <p>All mature content stays blocked until a parent or guardian signs in separately and approves the requested categories.</p>
+        }
+       </div>
+       <button type="button" class="discord-login-primary" @onclick="RequestGuardianAsync" disabled="@_saving">@(_saving?"Opening guardian login…":"Request guardian consent")</button>
+      }
+      else
+      {
+       <button type="button" class="discord-login-primary" @onclick="SaveContentAsync" disabled="@(!CanSaveContent||_saving)">@(_saving?"Saving…":"Save content allowances")</button>
       }
      </section>
     </div>
@@ -66,26 +147,80 @@ else if(Session.AccountViewerOpen && Session.IsLoggedIn)
 }
 
 <style>
-.signup-profile-viewer .signup-profile-body{display:block!important;max-width:720px!important;margin:0 auto!important;width:100%!important}
+.signup-profile-viewer .signup-profile-body{display:block!important;max-width:760px!important;margin:0 auto!important;width:100%!important}
 .signup-profile-viewer .signup-profile-card{width:100%!important;max-width:none!important}
 .signup-profile-form textarea{box-sizing:border-box;width:100%;min-height:72px;resize:vertical}
 .signup-profile-form label>span{display:block;margin-bottom:4px}
 .signup-profile-form label small,.signup-discord-note{color:#9e9278;font-size:10px}
 .signup-discord-note{display:block;text-align:center;margin-top:6px}
-.age-access-card{display:grid;gap:10px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}
-.age-access-card>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.age-access-card p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}
+.content-access-card{display:grid;gap:12px;padding:14px;border:1px solid #64552e;border-radius:10px;background:#0b141b}
+.content-access-heading,.guardian-state{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.content-access-heading>div{display:grid;gap:2px}.content-access-heading small{color:#9e9278}
 .age-access-state{padding:5px 8px;border:1px solid #665a45;border-radius:999px;color:#c8bea9;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.age-access-state.verified{border-color:#8b793d;color:#e1c77f}
-.nsfw-attestation{align-items:flex-start!important}.nsfw-attestation input{margin-top:3px}
+.content-note,.guardian-state p{margin:0;color:#bbb09a;font-size:12px;line-height:1.45}.guardian-state p{flex-basis:100%}
+.access-band-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.access-band-picker button{display:grid;gap:2px;text-align:left;padding:10px;border:1px solid #514936;background:#111b23;color:#c9c0ac;border-radius:8px}.access-band-picker button.selected{border-color:#a78e48;background:#1a241f}.access-band-picker span{font-size:10px;color:#9e9278}
+.content-descriptors,.content-reason-list{display:grid;gap:7px}.content-descriptor{display:grid!important;grid-template-columns:auto 1fr;gap:9px;align-items:start!important;padding:9px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-descriptor>span{display:grid!important;gap:2px}.content-descriptor small,.content-descriptor em,.content-reason-list span{display:block;color:#9e9278;font-size:10px;line-height:1.35}.content-descriptor em{color:#b89a58}.content-descriptor.locked{opacity:.65}
+.content-empty,.content-reason-list article{display:grid;gap:4px;padding:10px;border:1px solid #3d3a31;border-radius:7px;background:#0d171e}.content-empty span{font-size:11px;color:#9e9278}
+.content-attestation,.guardian-attestation{align-items:flex-start!important}.content-attestation input,.guardian-attestation input{margin-top:3px}.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.access-band-picker,.consent-actions{grid-template-columns:1fr}}
 </style>
 
 @code{
- bool _age21Attested;
- bool _savingNsfw;
+ string _selectedBand=ContentAllowancePolicy.General;
+ readonly HashSet<string> _requested=new(StringComparer.Ordinal);
+ bool _ageAttested;
+ bool _guardianAdultAttested;
+ bool _saving;
+ bool _draftLoaded;
  bool CanSignup=>!string.IsNullOrWhiteSpace(Session.PendingDisplayName)&&!string.IsNullOrWhiteSpace(Session.PendingPlayerAlias)&&Session.PendingTermsAccepted;
- protected override void OnInitialized(){if(!Session.IsLoggedIn&&!string.IsNullOrWhiteSpace(Auth.LastError))Session.OpenAccountViewer();}
+ bool CanSaveContent=>_selectedBand==ContentAllowancePolicy.General||_ageAttested;
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!_draftLoaded&&Auth.Account is not null)
+  {
+   _draftLoaded=true;
+   _selectedBand=Auth.AccessBand;
+   _requested.Clear();
+   foreach(var id in Auth.AllowedContentDescriptors)_requested.Add(id);
+   if(_selectedBand==ContentAllowancePolicy.Minor&&_requested.Count==0)
+    foreach(var id in Auth.GuardianApprovedDescriptors)_requested.Add(id);
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
  void SelectPlayerPlan(){Session.PendingPlan="player";Session.Notify();}
  void SelectGmPlayerPlan(){Session.PendingPlan="gm-player";Session.Notify();}
- async Task EnableNsfwAsync(){if(_savingNsfw||!_age21Attested)return;_savingNsfw=true;try{await Auth.SetNsfwAccessAsync(true,true);}finally{_savingNsfw=false;}}
- async Task DisableNsfwAsync(){if(_savingNsfw)return;_savingNsfw=true;try{await Auth.SetNsfwAccessAsync(false,false);_age21Attested=false;}finally{_savingNsfw=false;}}
+ void SelectBand(string band)
+ {
+  _selectedBand=band;
+  _ageAttested=false;
+  _requested.Clear();
+  if(band==ContentAllowancePolicy.Minor)
+   foreach(var id in Auth.GuardianApprovedDescriptors)_requested.Add(id);
+ }
+ string BandClass(string band)=>_selectedBand==band?"selected":"";
+ string BandLabel(string band)=>band switch{ContentAllowancePolicy.Minor=>"Under 18",ContentAllowancePolicy.Adult18=>"18+",ContentAllowancePolicy.Adult21=>"21+",_=>"General"};
+ IEnumerable<ContentAllowancePolicy.ContentDescriptor> VisibleDescriptors()=>ContentAllowancePolicy.Descriptors;
+ ContentAllowancePolicy.ContentDescriptor? Descriptor(string id)=>ContentAllowancePolicy.Descriptors.FirstOrDefault(x=>x.Id==id);
+ void ToggleDescriptor(string id,bool value){if(value)_requested.Add(id);else _requested.Remove(id);}
+
+ async Task SaveContentAsync()
+ {
+  if(_saving)return;_saving=true;
+  try{await Auth.SetContentAccessAsync(_selectedBand,_requested,_selectedBand==ContentAllowancePolicy.General||_ageAttested);}
+  finally{_saving=false;}
+ }
+ async Task RequestGuardianAsync()
+ {
+  if(_saving)return;_saving=true;
+  try
+  {
+   await Auth.SetContentAccessAsync(ContentAllowancePolicy.Minor,[],true);
+   await Auth.BeginGuardianConsentAsync(_requested);
+  }
+  finally{_saving=false;}
+ }
+ async Task ApproveGuardianAsync(){if(_saving)return;_saving=true;try{await Auth.ApproveGuardianConsentAsync(_guardianAdultAttested);}finally{_saving=false;}}
+ async Task DenyGuardianAsync(){if(_saving)return;_saving=true;try{await Auth.DenyGuardianConsentAsync();}finally{_saving=false;}}
  public void Dispose(){}
 }
