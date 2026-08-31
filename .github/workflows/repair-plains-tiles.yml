@@ -1,0 +1,76 @@
+name: Repair Plains Tiles
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/repair_plains_tiles.py'
+      - '.github/workflows/repair-plains-tiles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
+  DISTRIBUTION_ID: E1D9TALLP51FI5
+  ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare image tooling
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      # This stages and validates the COMPLETE family before AWS credentials are
+      # configured. A missing/expired source therefore cannot partially replace
+      # production cuts.
+      - name: Rebuild and validate all Plains cuts
+        run: python apps/rist-world/repair_plains_tiles.py
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish repaired Plains family
+        run: |
+          set -euo pipefail
+          aws s3 sync build/plains-repair/ "s3://${ASSET_BUCKET}/tilesets/world/terrain/plains/" --only-show-errors
+
+      - name: Refresh Plains CDN paths
+        run: |
+          set -euo pipefail
+          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/tilesets/world/terrain/plains/*' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID"
+
+      - name: Verify repaired Plains samples
+        shell: bash
+        run: |
+          set -euo pipefail
+          for set in 040 042 043; do
+            target="/tmp/plains-${set}.jpg"
+            curl --fail --location --retry 6 --retry-delay 5 --output "$target" "${ASSET_BASE_URL}tilesets/world/terrain/plains/plains-${set}/tile-01-01.jpg"
+            test "$(stat -c%s "$target")" -gt 1000
+            python - "$target" <<'PY'
+          import sys
+          from PIL import Image
+          with Image.open(sys.argv[1]) as im:
+              assert min(im.size) > 20, im.size
+              assert abs(im.width-im.height) <= max(im.size)*0.08, im.size
+          PY
+          done
