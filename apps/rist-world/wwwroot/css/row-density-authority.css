@@ -6,6 +6,7 @@
 html body .rist.release-world{
  --rist-menu-h:var(--rist-n)!important;
  --rist-roleplay-h:var(--rist-n)!important;
+ --rist-map-frame-h:14px!important;
 }
 
 /* Login/main menu rail = exactly one Stars/context row. */
@@ -65,6 +66,11 @@ html body .rist.release-world #header-slider .header-icon-button{
  max-width:none!important;
  padding-left:4px!important;
  padding-right:4px!important;
+}
+
+/* Coordinate rulers are thin framing strips, not full UI rows. */
+html body .rist.release-world .release-map-region>.table-workspace>.map-shell{
+ grid-template-rows:var(--rist-map-frame-h) minmax(0,1fr) var(--rist-map-frame-h)!important;
 }
 
 /* Roleplay output = exactly one Stars/context row. */
