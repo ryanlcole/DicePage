@@ -7,21 +7,28 @@
 /* Slider geometry owns height; artwork aspect ratio owns control width. */
 #header-slider .release-root-track{--rail-gap:4px!important;--rail-item-h:calc(100% - (var(--rail-gap) * 2))!important;align-items:center!important;padding-block:var(--rail-gap)!important}
 #header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:var(--rail-item-h)!important;min-height:var(--rail-item-h)!important;max-height:var(--rail-item-h)!important;padding:3px!important;display:inline-grid!important;place-items:center!important}
-#header-slider .root-menu-art{display:block!important;height:100%!important;width:auto!important;max-height:100%!important;margin:auto!important;aspect-ratio:1 / 1!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;filter:none!important;transform:none!important}
+
+/* Header artwork comes from the normalized ReLiC UI sheet published with the AWS asset inventory.
+   IMG_7741 is a 4 x 3 icon sheet: each button exposes one cell with CSS background positioning. */
+#header-slider .root-menu-art{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:100%!important;height:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;aspect-ratio:1 / 1!important;background-image:url('assets/normalized/chat-imports/2026-08-30/uploaded-references/IMG_7741.png')!important;background-size:400% 300%!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important}
 #header-slider .root-menu-art::before,#header-slider .root-menu-art::after{content:none!important}
-#header-slider .root-menu-art.icon-exit{background-image:url('assets/ui/icons/door.svg')!important}
-#header-slider .root-menu-art.icon-encounter{background-image:url('assets/ui/icons/mode.svg')!important}
-#header-slider .root-menu-art.icon-assets{aspect-ratio:31 / 44!important;width:auto!important;height:100%!important;max-width:none!important;max-height:100%!important;border-radius:3px!important;background-image:url('assets/cards/shaelvien_card_back.jpg')!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;box-shadow:0 1px 3px #0007!important}
-#header-slider .root-menu-art.icon-role{background-image:url('assets/ui/icons/role.svg')!important}
-#header-slider .root-menu-art.icon-grid{background-image:url('assets/ui/icons/grid.svg')!important}
-#header-slider .root-menu-art.icon-scale{background-image:url('assets/ui/icons/scale.svg')!important}
-#header-slider .root-menu-art.icon-save{background-image:url('assets/ui/icons/save.svg')!important}
-#header-slider .root-menu-art.icon-load{background-image:url('assets/ui/icons/load.svg')!important}
-#header-slider .header-mmo-button .mmo-toggle-art{display:block!important;height:100%!important;width:auto!important;max-height:100%!important;aspect-ratio:54 / 46!important;margin:auto!important;background:url('assets/ui/sandbox-toggle.webp') center/contain no-repeat!important}
+/* row 1 */
+#header-slider .root-menu-art.icon-encounter{background-position:0% 0%!important}
+#header-slider .root-menu-art.icon-role{background-position:33.333% 0%!important}
+#header-slider .root-menu-art.icon-assets{background-position:66.667% 0%!important}
+/* row 2 */
+#header-slider .root-menu-art.icon-grid{background-position:0% 50%!important}
+#header-slider .root-menu-art.icon-scale{background-position:66.667% 50%!important}
+/* row 3 */
+#header-slider .root-menu-art.icon-save{background-position:0% 100%!important}
+#header-slider .root-menu-art.icon-load{background-position:33.333% 100%!important}
+#header-slider .root-menu-art.icon-exit{background-position:66.667% 100%!important}
+
+/* Safari can collapse an empty background-image span when only width:auto is supplied.
+   The explicit square above prevents that; the button itself follows the artwork height. */
+#header-slider .release-root-track>.root-menu-button:has(.root-menu-art){width:auto!important;aspect-ratio:1 / 1!important}
+#header-slider .header-mmo-button .mmo-toggle-art{display:block!important;width:100%!important;min-width:100%!important;height:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;aspect-ratio:54 / 46!important;margin:0!important;background:url('assets/ui/sandbox-toggle.webp') center/contain no-repeat!important}
 #header-slider .header-mmo-button.mmo-art-active .mmo-toggle-art{background-image:url('assets/ui/mmo-toggle.webp')!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art){width:auto!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){aspect-ratio:calc(31 / 44)!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art:not(.icon-assets)){aspect-ratio:1 / 1!important}
 #header-slider .release-root-track>.header-mmo-button{aspect-ratio:54 / 46!important;width:auto!important}
 #header-slider .release-root-track>.root-menu-text{aspect-ratio:1 / 1!important;width:auto!important}
 #header-slider .release-root-track>.root-menu-button>small{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
