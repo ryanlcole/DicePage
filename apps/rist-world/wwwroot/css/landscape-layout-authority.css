@@ -2,8 +2,8 @@
    Portrait keeps the existing vertical stack. Landscape pairs the upper and lower rails
    so the map receives the center of the screen. */
 
-/* Portrait/all-orientation correction: when the filter row is 28px, its slider must
-   begin immediately beneath it instead of retaining the older 42px first grid row. */
+/* Public/Private headers stay 28px total, but are now two compact lines:
+   label on top, filter buttons directly beneath it. */
 html body .rist.release-world{
  --rist-assets-menu-h:28px!important;
  --rist-assets-h:calc(28px + var(--rist-assets-slider-h))!important;
@@ -19,6 +19,67 @@ html body .rist.release-world .release-private-region>.private-assets-rail{
 html body .rist.release-world .release-public-region>.public-assets-rail,
 html body .rist.release-world .release-private-region>.private-assets-rail{
  grid-template-rows:28px var(--rist-assets-slider-h)!important;
+}
+html body .rist.release-world .asset-rail-header{
+ box-sizing:border-box!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-template-rows:9px 19px!important;
+ gap:0!important;
+ align-items:stretch!important;
+ padding:0!important;
+ overflow:hidden!important;
+}
+html body .rist.release-world .asset-rail-header>strong{
+ grid-column:1!important;
+ grid-row:1!important;
+ display:flex!important;
+ align-items:center!important;
+ min-width:0!important;
+ height:9px!important;
+ min-height:9px!important;
+ max-height:9px!important;
+ margin:0!important;
+ padding:0 6px!important;
+ font-size:8px!important;
+ line-height:9px!important;
+ letter-spacing:.12em!important;
+ white-space:nowrap!important;
+ overflow:hidden!important;
+}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs{
+ grid-column:1!important;
+ grid-row:2!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ height:19px!important;
+ min-height:19px!important;
+ max-height:19px!important;
+ margin:0!important;
+ padding:0 4px!important;
+ display:flex!important;
+ align-items:stretch!important;
+ gap:4px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ scrollbar-width:none!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-x!important;
+}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::-webkit-scrollbar{display:none!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
+ box-sizing:border-box!important;
+ flex:0 0 auto!important;
+ height:19px!important;
+ min-height:19px!important;
+ max-height:19px!important;
+ margin:0!important;
+ padding:0 8px!important;
+ border-radius:5px!important;
+ font-size:8px!important;
+ line-height:17px!important;
+ white-space:nowrap!important;
 }
 
 @media (orientation:landscape){
