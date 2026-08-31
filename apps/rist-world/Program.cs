@@ -24,6 +24,7 @@ builder.Services.AddScoped<ExternalAiWorldLedger>();
 builder.Services.AddScoped<ExternalAiDefensivePipeline>();
 builder.Services.AddScoped<ExternalAiActionGate>();
 builder.Services.AddScoped<ExternalNpcSubmissionStore>();
+builder.Services.AddScoped<ExternalAiOperatorClient>();
 
 builder.Services.AddScoped<WorldSession>();
 await builder.Build().RunAsync();
