@@ -95,8 +95,7 @@ html body #header-slider.release-root-rail>.rail-scroll-arrow{
  line-height:22px!important;
 }
 
-/* Public/Private title and filters are one row. Each filter slider repeats its own
-   left/right chevrons and the first real option (All) is never covered. */
+/* Public/Private title and filters are one row. Only the filter strip owns chevrons. */
 html body .rist.release-world .asset-rail-header{
  position:relative!important;
  display:flex!important;
@@ -106,8 +105,15 @@ html body .rist.release-world .asset-rail-header{
  padding:2px 4px 2px 7px!important;
  overflow:hidden!important;
 }
+html body .rist.release-world .asset-rail-header::before,
+html body .rist.release-world .asset-rail-header::after{content:none!important;display:none!important}
+html body .rist.release-world .asset-rail-header>button,
+html body .rist.release-world .asset-rail-header>.rail-scroll-arrow,
+html body .rist.release-world .asset-rail-header>.asset-filter-arrow{display:none!important}
 html body .rist.release-world .asset-rail-header>strong{
  box-sizing:border-box!important;
+ position:relative!important;
+ z-index:10!important;
  display:block!important;
  flex:0 0 auto!important;
  min-width:max-content!important;
