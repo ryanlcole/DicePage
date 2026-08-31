@@ -102,7 +102,6 @@ Resources:
     Properties:
       CodeUri: .
       Handler: rist_external_ai_handler.security_handler
-      ReservedConcurrentExecutions: 5
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
