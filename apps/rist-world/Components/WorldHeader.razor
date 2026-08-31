@@ -6,13 +6,13 @@
 <style>
 /* Compact text-first header. Artwork is reserved for controls that benefit from a visual asset. */
 #header-slider .release-root-track{--rail-gap:4px!important;--rail-item-h:calc(100% - (var(--rail-gap) * 2))!important;align-items:center!important;padding-block:var(--rail-gap)!important;gap:4px!important}
-#header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:max-content!important;min-width:max-content!important;max-width:none!important;height:var(--rail-item-h)!important;min-height:var(--rail-item-h)!important;max-height:var(--rail-item-h)!important;padding:0 8px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;color:#d7be80!important;font:800 10px/1 system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important}
+#header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:var(--rail-item-h)!important;min-height:var(--rail-item-h)!important;max-height:var(--rail-item-h)!important;padding:0 8px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;white-space:nowrap!important;color:#d7be80!important;font:800 10px/1 system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important}
 #header-slider .release-root-track>.root-menu-button>strong{font:inherit!important;color:inherit!important;white-space:nowrap!important}
 
-/* Assets remains image-based. IMG_7741 is the normalized 4 x 3 ReLiC UI sheet. */
-#header-slider .root-menu-art.icon-assets{display:block!important;box-sizing:border-box!important;width:calc(var(--rail-item-h) - 6px)!important;min-width:calc(var(--rail-item-h) - 6px)!important;height:calc(var(--rail-item-h) - 6px)!important;min-height:calc(var(--rail-item-h) - 6px)!important;margin:0!important;aspect-ratio:1 / 1!important;background-image:url('assets/normalized/chat-imports/2026-08-30/uploaded-references/IMG_7741.png')!important;background-size:400% 300%!important;background-position:66.667% 0%!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important}
+/* Assets remains image-based, but the button sizes to its actual content. */
+#header-slider .root-menu-art.icon-assets{display:block!important;box-sizing:border-box!important;flex:0 0 auto!important;width:calc(var(--rail-item-h) - 10px)!important;min-width:calc(var(--rail-item-h) - 10px)!important;height:calc(var(--rail-item-h) - 10px)!important;min-height:calc(var(--rail-item-h) - 10px)!important;margin:0!important;aspect-ratio:1 / 1!important;background-image:url('assets/normalized/chat-imports/2026-08-30/uploaded-references/IMG_7741.png')!important;background-size:400% 300%!important;background-position:66.667% 0%!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important}
 #header-slider .root-menu-art.icon-assets::before,#header-slider .root-menu-art.icon-assets::after{content:none!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){width:var(--rail-item-h)!important;min-width:var(--rail-item-h)!important;padding:3px!important}
+#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){width:auto!important;min-width:0!important;padding:0 8px 0 4px!important}
 
 #header-slider .release-root-track>.root-menu-button>small{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 @@media (hover:hover) and (pointer:fine){
@@ -28,7 +28,7 @@
  <div class="header-circular-set release-root-track">
   <button class="root-menu-button door-button @AccountRootClass" @onclick="DoorClicked" aria-expanded="@AccountRootOpen" aria-label="@(Session.IsLoggedIn?"Exit RIST":"Login")"><strong>@(Session.IsLoggedIn?"Exit":"Login")</strong></button>
   <button type="button" class="root-menu-button @ModeRootClass" @onclick="ToggleModeRoot" aria-expanded="@ModeRootOpen" aria-label="Table mode"><strong>Mode</strong></button>
-  <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@AssetsRootOpen" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><small>Assets</small></button>
+  <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@AssetsRootOpen" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><strong>Assets</strong></button>
   <button type="button" class="root-menu-button @RoleRootClass" @onclick="ToggleRoleRoot" aria-expanded="@RoleRootOpen" aria-label="Role"><strong>@RoleLabel</strong></button>
   <button type="button" class="root-menu-button @GridRootClass" @onclick="ToggleGridRoot" aria-expanded="@GridRootOpen" aria-label="Grid"><strong>@GridLabel</strong></button>
   <button type="button" class="root-menu-button @ScaleRootClass" @onclick="ToggleScaleRoot" aria-expanded="@ScaleRootOpen" aria-label="Scale"><strong>Scale</strong></button>
@@ -36,7 +36,7 @@
   <button class="root-menu-button" @onclick="Session.ToggleLoadMenu" aria-expanded="@Session.LoadMenuOpen" aria-label="Load"><strong>Load</strong></button>
   <button type="button" class="root-menu-button" data-shaelvien-ai-authority="@(Auth.IsOwnerDiscordAccount?"true":"false")" onclick="window.RistMMO?.toggle?.()" aria-pressed="false" aria-label="Toggle Sandbox and MMO"><strong>World</strong></button>
   <button type="button" class="root-menu-button" onclick="window.RistStartMenu?.open?.()" aria-label="Settings"><strong>SET</strong></button>
-  <a class="root-menu-button" href="info.html" aria-label="Information"><strong>i</strong></a>
+  <a class="root-menu-button" href="info.html" aria-label="About"><strong>About</strong></a>
  </div>
  <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#header-slider',1)" aria-label="Scroll main menu right">›</button>
 
