@@ -1,0 +1,79 @@
+{
+  "policy": {
+    "purpose": "External discovery only when the ReLiC asset library does not contain what the user needs.",
+    "displaySlots": 3,
+    "ordering": "alphabetical",
+    "rankingByCommission": false,
+    "personalizedRanking": false,
+    "searchHistory": false,
+    "attachUserIdToSearch": false,
+    "passCurrentQuery": true,
+    "disclosure": "External site — its privacy and cookie policies apply after you leave ReLiC.",
+    "affiliateDisclosure": "Affiliate link — ReLiC may receive a commission at no additional cost to you."
+  },
+  "providers": [
+    {
+      "name": "GameDev Market",
+      "kind": "commercial",
+      "homepage": "https://www.gamedevmarket.net/",
+      "searchTemplate": "https://www.gamedevmarket.net/?query={query}",
+      "affiliateProgram": "Alliance",
+      "affiliateConfigured": false,
+      "notes": "Alliance referral identifier must be added only after the ReLiC account receives its own official link."
+    },
+    {
+      "name": "itch.io",
+      "kind": "commercial-and-free",
+      "homepage": "https://itch.io/game-assets",
+      "searchTemplate": "https://itch.io/game-assets?search={query}",
+      "affiliateProgram": "Partners & Affiliates",
+      "affiliateConfigured": false,
+      "notes": "Affiliate code must be added only after ReLiC receives its official partner code."
+    },
+    {
+      "name": "Kenney",
+      "kind": "free-donation-supported",
+      "homepage": "https://kenney.nl/assets",
+      "searchTemplate": "https://kenney.nl/assets?q={query}",
+      "affiliateProgram": null,
+      "affiliateConfigured": false,
+      "notes": "CC0 game assets; donation-supported."
+    },
+    {
+      "name": "Lospec",
+      "kind": "free-resource",
+      "homepage": "https://lospec.com/",
+      "searchTemplate": "https://lospec.com/search?q={query}",
+      "affiliateProgram": null,
+      "affiliateConfigured": false,
+      "notes": "Useful for pixel-art palettes and design resources."
+    },
+    {
+      "name": "OpenGameArt",
+      "kind": "open-license",
+      "homepage": "https://opengameart.org/",
+      "searchTemplate": "https://opengameart.org/art-search-advanced?keys={query}",
+      "affiliateProgram": null,
+      "affiliateConfigured": false,
+      "notes": "Licenses vary by asset; ReLiC must not imply a uniform license."
+    },
+    {
+      "name": "Poly Haven",
+      "kind": "free-donation-supported",
+      "homepage": "https://polyhaven.com/",
+      "searchTemplate": "https://polyhaven.com/all?a={query}",
+      "affiliateProgram": null,
+      "affiliateConfigured": false,
+      "notes": "Assets are CC0. Live API attribution/credit requirements remain separate from asset licensing."
+    },
+    {
+      "name": "Quaternius",
+      "kind": "free-donation-supported",
+      "homepage": "https://quaternius.com/",
+      "searchTemplate": "https://quaternius.com/?q={query}",
+      "affiliateProgram": null,
+      "affiliateConfigured": false,
+      "notes": "Free game-development asset source; preserve source information."
+    }
+  ]
+}
