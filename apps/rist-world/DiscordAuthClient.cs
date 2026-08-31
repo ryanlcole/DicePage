@@ -9,6 +9,8 @@ namespace RistWorld;
 public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
 {
     private const string AccountProfileKey = "account/profile.json";
+    private const string GuardianRequestKey = "rist.guardian.request";
+    private const string GuardianApprovalKey = "rist.guardian.approval";
     private string _apiBaseUrl = "";
     private string? _sessionToken;
 
@@ -16,8 +18,12 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public string OwnerDiscordUserId { get; private set; } = "";
     public AuthProfile? Profile { get; private set; }
     public AccountProfile? Account { get; private set; }
+    public GuardianConsentRequest? PendingGuardianRequest { get; private set; }
     public string RistAccountId => Account?.AccountId ?? "";
-    public bool NsfwAccessEnabled => Account?.NsfwAccessEnabled == true && Account?.Age21AttestedAtUtc is not null;
+    public string AccessBand => Account?.ContentAccess?.AccessBand ?? ContentAllowancePolicy.General;
+    public IReadOnlyList<string> AllowedContentDescriptors => Account?.ContentAccess?.AllowedDescriptors ?? [];
+    public IReadOnlyList<string> GuardianApprovedDescriptors => Account?.ContentAccess?.GuardianApprovedDescriptors ?? [];
+    public bool GuardianConsentRequired => AccessBand == ContentAllowancePolicy.Minor && Account?.ContentAccess?.GuardianConsentAtUtc is null;
     public string LastError { get; private set; } = "";
     public bool IsOwnerDiscordAccount => Profile is not null && !string.IsNullOrWhiteSpace(OwnerDiscordUserId) && string.Equals(Profile.UserId, OwnerDiscordUserId, StringComparison.Ordinal);
     internal string? SessionToken => _sessionToken;
@@ -26,6 +32,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     {
         LastError = "";
         Account = null;
+        PendingGuardianRequest = null;
         try
         {
             var config = await http.GetFromJsonAsync<AuthConfig>("auth-config.json");
@@ -65,14 +72,6 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             {
                 await Task.Delay(350 * (attempt + 1));
             }
-            catch (HttpRequestException)
-            {
-                return FailClosedProfileVerification();
-            }
-            catch (TaskCanceledException)
-            {
-                return FailClosedProfileVerification();
-            }
             catch
             {
                 return FailClosedProfileVerification();
@@ -85,9 +84,33 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     private async Task<AuthProfile?> CompleteAccountAccessAsync()
     {
         if (Profile is null) return null;
-
         var intent = (await js.InvokeAsync<string?>("localStorage.getItem", "rist.auth.intent"))?.Trim().ToLowerInvariant() ?? "";
-        AccountProfile? saved = null;
+
+        if (intent == "guardian-consent")
+        {
+            var request = await ReadLocalAsync<GuardianConsentRequest>(GuardianRequestKey);
+            if (request is null || DateTimeOffset.UtcNow - request.RequestedAtUtc > TimeSpan.FromMinutes(30))
+            {
+                LastError = "The guardian consent request expired. Return to the minor account and request consent again.";
+                await ClearGuardianDraftAsync();
+                await ClearSessionAsync();
+                Profile = null;
+                return null;
+            }
+            if (string.Equals(Profile.UserId, request.ChildUserId, StringComparison.Ordinal))
+            {
+                LastError = "Guardian consent must use a different adult login from the minor account.";
+                await ClearSessionAsync();
+                Profile = null;
+                return null;
+            }
+            PendingGuardianRequest = request;
+            Account = null;
+            LastError = "";
+            return Profile;
+        }
+
+        AccountProfile? saved;
         try
         {
             saved = await DownloadJsonAsync<AccountProfile>(AccountProfileKey);
@@ -130,7 +153,8 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
                 Plan: plan,
                 CreatedAtUtc: DateTimeOffset.UtcNow,
                 TermsAcceptedAtUtc: DateTimeOffset.UtcNow,
-                TermsVersion: "2026-08-30");
+                TermsVersion: "2026-08-30",
+                ContentAccess: ContentAccessSettings.Default);
 
             try
             {
@@ -160,6 +184,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             return null;
         }
 
+        saved = await ApplyPendingGuardianApprovalAsync(saved);
         Account = saved;
         await ClearAuthIntentAsync();
         return Profile;
@@ -169,6 +194,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     {
         Profile = null;
         Account = null;
+        PendingGuardianRequest = null;
         LastError = "Your RIST profile could not be verified. Please try again.";
         return null;
     }
@@ -180,31 +206,182 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("ristAuth.navigate", _apiBaseUrl + "/auth/login");
     }
 
-    public async Task SetNsfwAccessAsync(bool enabled, bool age21Attested)
+    public async Task SetContentAccessAsync(string accessBand, IEnumerable<string> requestedDescriptors, bool ageAttested)
     {
         LastError = "";
         if (Account is null) return;
-        if (enabled && !age21Attested)
+
+        accessBand = accessBand switch
         {
-            LastError = "You must certify that you are 21 or older before enabling NSFW content.";
+            ContentAllowancePolicy.Minor => ContentAllowancePolicy.Minor,
+            ContentAllowancePolicy.Adult18 => ContentAllowancePolicy.Adult18,
+            ContentAllowancePolicy.Adult21 => ContentAllowancePolicy.Adult21,
+            _ => ContentAllowancePolicy.General
+        };
+
+        if (accessBand == ContentAllowancePolicy.Adult18 && !ageAttested)
+        {
+            LastError = "You must certify that you are at least 18 before enabling 18+ content allowances.";
+            return;
+        }
+        if (accessBand == ContentAllowancePolicy.Adult21 && !ageAttested)
+        {
+            LastError = "You must certify that you are at least 21 before enabling sexual-content allowances.";
             return;
         }
 
-        var updated = Account with
+        var previous = Account.ContentAccess ?? ContentAccessSettings.Default;
+        var now = DateTimeOffset.UtcNow;
+        ContentAccessSettings next;
+        if (accessBand == ContentAllowancePolicy.Minor)
         {
-            NsfwAccessEnabled = enabled,
-            Age21AttestedAtUtc = enabled ? (Account.Age21AttestedAtUtc ?? DateTimeOffset.UtcNow) : null,
-            NsfwAttestationVersion = enabled ? "2026-08-31" : null
-        };
+            next = new ContentAccessSettings(
+                AccessBand: ContentAllowancePolicy.Minor,
+                AllowedDescriptors: [],
+                SelfAttestedAtUtc: null,
+                ConsentVersion: ContentAllowancePolicy.Version,
+                GuardianConsentAtUtc: previous.AccessBand == ContentAllowancePolicy.Minor ? previous.GuardianConsentAtUtc : null,
+                GuardianConsentVersion: previous.AccessBand == ContentAllowancePolicy.Minor ? previous.GuardianConsentVersion : null,
+                GuardianApprovedDescriptors: previous.AccessBand == ContentAllowancePolicy.Minor ? previous.GuardianApprovedDescriptors : []);
+        }
+        else
+        {
+            var allowed = ContentAllowancePolicy.Sanitize(accessBand, requestedDescriptors);
+            next = new ContentAccessSettings(
+                AccessBand: accessBand,
+                AllowedDescriptors: allowed.ToArray(),
+                SelfAttestedAtUtc: accessBand == ContentAllowancePolicy.General ? null : now,
+                ConsentVersion: ContentAllowancePolicy.Version,
+                GuardianConsentAtUtc: null,
+                GuardianConsentVersion: null,
+                GuardianApprovedDescriptors: []);
+        }
 
+        await SaveContentAccessAsync(next);
+    }
+
+    public async Task BeginGuardianConsentAsync(IEnumerable<string> requestedDescriptors)
+    {
+        LastError = "";
+        if (Account is null || Profile is null || AccessBand != ContentAllowancePolicy.Minor)
+        {
+            LastError = "Guardian consent can only be requested from a minor account.";
+            return;
+        }
+
+        var request = new GuardianConsentRequest(
+            ChildUserId: Profile.UserId,
+            ChildAccountId: Account.AccountId,
+            ChildAlias: Account.PlayerAlias,
+            RequestedDescriptors: requestedDescriptors.Distinct(StringComparer.Ordinal).Where(id => ContentAllowancePolicy.Descriptors.Any(d => d.Id == id)).ToArray(),
+            RequestedAtUtc: DateTimeOffset.UtcNow,
+            ConsentVersion: ContentAllowancePolicy.Version);
+
+        await WriteLocalAsync(GuardianRequestKey, request);
+        await js.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "guardian-consent");
+        if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            try { await SendAsync<object>(HttpMethod.Post, "/auth/logout"); } catch { }
+        }
+        Profile = null;
+        Account = null;
+        PendingGuardianRequest = null;
+        await ClearSessionOnlyAsync();
+        await js.InvokeVoidAsync("ristAuth.navigate", _apiBaseUrl + "/auth/login");
+    }
+
+    public async Task ApproveGuardianConsentAsync(bool adultAttested)
+    {
+        LastError = "";
+        if (PendingGuardianRequest is null || Profile is null) return;
+        if (!adultAttested)
+        {
+            LastError = "The parent or guardian must certify that they are an adult and consent to the requested access.";
+            return;
+        }
+
+        var approval = new GuardianConsentApproval(
+            ChildUserId: PendingGuardianRequest.ChildUserId,
+            ChildAccountId: PendingGuardianRequest.ChildAccountId,
+            GuardianUserId: Profile.UserId,
+            ApprovedDescriptors: PendingGuardianRequest.RequestedDescriptors,
+            ConsentedAtUtc: DateTimeOffset.UtcNow,
+            ConsentVersion: ContentAllowancePolicy.Version);
+        await WriteLocalAsync(GuardianApprovalKey, approval);
+        await js.InvokeVoidAsync("localStorage.removeItem", GuardianRequestKey);
+
+        if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            try { await SendAsync<object>(HttpMethod.Post, "/auth/logout"); } catch { }
+        }
+        Profile = null;
+        Account = null;
+        PendingGuardianRequest = null;
+        await ClearAuthIntentAsync();
+        await ClearSessionOnlyAsync();
+        LastError = "Guardian consent recorded. The minor can now log back in to apply the approved content allowances.";
+    }
+
+    public async Task DenyGuardianConsentAsync()
+    {
+        await ClearGuardianDraftAsync();
+        if (IsConfigured && !string.IsNullOrWhiteSpace(_sessionToken))
+        {
+            try { await SendAsync<object>(HttpMethod.Post, "/auth/logout"); } catch { }
+        }
+        Profile = null;
+        Account = null;
+        PendingGuardianRequest = null;
+        await ClearSessionOnlyAsync();
+        LastError = "Guardian consent was not granted. Mature content remains blocked.";
+    }
+
+    public bool CampaignContentAllowed(IEnumerable<string> campaignDescriptors)
+        => Account is not null && ContentAllowancePolicy.CampaignAllowed(
+            AccessBand,
+            AllowedContentDescriptors,
+            campaignDescriptors,
+            GuardianApprovedDescriptors);
+
+    private async Task<AccountProfile> ApplyPendingGuardianApprovalAsync(AccountProfile saved)
+    {
+        var approval = await ReadLocalAsync<GuardianConsentApproval>(GuardianApprovalKey);
+        if (approval is null) return saved;
+        if (DateTimeOffset.UtcNow - approval.ConsentedAtUtc > TimeSpan.FromHours(24))
+        {
+            await js.InvokeVoidAsync("localStorage.removeItem", GuardianApprovalKey);
+            return saved;
+        }
+        if (Profile is null || !string.Equals(Profile.UserId, approval.ChildUserId, StringComparison.Ordinal) || !string.Equals(saved.AccountId, approval.ChildAccountId, StringComparison.Ordinal))
+            return saved;
+
+        var approved = approval.ApprovedDescriptors.Distinct(StringComparer.Ordinal).Where(id => ContentAllowancePolicy.Descriptors.Any(d => d.Id == id)).ToArray();
+        var nextAccess = new ContentAccessSettings(
+            AccessBand: ContentAllowancePolicy.Minor,
+            AllowedDescriptors: approved,
+            SelfAttestedAtUtc: null,
+            ConsentVersion: ContentAllowancePolicy.Version,
+            GuardianConsentAtUtc: approval.ConsentedAtUtc,
+            GuardianConsentVersion: approval.ConsentVersion,
+            GuardianApprovedDescriptors: approved);
+        var updated = saved with { ContentAccess = nextAccess };
+        await UploadTextAsync(AccountProfileKey, JsonSerializer.Serialize(updated), "application/json");
+        await js.InvokeVoidAsync("localStorage.removeItem", GuardianApprovalKey);
+        return updated;
+    }
+
+    private async Task SaveContentAccessAsync(ContentAccessSettings settings)
+    {
+        if (Account is null) return;
         try
         {
+            var updated = Account with { ContentAccess = settings, NsfwAccessEnabled = false, Age21AttestedAtUtc = null, NsfwAttestationVersion = null };
             await UploadTextAsync(AccountProfileKey, JsonSerializer.Serialize(updated), "application/json");
             Account = updated;
         }
         catch
         {
-            LastError = "NSFW access preference could not be saved. Please try again.";
+            LastError = "Content allowance preferences could not be saved. Please try again.";
         }
     }
 
@@ -216,6 +393,7 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         }
         Profile = null;
         Account = null;
+        PendingGuardianRequest = null;
         LastError = "";
         await ClearAuthIntentAsync();
         await ClearSessionAsync();
@@ -227,8 +405,10 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
             await SendAsync<object>(HttpMethod.Post, "/account/delete");
         Profile = null;
         Account = null;
+        PendingGuardianRequest = null;
         LastError = "";
         await ClearSignupDraftAsync();
+        await ClearGuardianDraftAsync();
         await ClearSessionAsync();
     }
 
@@ -279,6 +459,19 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         return await response.Content.ReadFromJsonAsync<T>();
     }
 
+    private async Task<T?> ReadLocalAsync<T>(string key)
+    {
+        try
+        {
+            var raw = await js.InvokeAsync<string?>("localStorage.getItem", key);
+            return string.IsNullOrWhiteSpace(raw) ? default : JsonSerializer.Deserialize<T>(raw);
+        }
+        catch { return default; }
+    }
+
+    private async Task WriteLocalAsync<T>(string key, T value)
+        => await js.InvokeVoidAsync("localStorage.setItem", key, JsonSerializer.Serialize(value));
+
     private async Task ClearSignupDraftAsync()
     {
         await js.InvokeVoidAsync("localStorage.removeItem", "rist.signup.alias");
@@ -287,18 +480,50 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
         await ClearAuthIntentAsync();
     }
 
+    private async Task ClearGuardianDraftAsync()
+    {
+        await js.InvokeVoidAsync("localStorage.removeItem", GuardianRequestKey);
+        await js.InvokeVoidAsync("localStorage.removeItem", GuardianApprovalKey);
+        await ClearAuthIntentAsync();
+    }
+
     private async Task ClearAuthIntentAsync()
         => await js.InvokeVoidAsync("localStorage.removeItem", "rist.auth.intent");
 
-    private async Task ClearSessionAsync()
+    private async Task ClearSessionOnlyAsync()
     {
         _sessionToken = null;
         await js.InvokeVoidAsync("ristAuth.clearSession");
     }
 
+    private async Task ClearSessionAsync() => await ClearSessionOnlyAsync();
+
     public sealed record AuthConfig(string ApiBaseUrl, string? OwnerDiscordUserId = null);
     public sealed record AuthProfile(string UserId, string DisplayName, string StoragePrefix, bool Age21Verified = false, bool AgeVerificationAvailable = false);
-    public sealed record AccountProfile(string AccountId, string PlayerAlias, string Plan, DateTimeOffset CreatedAtUtc, DateTimeOffset TermsAcceptedAtUtc, string TermsVersion, bool NsfwAccessEnabled = false, DateTimeOffset? Age21AttestedAtUtc = null, string? NsfwAttestationVersion = null);
+    public sealed record AccountProfile(
+        string AccountId,
+        string PlayerAlias,
+        string Plan,
+        DateTimeOffset CreatedAtUtc,
+        DateTimeOffset TermsAcceptedAtUtc,
+        string TermsVersion,
+        bool NsfwAccessEnabled = false,
+        DateTimeOffset? Age21AttestedAtUtc = null,
+        string? NsfwAttestationVersion = null,
+        ContentAccessSettings? ContentAccess = null);
+    public sealed record ContentAccessSettings(
+        string AccessBand,
+        string[] AllowedDescriptors,
+        DateTimeOffset? SelfAttestedAtUtc,
+        string ConsentVersion,
+        DateTimeOffset? GuardianConsentAtUtc,
+        string? GuardianConsentVersion,
+        string[] GuardianApprovedDescriptors)
+    {
+        public static ContentAccessSettings Default => new(ContentAllowancePolicy.General, [], null, ContentAllowancePolicy.Version, null, null, []);
+    }
+    public sealed record GuardianConsentRequest(string ChildUserId, string ChildAccountId, string ChildAlias, string[] RequestedDescriptors, DateTimeOffset RequestedAtUtc, string ConsentVersion);
+    public sealed record GuardianConsentApproval(string ChildUserId, string ChildAccountId, string GuardianUserId, string[] ApprovedDescriptors, DateTimeOffset ConsentedAtUtc, string ConsentVersion);
     public sealed record UploadRequest(string Key, string ContentType);
     public sealed record PresignedPost(string Url, Dictionary<string,string> Fields);
     public sealed record DownloadResponse(string Url);
