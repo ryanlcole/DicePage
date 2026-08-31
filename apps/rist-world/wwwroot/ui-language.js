@@ -6,6 +6,7 @@
  };
  const CODE_NAMES=Object.fromEntries(Object.entries(LANGUAGE_CODES).map(([name,code])=>[code,name]));
  let apiBase='';
+ let configPromise=null;
  let currentName=localStorage.getItem(PREF)||'English';
  let currentCode=LANGUAGE_CODES[currentName]||'en';
  let applying=false;
@@ -26,9 +27,21 @@
  }
  function sourceFor(node){if(!originals.has(node))originals.set(node,node.nodeValue);return cleanText(originals.get(node))}
  function restore(){for(const root of roots())for(const node of textNodes(root)){if(originals.has(node))node.nodeValue=originals.get(node)}}
- async function loadConfig(){try{const url=location.pathname.startsWith('/Game/')?'translation-config.json':'/translation-config.json';const res=await fetch(url,{cache:'no-store'});if(res.ok){const cfg=await res.json();apiBase=String(cfg.apiBaseUrl||'').replace(/\/$/,'')}}catch{apiBase=''}}
+ async function loadConfig(){
+  if(apiBase)return apiBase;
+  if(configPromise)return configPromise;
+  configPromise=(async()=>{
+   const urls=location.pathname.startsWith('/Game/')?['translation-config.json','/translation-config.json']:['/translation-config.json','/Game/translation-config.json'];
+   for(const url of urls){
+    try{const res=await fetch(url,{cache:'no-store'});if(!res.ok)continue;const cfg=await res.json();const candidate=String(cfg.apiBaseUrl||'').replace(/\/$/,'');if(candidate){apiBase=candidate;break}}catch{}
+   }
+   return apiBase;
+  })().finally(()=>{configPromise=null});
+  return configPromise;
+ }
  async function fetchTranslations(texts){
-  const unique=[...new Set(texts.map(cleanText).filter(Boolean))];if(!unique.length||!apiBase||currentCode==='en')return new Map();
+  const unique=[...new Set(texts.map(cleanText).filter(Boolean))];if(!unique.length||currentCode==='en')return new Map();
+  if(!apiBase)await loadConfig();if(!apiBase)return new Map();
   const missing=unique.filter(text=>!translations.has(currentCode+'\0'+text));
   for(let i=0;i<missing.length;i+=80){const chunk=missing.slice(i,i+80);try{const res=await fetch(apiBase+'/ui/translate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sourceLanguageCode:'en',targetLanguageCode:currentCode,texts:chunk})});if(!res.ok)continue;const data=await res.json();for(const item of data.items||[]){if(item?.translated&&item.source)translations.set(currentCode+'\0'+cleanText(item.source),String(item.text||item.source))}}catch{}}
   const result=new Map();for(const text of unique){const translated=translations.get(currentCode+'\0'+text);if(translated)result.set(text,translated)}return result;
@@ -38,7 +51,8 @@
   if([...el.options||[]].some(option=>option.value===currentName)){el.value=currentName;el.dispatchEvent(new Event('change',{bubbles:true}))}
  }
  async function translateChat(text,sourceLanguageCode,targetLanguageCode=currentCode){
-  if(!text||!apiBase||sourceLanguageCode===targetLanguageCode)return {text,sourceLanguageCode,targetLanguageCode,cached:true};
+  if(!text||sourceLanguageCode===targetLanguageCode)return {text,sourceLanguageCode,targetLanguageCode,cached:true};
+  if(!apiBase)await loadConfig();if(!apiBase)return {text,sourceLanguageCode,targetLanguageCode,error:'Translation unavailable'};
   const key=sourceLanguageCode+'\0'+targetLanguageCode+'\0'+text;if(chatTranslations.has(key))return {text:chatTranslations.get(key),sourceLanguageCode,targetLanguageCode,cached:true};
   const token=sessionStorage.getItem('rist.session');if(!token)return {text,sourceLanguageCode,targetLanguageCode,error:'Authentication required'};
   try{const res=await fetch(apiBase+'/chat/translate',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({text,sourceLanguageCode,targetLanguageCode})});if(!res.ok)return {text,sourceLanguageCode,targetLanguageCode,error:'Translation unavailable'};const data=await res.json();if(data?.text)chatTranslations.set(key,String(data.text));return data}catch{return {text,sourceLanguageCode,targetLanguageCode,error:'Translation unavailable'}}
@@ -74,7 +88,9 @@
   const code=LANGUAGE_CODES[value]||String(value||'').toLowerCase();const name=LANGUAGE_CODES[value]?value:(CODE_NAMES[code]||value||'English');
   currentName=name;currentCode=LANGUAGE_CODES[name]||code||'en';localStorage.setItem(PREF,currentName);
   for(const node of document.querySelectorAll('[data-common-translated-for]'))delete node.dataset.commonTranslatedFor;
-  document.dispatchEvent(new CustomEvent('rist:ui-language-changed',{detail:{name:currentName,code:currentCode}}));await apply();
+  document.dispatchEvent(new CustomEvent('rist:ui-language-changed',{detail:{name:currentName,code:currentCode}}));
+  if(currentCode!=='en'&&!apiBase)await loadConfig();
+  await apply();
  }
  function startObserver(){if(observer)return;let queued=false;observer=new MutationObserver(()=>{if(applying||queued)return;queued=true;queueMicrotask(()=>{queued=false;void apply()})});observer.observe(document.body,{childList:true,subtree:true})}
  async function init(){await loadConfig();await apply();startObserver()}
