@@ -17,21 +17,31 @@
   header.append(make(-1,'prev'),make(1,'next'));
  }
 
+ function currentRpLanguage(){
+  const button=document.querySelector('.release-footer-stack .roleplay-language-toggle');
+  const internal=button?.dataset.dialectInternal||button?.textContent?.replace(/^(?:Dialect|RP-Language):\s*/i,'').trim()||'Common';
+  return /^common$/i.test(internal)?'Universal':internal;
+ }
+ function syncComposeContext(){
+  const input=document.querySelector('.home-chat-compose textarea,.chat-compose-rail textarea');
+  if(input)input.placeholder=`${audience} · ${currentRpLanguage()}`;
+ }
  function decorateDialect(button){
   if(!button)return;
   const alreadyDecorated=!!button.querySelector('.chat-blue-value');
   const internal=alreadyDecorated
    ? (button.dataset.dialectInternal||'Common')
-   : (button.textContent?.replace(/^Dialect:\s*/i,'').trim()||'Common');
+   : (button.textContent?.replace(/^(?:Dialect|RP-Language):\s*/i,'').trim()||'Common');
   const display=/^common$/i.test(internal)?'Universal':internal;
   const currentDisplay=button.querySelector('.chat-blue-value')?.textContent?.trim();
-  if(!alreadyDecorated||currentDisplay!==display){
+  if(!alreadyDecorated||currentDisplay!==display||!button.textContent?.startsWith('RP-Language:')){
    button.dataset.dialectInternal=internal;
    const value=document.createElement('span');value.className='chat-blue-value';value.textContent=display;
-   button.replaceChildren(document.createTextNode('Dialect: '),value);
+   button.replaceChildren(document.createTextNode('RP-Language: '),value);
   }
-  button.setAttribute('aria-label',`Dialect ${display}. Tap to change language.`);
-  button.title='Change in-game language';
+  button.setAttribute('aria-label',`RP-Language ${display}. Tap to change language.`);
+  button.title='Change roleplay language';
+  syncComposeContext();
  }
 
  function ensureChatControls(){
@@ -58,6 +68,7 @@
   }
   syncAudience(audienceButton);
   decorateDialect(dialect);
+  syncComposeContext();
  }
  function syncAudience(button){
   if(!button)return;
@@ -69,6 +80,7 @@
   button.title='Change message audience';
   button.setAttribute('aria-label',`Audience ${audience}. Tap to change.`);
   document.querySelector('.home-inline-chat')?.setAttribute('data-chat-audience',audience.toLowerCase());
+  syncComposeContext();
  }
 
  function privateNames(){
