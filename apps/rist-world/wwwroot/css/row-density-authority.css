@@ -1,19 +1,15 @@
 /* RIST row-density authority.
-   Compact text-only rows collapse to their text line; image/control rows keep their
-   independently assigned heights. */
+   The Stars/context row is the canonical single-row height (42px in WorldTable).
+   This file intentionally uses higher-specificity selectors so component inline styles
+   cannot re-expand the menu or roleplay output after the document styles load. */
 
 html body .rist.release-world{
- --rist-context-h:22px!important;
- --rist-assets-menu-h:22px!important;
- --rist-assets-h:calc(var(--rist-assets-menu-h) + var(--rist-assets-slider-h))!important;
  --rist-menu-h:var(--rist-n)!important;
  --rist-roleplay-h:var(--rist-n)!important;
  --rist-map-frame-h:14px!important;
- height:calc(100dvh - var(--rist-context-h))!important;
- max-height:calc(100dvh - var(--rist-context-h))!important;
 }
 
-/* Compact rows occupy their assigned height with no outer top/bottom air. */
+/* Compact rows occupy their full assigned height with no outer top/bottom air. */
 html body .world-context-strip,
 html body .rist.release-world #header-slider .release-root-track,
 html body .rist.release-world .release-public-region .asset-rail-header,
@@ -31,32 +27,29 @@ html body .rist.release-world .release-footer-stack .chat-compose-rail{
  padding-bottom:0!important;
 }
 
-/* Stars/context is text-height only. */
+/* Stars/context row also uses the full row height with no vertical gutter. */
 html body .world-context-strip{
- box-sizing:border-box!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
+ height:42px!important;
+ min-height:42px!important;
+ max-height:42px!important;
  display:flex!important;
  align-items:stretch!important;
- line-height:22px!important;
 }
 html body .world-context-strip>.world-context-action,
 html body .world-context-strip>.world-context-readout{
  box-sizing:border-box!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
- margin:0!important;
+ height:100%!important;
+ min-height:100%!important;
+ max-height:100%!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
  padding-top:0!important;
  padding-bottom:0!important;
  display:flex!important;
  align-items:center!important;
- line-height:22px!important;
- border-radius:0!important;
 }
 
-/* Login/main menu rail remains an image row. */
+/* Login/main menu rail = exactly one Stars/context row. */
 html body .rist.release-world .release-menu-region,
 html body .rist.release-world .release-menu-region>#header-slider,
 html body .rist.release-world #header-slider .release-root-track{
@@ -130,25 +123,20 @@ html body .rist.release-world #header-slider .header-icon-button{
  padding-right:4px!important;
 }
 
-/* Public/private title + filter rows are text-height only. */
+/* Public/private header + filter rows fill their row with no vertical gutter. */
 html body .rist.release-world .release-public-region .asset-rail-header,
 html body .rist.release-world .release-private-region .asset-rail-header{
- box-sizing:border-box!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
  align-items:stretch!important;
- line-height:22px!important;
 }
 html body .rist.release-world .release-public-region .asset-rail-header>strong,
 html body .rist.release-world .release-private-region .asset-rail-header>strong,
 html body .rist.release-world .release-public-region .asset-type-tabs,
 html body .rist.release-world .release-private-region .asset-type-tabs{
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
- margin:0!important;
- line-height:22px!important;
+ height:100%!important;
+ min-height:100%!important;
+ max-height:100%!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
 }
 html body .rist.release-world .release-public-region .asset-type-tabs,
 html body .rist.release-world .release-private-region .asset-type-tabs{
@@ -157,14 +145,13 @@ html body .rist.release-world .release-private-region .asset-type-tabs{
 html body .rist.release-world .release-public-region .asset-type-tabs>button,
 html body .rist.release-world .release-private-region .asset-type-tabs>button{
  box-sizing:border-box!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
- margin:0!important;
+ height:100%!important;
+ min-height:100%!important;
+ max-height:100%!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
  padding-top:0!important;
  padding-bottom:0!important;
- line-height:20px!important;
- border-radius:0!important;
 }
 
 /* Asset rows fill their slider height. Keep only the tiny internal border gap. */
@@ -202,7 +189,7 @@ html body .rist.release-world .release-map-region>.table-workspace>.map-shell{
  grid-template-rows:var(--rist-map-frame-h) minmax(0,1fr) var(--rist-map-frame-h)!important;
 }
 
-/* Roleplay output = exactly one menu/image row. */
+/* Roleplay output = exactly one Stars/context row. */
 html body .rist.release-world .release-footer-stack>.inline-chat-output{
  height:var(--rist-n)!important;
  min-height:var(--rist-n)!important;
