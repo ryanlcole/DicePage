@@ -113,11 +113,15 @@ html body .rist.release-world .release-footer-stack .chat-compose-rail{
  gap:2px!important;
  padding:3px 3px!important;
 }
+html body .rist.release-world .release-footer-stack .chat-compose-rail:has(.private-friend-select:not([hidden])){
+ grid-template-columns:minmax(0,1fr) minmax(78px,25vw) auto 28px!important;
+}
 
 html body .rist.release-world .release-footer-stack .home-chat-compose,
 html body .rist.release-world .release-footer-stack .home-chat-compose textarea,
 html body .rist.release-world .release-footer-stack .home-chat-send,
-html body .rist.release-world .release-footer-stack .dice-tray-toggle{
+html body .rist.release-world .release-footer-stack .dice-tray-toggle,
+html body .rist.release-world .release-footer-stack .private-friend-select{
  height:22px!important;
  min-height:22px!important;
  max-height:22px!important;
@@ -142,6 +146,21 @@ html body .rist.release-world .release-footer-stack .home-chat-compose textarea{
  font-size:16px!important;
  line-height:20px!important;
 }
+
+html body .rist.release-world .release-footer-stack .private-friend-select{
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:78px!important;
+ max-width:25vw!important;
+ margin:0!important;
+ padding:0 18px 0 6px!important;
+ border:1px solid #725d30!important;
+ border-radius:7px!important;
+ background:#111920!important;
+ color:#d7be80!important;
+ font:800 9px/20px system-ui,-apple-system,sans-serif!important;
+}
+html body .rist.release-world .release-footer-stack .private-friend-select[hidden]{display:none!important}
 
 html body .rist.release-world .release-footer-stack .home-chat-send{
  min-width:52px!important;
