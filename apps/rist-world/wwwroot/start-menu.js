@@ -1,6 +1,7 @@
 (()=>{
  'use strict';
  const HUMAN_LANGUAGES=['English','Spanish','French','German','Italian','Portuguese','Polish','Dutch','Swedish','Norwegian','Danish','Finnish','Russian','Ukrainian','Arabic','Hebrew','Hindi','Bengali','Urdu','Mandarin Chinese','Cantonese','Japanese','Korean','Vietnamese','Thai','Indonesian','Malay','Filipino','Swahili','Turkish','Greek','Czech','Romanian','Hungarian'];
+ const LANGUAGE_PREF='rist.primaryHumanLanguage';
  function range(label,value){return row(label,`<input type="range" min="0" max="100" value="${value}" aria-label="${label}">`)}
  function row(label,control){return `<label class="rist-setting-row"><span>${label}</span><span>${control}</span></label>`}
  function select(options,attrs=''){return `<select ${attrs}>${options.map(option=>`<option value="${option}">${option}</option>`).join('')}</select>`}
@@ -17,7 +18,7 @@
  };
  let overlay=null,panel=null;
  function pause(open){document.body.classList.toggle('rist-start-open',open);document.dispatchEvent(new CustomEvent(open?'rist:pause':'rist:resume',{detail:{source:'start-menu'}}))}
- function showHome(){panel.innerHTML=`<h1 class="rist-start-title">START</h1><div class="rist-start-grid">${Object.keys(sections).map(name=>`<button type="button" class="rist-start-button" data-start-section="${name}">${name}</button>`).join('')}</div><button type="button" class="rist-start-exit" data-start-exit>Exit</button>`}
+ function showHome(){panel.innerHTML=`<h1 class="rist-start-title">START</h1><div class="rist-start-grid">${Object.keys(sections).map(name=>`<button type="button" class="rist-start-button" data-start-section="${name}">${name}</button>`).join('')}</div><button type="button" class="rist-start-exit" data-start-exit>Exit</button>`;void window.RistUiLanguage?.apply?.()}
  async function hydrateAccount(){const out=panel?.querySelector('.rist-discord-id');if(!out)return;try{const config=await fetch('auth-config.json',{cache:'no-store'}).then(response=>response.ok?response.json():null);const token=sessionStorage.getItem('rist.session');if(!config?.apiBaseUrl||!token){out.textContent='Log in with Discord';return}const response=await fetch(config.apiBaseUrl.replace(/\/$/,'')+'/me',{headers:{Authorization:'Bearer '+token},cache:'no-store'});if(!response.ok){out.textContent='Unavailable';return}const profile=await response.json();out.textContent=profile.userId||profile.UserId||'Unavailable'}catch{out.textContent='Unavailable'}}
  function hydrateDice(){const btn=panel?.querySelector('[data-dice-sum-toggle]');const note=panel?.querySelector('[data-dice-gm-note]');if(!btn)return;const api=window.RistDicePrivacy;const state=api?.state?.()||{sumEnabled:true,gm:false};btn.textContent=state.sumEnabled?'Enabled':'Disabled';btn.setAttribute('aria-pressed',state.sumEnabled?'true':'false');btn.disabled=!state.gm;if(note)note.textContent=state.gm?'This setting applies to the table.':'Only the GameMaster can change this setting.'}
  function native(selector){return document.querySelector(selector)}
@@ -26,10 +27,12 @@
  function hydrateLanguage(){
   const primary=panel?.querySelector('[data-primary-language]'),mode=panel?.querySelector('[data-language-mode]'),percent=panel?.querySelector('[data-language-percent]'),manual=panel?.querySelector('[data-language-manual]'),out=panel?.querySelector('[data-language-percent-output]'),controls=panel?.querySelector('[data-language-gm-controls]'),note=panel?.querySelector('[data-language-player-note]');
   const nativePrimary=native('[data-native-primary-language]'),nativeMode=native('[data-native-language-mode]'),nativePercent=native('[data-native-language-percent]'),nativeManual=native('[data-native-language-manual]');
-  if(primary&&nativePrimary)primary.value=nativePrimary.value||'English';if(mode&&nativeMode)mode.value=nativeMode.value||'system';if(percent&&nativePercent)percent.value=nativePercent.value||'100';if(manual&&nativeManual)manual.value=nativeManual.value||'';if(out&&percent)out.textContent=`${percent.value}%`;
+  const saved=localStorage.getItem(LANGUAGE_PREF)||window.RistUiLanguage?.state?.().name||'English';
+  if(primary)primary.value=nativePrimary?.value||saved;if(mode&&nativeMode)mode.value=nativeMode.value||'system';if(percent&&nativePercent)percent.value=nativePercent.value||'100';if(manual&&nativeManual)manual.value=nativeManual.value||'';if(out&&percent)out.textContent=`${percent.value}%`;
   const gm=isGm();if(controls)controls.hidden=!gm;if(note)note.textContent=gm?'These controls affect private-game language resolution.':'Your character sheet languages and Linguistics determine what in-world speech you can read.';
+  void window.RistUiLanguage?.apply?.();
  }
- function showSection(name){panel.innerHTML=`<section class="rist-start-sub">${sections[name]}<button type="button" class="rist-start-back" data-start-back>Back</button><button type="button" class="rist-start-exit" data-start-exit>Exit</button></section>`;if(name==='Account')void hydrateAccount();if(name==='Dice')hydrateDice();if(name==='Language')hydrateLanguage()}
+ function showSection(name){panel.innerHTML=`<section class="rist-start-sub">${sections[name]}<button type="button" class="rist-start-back" data-start-back>Back</button><button type="button" class="rist-start-exit" data-start-exit>Exit</button></section>`;if(name==='Account')void hydrateAccount();if(name==='Dice')hydrateDice();if(name==='Language')hydrateLanguage();void window.RistUiLanguage?.apply?.()}
  function ensure(){
   if(overlay&&document.body.contains(overlay))return;
   overlay=document.querySelector('.rist-start-overlay');
@@ -37,13 +40,14 @@
   panel=overlay.querySelector('.rist-start-panel');showHome();
   if(overlay.dataset.wired==='1')return;overlay.dataset.wired='1';
   overlay.addEventListener('click',e=>{const target=e.target instanceof Element?e.target:null;if(!target)return;const context=target.closest('[data-world-context]');if(context){window.RistWorldContext?.edit?.(context.dataset.worldContext);return}if(target.closest('[data-world-clock]')){window.RistWorldContext?.openClock?.();return}const diceSum=target.closest('[data-dice-sum-toggle]');if(diceSum){const state=window.RistDicePrivacy?.state?.();if(state?.gm)window.RistDicePrivacy?.setSumEnabled?.(!state.sumEnabled);hydrateDice();return}const section=target.closest('[data-start-section]');if(section){showSection(section.dataset.startSection);return}if(target.closest('[data-start-back]')){showHome();return}if(target.closest('[data-start-exit]'))close()});
-  overlay.addEventListener('change',e=>{const target=e.target instanceof Element?e.target:null;if(!target)return;if(target.matches('[data-primary-language]')){pushNative('[data-native-primary-language]',target.value);return}if(target.matches('[data-language-mode]')&&isGm()){pushNative('[data-native-language-mode]',target.value);hydrateLanguage();return}if(target.matches('[data-language-percent]')&&isGm()){pushNative('[data-native-language-percent]',target.value);hydrateLanguage();return}if(target.matches('[data-language-manual]')&&isGm()){pushNative('[data-native-language-manual]',target.value);return}});
+  overlay.addEventListener('change',e=>{const target=e.target instanceof Element?e.target:null;if(!target)return;if(target.matches('[data-primary-language]')){localStorage.setItem(LANGUAGE_PREF,target.value);pushNative('[data-native-primary-language]',target.value);void window.RistUiLanguage?.setLanguage?.(target.value);return}if(target.matches('[data-language-mode]')&&isGm()){pushNative('[data-native-language-mode]',target.value);hydrateLanguage();return}if(target.matches('[data-language-percent]')&&isGm()){pushNative('[data-native-language-percent]',target.value);hydrateLanguage();return}if(target.matches('[data-language-manual]')&&isGm()){pushNative('[data-native-language-manual]',target.value);return}});
   overlay.addEventListener('input',e=>{const target=e.target instanceof Element?e.target:null;if(!target)return;if(target.matches('[data-language-percent]')){const out=panel?.querySelector('[data-language-percent-output]');if(out)out.textContent=`${target.value}%`}});
  }
- function open(){ensure();showHome();overlay.hidden=false;pause(true)}
+ function open(){ensure();showHome();overlay.hidden=false;pause(true);void window.RistUiLanguage?.apply?.()}
  function close(){if(!overlay)return;overlay.hidden=true;pause(false)}
  window.RistStartMenu={open,close};
  addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay&&!overlay.hidden)close()});
  document.addEventListener('rist:dice-sum-setting-changed',()=>{if(overlay&&!overlay.hidden&&panel?.querySelector('[data-dice-sum-toggle]'))hydrateDice()});
+ document.addEventListener('rist:ui-language-changed',e=>{const name=e.detail?.name;if(name)pushNative('[data-native-primary-language]',name);if(overlay&&!overlay.hidden)void window.RistUiLanguage?.apply?.()});
  ensure();
 })();
