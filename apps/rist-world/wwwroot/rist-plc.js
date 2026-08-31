@@ -10,7 +10,7 @@
   shell:[
    'map-context-sidebar.js?v=5',
    'recursion-layers.js?v=5',
-   'mmo-mode.js?v=7',
+   'mmo-mode.js?v=8',
    'token-game-launcher.js?v=3',
    'start-menu.js?v=2',
    'js/faux-depth.js?v=3'
@@ -100,7 +100,7 @@
  function signalDom(){frame('dom',()=>document.dispatchEvent(new CustomEvent('rist:dom-change')))}
  function signalViewport(){frame('viewport',()=>document.dispatchEvent(new CustomEvent('rist:viewport-change')))}
  const app=document.querySelector('#app');
- if(app)new MutationObserver(signalDom).observe(app,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pan-x','data-pan-y','data-zoom','data-front-token','data-character','data-shaelvien-ai-authority']});
+ if(app)new MutationObserver(signalDom).observe(app,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pan-x','data-pan-y','data-zoom','data-front-token','data-character','data-shaelvien-ai-authority','data-world-mode']});
  addEventListener('resize',signalViewport,{passive:true});addEventListener('orientationchange',signalViewport,{passive:true});
  document.addEventListener('pointermove',e=>{if(e.target instanceof Element&&e.target.closest('.map,.rist-art-studio'))signalViewport()},{capture:true,passive:true});
  document.addEventListener('wheel',e=>{if(e.target instanceof Element&&e.target.closest('.map,.rist-art-studio'))signalViewport()},{capture:true,passive:true});
