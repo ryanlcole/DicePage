@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: RIST Discord authentication, minimal age eligibility verification, and private per-user storage
+Description: RIST Discord authentication, guardian consent, asset content ratings, and private per-user storage
 
 Parameters:
   DiscordClientId:
@@ -9,14 +9,6 @@ Parameters:
   DiscordClientSecretArn:
     Type: String
     Description: Secrets Manager ARN containing the Discord client secret
-  YotiSdkId:
-    Type: String
-    Default: ''
-    Description: Optional Yoti Age Verification SDK ID; blank keeps age verification disabled
-  YotiApiKeySecretArn:
-    Type: String
-    Default: ''
-    Description: Optional Secrets Manager ARN containing the Yoti Age Verification API key
   FrontendOrigin:
     Type: String
     Default: https://ryanlcole.github.io
@@ -29,11 +21,6 @@ Parameters:
     Default: 12
     MinValue: 1
     MaxValue: 168
-
-Conditions:
-  HasYotiVerifier: !And
-    - !Not [!Equals [!Ref YotiSdkId, '']]
-    - !Not [!Equals [!Ref YotiApiKeySecretArn, '']]
 
 Resources:
   PrivateStorageBucket:
@@ -107,8 +94,6 @@ Resources:
         Variables:
           DISCORD_CLIENT_ID: !Ref DiscordClientId
           DISCORD_SECRET_ARN: !Ref DiscordClientSecretArn
-          YOTI_SDK_ID: !Ref YotiSdkId
-          YOTI_API_KEY_SECRET_ARN: !Ref YotiApiKeySecretArn
           FRONTEND_URL: !Ref FrontendUrl
           FRONTEND_ORIGIN: !Ref FrontendOrigin
           SESSION_HOURS: !Ref SessionHours
@@ -122,13 +107,14 @@ Resources:
         - Statement:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
-              Resource:
-                - !Ref DiscordClientSecretArn
-                - !If [HasYotiVerifier, !Ref YotiApiKeySecretArn, !Ref DiscordClientSecretArn]
+              Resource: !Ref DiscordClientSecretArn
       Events:
         Login:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /auth/login, Method: GET }
+        GuardianLogin:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /auth/guardian, Method: GET }
         Callback:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /auth/callback, Method: GET }
@@ -141,15 +127,30 @@ Resources:
         Logout:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /auth/logout, Method: POST }
-        AgeStart:
+        GuardianRequest:
           Type: HttpApi
-          Properties: { ApiId: !Ref AuthApi, Path: /age/start, Method: POST }
-        AgeCallback:
+          Properties: { ApiId: !Ref AuthApi, Path: /guardian/request, Method: POST }
+        GuardianPending:
           Type: HttpApi
-          Properties: { ApiId: !Ref AuthApi, Path: /age/callback, Method: GET }
-        AgeStatus:
+          Properties: { ApiId: !Ref AuthApi, Path: /guardian/pending, Method: GET }
+        GuardianApprove:
           Type: HttpApi
-          Properties: { ApiId: !Ref AuthApi, Path: /age/status, Method: GET }
+          Properties: { ApiId: !Ref AuthApi, Path: /guardian/approve, Method: POST }
+        GuardianDeny:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /guardian/deny, Method: POST }
+        GuardianStatus:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /guardian/status, Method: GET }
+        AssetRatingRegister:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /assets/rating/register, Method: POST }
+        AssetRatingGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /assets/rating, Method: GET }
+        AssetRatingReport:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthApi, Path: /assets/rating/report, Method: POST }
         Upload:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthApi, Path: /storage/upload, Method: POST }
@@ -173,13 +174,18 @@ Resources:
         CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
         BUCKET = os.environ["STORAGE_BUCKET"]
         SESSION_SECONDS = int(os.environ["SESSION_HOURS"]) * 3600
-        YOTI_SDK_ID = os.environ.get("YOTI_SDK_ID", "").strip()
-        YOTI_API_KEY_SECRET_ARN = os.environ.get("YOTI_API_KEY_SECRET_ARN", "").strip()
-        YOTI_API = "https://age.yoti.com"
         DISCORD_USER_AGENT = "ReLiCGameMaster-RIST/1.0"
+        CONTENT_POLICY_VERSION = "2026-08-31"
+        CONTENT_DESCRIPTORS = {
+            "mature-conversation", "violence-gore", "alcohol", "tobacco-smoking",
+            "drugs", "gambling", "sexual-themes", "explicit-sexual-content"
+        }
+        MINOR_DESCRIPTORS = {
+            "mature-conversation", "violence-gore", "alcohol", "tobacco-smoking", "drugs", "gambling"
+        }
         ALLOWED_TYPES = {
             "application/json", "application/zip", "image/png", "image/jpeg",
-            "image/webp", "text/plain", "application/octet-stream"
+            "image/webp", "image/gif", "text/plain", "application/octet-stream"
         }
 
         def response(status, body=None, location=None):
@@ -194,10 +200,6 @@ Resources:
                 headers["location"] = location
             payload = "" if body is None else json.dumps(body, separators=(",", ":"))
             return {"statusCode": status, "headers": headers, "body": payload}
-
-        def frontend_target(state):
-            sep = "&" if "?" in FRONTEND else "?"
-            return FRONTEND + sep + "rist_age=" + urllib.parse.quote(state)
 
         def frontend_error(code):
             sep = "&" if "?" in FRONTEND else "?"
@@ -227,29 +229,6 @@ Resources:
         def secret_value():
             return read_secret(os.environ["DISCORD_SECRET_ARN"], ("client_secret", "clientSecret", "secret"))
 
-        def yoti_configured():
-            return bool(YOTI_SDK_ID and YOTI_API_KEY_SECRET_ARN)
-
-        def yoti_api_key():
-            return read_secret(YOTI_API_KEY_SECRET_ARN, ("api_key", "apiKey", "token", "key", "secret"))
-
-        def yoti_request(method, path, payload=None):
-            data = None if payload is None else json.dumps(payload, separators=(",", ":")).encode()
-            req = urllib.request.Request(
-                YOTI_API + path,
-                data=data,
-                method=method,
-                headers={
-                    "Authorization": "Bearer " + yoti_api_key(),
-                    "Yoti-Sdk-Id": YOTI_SDK_ID,
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "User-Agent": DISCORD_USER_AGENT
-                }
-            )
-            with urllib.request.urlopen(req, timeout=10) as r:
-                return json.loads(r.read())
-
         def api_base(event):
             ctx = event["requestContext"]
             stage = ctx.get("stage", "")
@@ -267,9 +246,6 @@ Resources:
                 return None
             return item
 
-        def age_record(user_id):
-            return ddb.get_item(Key={"pk": "age#" + user_id}).get("Item")
-
         def safe_key(raw):
             raw = urllib.parse.unquote(raw or "").replace("\\", "/").strip("/")
             if not raw or len(raw) > 512 or ".." in raw.split("/"):
@@ -278,11 +254,59 @@ Resources:
                 raise ValueError("Invalid key")
             return raw
 
+        def safe_asset_id(raw):
+            value = str(raw or "").strip()
+            if not value or len(value) > 512:
+                raise ValueError("Invalid asset ID")
+            return value
+
+        def rating_key(asset_id):
+            return "assetrating#" + hashlib.sha256(asset_id.encode()).hexdigest()
+
+        def guardian_key(child_user_id, child_account_id):
+            return "guardian#" + child_user_id + "#" + child_account_id
+
+        def sanitize_descriptors(values, allowed=CONTENT_DESCRIPTORS):
+            if not isinstance(values, list):
+                return []
+            return sorted({str(x) for x in values if str(x) in allowed})
+
         def json_body(event):
             body = event.get("body") or "{}"
             if event.get("isBase64Encoded"):
                 body = base64.b64decode(body).decode()
             return json.loads(body)
+
+        def discord_redirect(event, state):
+            redirect = api_base(event) + "/auth/callback"
+            params = urllib.parse.urlencode({
+                "client_id": CLIENT_ID, "redirect_uri": redirect,
+                "response_type": "code", "scope": "identify", "state": state,
+                "prompt": "consent"
+            })
+            return response(302, location="https://discord.com/oauth2/authorize?" + params)
+
+        def notification_key(user_id, asset_id, now):
+            digest = hashlib.sha256(asset_id.encode()).hexdigest()[:16]
+            return "users/{}/account/notifications/{}-asset-rating-{}.json".format(user_id, now, digest)
+
+        def notify_asset_rating_change(uploader_user_id, asset_id, descriptors, report_count, now):
+            if not uploader_user_id:
+                return
+            notice = {
+                "type": "asset-rating-auto-restriction",
+                "assetId": asset_id,
+                "effectiveDescriptors": descriptors,
+                "uniqueReporterCount": report_count,
+                "createdAt": now,
+                "message": "Your asset content restrictions were automatically tightened after more than five different signed-in users reported the rating. The report remains queued for manual review."
+            }
+            s3.put_object(
+                Bucket=BUCKET,
+                Key=notification_key(uploader_user_id, asset_id, now),
+                Body=json.dumps(notice, separators=(",", ":")).encode(),
+                ContentType="application/json"
+            )
 
         def handler(event, context):
             route = event["requestContext"]["http"]["method"] + " " + event["rawPath"]
@@ -292,19 +316,26 @@ Resources:
             if route == "GET /auth/login":
                 state = secrets.token_urlsafe(32)
                 ddb.put_item(Item={"pk": "state#" + state, "expiresAt": now + 600})
-                redirect = api_base(event) + "/auth/callback"
-                params = urllib.parse.urlencode({
-                    "client_id": CLIENT_ID, "redirect_uri": redirect,
-                    "response_type": "code", "scope": "identify", "state": state,
-                    "prompt": "consent"
+                return discord_redirect(event, state)
+
+            if route == "GET /auth/guardian":
+                request_token = query.get("request") or ""
+                request_item = ddb.get_item(Key={"pk": "guardianreq#" + request_token}).get("Item")
+                if not request_item or int(request_item.get("expiresAt", 0)) <= now:
+                    return frontend_error("guardian_request_expired")
+                state = secrets.token_urlsafe(32)
+                ddb.put_item(Item={
+                    "pk": "state#" + state,
+                    "guardianRequestToken": request_token,
+                    "expiresAt": now + 600
                 })
-                return response(302, location="https://discord.com/oauth2/authorize?" + params)
+                return discord_redirect(event, state)
 
             if route == "GET /auth/callback":
                 code, state = query.get("code"), query.get("state")
                 state_key = {"pk": "state#" + (state or "")}
-                saved = ddb.get_item(Key=state_key).get("Item")
-                if not code or not saved or int(saved.get("expiresAt", 0)) <= now:
+                saved_state = ddb.get_item(Key=state_key).get("Item")
+                if not code or not saved_state or int(saved_state.get("expiresAt", 0)) <= now:
                     return frontend_error("invalid_state")
                 ddb.delete_item(Key=state_key)
                 stage = "token"
@@ -344,13 +375,24 @@ Resources:
                     stage = "session"
                     discord_id = str(profile["id"])
                     user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
+                    guardian_request_token = str(saved_state.get("guardianRequestToken") or "")
+                    if guardian_request_token:
+                        guardian_request = ddb.get_item(Key={"pk": "guardianreq#" + guardian_request_token}).get("Item")
+                        if not guardian_request or int(guardian_request.get("expiresAt", 0)) <= now:
+                            return frontend_error("guardian_request_expired")
+                        if user_id == guardian_request.get("childUserId"):
+                            return frontend_error("guardian_must_be_different_account")
+
                     token = secrets.token_urlsafe(48)
                     digest = hashlib.sha256(token.encode()).hexdigest()
-                    ddb.put_item(Item={
+                    session_item = {
                         "pk": "session#" + digest, "userId": user_id,
                         "username": profile.get("global_name") or profile.get("username") or "Discord user",
                         "expiresAt": now + SESSION_SECONDS
-                    })
+                    }
+                    if guardian_request_token:
+                        session_item["guardianRequestToken"] = guardian_request_token
+                    ddb.put_item(Item=session_item)
                     handoff = secrets.token_urlsafe(32)
                     ddb.put_item(Item={
                         "pk": "handoff#" + handoff, "sessionToken": token,
@@ -376,48 +418,18 @@ Resources:
                     return response(400, {"error": "Invalid or expired login handoff"})
                 return response(200, {"sessionToken": saved["sessionToken"]})
 
-            if route == "GET /age/callback":
-                session_id = query.get("sessionId") or query.get("session_id") or ""
-                check_key = {"pk": "agecheck#" + session_id}
-                saved = ddb.get_item(Key=check_key).get("Item") if session_id else None
-                if not saved or int(saved.get("expiresAt", 0)) <= now or not yoti_configured():
-                    return response(302, location=frontend_target("invalid"))
-                try:
-                    result = yoti_request("GET", "/api/v1/sessions/" + urllib.parse.quote(session_id, safe="") + "/result")
-                    if str(result.get("reference_id") or "") != str(saved.get("reference") or ""):
-                        return response(302, location=frontend_target("invalid"))
-                    status = str(result.get("status") or "").upper()
-                    if status == "COMPLETE":
-                        ddb.put_item(Item={
-                            "pk": "age#" + saved["userId"],
-                            "over21": True,
-                            "verifiedAt": now,
-                            "provider": "yoti"
-                        })
-                        ddb.delete_item(Key=check_key)
-                        return response(302, location=frontend_target("verified"))
-                    if status in ("FAIL", "CANCELLED", "EXPIRED"):
-                        ddb.delete_item(Key=check_key)
-                        return response(302, location=frontend_target("not_verified"))
-                    if status == "ERROR":
-                        ddb.delete_item(Key=check_key)
-                        return response(302, location=frontend_target("error"))
-                    return response(302, location=frontend_target("pending"))
-                except Exception as exc:
-                    print("Age verification callback error", type(exc).__name__, str(exc)[:1000])
-                    return response(302, location=frontend_target("error"))
-
             session = auth(event)
             if not session:
                 return response(401, {"error": "Authentication required"})
 
             if route == "GET /me":
-                verified = bool((age_record(session["userId"]) or {}).get("over21"))
                 return response(200, {
-                    "userId": session["userId"], "displayName": session["username"],
+                    "userId": session["userId"],
+                    "displayName": session["username"],
                     "storagePrefix": "users/" + session["userId"] + "/",
-                    "age21Verified": verified,
-                    "ageVerificationAvailable": yoti_configured()
+                    "age21Verified": False,
+                    "ageVerificationAvailable": False,
+                    "guardianConsentPending": bool(session.get("guardianRequestToken"))
                 })
 
             if route == "POST /auth/logout":
@@ -425,60 +437,198 @@ Resources:
                 ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
                 return response(204)
 
-            if route == "GET /age/status":
-                verified = bool((age_record(session["userId"]) or {}).get("over21"))
-                return response(200, {"over21": verified, "available": yoti_configured()})
+            if route == "POST /guardian/request":
+                body = json_body(event)
+                account_id = str(body.get("childAccountId") or "").strip()
+                alias = str(body.get("childAlias") or "").strip()[:64]
+                version = str(body.get("consentVersion") or "").strip()
+                if not re.fullmatch(r"[A-Za-z0-9-]{8,80}", account_id) or not alias or version != CONTENT_POLICY_VERSION:
+                    return response(400, {"error": "Invalid guardian consent request"})
+                descriptors = sanitize_descriptors(body.get("requestedDescriptors"), MINOR_DESCRIPTORS)
+                token = secrets.token_urlsafe(32)
+                ddb.delete_item(Key={"pk": guardian_key(session["userId"], account_id)})
+                ddb.put_item(Item={
+                    "pk": "guardianreq#" + token,
+                    "childUserId": session["userId"],
+                    "childAccountId": account_id,
+                    "childAlias": alias,
+                    "requestedDescriptors": descriptors,
+                    "requestedAt": now,
+                    "consentVersion": version,
+                    "expiresAt": now + 1800
+                })
+                url = api_base(event) + "/auth/guardian?" + urllib.parse.urlencode({"request": token})
+                return response(200, {"url": url})
 
-            if route == "POST /age/start":
-                if (age_record(session["userId"]) or {}).get("over21"):
-                    return response(200, {"verified": True})
-                if not yoti_configured():
-                    return response(503, {"error": "Age verifier is not configured"})
-                reference = secrets.token_urlsafe(24)
-                callback_url = api_base(event) + "/age/callback"
-                payload = {
-                    "type": "OVER",
-                    "ttl": 900,
-                    "reference_id": reference,
-                    "callback": {"auto": True, "url": callback_url},
-                    "cancel_url": frontend_target("cancelled"),
-                    "retry_enabled": True,
-                    "resume_enabled": True,
-                    "synchronous_checks": True,
-                    "block_biometric_consent": True,
-                    "age_estimation": {"allowed": False, "threshold": 21},
-                    "doc_scan": {"allowed": False, "threshold": 21},
-                    "digital_id": {"allowed": True, "threshold": 21, "retry_limit": 2},
-                    "credit_card": {"allowed": True, "threshold": 21, "retry_limit": 2},
-                    "mobile": {"allowed": True, "threshold": 21, "retry_limit": 2}
+            if route == "GET /guardian/pending":
+                token = str(session.get("guardianRequestToken") or "")
+                item = ddb.get_item(Key={"pk": "guardianreq#" + token}).get("Item") if token else None
+                if not item or int(item.get("expiresAt", 0)) <= now:
+                    return response(404, {"error": "Guardian consent request expired"})
+                if item.get("childUserId") == session["userId"]:
+                    return response(403, {"error": "Guardian must use a different account"})
+                return response(200, {
+                    "childUserId": item["childUserId"],
+                    "childAccountId": item["childAccountId"],
+                    "childAlias": item["childAlias"],
+                    "requestedDescriptors": item.get("requestedDescriptors", []),
+                    "requestedAtUtc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(item["requestedAt"]))),
+                    "consentVersion": item["consentVersion"]
+                })
+
+            if route == "POST /guardian/approve":
+                token = str(session.get("guardianRequestToken") or "")
+                item = ddb.get_item(Key={"pk": "guardianreq#" + token}).get("Item") if token else None
+                if not item or int(item.get("expiresAt", 0)) <= now:
+                    return response(404, {"error": "Guardian consent request expired"})
+                body = json_body(event)
+                if body.get("adultAttested") is not True:
+                    return response(400, {"error": "Adult guardian attestation is required"})
+                if item.get("childUserId") == session["userId"]:
+                    return response(403, {"error": "Guardian must use a different account"})
+                descriptors = sanitize_descriptors(item.get("requestedDescriptors"), MINOR_DESCRIPTORS)
+                ddb.put_item(Item={
+                    "pk": guardian_key(item["childUserId"], item["childAccountId"]),
+                    "childUserId": item["childUserId"],
+                    "childAccountId": item["childAccountId"],
+                    "guardianUserId": session["userId"],
+                    "approvedDescriptors": descriptors,
+                    "consentedAt": now,
+                    "consentVersion": item["consentVersion"]
+                })
+                ddb.delete_item(Key={"pk": "guardianreq#" + token})
+                return response(204)
+
+            if route == "POST /guardian/deny":
+                token = str(session.get("guardianRequestToken") or "")
+                if token:
+                    ddb.delete_item(Key={"pk": "guardianreq#" + token})
+                return response(204)
+
+            if route == "GET /guardian/status":
+                account_id = str(query.get("accountId") or "").strip()
+                if not re.fullmatch(r"[A-Za-z0-9-]{8,80}", account_id):
+                    return response(400, {"error": "Invalid account ID"})
+                item = ddb.get_item(Key={"pk": guardian_key(session["userId"], account_id)}).get("Item")
+                if not item:
+                    return response(200, {"approved": False, "childAccountId": account_id, "approvedDescriptors": []})
+                return response(200, {
+                    "approved": True,
+                    "childAccountId": item["childAccountId"],
+                    "approvedDescriptors": item.get("approvedDescriptors", []),
+                    "consentedAtUtc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(item["consentedAt"]))),
+                    "consentVersion": item.get("consentVersion")
+                })
+
+            if route == "POST /assets/rating/register":
+                body = json_body(event)
+                asset_id = safe_asset_id(body.get("assetId"))
+                descriptors = sanitize_descriptors(body.get("providerDescriptors"))
+                explicit_general = body.get("explicitGeneral") is True
+                if not descriptors and not explicit_general:
+                    return response(400, {"error": "Provider must explicitly rate the asset"})
+                key = rating_key(asset_id)
+                existing = ddb.get_item(Key={"pk": key}).get("Item")
+                if existing and existing.get("uploaderUserId") != session["userId"]:
+                    return response(403, {"error": "Only the provider can change the provider rating"})
+                ddb.put_item(Item={
+                    "pk": key,
+                    "assetId": asset_id,
+                    "uploaderUserId": session["userId"],
+                    "providerDescriptors": descriptors,
+                    "effectiveDescriptors": descriptors,
+                    "explicitGeneral": explicit_general,
+                    "ratingVersion": CONTENT_POLICY_VERSION,
+                    "ratedAt": now,
+                    "reports": {},
+                    "uniqueReportCount": 0,
+                    "manualReviewRequired": False,
+                    "autoRestricted": False
+                })
+                return response(200, {
+                    "assetId": asset_id, "providerDescriptors": descriptors,
+                    "effectiveDescriptors": descriptors, "uniqueReportCount": 0,
+                    "manualReviewRequired": False, "autoRestricted": False,
+                    "ratingVersion": CONTENT_POLICY_VERSION
+                })
+
+            if route == "GET /assets/rating":
+                asset_id = safe_asset_id(query.get("assetId"))
+                item = ddb.get_item(Key={"pk": rating_key(asset_id)}).get("Item")
+                if not item:
+                    return response(404, {"error": "Asset rating not found"})
+                return response(200, {
+                    "assetId": item["assetId"],
+                    "providerDescriptors": item.get("providerDescriptors", []),
+                    "effectiveDescriptors": item.get("effectiveDescriptors", []),
+                    "uniqueReportCount": int(item.get("uniqueReportCount", 0)),
+                    "manualReviewRequired": bool(item.get("manualReviewRequired")),
+                    "autoRestricted": bool(item.get("autoRestricted")),
+                    "ratingVersion": item.get("ratingVersion", CONTENT_POLICY_VERSION)
+                })
+
+            if route == "POST /assets/rating/report":
+                body = json_body(event)
+                asset_id = safe_asset_id(body.get("assetId"))
+                suggestions = sanitize_descriptors(body.get("suggestedDescriptors"))
+                explicit_general = body.get("explicitGeneral") is True
+                if not suggestions and not explicit_general:
+                    return response(400, {"error": "A suggested rating is required"})
+                key = rating_key(asset_id)
+                item = ddb.get_item(Key={"pk": key}).get("Item")
+                if not item:
+                    return response(404, {"error": "Asset rating not found"})
+                reporter = hashlib.sha256((asset_id + ":" + session["userId"]).encode()).hexdigest()
+                reports = dict(item.get("reports") or {})
+                reports[reporter] = {
+                    "suggestedDescriptors": suggestions,
+                    "explicitGeneral": explicit_general,
+                    "reportedAt": now
                 }
-                try:
-                    created = yoti_request("POST", "/api/v1/sessions", payload)
-                    session_id = str(created.get("id") or "")
-                    if not session_id:
-                        raise ValueError("Yoti did not return a session ID")
-                    ddb.put_item(Item={
-                        "pk": "agecheck#" + session_id,
-                        "userId": session["userId"],
-                        "reference": reference,
-                        "expiresAt": now + 1200
-                    })
-                    service_url = "https://age.yoti.com?" + urllib.parse.urlencode({
-                        "sessionId": session_id,
-                        "sdkId": YOTI_SDK_ID
-                    })
-                    return response(200, {"url": service_url, "verified": False})
-                except urllib.error.HTTPError as exc:
-                    detail = exc.read().decode("utf-8", "replace")[:1000]
-                    print("Age verification start HTTP error", exc.code, detail)
-                    return response(502, {"error": "Age verifier rejected the request"})
-                except Exception as exc:
-                    print("Age verification start error", type(exc).__name__, str(exc)[:1000])
-                    return response(502, {"error": "Age verifier could not be reached"})
+                unique_count = len(reports)
+                effective = set(item.get("effectiveDescriptors") or [])
+                auto_restricted = bool(item.get("autoRestricted"))
+                changed = False
+                if unique_count > 5:
+                    tightened = set(effective)
+                    for report in reports.values():
+                        tightened.update(sanitize_descriptors(report.get("suggestedDescriptors")))
+                    tightened.intersection_update(CONTENT_DESCRIPTORS)
+                    if tightened != effective:
+                        effective = tightened
+                        changed = True
+                    auto_restricted = True
+                updated = dict(item)
+                updated["reports"] = reports
+                updated["uniqueReportCount"] = unique_count
+                updated["manualReviewRequired"] = True
+                updated["autoRestricted"] = auto_restricted
+                updated["effectiveDescriptors"] = sorted(effective)
+                updated["lastReportedAt"] = now
+                if changed:
+                    updated["autoRestrictedAt"] = now
+                ddb.put_item(Item=updated)
+                if changed:
+                    notify_asset_rating_change(item.get("uploaderUserId"), asset_id, sorted(effective), unique_count, now)
+                return response(200, {
+                    "assetId": asset_id,
+                    "effectiveDescriptors": sorted(effective),
+                    "uniqueReportCount": unique_count,
+                    "manualReviewRequired": True,
+                    "autoRestricted": auto_restricted,
+                    "restrictionChanged": changed
+                })
 
             prefix = "users/" + session["userId"] + "/"
 
             if route == "POST /account/delete":
+                account_id = None
+                try:
+                    profile_obj = s3.get_object(Bucket=BUCKET, Key=prefix + "account/profile.json")
+                    profile = json.loads(profile_obj["Body"].read())
+                    account_id = str(profile.get("AccountId") or profile.get("accountId") or "").strip()
+                except Exception:
+                    pass
                 continuation = None
                 while True:
                     args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
@@ -491,7 +641,8 @@ Resources:
                     if not result.get("IsTruncated"):
                         break
                     continuation = result.get("NextContinuationToken")
-                ddb.delete_item(Key={"pk": "age#" + session["userId"]})
+                if account_id:
+                    ddb.delete_item(Key={"pk": guardian_key(session["userId"], account_id)})
                 header = event["headers"]["authorization"].split(" ", 1)[1]
                 ddb.delete_item(Key={"pk": "session#" + hashlib.sha256(header.encode()).hexdigest()})
                 return response(204)
@@ -537,7 +688,7 @@ Outputs:
     Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   DiscordCallbackUrl:
     Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/auth/callback
-  AgeVerificationCallbackUrl:
-    Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/age/callback
+  GuardianConsentLoginUrl:
+    Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/auth/guardian
   PrivateStorageBucketName:
     Value: !Ref PrivateStorageBucket
