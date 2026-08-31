@@ -1,13 +1,43 @@
 (()=>{
  'use strict';
  const audiences=['Roleplay','OOC','GM','Private'];
+ const gameFriendsStorageKey='rist.game.friends.v1';
  let audience='Roleplay';
  let activeTab='Roleplay';
+ let privateRecipient='';
  let scriptWindow=null;
  let patching=false;
 
- const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
  const displayName=()=>document.querySelector('.footer-character-button strong,.rist-account-profile strong,#header-slider .header-user-name')?.textContent?.trim()||'Player';
+ const normalizeFriend=value=>{
+  if(typeof value==='string')return {id:value,name:value};
+  const id=String(value?.id??value?.accountId??value?.userId??value?.name??'').trim();
+  const name=String(value?.name??value?.alias??value?.playerAlias??id).trim();
+  return id&&name?{id,name}:null;
+ };
+ function storedGameFriends(){
+  try{
+   const rows=JSON.parse(localStorage.getItem(gameFriendsStorageKey)||'[]');
+   return Array.isArray(rows)?rows.map(normalizeFriend).filter(Boolean):[];
+  }catch{return []}
+ }
+ function gameFriends(){
+  let rows=[];
+  try{
+   const external=window.RistFriends?.list?.();
+   if(Array.isArray(external))rows=external.map(normalizeFriend).filter(Boolean);
+  }catch{}
+  if(!rows.length)rows=storedGameFriends();
+  const seen=new Set();
+  return rows.filter(x=>{const key=x.id.toLowerCase();if(seen.has(key))return false;seen.add(key);return true});
+ }
+ function setStoredGameFriends(rows){
+  const clean=(Array.isArray(rows)?rows:[]).map(normalizeFriend).filter(Boolean);
+  try{localStorage.setItem(gameFriendsStorageKey,JSON.stringify(clean))}catch{}
+  document.dispatchEvent(new CustomEvent('rist:friends-changed',{detail:{friends:clean}}));
+  return clean;
+ }
 
  function installFilterArrows(header){
   if(!header||header.querySelector('.asset-filter-arrow'))return;
@@ -44,6 +74,30 @@
   syncComposeContext();
  }
 
+ function ensurePrivateFriendSelect(){
+  const compose=document.querySelector('.release-footer-stack .chat-compose-rail,.release-footer-stack .home-chat-compose');
+  if(!compose)return;
+  let select=compose.querySelector('.private-friend-select');
+  if(!select){
+   select=document.createElement('select');
+   select.className='private-friend-select';
+   select.setAttribute('aria-label','Private chat friend');
+   const send=compose.querySelector('.home-chat-send,button[type="submit"],button');
+   send?.before(select);
+   select.addEventListener('change',()=>{privateRecipient=select.value;syncComposeContext()});
+  }
+  const friends=gameFriends();
+  const prior=privateRecipient||select.value;
+  select.replaceChildren();
+  const prompt=document.createElement('option');
+  prompt.value='';
+  prompt.textContent=friends.length?'Friends':'No Friends';
+  select.appendChild(prompt);
+  friends.forEach(friend=>{const option=document.createElement('option');option.value=friend.id;option.textContent=friend.name;select.appendChild(option)});
+  if(friends.some(x=>x.id===prior)){select.value=prior;privateRecipient=prior}else{select.value='';privateRecipient=''}
+  select.hidden=audience!=='Private';
+ }
+
  function ensureChatControls(){
   const rail=document.querySelector('.release-footer-stack .chat-mode-rail');
   if(!rail)return;
@@ -68,6 +122,7 @@
   }
   syncAudience(audienceButton);
   decorateDialect(dialect);
+  ensurePrivateFriendSelect();
   syncComposeContext();
  }
  function syncAudience(button){
@@ -80,12 +135,11 @@
   button.title='Change message audience';
   button.setAttribute('aria-label',`Audience ${audience}. Tap to change.`);
   document.querySelector('.home-inline-chat')?.setAttribute('data-chat-audience',audience.toLowerCase());
+  ensurePrivateFriendSelect();
   syncComposeContext();
  }
 
- function privateNames(){
-  return [...document.querySelectorAll('[data-private-chat-name]')].map(x=>x.getAttribute('data-private-chat-name')?.trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
- }
+ function privateNames(){return gameFriends().map(x=>x.name)}
  function ensureScriptWindow(){
   const map=document.querySelector('.release-map-region');
   if(!map)return null;
@@ -106,7 +160,7 @@
   const tabs=win.querySelector('.rist-script-tabs');
   const names=['Roleplay','Out of Character','GameMaster',...privateNames()];
   tabs.replaceChildren();
-  names.forEach(name=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.classList.toggle('active',name===activeTab);b.addEventListener('click',()=>{activeTab=name;audience=name==='Out of Character'?'OOC':name==='GameMaster'?'GM':name==='Roleplay'?'Roleplay':'Private';ensureChatControls();rebuildTabs();renderScript()});tabs.appendChild(b)});
+  names.forEach(name=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.classList.toggle('active',name===activeTab);b.addEventListener('click',()=>{activeTab=name;audience=name==='Out of Character'?'OOC':name==='GameMaster'?'GM':name==='Roleplay'?'Roleplay':'Private';if(audience==='Private'){const friend=gameFriends().find(x=>x.name===name);privateRecipient=friend?.id||''}ensureChatControls();rebuildTabs();renderScript()});tabs.appendChild(b)});
   const close=document.createElement('button');close.type='button';close.className='script-close';close.textContent='×';close.setAttribute('aria-label','Close scripts');close.addEventListener('click',closeScripts);tabs.appendChild(close);
  }
  function renderScript(){
@@ -138,7 +192,7 @@
   if(activeTab==='Roleplay'&&base&&send){
    const setter=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')?.set;setter?.call(base,text);base.dispatchEvent(new Event('input',{bubbles:true}));input.value='';send.click();setTimeout(renderScript,40);return;
   }
-  document.dispatchEvent(new CustomEvent('rist:script-send',{detail:{audience,tab:activeTab,text,name:displayName(),time:Date.now()}}));
+  document.dispatchEvent(new CustomEvent('rist:script-send',{detail:{audience,tab:activeTab,recipientId:privateRecipient||null,text,name:displayName(),time:Date.now()}}));
   input.value='';
  }
 
@@ -151,7 +205,10 @@
   }finally{patching=false}
  }
  const observer=new MutationObserver(()=>queueMicrotask(patch));
- function start(){patch();observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('rist:ooc-received',()=>{if(activeTab==='Out of Character'&&!scriptWindow?.hidden)renderScript()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scriptWindow&&!scriptWindow.hidden)closeScripts()})}
- window.RistChatScripts={open:openScripts,close:closeScripts,getAudience:()=>audience,setAudience:value=>{if(audiences.includes(value)){audience=value;patch()}},refresh:renderScript};
+ function start(){patch();observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('rist:ooc-received',()=>{if(activeTab==='Out of Character'&&!scriptWindow?.hidden)renderScript()});document.addEventListener('rist:friends-changed',()=>{ensurePrivateFriendSelect();if(scriptWindow&&!scriptWindow.hidden){rebuildTabs();renderScript()}});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scriptWindow&&!scriptWindow.hidden)closeScripts()})}
+ window.RistFriends=window.RistFriends||{};
+ if(typeof window.RistFriends.list!=='function')window.RistFriends.list=storedGameFriends;
+ if(typeof window.RistFriends.setAccepted!=='function')window.RistFriends.setAccepted=setStoredGameFriends;
+ window.RistChatScripts={open:openScripts,close:closeScripts,getAudience:()=>audience,getPrivateRecipient:()=>privateRecipient,setAudience:value=>{if(audiences.includes(value)){audience=value;patch()}},refresh:renderScript};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
