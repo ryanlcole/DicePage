@@ -1,6 +1,8 @@
 from pathlib import Path
 from collections import deque
+import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -11,13 +13,19 @@ web = root / 'apps' / 'rist-world' / 'wwwroot'
 data_dir = web / 'data'
 data_dir.mkdir(parents=True, exist_ok=True)
 
+IMPORT_FORMATS = {'.jpg', '.jpeg', '.png', '.webp'}
+LEGACY_IMPORT_FORMATS = {'.jpg', '.jpeg', '.webp'}
+
 
 def _load_pillow():
     try:
         from PIL import Image
         return Image
     except ImportError:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'Pillow==11.3.0'])
+        subprocess.check_call([
+            sys.executable, '-m', 'pip', 'install',
+            '--disable-pip-version-check', 'Pillow==11.3.0'
+        ])
         from PIL import Image
         return Image
 
@@ -28,19 +36,15 @@ def _median(values):
 
 
 def _remove_edge_background(image):
-    """Remove only background-colored pixels connected to the image edge.
-
-    This is deliberately safer than deleting every light/dark pixel in the image:
-    foreground highlights and internal negative space are preserved unless they are
-    actually connected to the outer background.
-    """
+    """Remove only background-colored pixels connected to the image edge."""
     rgba = image.convert('RGBA')
     width, height = rgba.size
     if width < 2 or height < 2:
         return rgba, False
 
     pixels = rgba.load()
-    if any(pixels[x, y][3] < 250 for x, y in ((0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1))):
+    corners = ((0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1))
+    if any(pixels[x, y][3] < 250 for x, y in corners):
         return rgba, True
 
     step = max(1, min(width, height) // 96)
@@ -57,7 +61,11 @@ def _remove_edge_background(image):
     feather_start = 24
 
     def distance(rgb):
-        return ((rgb[0] - bg[0]) ** 2 + (rgb[1] - bg[1]) ** 2 + (rgb[2] - bg[2]) ** 2) ** 0.5
+        return (
+            (rgb[0] - bg[0]) ** 2
+            + (rgb[1] - bg[1]) ** 2
+            + (rgb[2] - bg[2]) ** 2
+        ) ** 0.5
 
     seen = bytearray(width * height)
     queue = deque()
@@ -90,6 +98,7 @@ def _remove_edge_background(image):
         if alpha < a:
             removed += 1
             pixels[x, y] = (r, g, b, alpha)
+
         for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
             if nx < 0 or ny < 0 or nx >= width or ny >= height:
                 continue
@@ -103,41 +112,96 @@ def _remove_edge_background(image):
     return rgba, removed > 0
 
 
+def _image_digest(image):
+    """Hash normalized visual content independent of source encoding."""
+    width, height = image.size
+    digest = hashlib.sha256()
+    digest.update(f'{width}x{height}:RGBA:'.encode('ascii'))
+    digest.update(image.tobytes())
+    return digest.hexdigest()
+
+
+def _unique_target(output_root, relative, digest, claimed_targets):
+    target = (output_root / relative).with_suffix('.png')
+    target_key = target.relative_to(output_root).as_posix().casefold()
+    if target_key not in claimed_targets:
+        claimed_targets.add(target_key)
+        return target
+
+    target = target.with_name(f'{target.stem}__{digest[:12]}.png')
+    claimed_targets.add(target.relative_to(output_root).as_posix().casefold())
+    return target
+
+
 def normalize_imported_images():
+    """Create one canonical transparent PNG for each unique imported image.
+
+    Source files remain untouched during local development. In GitHub Actions,
+    superseded JPG/JPEG/WebP copies are removed from the ephemeral checkout after
+    successful normalization so dotnet publish and the CDN contain canonical PNGs.
+    """
     source_root = web / 'assets' / 'chat-imports' / '2026-08-30'
     output_root = web / 'assets' / 'normalized' / 'chat-imports' / '2026-08-30'
     manifest_path = web / 'assets' / 'normalized' / 'manifest.json'
+
     if output_root.exists():
         shutil.rmtree(output_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
     Image = _load_pillow()
     manifest = []
+    canonical_by_digest = {}
+    claimed_targets = set()
+    prune_legacy = os.environ.get('GITHUB_ACTIONS', '').lower() == 'true'
+
     for source in sorted(source_root.rglob('*')):
-        if not source.is_file() or source.suffix.lower() not in {'.jpg', '.jpeg', '.webp'}:
+        if not source.is_file() or source.suffix.lower() not in IMPORT_FORMATS:
             continue
-        # Tiny placeholder/corrupt stubs should not become inventory assets.
         if source.stat().st_size < 256:
             continue
+
         relative = source.relative_to(source_root)
-        target = (output_root / relative).with_suffix('.png')
-        target.parent.mkdir(parents=True, exist_ok=True)
         try:
             with Image.open(source) as opened:
                 normalized, transparent = _remove_edge_background(opened)
-                normalized.save(target, 'PNG', optimize=True)
+                digest = _image_digest(normalized)
         except Exception as exc:
-            print(f'asset-normalize-skip source={source} error={exc}')
+            print(f'asset-normalize-skip source={source} error={type(exc).__name__}: {exc}')
             continue
 
         source_web = 'assets/chat-imports/2026-08-30/' + relative.as_posix()
-        target_web = 'assets/normalized/chat-imports/2026-08-30/' + target.relative_to(output_root).as_posix()
-        manifest.append({
+        canonical_target = canonical_by_digest.get(digest)
+        duplicate_of = None
+
+        if canonical_target is None:
+            target = _unique_target(output_root, relative, digest, claimed_targets)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            normalized.save(target, 'PNG', optimize=True)
+            canonical_by_digest[digest] = target
+            canonical_target = target
+        else:
+            duplicate_of = (
+                'assets/normalized/chat-imports/2026-08-30/'
+                + canonical_target.relative_to(output_root).as_posix()
+            )
+
+        target_web = (
+            'assets/normalized/chat-imports/2026-08-30/'
+            + canonical_target.relative_to(output_root).as_posix()
+        )
+        entry = {
             'source': source_web,
             'png': target_web,
             'sourceFormat': source.suffix.lower().lstrip('.'),
             'transparent': transparent,
-        })
+            'sha256': digest,
+        }
+        if duplicate_of is not None:
+            entry['duplicateOf'] = duplicate_of
+        manifest.append(entry)
+
+        if prune_legacy and source.suffix.lower() in LEGACY_IMPORT_FORMATS:
+            source.unlink()
 
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, separators=(',', ':')), encoding='utf-8')
@@ -148,38 +212,48 @@ normalized_assets = normalize_imported_images()
 
 # The Drive/AWS catalog is the canonical Shaelvien asset registry for both
 # visitors and authenticated users. Do not rebuild a second public catalog
-# from the old tactical prototype registries: doing so reclassified assets by
-# guessed tags and mixed obsolete prototype content into the live browser.
+# from the old tactical prototype registries.
 canonical_catalog_path = web / 'assets' / 'drive-tiles' / 'catalog.json'
 canonical_rows = json.loads(canonical_catalog_path.read_text(encoding='utf-8'))
 if not isinstance(canonical_rows, list):
     raise ValueError('Canonical Shaelvien asset catalog must be a JSON array')
 
 required = {'id', 'name', 'image', 'layer', 'directory', 'folder'}
-seen = set()
+seen_ids = set()
+seen_images = set()
 rows = []
+duplicate_catalog_rows = 0
+
 for asset in canonical_rows:
     if not isinstance(asset, dict):
         continue
     missing = required.difference(asset)
     if missing:
-        raise ValueError(f"Asset {asset.get('id', '<unknown>')} is missing: {', '.join(sorted(missing))}")
+        raise ValueError(
+            f"Asset {asset.get('id', '<unknown>')} is missing: {', '.join(sorted(missing))}"
+        )
+
     asset_id = str(asset['id']).strip()
-    if not asset_id or asset_id in seen:
+    image_key = str(asset['image']).strip().casefold()
+    if not asset_id:
         continue
-    seen.add(asset_id)
+    if asset_id in seen_ids or (image_key and image_key in seen_images):
+        duplicate_catalog_rows += 1
+        continue
+
+    seen_ids.add(asset_id)
+    if image_key:
+        seen_images.add(image_key)
     rows.append(asset)
 
 # WorldSession currently reads atlas-public.json first and then the canonical
 # Drive catalog. Publishing the same canonical rows to both locations keeps
-# compatibility while ensuring the second load is a no-op after ID dedupe.
+# compatibility while ensuring the second load is a no-op after dedupe.
 (data_dir / 'atlas-public.json').write_text(
-    json.dumps(rows, separators=(',', ':')),
-    encoding='utf-8'
+    json.dumps(rows, separators=(',', ':')), encoding='utf-8'
 )
 
 # Do not regenerate the obsolete random-world / prototype-region configuration.
-# The live recursive world topology is owned by the RIST application itself.
 legacy_asset_config = data_dir / 'asset-config.json'
 if legacy_asset_config.exists():
     legacy_asset_config.unlink()
@@ -225,4 +299,16 @@ footer_css = '''<style id="paypal-footer-layout">
 home = home.replace('</head>', footer_css + '</head>', 1)
 home_path.write_text(home, encoding='utf-8')
 
-print(f'canonical_assets={len(rows)} cards={len(cards)} normalized_assets={len(normalized_assets)} legacy_asset_catalog=disabled homepage_paypal=official-art footer_mark=transparent')
+unique_normalized = len({item['sha256'] for item in normalized_assets})
+duplicate_imports = len(normalized_assets) - unique_normalized
+print(
+    f'canonical_assets={len(rows)} '
+    f'catalog_duplicates_removed={duplicate_catalog_rows} '
+    f'cards={len(cards)} '
+    f'normalized_imports={len(normalized_assets)} '
+    f'unique_normalized={unique_normalized} '
+    f'duplicate_imports={duplicate_imports} '
+    'legacy_asset_catalog=disabled '
+    'homepage_paypal=official-art '
+    'footer_mark=transparent'
+)
