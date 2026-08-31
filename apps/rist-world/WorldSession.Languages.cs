@@ -5,16 +5,17 @@ public sealed partial class WorldSession
     public List<CharacterLanguage> CharacterLanguages { get; } = [new("Common", 100)];
     public string ActiveRoleplayLanguage { get; private set; } = "Common";
     public string DialogueLanguage { get; set; } = "Common";
+    public string DialogueHumanLanguage { get; set; } = "English";
     public string PrimaryHumanLanguage { get; private set; } = "English";
     public string GmLanguageResolutionMode { get; private set; } = "system";
     public int GmLanguageLegibilityPercent { get; private set; } = 100;
     public string GmManualLanguageResponse { get; private set; } = "";
 
     public int LinguisticsValue => CharacterFields
-        .Where(field => field.Name.Contains("lingu", StringComparison.OrdinalIgnoreCase)
-                     || field.Name.Contains("language", StringComparison.OrdinalIgnoreCase)
-                     || field.Name.Contains("comprehension", StringComparison.OrdinalIgnoreCase))
-        .Select(field => Math.Max(field.Current, field.BaseValue))
+        .Where(characterField => characterField.Name.Contains("lingu", StringComparison.OrdinalIgnoreCase)
+                              || characterField.Name.Contains("language", StringComparison.OrdinalIgnoreCase)
+                              || characterField.Name.Contains("comprehension", StringComparison.OrdinalIgnoreCase))
+        .Select(characterField => Math.Max(characterField.Current, characterField.BaseValue))
         .DefaultIfEmpty(0)
         .Max();
 
