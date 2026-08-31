@@ -10,6 +10,10 @@ public sealed partial class WorldSession
         StagedAssets.Clear();
         Rolls.Clear();
         MapName = "map1";
+        GridDistance = 1;
+        DistanceUnit = "mi";
+        GridCalibrationZoom = 1;
+        ViewZoom = 1;
         MapLocked = false;
         ApplyUserMode("GameMaster");
         Notify();
