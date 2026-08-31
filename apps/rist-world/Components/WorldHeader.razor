@@ -29,7 +29,7 @@
 <header id="header-slider" class="release-root-rail desktop-arrow-slider" aria-label="Main menu">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll main menu left">‹</button>
  <div class="header-circular-set release-root-track">
-  <button class="root-menu-button door-button @AccountRootClass" @onclick="DoorClicked" aria-expanded="@AccountRootOpen" aria-label="@(Session.IsLoggedIn?"Exit RIST":"Login")"><strong>@(Session.IsLoggedIn?"Exit":"Login")</strong></button>
+  <button class="root-menu-button door-button @AccountRootClass" @onclick="DoorClicked" aria-expanded="@AccountRootOpen" aria-label="@(Session.IsLoggedIn?"Log out":"Login")"><strong>@(Session.IsLoggedIn?"Log Out":"Login")</strong></button>
   <button type="button" class="root-menu-button @ModeRootClass" @onclick="ToggleModeRoot" aria-expanded="@ModeRootOpen" aria-label="Table mode"><strong>Mode</strong></button>
   <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@AssetsRootOpen" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><strong>Assets</strong></button>
   <button type="button" class="root-menu-button @RoleRootClass" @onclick="ToggleRoleRoot" aria-expanded="@RoleRootOpen" aria-label="Role"><strong>@RoleLabel</strong></button>
