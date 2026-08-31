@@ -9,6 +9,21 @@ html body .rist.release-world{
  --rist-map-frame-h:14px!important;
 }
 
+/* Compact rows occupy their full assigned height with no outer top/bottom air. */
+html body .rist.release-world #header-slider .release-root-track,
+html body .rist.release-world .release-public-region .asset-rail-header,
+html body .rist.release-world .release-private-region .asset-rail-header,
+html body .rist.release-world .release-public-region .public-assets-items,
+html body .rist.release-world .release-private-region .private-assets-items,
+html body .rist.release-world .release-footer-stack>.inline-chat-output,
+html body .rist.release-world .release-footer-stack .chat-mode-rail,
+html body .rist.release-world .release-footer-stack .chat-compose-rail{
+ margin-top:0!important;
+ margin-bottom:0!important;
+ padding-top:0!important;
+ padding-bottom:0!important;
+}
+
 /* Login/main menu rail = exactly one Stars/context row. */
 html body .rist.release-world .release-menu-region,
 html body .rist.release-world .release-menu-region>#header-slider,
@@ -22,10 +37,13 @@ html body .rist.release-world #header-slider .release-root-track>.root-menu-butt
 html body .rist.release-world #header-slider .header-icon-button,
 html body .rist.release-world #header-slider .control,
 html body .rist.release-world #header-slider .scale-stack{
- height:calc(var(--rist-n) - 8px)!important;
- min-height:calc(var(--rist-n) - 8px)!important;
- max-height:calc(var(--rist-n) - 8px)!important;
- padding:3px!important;
+ height:calc(var(--rist-n) - 4px)!important;
+ min-height:calc(var(--rist-n) - 4px)!important;
+ max-height:calc(var(--rist-n) - 4px)!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
+ padding-top:2px!important;
+ padding-bottom:2px!important;
 }
 
 /* Background artwork has no intrinsic CSS width. The rail determines artwork height;
@@ -33,7 +51,7 @@ html body .rist.release-world #header-slider .scale-stack{
 html body .rist.release-world #header-slider .root-menu-art,
 html body .rist.release-world #header-slider .header-icon,
 html body .rist.release-world #header-slider .mmo-toggle-art{
- --menu-art-h:calc(var(--rist-n) - 14px);
+ --menu-art-h:calc(var(--rist-n) - 8px);
  display:block!important;
  height:var(--menu-art-h)!important;
  min-height:var(--menu-art-h)!important;
@@ -80,6 +98,23 @@ html body .rist.release-world #header-slider .header-icon-button{
  padding-right:4px!important;
 }
 
+/* Asset rows fill their slider height. Keep only the tiny internal border gap. */
+html body .rist.release-world .release-public-region .public-assets-items,
+html body .rist.release-world .release-private-region .private-assets-items{
+ padding-left:4px!important;
+ padding-right:4px!important;
+}
+html body .rist.release-world .public-assets-items .public-asset-card,
+html body .rist.release-world .private-assets-items .compact-hand-card,
+html body .rist.release-world .private-assets-items .standard-hand-card,
+html body .rist.release-world .public-assets-rail .token-pin-source,
+html body .rist.release-world .private-assets-rail .token-pin-source{
+ height:calc(var(--rist-assets-slider-h) - 4px)!important;
+ max-height:calc(var(--rist-assets-slider-h) - 4px)!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
+}
+
 /* Asset rail arrows stay visible but stop consuming map/asset width. */
 html body .rist.release-world .release-public-region .public-assets-strip,
 html body .rist.release-world .release-private-region .private-assets-strip{
@@ -103,7 +138,8 @@ html body .rist.release-world .release-footer-stack>.inline-chat-output{
  height:var(--rist-n)!important;
  min-height:var(--rist-n)!important;
  max-height:var(--rist-n)!important;
- padding:4px 8px!important;
+ padding-left:8px!important;
+ padding-right:8px!important;
 }
 
 html body .rist.release-world .release-footer-region>.release-footer-stack{
