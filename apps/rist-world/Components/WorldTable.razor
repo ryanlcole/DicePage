@@ -3,14 +3,15 @@
 @inject IJSRuntime JS
 
 <style>
- /* Release shell is the structural authority. The context strip lives above .rist,
-    so the game surface must consume only the viewport that remains. */
+ /* Release shell is the single sizing authority. Every horizontal slider/rail uses
+    the same 86px module so the map is the only row allowed to flex. */
  .rist.release-world{
-  --rist-rail-h:86px!important;
-  --rist-header-h:86px!important;
-  --rist-public-h:86px!important;
-  --rist-private-h:86px!important;
-  --rist-dice-h:86px!important;
+  --rist-slider-h:86px!important;
+  --rist-rail-h:var(--rist-slider-h)!important;
+  --rist-header-h:var(--rist-slider-h)!important;
+  --rist-public-h:var(--rist-slider-h)!important;
+  --rist-private-h:var(--rist-slider-h)!important;
+  --rist-dice-h:var(--rist-slider-h)!important;
   --rist-chat-h:43px!important;
   --rist-legal-h:14px!important;
   --rist-footer-h:143px!important;
@@ -36,9 +37,9 @@
  .rist.release-world .release-menu-region,
  .rist.release-world .release-public-region,
  .rist.release-world .release-private-region{
-  height:var(--rist-rail-h)!important;
-  min-height:var(--rist-rail-h)!important;
-  max-height:var(--rist-rail-h)!important;
+  height:var(--rist-slider-h)!important;
+  min-height:var(--rist-slider-h)!important;
+  max-height:var(--rist-slider-h)!important;
   overflow:hidden!important;
  }
  .rist.release-world .release-map-region{height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
@@ -49,9 +50,7 @@
   overflow:hidden!important;
  }
 
- /* The release wrapper changed the component ancestry. Re-apply the old direct-child
-    viewport contract to the components inside their release regions so empty legacy
-    tracks cannot reserve phantom rows. */
+ /* Header/public/private sliders occupy their whole assigned module. */
  .rist.release-world .release-menu-region>#header-slider,
  .rist.release-world .release-public-region>.public-assets-rail,
  .rist.release-world .release-private-region>.private-assets-rail{
@@ -61,9 +60,9 @@
   width:100%!important;
   min-width:0!important;
   max-width:100%!important;
-  height:var(--rist-rail-h)!important;
-  min-height:var(--rist-rail-h)!important;
-  max-height:var(--rist-rail-h)!important;
+  height:var(--rist-slider-h)!important;
+  min-height:var(--rist-slider-h)!important;
+  max-height:var(--rist-slider-h)!important;
   margin:0!important;
   overflow:hidden!important;
  }
@@ -71,21 +70,50 @@
  .rist.release-world .release-private-region>.private-assets-rail{
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:34px minmax(0,1fr)!important;
+  grid-template-rows:34px 52px!important;
  }
  .rist.release-world .release-public-region .asset-rail-header,
  .rist.release-world .release-private-region .asset-rail-header{
   box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:100%!important;
   height:34px!important;
   min-height:34px!important;
   max-height:34px!important;
   margin:0!important;
+  overflow:hidden!important;
  }
+ .rist.release-world .release-public-region .asset-rail-header>strong,
+ .rist.release-world .release-private-region .asset-rail-header>strong{flex:0 0 auto!important}
+ .rist.release-world .release-public-region .asset-type-tabs,
+ .rist.release-world .release-private-region .asset-type-tabs{
+  min-width:0!important;
+  flex:1 1 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
+ }
+ .rist.release-world .release-public-region .asset-type-tabs::-webkit-scrollbar,
+ .rist.release-world .release-private-region .asset-type-tabs::-webkit-scrollbar{display:none!important}
+ .rist.release-world .release-public-region .asset-type-tabs>button,
+ .rist.release-world .release-private-region .asset-type-tabs>button{flex:0 0 auto!important;white-space:nowrap!important}
+
  .rist.release-world .release-public-region .public-assets-strip,
  .rist.release-world .release-private-region .private-assets-strip{
   box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:58px minmax(0,1fr) 58px!important;
+  grid-template-rows:52px!important;
+  width:100%!important;
   height:52px!important;
-  min-height:0!important;
+  min-height:52px!important;
   max-height:52px!important;
   margin:0!important;
   overflow:hidden!important;
@@ -93,14 +121,50 @@
  .rist.release-world .release-public-region .public-assets-items,
  .rist.release-world .release-private-region .private-assets-items{
   box-sizing:border-box!important;
+  grid-column:2!important;
+  width:100%!important;
+  min-width:0!important;
   height:52px!important;
-  min-height:0!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  margin:0!important;
+  padding:4px 6px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
+ }
+ .rist.release-world .release-public-region .public-assets-items::-webkit-scrollbar,
+ .rist.release-world .release-private-region .private-assets-items::-webkit-scrollbar{display:none!important}
+ .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-arrow,
+ .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-arrow{
+  box-sizing:border-box!important;
+  display:grid!important;
+  place-items:center!important;
+  position:static!important;
+  inset:auto!important;
+  width:58px!important;
+  min-width:58px!important;
+  max-width:58px!important;
+  height:52px!important;
+  min-height:52px!important;
   max-height:52px!important;
   margin:0!important;
+  padding:0!important;
+  visibility:visible!important;
+  opacity:1!important;
  }
+ .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-prev,
+ .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-prev{grid-column:1!important;grid-row:1!important}
+ .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-next,
+ .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-next{grid-column:3!important;grid-row:1!important}
 
- /* Map is the only flexible row. Remove stale pallet/legacy sizing and let the map
-    occupy every remaining pixel between the fixed rails. */
+ /* Map is the only flexible row. It always consumes exactly what remains between
+    the equal rails, so its canvas/rulers can form from the true available box. */
  .rist.release-world .release-map-region>.table-workspace{
   box-sizing:border-box!important;
   position:relative!important;
@@ -158,7 +222,22 @@
  .rist.release-world .release-map-region>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
  .rist.release-world .release-map-region>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
 
- /* Buttons shrink-wrap their visible artwork instead of owning arbitrary fixed widths. */
+ /* Header controls share one visible height and scroll as one connected track. */
+ .rist.release-world #header-slider{height:var(--rist-slider-h)!important;min-height:var(--rist-slider-h)!important;max-height:var(--rist-slider-h)!important}
+ .rist.release-world #header-slider .release-root-track{
+  box-sizing:border-box!important;
+  height:var(--rist-slider-h)!important;
+  min-height:var(--rist-slider-h)!important;
+  max-height:var(--rist-slider-h)!important;
+  display:flex!important;
+  align-items:center!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
+ }
+ .rist.release-world #header-slider .release-root-track::-webkit-scrollbar{display:none!important}
  .rist.release-world #header-slider .release-root-track>.root-menu-button,
  .rist.release-world #header-slider .header-icon-button,
  .rist.release-world #header-slider .control,
@@ -210,7 +289,8 @@
   object-fit:contain!important;
  }
 
- /* Roleplay output is intentionally half a rail. Dice/chat controls remain one rail. */
+ /* Footer: override the older 84px component constants so its slider matches every
+    other 86px slider exactly. Roleplay output and legal strip retain fixed heights. */
  .rist.release-world .release-footer-region>.release-footer-stack{
   box-sizing:border-box!important;
   position:relative!important;
@@ -221,7 +301,7 @@
   max-height:var(--rist-footer-h)!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:var(--rist-chat-h) var(--rist-dice-h) var(--rist-legal-h)!important;
+  grid-template-rows:var(--rist-chat-h) var(--rist-slider-h) var(--rist-legal-h)!important;
   overflow:hidden!important;
  }
  .rist.release-world .release-footer-stack>.inline-chat-output{
@@ -237,25 +317,18 @@
  .rist.release-world .release-footer-stack .inline-chat-output .dialogue-portrait{width:32px!important;height:35px!important}
  .rist.release-world .release-footer-stack .inline-chat-output .dialogue-next{height:35px!important;min-height:35px!important}
  .rist.release-world .release-footer-stack .inline-chat-output .dialogue-copy p{-webkit-line-clamp:1!important}
- .rist.release-world .release-footer-stack>.footer-dock{
-  box-sizing:border-box!important;
-  grid-column:1!important;
-  grid-row:2!important;
-  height:var(--rist-dice-h)!important;
-  min-height:var(--rist-dice-h)!important;
-  max-height:var(--rist-dice-h)!important;
- }
+ .rist.release-world .release-footer-stack>.footer-dock,
  .rist.release-world .release-footer-stack .home-inline-chat,
  .rist.release-world .release-footer-stack #footer-slider,
  .rist.release-world .release-footer-stack #footer-slider .release-footer-track{
   box-sizing:border-box!important;
-  height:var(--rist-dice-h)!important;
-  min-height:var(--rist-dice-h)!important;
-  max-height:var(--rist-dice-h)!important;
+  height:var(--rist-slider-h)!important;
+  min-height:var(--rist-slider-h)!important;
+  max-height:var(--rist-slider-h)!important;
  }
+ .rist.release-world .release-footer-stack>.footer-dock{grid-column:1!important;grid-row:2!important}
  .rist.release-world .release-footer-stack>.site-copyright-notice{grid-column:1!important;grid-row:3!important;height:var(--rist-legal-h)!important;min-height:var(--rist-legal-h)!important}
 
- /* Dice/footer controls also shrink-wrap their artwork. Text-only controls keep only the space their label needs. */
  .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.die-button,
  .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.die-control,
  .rist.release-world .release-footer-stack #footer-slider .release-footer-track>.roll-history-toggle,
@@ -280,6 +353,7 @@
  .rist.release-world .release-footer-stack .dice-tray-toggle{
   height:78px!important;
   min-height:78px!important;
+  max-height:78px!important;
   padding:5px!important;
  }
  .rist.release-world .release-footer-stack .dice-tray-toggle .dice-bag-toggle-art{
