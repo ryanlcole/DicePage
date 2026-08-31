@@ -22,6 +22,7 @@ env:
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   FRONTEND_STACK: rist-frontend
   PLATFORM_STACK: rist-platform
+  TRANSLATION_STACK: rist-translation
   PRODUCTION_DOMAIN: relicgamemaster.com
   PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
   ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
@@ -37,7 +38,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Prepare public data
-        run: python apps/rist-world/prepare_public_data.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYDEPS="$RUNNER_TEMP/rist-pydeps"
+          rm -rf "$PYDEPS"
+          python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
+          PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
 
       - name: Build RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
@@ -96,7 +103,7 @@ jobs:
             exit 1
           fi
 
-      - name: Inject deployed authority endpoints when available
+      - name: Inject deployed authority and translation endpoints
         shell: bash
         run: |
           set -euo pipefail
@@ -106,6 +113,27 @@ jobs:
             if [ -n "$API" ] && [ "$API" != "None" ]; then
               printf '{"apiBaseUrl":"%s","realtimeUrl":"%s"}\n' "$API" "$WS" > build/rist/wwwroot/authority-config.json
             fi
+          fi
+
+          TRANSLATION_API=""
+          for attempt in $(seq 1 30); do
+            if aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" >/dev/null 2>&1; then
+              STATUS=$(aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" --query 'Stacks[0].StackStatus' --output text)
+              if [[ "$STATUS" == *"COMPLETE" ]]; then
+                TRANSLATION_API=$(aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" --query "Stacks[0].Outputs[?OutputKey=='TranslationApiBaseUrl'].OutputValue" --output text)
+                if [ -n "$TRANSLATION_API" ] && [ "$TRANSLATION_API" != "None" ]; then
+                  break
+                fi
+              fi
+            fi
+            echo "Waiting for $TRANSLATION_STACK translation endpoint ($attempt/30)..."
+            sleep 5
+          done
+          printf '{"apiBaseUrl":"%s"}\n' "$TRANSLATION_API" > build/rist/wwwroot/translation-config.json
+          if [ -z "$TRANSLATION_API" ]; then
+            echo "::warning::Translation stack is not available yet; UI will remain in source language until the next frontend deployment."
+          else
+            echo "Translation endpoint injected."
           fi
 
       - name: Publish company site, game, and Launcher to private S3 origin
@@ -127,6 +155,14 @@ jobs:
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
           aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/Game/translation-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
@@ -167,10 +203,18 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
+          grep -q 'site-language' /tmp/relic-home.html
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
           grep -q 'rist-plc.js' /tmp/rist-index.html
+          grep -q 'ui-language.js' /tmp/rist-index.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/ui-language.js "${URL}Game/ui-language.js"
+          grep -q 'window.RistUiLanguage' /tmp/ui-language.js
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
+          grep -q 'apiBaseUrl' /tmp/translation-config.json
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-plc.js "${URL}Game/rist-plc.js"
           grep -q 'window.RistPLC' /tmp/rist-plc.js
