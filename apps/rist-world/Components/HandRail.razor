@@ -1,4 +1,7 @@
+@using System.Net
+@using System.Globalization
 @inject WorldSession Session
+@inject IJSRuntime JS
 
 <section class="private-assets-rail" aria-label="Private assets">
  <header class="asset-rail-header">
@@ -13,14 +16,116 @@
  <div id="private-assets-slider" class="private-assets-strip desktop-arrow-slider">
   <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#private-assets-slider',-1)" aria-label="Scroll private assets left">‹</button>
   <div class="private-assets-items">
-   <span class="private-assets-empty rail-drop-prompt">Drag private assets here</span>
+   @if(!VisibleAssets.Any())
+   {
+    <span class="private-assets-empty rail-drop-prompt">Drag private assets here</span>
+   }
+   else
+   {
+    @foreach(var asset in VisibleAssets)
+    {
+     <div class="private-staged-asset" title="Drag @asset.Name onto the map">
+      <button type="button" class="staged-asset-drag" aria-label="Drag @asset.Name onto map"
+              @onpointerdown="e=>BeginAssetDrag(asset,e)" @onpointerup="e=>EndAssetDrag(asset,e)" @onpointercancel="CancelAssetDrag">
+       @if(asset.Kind=="tile" && !string.IsNullOrWhiteSpace(asset.Image))
+       {
+        <span class="staged-asset-preview tile-image-crop"><img src="@asset.Image" style="@PreviewStyle(asset)" alt="" draggable="false" /></span>
+       }
+       else
+       {
+        <span class="staged-asset-glyph">@AssetGlyph(asset.Kind)</span>
+       }
+      </button>
+      <button type="button" class="staged-asset-rotate" @onclick="()=>Rotate(asset)" @onclick:stopPropagation="true" aria-label="Rotate @asset.Name 90 degrees" title="Rotate 90°">↻</button>
+     </div>
+    }
+   }
   </div>
   <button type="button" class="rail-scroll-arrow rail-scroll-next" onclick="ristWorld.scrollRail('#private-assets-slider',1)" aria-label="Scroll private assets right">›</button>
  </div>
 </section>
 
+<style>
+.private-staged-asset{position:relative!important;flex:0 0 auto!important;height:calc(100% - 4px)!important;aspect-ratio:1/1!important;margin:0!important}
+.private-staged-asset>.staged-asset-drag{box-sizing:border-box!important;width:100%!important;height:100%!important;margin:0!important;padding:2px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#0c151b!important;overflow:hidden!important;touch-action:none!important}
+.staged-asset-preview{position:relative!important;display:block!important;width:100%!important;height:100%!important;overflow:hidden!important}
+.staged-asset-preview img{position:absolute!important;transform-origin:center center!important}
+.staged-asset-glyph{display:grid!important;place-items:center!important;width:100%!important;height:100%!important;color:#e0c77f!important;font:900 16px/1 system-ui!important}
+.private-staged-asset>.staged-asset-rotate{position:absolute!important;right:-3px!important;top:-3px!important;z-index:4!important;display:grid!important;place-items:center!important;width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;margin:0!important;padding:0!important;border:1px solid #a57c2f!important;border-radius:50%!important;background:#10181ded!important;color:#f0d58d!important;font:900 11px/15px system-ui!important;box-shadow:0 1px 3px #000b!important;touch-action:manipulation!important}
+</style>
+
 @code{
  static readonly (string Key,string Label)[] AssetTypes=[("all","All"),("cards","Cards"),("tokens","Tokens / Chits"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns / Meeples"),("tiles","Tiles"),("terrain","Terrain"),("bits","Bits")];
+ readonly Dictionary<string,int> _rotations=new(StringComparer.Ordinal);
  string _assetType="all";
+ bool _dragging;
+
+ IEnumerable<StagedAsset> VisibleAssets=>Session.StagedAssets.Where(MatchesType);
  void SelectAssetType(string type)=>_assetType=type;
+ bool MatchesType(StagedAsset asset)=>_assetType=="all"||_assetType switch
+ {
+  "cards"=>false,
+  "tokens"=>asset.Kind is "pin" or "token",
+  "minis"=>asset.Kind=="mini",
+  "rolling-stock"=>asset.Kind=="rolling-stock",
+  "pawns"=>asset.Kind=="pawn",
+  "tiles"=>asset.Kind=="tile",
+  "terrain"=>asset.Kind=="terrain",
+  "bits"=>asset.Kind=="bit",
+  _=>true
+ };
+
+ int Rotation(StagedAsset asset)=>_rotations.TryGetValue(asset.Key,out var value)?value:0;
+ void Rotate(StagedAsset asset){_rotations[asset.Key]=(Rotation(asset)+90)%360;}
+ static string AssetGlyph(string kind)=>kind switch{"mini"=>"♟","pawn"=>"●","pin"=>"◆","terrain"=>"▧","bit"=>"•",_=>"□"};
+
+ string PreviewStyle(StagedAsset asset)
+ {
+  var crop=CropStyle(asset);
+  var rotation=Rotation(asset);
+  return crop+$"transform:rotate({rotation}deg);";
+ }
+ static string CropStyle(StagedAsset asset)=>asset.SourceWidth>0&&asset.SourceHeight>0&&asset.CropWidth>0&&asset.CropHeight>0
+  ? $"width:{asset.SourceWidth*100.0/asset.CropWidth:0.###}%;height:{asset.SourceHeight*100.0/asset.CropHeight:0.###}%;left:{-asset.CropX*100.0/asset.CropWidth:0.###}%;top:{-asset.CropY*100.0/asset.CropHeight:0.###}%;max-width:none;max-height:none;"
+  : "width:100%;height:100%;left:0;top:0;object-fit:contain;";
+
+ async Task BeginAssetDrag(StagedAsset asset,PointerEventArgs e)
+ {
+  _dragging=true;
+  await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);
+ }
+ async Task EndAssetDrag(StagedAsset asset,PointerEventArgs e)
+ {
+  if(!_dragging)return;
+  _dragging=false;
+  var p=await JS.InvokeAsync<double[]>("ristWorld.railPinDrop",e.ClientX,e.ClientY);
+  if(p.Length<3||p[0]<=.5)return;
+  var prepared=PrepareForPlacement(asset);
+  Session.PlaceStaged(prepared,p[1],p[2],Session.ViewZoom);
+ }
+ void CancelAssetDrag(PointerEventArgs e)=>_dragging=false;
+
+ StagedAsset PrepareForPlacement(StagedAsset asset)
+ {
+  var rotation=Rotation(asset);
+  if(rotation==0||asset.Kind!="tile"||string.IsNullOrWhiteSpace(asset.Image))return asset;
+  var sw=asset.SourceWidth>0?asset.SourceWidth:Math.Max(asset.CropWidth,1);
+  var sh=asset.SourceHeight>0?asset.SourceHeight:Math.Max(asset.CropHeight,1);
+  var cx=Math.Max(asset.CropX,0);var cy=Math.Max(asset.CropY,0);
+  var cw=asset.CropWidth>0?asset.CropWidth:sw;var ch=asset.CropHeight>0?asset.CropHeight:sh;
+  var outW=rotation is 90 or 270?ch:cw;
+  var outH=rotation is 90 or 270?cw:ch;
+  var transform=rotation switch
+  {
+   90=>$"translate({ch} 0) rotate(90)",
+   180=>$"translate({cw} {ch}) rotate(180)",
+   270=>$"translate(0 {cw}) rotate(270)",
+   _=>""
+  };
+  var href=WebUtility.HtmlEncode(asset.Image);
+  var inv=CultureInfo.InvariantCulture;
+  var svg=$"<svg xmlns='http://www.w3.org/2000/svg' width='{outW}' height='{outH}' viewBox='0 0 {outW} {outH}'><g transform='{transform}'><image href='{href}' x='{-cx}' y='{-cy}' width='{sw}' height='{sh}' preserveAspectRatio='none'/></g></svg>";
+  var data="data:image/svg+xml;charset=utf-8,"+Uri.EscapeDataString(svg);
+  return asset with{Image=data,SourceWidth=outW,SourceHeight=outH,CropX=0,CropY=0,CropWidth=outW,CropHeight=outH};
+ }
 }
