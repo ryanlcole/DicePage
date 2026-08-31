@@ -65,14 +65,23 @@
 </section>
 
 <style>
-/* Public/private asset sliders are exactly twice the context (Stars) row. */
+/* Each asset section is two context rows total: one menu row + one slider row. */
 .rist.release-world{--rw-public:calc(var(--rw-context)*2)!important;--rw-private:calc(var(--rw-context)*2)!important}
-.release-world .release-public-region>.public-assets-rail,.release-world .release-private-region>.private-assets-rail{grid-template-rows:20px minmax(0,1fr)!important}
-.release-world .asset-rail-header{height:20px!important;min-height:20px!important;max-height:20px!important;padding:1px 6px!important}
-.release-world .asset-type-tabs{height:18px!important}
-.release-world .asset-type-tabs button{height:17px!important;min-height:17px!important;line-height:15px!important}
-.release-world .public-assets-items>.z-axis-controls{display:flex!important;align-items:stretch!important;gap:4px!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:36px!important}
-.release-world .z-axis-select{box-sizing:border-box!important;display:grid!important;grid-template-rows:11px 1fr!important;width:78px!important;min-width:78px!important;height:36px!important;padding:2px 4px!important;border:1px solid #5f4d29!important;border-radius:6px!important;background:#10181d!important;color:#c6b88d!important;overflow:hidden!important}
+.release-world .release-public-region>.public-assets-rail,.release-world .release-private-region>.private-assets-rail{grid-template-rows:var(--rw-context) var(--rw-context)!important}
+.release-world .asset-rail-header{height:var(--rw-context)!important;min-height:var(--rw-context)!important;max-height:var(--rw-context)!important;padding:2px 6px!important}
+.release-world .asset-type-tabs{height:calc(var(--rw-context) - 4px)!important}
+.release-world .asset-type-tabs button{height:calc(var(--rw-context) - 6px)!important;min-height:calc(var(--rw-context) - 6px)!important;line-height:calc(var(--rw-context) - 8px)!important}
+
+/* Slider height determines artwork height. Artwork aspect ratio determines border width. */
+.release-world .public-assets-items,.release-world .private-assets-items{--asset-gap:3px!important;align-items:center!important;padding-block:var(--asset-gap)!important}
+.release-world .public-assets-items>button,.release-world .private-assets-items>button,.release-world .private-assets-items .hand-card-wrap{box-sizing:border-box!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:calc(100% - (var(--asset-gap) * 2))!important;min-height:calc(100% - (var(--asset-gap) * 2))!important;max-height:calc(100% - (var(--asset-gap) * 2))!important;margin:0!important;padding:2px!important}
+.release-world .public-assets-items .public-asset-card,.release-world .private-assets-items .compact-hand-card,.release-world .private-assets-items .standard-hand-card,.release-world .public-assets-rail .token-pin-source,.release-world .private-assets-rail .token-pin-source{box-sizing:border-box!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:calc(100% - (var(--asset-gap) * 2))!important;min-height:calc(100% - (var(--asset-gap) * 2))!important;max-height:calc(100% - (var(--asset-gap) * 2))!important;padding:2px!important}
+.release-world .public-assets-items .public-asset-card>img,.release-world .private-assets-items .compact-hand-card>img,.release-world .private-assets-items .standard-hand-card>img{display:block!important;width:auto!important;min-width:0!important;max-width:none!important;height:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;margin:0!important}
+.release-world .public-assets-rail .token-pin-source,.release-world .private-assets-rail .token-pin-source{aspect-ratio:5 / 6!important}
+.release-world .public-assets-rail .map-pin-icon,.release-world .private-assets-rail .map-pin-icon{display:block!important;height:100%!important;width:auto!important;max-height:100%!important;aspect-ratio:5 / 6!important;background-size:contain!important}
+
+.release-world .public-assets-items>.z-axis-controls{display:flex!important;align-items:stretch!important;gap:4px!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:calc(100% - 6px)!important}
+.release-world .z-axis-select{box-sizing:border-box!important;display:grid!important;grid-template-rows:11px 1fr!important;width:78px!important;min-width:78px!important;height:100%!important;padding:2px 4px!important;border:1px solid #5f4d29!important;border-radius:6px!important;background:#10181d!important;color:#c6b88d!important;overflow:hidden!important}
 .release-world .z-axis-select>span{font:800 7px/9px system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#d7be80!important;text-align:center!important}
 .release-world .z-axis-select>select{box-sizing:border-box!important;width:100%!important;height:19px!important;min-height:19px!important;margin:0!important;padding:0 2px!important;border:0!important;outline:0!important;background:#172229!important;color:#fff0bd!important;font:800 9px/19px system-ui!important;text-align:center!important;cursor:pointer!important}
 </style>
