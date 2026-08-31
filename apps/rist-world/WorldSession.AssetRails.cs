@@ -41,7 +41,7 @@ public sealed partial class WorldSession
         }
     }
 
-    public bool CanAddTier => IsLoggedIn || AvailableTierIndices.Any(x => x < GuestTierCount - 1);
+    public bool CanAddTier => IsLoggedIn || Enumerable.Range(0, GuestTierCount).Any(x => !AvailableTierIndices.Contains(x));
     public bool CanAddLayer => AvailableLayerOffsets.Count < LayersPerTier;
 
     public void SetPublicAssetType(string type)
