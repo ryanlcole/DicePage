@@ -26,6 +26,7 @@ public static class ContentAllowancePolicy
         {
             Adult21 => Descriptors.Select(x => x.Id).ToArray(),
             Adult18 => Descriptors.Where(x => x.MinimumBand == Adult18).Select(x => x.Id).ToArray(),
+            Minor => Descriptors.Where(x => x.MinimumBand == Adult18).Select(x => x.Id).ToArray(),
             _ => Array.Empty<string>()
         };
 
@@ -36,7 +37,7 @@ public static class ContentAllowancePolicy
         {
             var guardianSet = new HashSet<string>(guardianApproved ?? [], StringComparer.Ordinal);
             requestedSet.IntersectWith(guardianSet);
-            requestedSet.IntersectWith(Descriptors.Select(x => x.Id));
+            requestedSet.IntersectWith(AllowedForBand(Minor));
             return requestedSet.OrderBy(x => x, StringComparer.Ordinal).ToArray();
         }
 
