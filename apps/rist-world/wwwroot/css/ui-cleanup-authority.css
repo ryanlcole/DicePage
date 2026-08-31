@@ -37,48 +37,77 @@ html body .rist.release-world .release-footer-stack .chat-mode-rail button{
  transform:none!important;
 }
 
-/* Keep Public/Private label fully visible above the filters. */
+/* Public/Private title and asset filters share one compact row:
+   Public Assets  < All Cards ... >
+   Private Assets < All Cards ... > */
 html body .rist.release-world .asset-rail-header{
  position:relative!important;
- display:grid!important;
- grid-template-columns:minmax(0,1fr)!important;
- grid-template-rows:13px 19px!important;
- align-content:center!important;
- row-gap:2px!important;
- padding:2px 0!important;
+ display:flex!important;
+ align-items:center!important;
+ gap:6px!important;
+ min-width:0!important;
+ padding:2px 4px 2px 7px!important;
  overflow:hidden!important;
 }
 html body .rist.release-world .asset-rail-header>strong{
  box-sizing:border-box!important;
  display:block!important;
- grid-row:1!important;
- min-height:13px!important;
+ flex:0 0 auto!important;
+ min-width:max-content!important;
  margin:0!important;
- padding:0 6px!important;
+ padding:0!important;
  overflow:visible!important;
  color:#e0c77f!important;
  font-size:9px!important;
- line-height:13px!important;
+ line-height:20px!important;
  letter-spacing:.12em!important;
  white-space:nowrap!important;
 }
 html body .rist.release-world .asset-rail-header>.asset-type-tabs{
  box-sizing:border-box!important;
  position:relative!important;
- grid-row:2!important;
- height:19px!important;
- min-height:19px!important;
- max-height:19px!important;
- padding:0 22px!important;
+ display:flex!important;
+ flex:1 1 auto!important;
+ min-width:0!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ padding:0 18px!important;
  align-items:center!important;
+ gap:4px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ scrollbar-width:none!important;
+ -webkit-overflow-scrolling:touch!important;
 }
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::-webkit-scrollbar{display:none!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::before,
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{
+ position:sticky!important;
+ z-index:6!important;
+ top:0!important;
+ flex:0 0 14px!important;
+ width:14px!important;
+ height:22px!important;
+ display:grid!important;
+ place-items:center!important;
+ background:#0b141b!important;
+ color:#e0c77f!important;
+ font:900 17px/22px system-ui!important;
+ pointer-events:none!important;
+}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::before{content:'‹'!important;left:0!important;margin-left:-18px!important;margin-right:0!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs::after{content:'›'!important;right:0!important;margin-left:0!important;margin-right:-18px!important}
 html body .rist.release-world .asset-rail-header>.asset-type-tabs>button:not(.asset-filter-arrow){
- height:17px!important;
- min-height:17px!important;
- max-height:17px!important;
+ flex:0 0 auto!important;
+ width:auto!important;
+ min-width:max-content!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
  padding:0 8px!important;
- line-height:15px!important;
- border-radius:5px!important;
+ line-height:20px!important;
+ border-radius:7px!important;
 }
 html body .rist.release-world .asset-filter-arrow{
  position:absolute!important;
@@ -87,16 +116,16 @@ html body .rist.release-world .asset-filter-arrow{
  width:20px!important;
  min-width:20px!important;
  max-width:20px!important;
- height:19px!important;
- min-height:19px!important;
- max-height:19px!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
  padding:0!important;
  margin:0!important;
  border:0!important;
  border-radius:0!important;
  background:#0b141b!important;
  color:#e0c77f!important;
- font:900 18px/19px system-ui!important;
+ font:900 18px/22px system-ui!important;
  display:grid!important;
  place-items:center!important;
  touch-action:manipulation!important;
