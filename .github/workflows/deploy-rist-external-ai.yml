@@ -21,6 +21,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-external-ai
   AUTH_STACK: rist-discord-storage
+  FRONTEND_STACK: rist-frontend
   PRODUCTION_ORIGIN: https://relicgamemaster.com
 
 jobs:
@@ -97,6 +98,19 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
           printf '{"apiBaseUrl":"%s","ownerReleased":false}\n' "$API" > external-ai-config.json
           cat external-ai-config.json
+
+      - name: Publish locked operator config to protected game origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          test -n "$BUCKET"
+          test "$BUCKET" != "None"
+          aws s3 cp external-ai-config.json "s3://${BUCKET}/Game/external-ai-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
 
       - uses: actions/upload-artifact@v4
         with:
