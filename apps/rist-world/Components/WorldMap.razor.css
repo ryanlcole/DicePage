@@ -36,6 +36,7 @@
     aspect-ratio: auto !important;
     margin: 0 !important;
     overflow: hidden !important;
+    container-type: size !important;
 }
 
 .world-stage {
@@ -63,6 +64,15 @@
     min-height: 100% !important;
 }
 
+/*
+ * Grid geometry is a map-mode choice, never a screen-orientation choice.
+ * The cell edge uses the smaller map dimension so a square remains a square
+ * in portrait, landscape, split-screen, and resized desktop windows.
+ */
+.map {
+    --rist-grid-cell: min(1cqw, 1cqh);
+}
+
 /* WorldMap.razor renders <div class="base ocean-world">. */
 .base.ocean-world {
     z-index: 0 !important;
@@ -70,12 +80,32 @@
     background-image: url("https://assets.relicgamemaster.com/tilesets/world/terrain/ocean/ocean-071/tile-01-01.jpg") !important;
     background-repeat: repeat !important;
     background-position: 0 0 !important;
-    background-size: 1% 1% !important;
+    background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
 }
 
 .world-stage > .grid {
     z-index: 1 !important;
     pointer-events: none !important;
+    background-position: 0 0 !important;
+}
+
+/* Square mode always renders true square cells, regardless of viewport orientation. */
+.world-stage > .grid.square {
+    background-image:
+        linear-gradient(to right, rgba(217, 199, 145, .42) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(217, 199, 145, .42) 1px, transparent 1px) !important;
+    background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
+}
+
+/* Hex mode is owned only by the hex grid rules; square rules never bleed into it. */
+.world-stage > .grid.hex {
+    background-size: auto !important;
+}
+
+/* None means no visual grid at all. */
+.world-stage > .grid.none {
+    background-image: none !important;
+    background: none !important;
 }
 
 /* Authored terrain, pieces, pins, labels and dice remain above base/grid. */
