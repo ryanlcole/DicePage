@@ -52,7 +52,7 @@
 <div class="home-footer-stack release-footer-stack @(_diceTrayOpen?"dice-tray-open":"chat-cover-open")">
  @if(Session.DialogueOpen)
  {
-  <section class="inline-chat-output" aria-live="polite" aria-label="Current roleplay output" data-roleplay-language="@Session.DialogueLanguage">
+  <section class="inline-chat-output" aria-live="polite" aria-label="Current roleplay output" data-roleplay-language="@Session.DialogueLanguage" data-human-language="@Session.DialogueHumanLanguage">
    <div class="dialogue-portrait">
     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
     else{<span class="dialogue-card-back" aria-hidden="true"></span>}
@@ -64,7 +64,7 @@
  else if(_history.Count>0)
  {
   var last=_history[^1];
-  <section class="inline-chat-output" aria-live="polite" aria-label="Latest roleplay output" data-roleplay-language="@last.Language">
+  <section class="inline-chat-output" aria-live="polite" aria-label="Latest roleplay output" data-roleplay-language="@last.Language" data-human-language="@last.HumanLanguage">
    <div class="dialogue-portrait">
     @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl)){<img src="@Session.CharacterPortraitDataUrl" alt="" />}
     else{<span class="dialogue-card-back" aria-hidden="true"></span>}
@@ -124,19 +124,19 @@
  <div class="site-copyright-notice" aria-label="Copyright notice">© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST · All rights reserved.</div>
 </div>
 
-@if(_chatHistoryOpen){<div class="history-scroll-scrim" @onclick="()=>_chatHistoryOpen=false"><section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Roleplay history" @onclick:stopPropagation="true"><header><strong>Roleplay History</strong><button @onclick="()=>_chatHistoryOpen=false" aria-label="Close roleplay history">×</button></header><div class="history-scroll-body">@foreach(var message in _history){<article class="chat-history-entry"><strong>@message.Speaker · @message.Language</strong><p>@Session.ResolveRoleplayForViewer(message.Text,message.Language)</p></article>}@if(_history.Count==0){<p class="history-empty">No roleplay messages yet.</p>}</div></section></div>}
+@if(_chatHistoryOpen){<div class="history-scroll-scrim" @onclick="()=>_chatHistoryOpen=false"><section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Roleplay history" @onclick:stopPropagation="true"><header><strong>Roleplay History</strong><button @onclick="()=>_chatHistoryOpen=false" aria-label="Close roleplay history">×</button></header><div class="history-scroll-body">@foreach(var message in _history){<article class="chat-history-entry" data-roleplay-language="@message.Language" data-human-language="@message.HumanLanguage"><strong>@message.Speaker · @message.Language</strong><p data-common-source="@message.Text">@Session.ResolveRoleplayForViewer(message.Text,message.Language)</p></article>}@if(_history.Count==0){<p class="history-empty">No roleplay messages yet.</p>}</div></section></div>}
 @if(_rollHistoryOpen){<div class="history-scroll-scrim" @onclick="()=>_rollHistoryOpen=false"><section class="history-scroll-sheet" role="dialog" aria-modal="true" aria-label="Roll history" @onclick:stopPropagation="true"><header><strong>Roll History</strong><button @onclick="()=>_rollHistoryOpen=false" aria-label="Close roll history">×</button></header><div class="history-scroll-body roll-history-body">@foreach(var batch in Session.RollHistoryBatches){<article class="roll-history-entry"><strong>@batch.CharacterName · @batch.VisibilityLabel</strong>@if(batch.CardNames.Count>0){<small>Card: @string.Join(", ",batch.CardNames)</small>}<p>@(Session.Role=="GM"?batch.Equation:batch.PlayerEquation)</p></article>}@if(Session.RollHistoryBatches.Count==0){<p class="history-empty">No rolls yet.</p>}</div></section></div>}
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 
 @code{
  static readonly string[] HumanLanguages=["English","Spanish","French","German","Italian","Portuguese","Polish","Dutch","Swedish","Norwegian","Danish","Finnish","Russian","Ukrainian","Arabic","Hebrew","Hindi","Bengali","Urdu","Mandarin Chinese","Cantonese","Japanese","Korean","Vietnamese","Thai","Indonesian","Malay","Filipino","Swahili","Turkish","Greek","Czech","Romanian","Hungarian"];
- readonly List<(string Speaker,string Text,string Language)> _history=[];
+ readonly List<(string Speaker,string Text,string Language,string HumanLanguage)> _history=[];
  bool _chatHistoryOpen;
  bool _rollHistoryOpen;
  bool _diceTrayOpen;
  string ChatPrompt=>$"Roleplay · {Session.ActiveRoleplayLanguage}";
  void ToggleDiceTray()=>_diceTrayOpen=!_diceTrayOpen;
- void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text,Session.ActiveRoleplayLanguage));Session.SendChat();}
+ void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text,Session.ActiveRoleplayLanguage,Session.PrimaryHumanLanguage));Session.SendChat();}
  void PrimaryLanguageChanged(ChangeEventArgs e)=>Session.SetPrimaryHumanLanguage(e.Value?.ToString()??"English");
  void LanguageModeChanged(ChangeEventArgs e)=>Session.SetGmLanguageResolution(e.Value?.ToString()??"system",Session.GmLanguageLegibilityPercent,Session.GmManualLanguageResponse);
  void LanguagePercentChanged(ChangeEventArgs e){if(int.TryParse(e.Value?.ToString(),out var value))Session.SetGmLanguageResolution("percent",value,Session.GmManualLanguageResponse);}
