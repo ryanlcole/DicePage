@@ -37,6 +37,64 @@ html body .rist.release-world .release-footer-stack .chat-mode-rail button{
  transform:none!important;
 }
 
+/* Main controls use the exact compact geometry of Stars/Sky/Cal/etc. */
+html body #header-slider.release-root-rail{
+ box-sizing:border-box!important;
+ height:26px!important;
+ min-height:26px!important;
+ max-height:26px!important;
+ padding:2px 0!important;
+}
+html body #header-slider.release-root-rail .release-root-track{
+ box-sizing:border-box!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ padding:0!important;
+ gap:4px!important;
+ align-items:center!important;
+}
+html body #header-slider.release-root-rail .release-root-track>.root-menu-button{
+ box-sizing:border-box!important;
+ flex:0 0 auto!important;
+ width:auto!important;
+ min-width:max-content!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ margin:0!important;
+ padding:0 9px!important;
+ border-radius:7px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:4px!important;
+ font:800 10px/20px system-ui,-apple-system,sans-serif!important;
+ line-height:20px!important;
+ white-space:nowrap!important;
+}
+html body #header-slider.release-root-rail .release-root-track>.root-menu-button>strong{
+ font:inherit!important;
+ line-height:20px!important;
+}
+html body #header-slider.release-root-rail .root-menu-art.icon-assets{
+ width:16px!important;
+ min-width:16px!important;
+ height:16px!important;
+ min-height:16px!important;
+}
+html body #header-slider.release-root-rail>.rail-scroll-arrow{
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ width:20px!important;
+ min-width:20px!important;
+ max-width:20px!important;
+ margin:0!important;
+ padding:0!important;
+ line-height:22px!important;
+}
+
 /* Public/Private title and filters are one row. Each filter slider repeats its own
    left/right chevrons and the first real option (All) is never covered. */
 html body .rist.release-world .asset-rail-header{
