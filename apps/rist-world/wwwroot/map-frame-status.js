@@ -3,7 +3,8 @@
  function sync(){
   const shell=document.querySelector('.release-map-region .map-shell');
   const source=shell?.querySelector('.map>.status');
-  if(!shell||!source)return;
+  const map=shell?.querySelector(':scope>.map');
+  if(!shell||!source||!map)return;
   let frame=shell.querySelector(':scope>.map-frame-status');
   if(!frame){
    frame=document.createElement('div');
@@ -34,8 +35,9 @@
   if(frame.textContent!==source.textContent)frame.textContent=source.textContent;
   source.style.setProperty('display','none','important');
 
-  if(!shell.querySelector(':scope>.map-frame-corners')){
-   const corners=document.createElement('div');
+  let corners=shell.querySelector(':scope>.map-frame-corners');
+  if(!corners){
+   corners=document.createElement('div');
    corners.className='map-frame-corners';
    corners.setAttribute('aria-hidden','true');
    Object.assign(corners.style,{
@@ -49,8 +51,6 @@
     corner.dataset.corner=pos;
     Object.assign(corner.style,{
      position:'absolute',
-     width:'42px',
-     height:'42px',
      background:'#071015'
     });
     if(pos.includes('top'))corner.style.top='0';else corner.style.bottom='0';
@@ -59,9 +59,22 @@
    }
    shell.appendChild(corners);
   }
+
+  const shellRect=shell.getBoundingClientRect();
+  const mapRect=map.getBoundingClientRect();
+  const sideFrameWidth=Math.max(0,Math.round(mapRect.left-shellRect.left));
+  const topFrameHeight=Math.max(0,Math.round(mapRect.top-shellRect.top));
+  const bottomFrameHeight=Math.max(0,Math.round(shellRect.bottom-mapRect.bottom));
+
+  corners.querySelectorAll('[data-corner]').forEach(corner=>{
+   corner.style.width=`${sideFrameWidth}px`;
+   corner.style.height=`${corner.dataset.corner.startsWith('top')?topFrameHeight:bottomFrameHeight}px`;
+  });
  }
  let attempts=0;
  const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-status')||attempts>=100)clearInterval(quick)},100);
  setInterval(sync,1500);
+ window.addEventListener('resize',()=>requestAnimationFrame(sync));
+ window.addEventListener('orientationchange',()=>setTimeout(sync,150));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
 })();
