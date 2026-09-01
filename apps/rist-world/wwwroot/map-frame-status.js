@@ -1,5 +1,6 @@
 (()=>{
  'use strict';
+ const FRAME_HEIGHT=12;
  function sync(){
   const shell=document.querySelector('.release-map-region .map-shell');
   const source=shell?.querySelector('.map>.status');
@@ -12,26 +13,42 @@
    frame.className='map-frame-status';
    frame.setAttribute('aria-hidden','true');
    Object.assign(frame.style,{
+    position:'absolute',
+    top:'0',
+    left:'0',
+    right:'0',
     boxSizing:'border-box',
-    gridColumn:'1',
-    gridRow:'1',
     minWidth:'0',
     width:'100%',
-    height:'100%',
+    height:`${FRAME_HEIGHT}px`,
+    minHeight:`${FRAME_HEIGHT}px`,
+    maxHeight:`${FRAME_HEIGHT}px`,
     display:'flex',
     alignItems:'center',
     justifyContent:'center',
     overflow:'hidden',
     whiteSpace:'nowrap',
     textOverflow:'ellipsis',
+    paddingTop:'0',
+    paddingBottom:'0',
+    margin:'0',
     background:'#071015',
     color:'#d7be80',
-    font:'800 10px/1.2 system-ui,-apple-system,sans-serif',
-    letterSpacing:'.05em',
-    pointerEvents:'none'
+    font:'800 8px/1 system-ui,-apple-system,sans-serif',
+    letterSpacing:'.04em',
+    pointerEvents:'none',
+    zIndex:'159'
    });
    shell.prepend(frame);
   }
+
+  // Reassert container authority in case older runtime styles are still cached.
+  frame.style.height=`${FRAME_HEIGHT}px`;
+  frame.style.minHeight=`${FRAME_HEIGHT}px`;
+  frame.style.maxHeight=`${FRAME_HEIGHT}px`;
+  frame.style.paddingTop='0';
+  frame.style.paddingBottom='0';
+  frame.style.font='800 8px/1 system-ui,-apple-system,sans-serif';
 
   if(frame.textContent!==source.textContent)frame.textContent=source.textContent;
   source.style.setProperty('display','none','important');
