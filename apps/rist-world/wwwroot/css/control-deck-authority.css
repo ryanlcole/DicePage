@@ -1,0 +1,89 @@
+/* RIST control deck authority — loaded last. */
+.world-context-strip{
+ box-sizing:border-box!important;position:relative!important;display:grid!important;
+ grid-template-columns:10% 80% 10%!important;width:100%!important;height:5dvh!important;
+ min-height:5dvh!important;max-height:5dvh!important;padding:0!important;gap:0!important;overflow:hidden!important;
+}
+.world-context-menu{grid-column:1!important;justify-self:start!important;align-self:center!important;max-width:100%!important;z-index:50!important}
+.world-context-track{grid-column:2!important;position:relative!important;width:100%!important;min-width:0!important;height:100%!important;overflow:hidden!important;contain:layout paint!important}
+.world-context-login{grid-column:3!important;justify-self:end!important;align-self:center!important;max-width:100%!important;z-index:50!important}
+.world-context-track>.bulletin-flow{position:absolute!important;inset:0 auto 0 0!important;display:flex!important;align-items:center!important;gap:18px!important;width:max-content!important;min-width:max-content!important;white-space:nowrap!important;animation:ristBulletinFlow 34s linear infinite!important;will-change:transform!important}
+.world-context-track>.bulletin-flow>*{flex:0 0 auto!important;width:auto!important;min-width:max-content!important;white-space:nowrap!important}
+@keyframes ristBulletinFlow{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.rist.release-world{box-sizing:border-box!important;position:relative!important;width:100%!important;height:95dvh!important;min-height:95dvh!important;max-height:95dvh!important;overflow:hidden!important}
+.rist.release-world>.release-world-shell{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:95dvh!important;min-height:95dvh!important;max-height:95dvh!important;overflow:hidden!important}
+.rist.release-world>.release-world-shell>.release-map-region{box-sizing:border-box!important;position:absolute!important;left:0!important;right:0!important;top:0!important;width:100%!important;height:70dvh!important;min-height:70dvh!important;max-height:70dvh!important;margin:0!important;overflow:hidden!important;z-index:1!important}
+
+/* OS-style top menu overlay. */
+.rist.release-world>.release-world-shell>.release-menu-region{
+ box-sizing:border-box!important;position:fixed!important;left:0!important;right:0!important;top:5dvh!important;width:100vw!important;height:5dvh!important;
+ min-height:5dvh!important;max-height:5dvh!important;margin:0!important;padding:0!important;overflow:visible!important;z-index:2147483000!important;
+ pointer-events:none!important;opacity:0!important;transform:translateY(-120%)!important;transition:transform .18s ease-out,opacity .12s linear!important;
+ background:#05090cf7!important;border-bottom:1px solid #725d30!important;
+}
+.rist.release-world>.release-world-shell>.release-menu-region.rist-os-menu-open{pointer-events:auto!important;opacity:1!important;transform:translateY(0)!important}
+.rist.release-world>.release-world-shell>.release-menu-region>#header-slider{box-sizing:border-box!important;position:relative!important;inset:auto!important;width:100%!important;height:5dvh!important;min-height:5dvh!important;max-height:5dvh!important;margin:0!important;overflow:visible!important}
+.rist.release-world>.release-world-shell>.release-menu-region #header-slider .release-root-track{box-sizing:border-box!important;width:100%!important;height:5dvh!important;min-height:5dvh!important;max-height:5dvh!important;display:flex!important;align-items:center!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;pointer-events:auto!important}
+.rist.release-world>.release-world-shell>.release-menu-region #header-slider .release-root-track::-webkit-scrollbar{display:none!important}
+
+/* New bottom deck: 15% selector, 85% three rows. No orientation split. */
+.rist-section-selector{box-sizing:border-box!important;position:absolute!important;left:0!important;top:70dvh!important;width:15%!important;height:25dvh!important;z-index:40!important;display:grid!important;grid-template-rows:28px minmax(0,1fr) 28px!important;background:#081117!important;border-top:1px solid #725d30!important;border-right:1px solid #725d30!important;overflow:hidden!important}
+.rist-section-selector>.selector-arrow{box-sizing:border-box!important;width:100%!important;height:28px!important;border:0!important;border-radius:0!important;background:#10181d!important;color:#d7be80!important;font:900 18px/1 system-ui!important}
+.rist-section-list{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:none!important;display:flex!important;flex-direction:column!important}
+.rist-section-list::-webkit-scrollbar{display:none!important}
+.rist-section-list>button{box-sizing:border-box!important;flex:0 0 auto!important;width:100%!important;min-height:32px!important;padding:5px 5px!important;border:0!important;border-bottom:1px solid #312b20!important;background:#0b141b!important;color:#bcae89!important;font:800 9px/1.1 system-ui!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.rist-section-list>button.active{background:#172229!important;color:#f1d68f!important;box-shadow:inset 3px 0 #a57c2f!important}
+
+.rist-deck-row{box-sizing:border-box!important;position:absolute!important;left:15%!important;width:85%!important;height:calc(25dvh / 3)!important;z-index:35!important;display:none!important;align-items:center!important;padding:4px 8px!important;background:#0b141b!important;color:#d7be80!important;border-top:1px solid #4d4023!important;overflow:hidden!important;font:800 10px/1.2 system-ui!important}
+.rist-deck-row.row1{top:70dvh!important}.rist-deck-row.row2{top:calc(70dvh + (25dvh / 3))!important}.rist-deck-row.row3{top:calc(70dvh + (50dvh / 3))!important}
+.rist-deck-row .deck-copy{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+
+/* Legacy rails never define layout anymore. */
+.rist.release-world>.release-world-shell>.release-public-region,
+.rist.release-world>.release-world-shell>.release-private-region,
+.rist.release-world>.release-world-shell>.release-footer-region{display:none!important;box-sizing:border-box!important;position:absolute!important;left:15%!important;width:85%!important;margin:0!important;z-index:36!important;overflow:hidden!important}
+.rist.release-world .asset-rail-header,
+.rist.release-world .asset-type-tabs,
+.rist.release-world #public-assets-slider>.rail-scroll-arrow,
+.rist.release-world #private-assets-slider>.rail-scroll-arrow,
+.rist.release-world #footer-slider>.rail-scroll-arrow,
+.rist.release-world .public-assets-lead,
+.rist.release-world .rist-rail-drop-hint{display:none!important}
+
+/* Assets: names / public / private. */
+.rist.release-world.deck-assets>.release-world-shell>.rist-deck-row.row1{display:flex!important}
+.rist.release-world.deck-assets>.release-world-shell>.release-public-region{display:block!important;top:calc(70dvh + (25dvh / 3))!important;height:calc(25dvh / 3)!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-assets>.release-world-shell>.release-private-region{display:block!important;top:calc(70dvh + (50dvh / 3))!important;height:calc(25dvh / 3)!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-assets .public-assets-rail,.rist.release-world.deck-assets .private-assets-rail,.rist.release-world.deck-assets .public-assets-strip,.rist.release-world.deck-assets .private-assets-strip,.rist.release-world.deck-assets .public-assets-items,.rist.release-world.deck-assets .private-assets-items{box-sizing:border-box!important;display:flex!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;margin:0!important;padding:2px 4px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;background:#0b141b!important;align-items:center!important}
+.rist.release-world.deck-assets .public-assets-items::-webkit-scrollbar,.rist.release-world.deck-assets .private-assets-items::-webkit-scrollbar{display:none!important}
+
+/* Chat: settings / output / input. */
+.rist.release-world.deck-chat>.release-world-shell>.release-footer-region{display:block!important;top:70dvh!important;height:25dvh!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-chat .release-footer-region>.release-footer-stack{box-sizing:border-box!important;width:100%!important;height:25dvh!important;min-height:25dvh!important;max-height:25dvh!important;display:grid!important;grid-template-columns:1fr!important;grid-template-rows:repeat(3,minmax(0,1fr))!important;overflow:hidden!important}
+.rist.release-world.deck-chat .release-footer-stack>.inline-chat-output{grid-column:1!important;grid-row:2!important;position:relative!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-chat .release-footer-stack>.footer-dock,.rist.release-world.deck-chat .release-footer-stack .home-inline-chat{display:contents!important;position:static!important;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-chat .release-footer-stack .chat-mode-rail{grid-column:1!important;grid-row:1!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-chat .release-footer-stack .chat-compose-rail{grid-column:1!important;grid-row:3!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-chat #footer-slider,.rist.release-world.deck-chat .site-copyright-notice{display:none!important}
+
+/* Dice: shorthand / original live dice controls / results. */
+.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row1,.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row3{display:flex!important}
+.rist.release-world.deck-dice>.release-world-shell>.release-footer-region{display:block!important;top:calc(70dvh + (25dvh / 3))!important;height:calc(25dvh / 3)!important;min-height:0!important;max-height:none!important}
+.rist.release-world.deck-dice .release-footer-region>.release-footer-stack{box-sizing:border-box!important;position:relative!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:block!important;overflow:hidden!important}
+.rist.release-world.deck-dice .inline-chat-output,.rist.release-world.deck-dice .home-inline-chat,.rist.release-world.deck-dice .site-copyright-notice{display:none!important}
+.rist.release-world.deck-dice .footer-dock{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;overflow:hidden!important;background:#0b0f13!important}
+.rist.release-world.deck-dice #footer-slider{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:#0b0f13!important}
+.rist.release-world.deck-dice #footer-slider .release-footer-track{box-sizing:border-box!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:flex!important;align-items:center!important;gap:6px!important;padding:3px 6px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
+.rist.release-world.deck-dice #footer-slider .release-footer-track::-webkit-scrollbar{display:none!important}
+.rist.release-world.deck-dice #footer-slider .die-button,.rist.release-world.deck-dice #footer-slider .die-control,.rist.release-world.deck-dice #footer-slider .clear-dice,.rist.release-world.deck-dice #footer-slider .roll-history-toggle,.rist.release-world.deck-dice #footer-slider .roll-visibility-toggle,.rist.release-world.deck-dice #footer-slider .footer-character-button{box-sizing:border-box!important;flex:0 0 auto!important;height:calc(100% - 6px)!important;min-height:0!important;max-height:100%!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important}
+.rist.release-world.deck-dice #footer-slider .die-button{width:auto!important;min-width:48px!important;padding:2px!important;display:grid!important;place-items:center!important;background:#111920!important;border:1px solid #725d30!important;border-radius:8px!important}
+.rist.release-world.deck-dice #footer-slider .die-sprite{display:block!important;width:auto!important;height:100%!important;min-width:42px!important;max-width:84px!important;aspect-ratio:var(--die-aspect,1)!important;background-repeat:no-repeat!important;background-color:transparent!important}
+.rist.release-world.deck-dice #footer-slider .d5-control{display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;width:auto!important;min-width:54px!important}
+.rist.release-world.deck-dice #footer-slider .d5-control select{height:20px!important;min-height:20px!important;font-size:9px!important}
+
+.rist.release-world.deck-logs>.release-world-shell>.rist-deck-row{display:flex!important}
+
+@media (max-height:640px){
+ .rist-section-selector{grid-template-rows:22px minmax(0,1fr) 22px!important}.rist-section-selector>.selector-arrow{height:22px!important}.rist-section-list>button{min-height:26px!important;font-size:8px!important}
+}
