@@ -5,6 +5,7 @@
   const source=shell?.querySelector('.map>.status');
   const map=shell?.querySelector(':scope>.map');
   if(!shell||!source||!map)return;
+
   let frame=shell.querySelector(':scope>.map-frame-status');
   if(!frame){
    frame=document.createElement('div');
@@ -20,7 +21,6 @@
     display:'flex',
     alignItems:'center',
     justifyContent:'center',
-    padding:'0 42px',
     overflow:'hidden',
     whiteSpace:'nowrap',
     textOverflow:'ellipsis',
@@ -32,6 +32,7 @@
    });
    shell.prepend(frame);
   }
+
   if(frame.textContent!==source.textContent)frame.textContent=source.textContent;
   source.style.setProperty('display','none','important');
 
@@ -53,8 +54,8 @@
      position:'absolute',
      background:'#071015'
     });
-    if(pos.includes('top'))corner.style.top='0';else corner.style.bottom='0';
-    if(pos.includes('left'))corner.style.left='0';else corner.style.right='0';
+    if(pos.startsWith('top'))corner.style.top='0';else corner.style.bottom='0';
+    if(pos.endsWith('left'))corner.style.left='0';else corner.style.right='0';
     corners.appendChild(corner);
    }
    shell.appendChild(corners);
@@ -62,17 +63,29 @@
 
   const shellRect=shell.getBoundingClientRect();
   const mapRect=map.getBoundingClientRect();
-  const sideFrameWidth=Math.max(0,Math.round(mapRect.left-shellRect.left));
+  const leftFrameWidth=Math.max(0,Math.round(mapRect.left-shellRect.left));
+  const rightFrameWidth=Math.max(0,Math.round(shellRect.right-mapRect.right));
   const topFrameHeight=Math.max(0,Math.round(mapRect.top-shellRect.top));
   const bottomFrameHeight=Math.max(0,Math.round(shellRect.bottom-mapRect.bottom));
 
+  frame.style.paddingLeft=`${leftFrameWidth}px`;
+  frame.style.paddingRight=`${rightFrameWidth}px`;
+
   corners.querySelectorAll('[data-corner]').forEach(corner=>{
-   corner.style.width=`${sideFrameWidth}px`;
-   corner.style.height=`${corner.dataset.corner.startsWith('top')?topFrameHeight:bottomFrameHeight}px`;
+   const isLeft=corner.dataset.corner.endsWith('left');
+   const isTop=corner.dataset.corner.startsWith('top');
+   corner.style.width=`${isLeft?leftFrameWidth:rightFrameWidth}px`;
+   corner.style.height=`${isTop?topFrameHeight:bottomFrameHeight}px`;
   });
  }
+
  let attempts=0;
- const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-status')||attempts>=100)clearInterval(quick)},100);
+ const quick=setInterval(()=>{
+  attempts++;
+  sync();
+  if(document.querySelector('.map-frame-status')||attempts>=100)clearInterval(quick);
+ },100);
+
  setInterval(sync,1500);
  window.addEventListener('resize',()=>requestAnimationFrame(sync));
  window.addEventListener('orientationchange',()=>setTimeout(sync,150));
