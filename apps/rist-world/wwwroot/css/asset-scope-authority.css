@@ -1,0 +1,84 @@
+/* One asset rail, two scopes. Public and Private keep their existing behavior,
+   but only the selected rail occupies layout space. */
+html body .rist.release-world[data-asset-scope="public"] .release-private-region,
+html body .rist.release-world[data-asset-scope="private"] .release-public-region{display:none!important}
+html body .rist.release-world[data-asset-scope="public"] .release-public-region,
+html body .rist.release-world[data-asset-scope="private"] .release-private-region{display:block!important}
+
+/* Portrait and default layout: menu / one asset rail / map / footer. */
+html body .rist.release-world>.release-world-shell{
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-template-rows:var(--rist-menu-h) var(--rist-assets-h) minmax(0,1fr) var(--rist-footer-h)!important;
+}
+html body .rist.release-world .release-menu-region{grid-column:1!important;grid-row:1!important}
+html body .rist.release-world .release-public-region,
+html body .rist.release-world .release-private-region{grid-column:1!important;grid-row:2!important;width:100%!important}
+html body .rist.release-world .release-map-region{grid-column:1!important;grid-row:3!important}
+html body .rist.release-world .release-footer-region{grid-column:1!important;grid-row:4!important}
+
+/* Use the tiny title line as the Public / Private selector. */
+html body .rist.release-world .asset-rail-header{position:relative!important;grid-template-rows:12px 16px!important}
+html body .rist.release-world .asset-rail-header>strong{display:none!important}
+html body .rist.release-world .asset-scope-toggle{
+ grid-column:1!important;grid-row:1!important;box-sizing:border-box!important;display:flex!important;align-items:stretch!important;gap:3px!important;
+ width:max-content!important;height:12px!important;min-height:12px!important;max-height:12px!important;margin:0!important;padding:0 4px!important;overflow:hidden!important
+}
+html body .rist.release-world .asset-scope-toggle button{
+ box-sizing:border-box!important;height:12px!important;min-height:12px!important;max-height:12px!important;margin:0!important;padding:0 6px!important;
+ border:0!important;border-radius:3px!important;background:transparent!important;color:#8f8979!important;font:800 7px/12px system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.09em!important;text-transform:uppercase!important;white-space:nowrap!important
+}
+html body .rist.release-world .asset-scope-toggle button.active{background:#2b2518!important;color:#f0d58b!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs{grid-row:2!important;height:16px!important;min-height:16px!important;max-height:16px!important}
+html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{height:16px!important;min-height:16px!important;max-height:16px!important;line-height:14px!important}
+
+@media (orientation:landscape){
+ /* Stars / map / Menu|Assets / Chat|Assets. The active asset rail spans both
+    lower rows on the right, cutting the previous bottom deck nearly in half. */
+ html body #app>.rist.release-world{
+  --rist-menu-h:56px!important;
+  --rist-assets-menu-h:28px!important;
+  --rist-assets-slider-h:98px!important;
+  --rist-assets-h:126px!important;
+  --rist-roleplay-h:18px!important;
+  --rist-chat-menu-h:20px!important;
+  --rist-chat-compose-h:20px!important;
+  --rist-legal-h:12px!important;
+  --rist-footer-h:70px!important;
+ }
+ html body #app>.rist.release-world>.release-world-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr) 56px 70px!important;
+  width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important
+ }
+ html body #app .release-map-region{grid-column:1 / -1!important;grid-row:1!important;width:100%!important;height:100%!important;min-height:0!important}
+ html body #app .release-menu-region{grid-column:1!important;grid-row:2!important;width:100%!important;height:56px!important;min-height:56px!important;max-height:56px!important;border-right:1px solid var(--rist-rule,#725d30)!important}
+ html body #app .release-menu-region>#header-slider,
+ html body #app #header-slider .release-root-track{height:56px!important;min-height:56px!important;max-height:56px!important}
+ html body #app #header-slider .release-root-track>.root-menu-button,
+ html body #app #header-slider .header-icon-button,
+ html body #app #header-slider .control,
+ html body #app #header-slider .scale-stack{height:38px!important;min-height:38px!important;max-height:38px!important}
+
+ html body #app .release-footer-region{grid-column:1!important;grid-row:3!important;width:100%!important;height:70px!important;min-height:70px!important;max-height:70px!important;border-right:1px solid var(--rist-rule,#725d30)!important}
+ html body #app .release-footer-region>.release-footer-stack{display:grid!important;grid-template-rows:18px 40px 12px!important;width:100%!important;height:70px!important;min-height:70px!important;max-height:70px!important}
+ html body #app .release-footer-stack>.inline-chat-output{grid-row:1!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding-top:0!important;padding-bottom:0!important}
+ html body #app .release-footer-stack>.footer-dock,
+ html body #app .release-footer-stack .home-inline-chat{grid-row:2!important;height:40px!important;min-height:40px!important;max-height:40px!important}
+ html body #app .release-footer-stack .home-inline-chat{grid-template-rows:20px 20px!important}
+ html body #app .release-footer-stack>.site-copyright-notice{grid-row:3!important;height:12px!important;min-height:12px!important;max-height:12px!important}
+
+ html body #app .release-public-region,
+ html body #app .release-private-region{grid-column:2!important;grid-row:2 / 4!important;width:100%!important;height:126px!important;min-height:126px!important;max-height:126px!important}
+ html body #app .release-public-region>.public-assets-rail,
+ html body #app .release-private-region>.private-assets-rail{display:grid!important;grid-template-rows:28px 98px!important;width:100%!important;height:126px!important;min-height:126px!important;max-height:126px!important}
+ html body #app .release-public-region .asset-rail-header,
+ html body #app .release-private-region .asset-rail-header{height:28px!important;min-height:28px!important;max-height:28px!important}
+ html body #app .release-public-region .public-assets-strip,
+ html body #app .release-private-region .private-assets-strip,
+ html body #app .release-public-region .public-assets-items,
+ html body #app .release-private-region .private-assets-items,
+ html body #app .release-public-region .public-assets-strip>.rail-scroll-arrow,
+ html body #app .release-private-region .private-assets-strip>.rail-scroll-arrow{height:98px!important;min-height:98px!important;max-height:98px!important}
+}
