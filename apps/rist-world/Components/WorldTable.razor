@@ -11,12 +11,52 @@
   min-height:42px!important;
   max-height:42px!important;
   margin:0!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  align-items:stretch!important;
+  gap:4px!important;
+  padding:0 4px!important;
+  overflow:hidden!important;
+ }
+ .world-context-track{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  height:100%!important;
+  display:flex!important;
+  align-items:stretch!important;
+  gap:4px!important;
   overflow-x:auto!important;
   overflow-y:hidden!important;
   scrollbar-width:none!important;
   -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
  }
- .world-context-strip::-webkit-scrollbar{display:none!important}
+ .world-context-track::-webkit-scrollbar{display:none!important}
+ .world-context-menu,
+ .world-context-login{
+  box-sizing:border-box!important;
+  align-self:center!important;
+  flex:0 0 auto!important;
+  height:22px!important;
+  min-height:22px!important;
+  max-height:22px!important;
+  margin:0!important;
+  padding:0 9px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #725d30!important;
+  border-radius:7px!important;
+  background:#111920!important;
+  color:#d7be80!important;
+  font:800 10px/20px system-ui,-apple-system,sans-serif!important;
+  white-space:nowrap!important;
+ }
+ .world-context-menu.active{border-color:#b6964e!important;background:#172229!important}
+ .world-context-login{justify-self:end!important}
+ /* Login now lives at the right edge of the Stars row. Keep the original
+    Blazor button alive only as the account command source. */
+ #header-slider .release-root-track>.door-button{display:none!important}
 
  .rist.release-world{
   --rist-n:42px!important;
@@ -78,143 +118,86 @@
  .rist.release-world #header-slider .scale-stack{
   box-sizing:border-box!important;
   flex:0 0 auto!important;
-  width:auto!important;
-  min-width:0!important;
-  max-width:none!important;
-  height:calc(var(--rist-menu-h) - 8px)!important;
-  min-height:calc(var(--rist-menu-h) - 8px)!important;
-  max-height:calc(var(--rist-menu-h) - 8px)!important;
-  padding:5px!important;
  }
- .rist.release-world #header-slider .release-root-track>.root-menu-button:not(.root-menu-text){width:max-content!important}
 
- /* Each asset section = menu 1n + slider 2n. */
+ /* Public assets = menu n + slider 2n. */
  .rist.release-world .release-public-region,
+ .rist.release-world .release-public-region>.public-assets-rail{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:var(--rist-assets-h)!important;
+  min-height:var(--rist-assets-h)!important;
+  max-height:var(--rist-assets-h)!important;
+ }
+ .rist.release-world .release-public-region>.public-assets-rail{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-assets-menu-h) var(--rist-assets-slider-h)!important;
+ }
+ .rist.release-world .release-public-region .asset-rail-header{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:var(--rist-assets-menu-h)!important;
+  min-height:var(--rist-assets-menu-h)!important;
+  max-height:var(--rist-assets-menu-h)!important;
+ }
+ .rist.release-world .release-public-region .public-assets-strip{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
+  height:var(--rist-assets-slider-h)!important;
+  min-height:var(--rist-assets-slider-h)!important;
+  max-height:var(--rist-assets-slider-h)!important;
+ }
+
+ /* Private assets = menu n + slider 2n. */
  .rist.release-world .release-private-region,
- .rist.release-world .release-public-region>.public-assets-rail,
  .rist.release-world .release-private-region>.private-assets-rail{
   box-sizing:border-box!important;
   width:100%!important;
   height:var(--rist-assets-h)!important;
   min-height:var(--rist-assets-h)!important;
   max-height:var(--rist-assets-h)!important;
-  margin:0!important;
-  overflow:hidden!important;
  }
- .rist.release-world .release-public-region>.public-assets-rail,
  .rist.release-world .release-private-region>.private-assets-rail{
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:var(--rist-assets-menu-h) var(--rist-assets-slider-h)!important;
  }
- .rist.release-world .release-public-region .asset-rail-header,
  .rist.release-world .release-private-region .asset-rail-header{
   box-sizing:border-box!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:8px!important;
+  grid-column:1!important;
+  grid-row:1!important;
   width:100%!important;
   height:var(--rist-assets-menu-h)!important;
   min-height:var(--rist-assets-menu-h)!important;
   max-height:var(--rist-assets-menu-h)!important;
-  margin:0!important;
-  overflow:hidden!important;
  }
- .rist.release-world .release-public-region .asset-rail-header>strong,
- .rist.release-world .release-private-region .asset-rail-header>strong{flex:0 0 auto!important}
- .rist.release-world .release-public-region .asset-type-tabs,
- .rist.release-world .release-private-region .asset-type-tabs{
-  min-width:0!important;
-  flex:1 1 auto!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:6px!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  scrollbar-width:none!important;
-  -webkit-overflow-scrolling:touch!important;
-  touch-action:pan-x!important;
- }
- .rist.release-world .release-public-region .asset-type-tabs::-webkit-scrollbar,
- .rist.release-world .release-private-region .asset-type-tabs::-webkit-scrollbar{display:none!important}
- .rist.release-world .release-public-region .asset-type-tabs>button,
- .rist.release-world .release-private-region .asset-type-tabs>button{flex:0 0 auto!important;white-space:nowrap!important}
-
- .rist.release-world .release-public-region .public-assets-strip,
  .rist.release-world .release-private-region .private-assets-strip{
   box-sizing:border-box!important;
-  display:grid!important;
-  grid-template-columns:58px minmax(0,1fr) 58px!important;
-  grid-template-rows:var(--rist-assets-slider-h)!important;
+  grid-column:1!important;
+  grid-row:2!important;
   width:100%!important;
   height:var(--rist-assets-slider-h)!important;
   min-height:var(--rist-assets-slider-h)!important;
   max-height:var(--rist-assets-slider-h)!important;
-  margin:0!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-public-region .public-assets-items,
- .rist.release-world .release-private-region .private-assets-items{
-  box-sizing:border-box!important;
-  grid-column:2!important;
-  width:100%!important;
-  min-width:0!important;
-  height:var(--rist-assets-slider-h)!important;
-  min-height:var(--rist-assets-slider-h)!important;
-  max-height:var(--rist-assets-slider-h)!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:6px!important;
-  margin:0!important;
-  padding:5px 6px!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  scrollbar-width:none!important;
-  -webkit-overflow-scrolling:touch!important;
-  touch-action:pan-x!important;
- }
- .rist.release-world .release-public-region .public-assets-items::-webkit-scrollbar,
- .rist.release-world .release-private-region .private-assets-items::-webkit-scrollbar{display:none!important}
- .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-arrow,
- .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-arrow{
-  box-sizing:border-box!important;
-  display:grid!important;
-  place-items:center!important;
-  position:static!important;
-  inset:auto!important;
-  width:58px!important;
-  min-width:58px!important;
-  max-width:58px!important;
-  height:var(--rist-assets-slider-h)!important;
-  min-height:var(--rist-assets-slider-h)!important;
-  max-height:var(--rist-assets-slider-h)!important;
-  margin:0!important;
-  padding:0!important;
-  visibility:visible!important;
-  opacity:1!important;
- }
- .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-prev,
- .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-prev{grid-column:1!important;grid-row:1!important}
- .rist.release-world .release-public-region .public-assets-strip>.rail-scroll-next,
- .rist.release-world .release-private-region .private-assets-strip>.rail-scroll-next{grid-column:3!important;grid-row:1!important}
- .rist.release-world .public-assets-items .public-asset-card,
- .rist.release-world .private-assets-items .compact-hand-card,
- .rist.release-world .private-assets-items .standard-hand-card,
- .rist.release-world .public-assets-rail .token-pin-source,
- .rist.release-world .private-assets-rail .token-pin-source{
-  box-sizing:border-box!important;
-  flex:0 0 auto!important;
-  height:calc(var(--rist-assets-slider-h) - 10px)!important;
-  max-height:calc(var(--rist-assets-slider-h) - 10px)!important;
  }
 
- /* Map = frame 1n / proportional map / frame 1n.
-    The shell itself is the frame; the interactive map fills the p row. */
- .rist.release-world .release-map-region{height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+ /* Map is the p row: it owns every pixel left after fixed rows. */
+ .rist.release-world .release-map-region{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+ }
  .rist.release-world .release-map-region>.table-workspace{
   box-sizing:border-box!important;
   position:relative!important;
-  inset:auto!important;
   width:100%!important;
   height:100%!important;
   min-width:0!important;
@@ -345,12 +328,16 @@
 </style>
 
 <section class="world-context-strip" aria-label="World context">
- <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
- <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
- <button type="button" class="world-context-action" data-context="cal" onclick="window.RistWorldContext?.edit?.('cal')"><strong>Cal:</strong> <span>EDIT</span></button>
- <button type="button" class="world-context-action" data-context="ugc" onclick="window.RistWorldContext?.edit?.('ugc')"><strong>UGC:</strong> <span>EDIT</span></button>
- <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
- <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
+ <button type="button" class="world-context-menu @(_contextMenuOpen?"active":"")" aria-pressed="@_contextMenuOpen" @onclick="ToggleContextMenu"><strong>Menu</strong></button>
+ <div class="world-context-track" aria-label="World context slider">
+  <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
+  <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
+  <button type="button" class="world-context-action" data-context="cal" onclick="window.RistWorldContext?.edit?.('cal')"><strong>Cal:</strong> <span>EDIT</span></button>
+  <button type="button" class="world-context-action" data-context="ugc" onclick="window.RistWorldContext?.edit?.('ugc')"><strong>UGC:</strong> <span>EDIT</span></button>
+  <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
+  <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
+ </div>
+ <button type="button" class="world-context-login" @onclick="ContextLoginClicked"><strong>@(Session.IsLoggedIn?"Log Out":"Login")</strong></button>
 </section>
 
 <div class="rist release-world @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
@@ -378,6 +365,7 @@
 
 @code{
  readonly CancellationTokenSource _autosaveCts=new();
+ bool _contextMenuOpen;
  protected override async Task OnInitializedAsync()
  {
   Session.Changed+=SessionChanged;
@@ -400,6 +388,12 @@
 
   await Session.LoadPrivateCheckpointAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
+ }
+
+ void ToggleContextMenu()=>_contextMenuOpen=!_contextMenuOpen;
+ async Task ContextLoginClicked()
+ {
+  await JS.InvokeVoidAsync("eval","document.querySelector('#header-slider .door-button')?.click()");
  }
 
  async Task AutosaveLoopAsync(CancellationToken token)
