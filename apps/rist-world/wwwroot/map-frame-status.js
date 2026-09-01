@@ -33,6 +33,32 @@
   }
   if(frame.textContent!==source.textContent)frame.textContent=source.textContent;
   source.style.setProperty('display','none','important');
+
+  if(!shell.querySelector(':scope>.map-frame-corners')){
+   const corners=document.createElement('div');
+   corners.className='map-frame-corners';
+   corners.setAttribute('aria-hidden','true');
+   Object.assign(corners.style,{
+    position:'absolute',
+    inset:'0',
+    zIndex:'160',
+    pointerEvents:'none'
+   });
+   for(const pos of ['top-left','top-right','bottom-left','bottom-right']){
+    const corner=document.createElement('span');
+    corner.dataset.corner=pos;
+    Object.assign(corner.style,{
+     position:'absolute',
+     width:'42px',
+     height:'42px',
+     background:'#071015'
+    });
+    if(pos.includes('top'))corner.style.top='0';else corner.style.bottom='0';
+    if(pos.includes('left'))corner.style.left='0';else corner.style.right='0';
+    corners.appendChild(corner);
+   }
+   shell.appendChild(corners);
+  }
  }
  let attempts=0;
  const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-status')||attempts>=100)clearInterval(quick)},100);
