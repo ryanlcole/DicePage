@@ -1,60 +1,201 @@
 (()=>{
  'use strict';
+ const FRAME_HEIGHT=12;
  const qs=(root,selector)=>root?.querySelector(selector);
  const pinState={mode:'idle',x:.5,y:.5,moving:false};
  let mapEventsBound=false;
- let menuOpen=false;
- let legacyGridMigrated=false;
- const important=(el,name,value)=>el?.style?.setProperty(name,value,'important');
- const click=el=>{if(!el)return false;el.click();return true;};
- const clickHidden=selector=>click(document.querySelector(selector));
- const headerButton=label=>[...document.querySelectorAll('#header-slider .root-menu-button')].find(b=>(b.querySelector('strong')?.textContent||'').trim().toLowerCase()===label.toLowerCase());
- function sourcePinButton(){return document.querySelector('.public-pin-source,.public-pin-button');}
- function findAxisControl(kind){const root=document.querySelector('.release-public-region');if(!root)return null;return [...root.querySelectorAll('button')].find(el=>new RegExp(`^\\s*${kind}\\b`,'i').test(el.textContent||''));}
- function currentGridLabel(){const source=[...document.querySelectorAll('#header-slider .root-menu-button strong')].find(x=>/^(Square|Hex|No Grid)$/.test((x.textContent||'').trim()));return source?.textContent?.trim()||'No Grid';}
- function toggleWorldMode(){const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';clickHidden(mode==='mmo'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action');setTimeout(sync,0);}
- function ensureContextMenu(){
-  const strip=document.querySelector('.world-context-strip');if(!strip)return;
-  let menu=qs(strip,':scope>.universal-menu-button');if(!menu){menu=document.createElement('button');menu.type='button';menu.className='world-context-action universal-menu-button';menu.innerHTML='<strong>Menu</strong>';menu.setAttribute('aria-expanded','false');menu.addEventListener('click',()=>{menuOpen=!menuOpen;menu.setAttribute('aria-expanded',String(menuOpen));syncContextMenu();});strip.prepend(menu);}
-  let group=qs(strip,':scope>.universal-menu-group');if(!group){group=document.createElement('div');group.className='universal-menu-group';menu.after(group);}
-  const specs=[['mmo','MMO',toggleWorldMode],['gm','GM',()=>click(headerButton(headerButton('GM')?'GM':'RP')||headerButton('RP'))],['tier','Tier',()=>click(findAxisControl('Tier'))],['layer','Layer',()=>click(findAxisControl('Layer'))],['pin','Pin',pinMenuClick],['grid','Grid',()=>click(headerButton(currentGridLabel()))],['scale','Scale',()=>click(headerButton('Scale'))],['assets','Assets',()=>click(headerButton('Assets'))],['options','Options',()=>click(document.querySelector('#header-slider [aria-label="Settings"]'))],['about','About',()=>location.assign('info.html')]];
-  for(const [key,label,handler] of specs){let b=group.querySelector(`[data-universal-menu="${key}"]`);if(!b){b=document.createElement('button');b.type='button';b.className='world-context-action universal-menu-item';b.dataset.universalMenu=key;b.innerHTML=`<strong>${label}</strong>`;b.addEventListener('click',handler);group.appendChild(b);}}
-  let login=qs(strip,':scope>.universal-login');if(!login){login=document.createElement('button');login.type='button';login.className='world-context-action universal-login';login.addEventListener('click',()=>click(document.querySelector('#header-slider .door-button')));strip.appendChild(login);}
-  login.innerHTML=`<strong>${document.querySelector('#header-slider .door-button strong')?.textContent?.trim()||'Login'}</strong>`;syncContextMenu();
+
+ function clickHidden(selector){const el=document.querySelector(selector);if(el){el.click();return true;}return false;}
+ function sourcePinButton(){return document.querySelector('.public-pin-button');}
+ function findPrivateControl(kind){
+  const root=document.querySelector('.release-private-region');
+  if(!root)return null;
+  const candidates=[...root.querySelectorAll('button,[role="button"]')];
+  if(kind==='tier')return candidates.find(el=>/^\s*TIER\b/i.test(el.textContent||''));
+  if(kind==='layer')return candidates.find(el=>/^\s*LAYER\b/i.test(el.textContent||''));
+  return null;
  }
- function syncContextMenu(){const group=document.querySelector('.universal-menu-group');if(group)group.hidden=!menuOpen;const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';const mmo=document.querySelector('[data-universal-menu="mmo"]');if(mmo){mmo.dataset.mode=mode;const s=mmo.querySelector('strong');if(s)s.textContent=mode==='mmo'?'MMO':'RIST';}const pin=document.querySelector('[data-universal-menu="pin"]');if(pin){pin.classList.toggle('pin-setting',pinState.mode==='placing');pin.classList.toggle('pin-delete',pinState.mode==='selected');const s=pin.querySelector('strong');if(s)s.textContent=pinState.mode==='placing'?'Set':pinState.mode==='selected'?'DEL':'Pin';}}
- function setSettingsLabel(){const label=document.querySelector('#header-slider [aria-label="Settings"] strong');if(label)label.textContent='Options';}
- function hideLegacyLayout(){
-  const world=document.querySelector('.rist.release-world'),shell=qs(world,':scope>.release-world-shell'),menuRegion=qs(world,'.release-menu-region'),header=document.querySelector('#header-slider');
-  if(shell){important(shell,'grid-template-rows','0 minmax(0,1fr)');important(shell,'grid-template-columns','minmax(0,1fr)');}
-  for(const el of [menuRegion,header]){important(el,'height','0');important(el,'min-height','0');important(el,'max-height','0');important(el,'overflow','visible');}
-  const track=qs(header,':scope>.release-root-track');important(track,'display','none');header?.querySelectorAll(':scope>.rail-scroll-arrow').forEach(x=>important(x,'display','none'));
-  const mapRegion=qs(world,'.release-map-region');if(mapRegion){important(mapRegion,'grid-row','1');important(mapRegion,'grid-column','1');important(mapRegion,'width','100%');important(mapRegion,'height','100%');important(mapRegion,'min-height','0');}
-  /* Landscape component CSS may place these in side columns. Keep them out of the shell flow; deck launchers float over the map edge instead. */
-  const regions=[qs(world,'.release-public-region'),qs(world,'.release-private-region')].filter(Boolean);
-  regions.forEach((region,index)=>{important(region,'position','absolute');important(region,'z-index','220');important(region,'width','52px');important(region,'height','66px');important(region,'min-height','66px');important(region,'max-height','66px');important(region,'left',index===0?'8px':'auto');important(region,'right',index===1?'8px':'auto');important(region,'bottom','8px');important(region,'overflow','visible');important(region,'display','grid');important(region,'place-items','center');region.querySelectorAll('.public-assets-rail,.private-assets-rail').forEach(x=>important(x,'display','none'));});
+ function hideMapOverlayText(){
+  const root=document.querySelector('.release-map-region');
+  if(!root)return;
+  [...root.querySelectorAll('*')].forEach(el=>{
+   const text=(el.textContent||'').replace(/\s+/g,' ').trim();
+   if(!text||text.length>180)return;
+   const target=/Temporary Public Zone/i.test(text)||/SHAELVIEN\s+MMO.*AI\s*MAP/i.test(text);
+   if(!target)return;
+   if(el.matches('.map-frame-title,.rist-coordinate-axis,.rist-coordinate-tick,.map-frame-controls'))return;
+   if(el.children.length>4)return;
+   el.style.setProperty('display','none','important');
+  });
  }
- function hideMapOverlayText(){document.querySelectorAll('.release-map-region *').forEach(el=>{if(el.matches('.map-frame-title,.rist-coordinate-axis,.rist-coordinate-tick,.map-frame-controls,.map-frame-corner-add'))return;const text=(el.textContent||'').replace(/\s+/g,' ').trim();if(/SHAELVIEN\s+MMO.*AI\s*MAP/i.test(text)&&text.length<100){important(el,'display','none');}if(/Temporary Public Zone/i.test(text)&&text.length<180){important(el,'display','none');}});}
- function ensureGhost(){const map=document.querySelector('.release-map-region .map-shell>.map');if(!map)return null;let ghost=qs(map,':scope>.rist-pin-placement-ghost');if(!ghost){ghost=document.createElement('div');ghost.className='rist-pin-placement-ghost';ghost.setAttribute('aria-hidden','true');ghost.textContent='●';map.appendChild(ghost);}ghost.style.left=`${pinState.x*100}%`;ghost.style.top=`${pinState.y*100}%`;return ghost;}
+ function setSettingsLabel(){
+  const label=document.querySelector('#header-slider [aria-label="Settings"] strong');
+  if(label&&label.textContent!=='Settings')label.textContent='Settings';
+ }
+ function ensureGhost(){
+  const map=document.querySelector('.release-map-region .map-shell>.map');
+  if(!map)return null;
+  let ghost=map.querySelector(':scope>.rist-pin-placement-ghost');
+  if(!ghost){
+   ghost=document.createElement('div');
+   ghost.className='rist-pin-placement-ghost';
+   ghost.setAttribute('aria-hidden','true');
+   ghost.textContent='●';
+   map.appendChild(ghost);
+  }
+  ghost.style.left=`${pinState.x*100}%`;
+  ghost.style.top=`${pinState.y*100}%`;
+  return ghost;
+ }
  function removeGhost(){document.querySelector('.rist-pin-placement-ghost')?.remove();}
- function setPinFromPoint(map,x,y){const r=map.getBoundingClientRect();if(r.width<1||r.height<1)return;pinState.x=Math.max(0,Math.min(1,(x-r.left)/r.width));pinState.y=Math.max(0,Math.min(1,(y-r.top)/r.height));ensureGhost();}
- function beginPinPlacement(){pinState.mode='placing';pinState.x=.5;pinState.y=.5;pinState.moving=false;ensureGhost();syncContextMenu();}
- function cancelPinPlacement(){pinState.mode='idle';pinState.moving=false;removeGhost();syncContextMenu();}
- function commitPinPlacement(){const map=document.querySelector('.release-map-region .map-shell>.map'),source=sourcePinButton();if(!map||!source){cancelPinPlacement();return;}const r=map.getBoundingClientRect(),clientX=r.left+r.width*pinState.x,clientY=r.top+r.height*pinState.y,pointerId=9876;try{source.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:1}));source.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0}));}catch{}pinState.mode='idle';removeGhost();syncContextMenu();}
- function deleteSelectedPin(){clickHidden('.mmo-pin-delete-action');pinState.mode='idle';removeGhost();syncContextMenu();}
- function pinMenuClick(){if(pinState.mode==='selected')return deleteSelectedPin();if(pinState.mode==='placing')return commitPinPlacement();beginPinPlacement();}
- function bindMapPinEvents(){if(mapEventsBound)return;mapEventsBound=true;document.addEventListener('click',e=>{if(e.target?.closest?.('.release-map-region .placed-pin'))setTimeout(()=>{pinState.mode='selected';removeGhost();syncContextMenu();},0);},true);const move=(e,phase)=>{if(pinState.mode!=='placing')return;const map=document.querySelector('.release-map-region .map-shell>.map');if(!map||!map.contains(e.target)||e.target?.closest?.('.placed-pin'))return;if(phase==='down'){pinState.moving=true;setPinFromPoint(map,e.clientX,e.clientY);}else if(phase==='move'&&pinState.moving)setPinFromPoint(map,e.clientX,e.clientY);else if(phase==='up'){setPinFromPoint(map,e.clientX,e.clientY);pinState.moving=false;}else return;e.preventDefault();e.stopPropagation();};document.addEventListener('pointerdown',e=>move(e,'down'),true);document.addEventListener('pointermove',e=>move(e,'move'),true);document.addEventListener('pointerup',e=>move(e,'up'),true);document.addEventListener('pointercancel',()=>pinState.moving=false,true);}
- function ensureFrameControls(shell){let controls=qs(shell,':scope>.map-frame-controls');if(!controls){controls=document.createElement('div');controls.className='map-frame-controls';controls.innerHTML='<button type="button" class="map-frame-corner-add top-left">+</button><button type="button" class="map-frame-corner-add top-right">+</button><button type="button" class="map-frame-corner-add bottom-left">+</button><button type="button" class="map-frame-corner-add bottom-right">+</button><label class="map-frame-title"><span class="map-frame-title-prefix">Shaelvien:</span><input type="text" maxlength="40" value="Shaelvien" aria-label="World name"></label>';shell.appendChild(controls);const input=qs(controls,'.map-frame-title input'),saved=localStorage.getItem('rist.world.frame-name');if(saved)input.value=saved;input.addEventListener('change',()=>{const v=input.value.trim()||'Shaelvien';input.value=v;localStorage.setItem('rist.world.frame-name',v);});}return controls;}
- function enforceMapGeometry(shell,map){
-  const desktop=matchMedia('(min-width:900px) and (hover:hover) and (pointer:fine)').matches,edge=desktop?24:12;
-  important(shell,'display','grid');important(shell,'grid-template-columns',`${edge}px minmax(0,1fr) ${edge}px`);important(shell,'grid-template-rows',`${edge}px minmax(0,1fr) ${edge}px`);important(shell,'width','100%');important(shell,'height','100%');important(shell,'min-height','0');important(shell,'padding','0');
-  important(map,'grid-column','2');important(map,'grid-row','2');important(map,'width','100%');important(map,'height','100%');important(map,'min-width','0');important(map,'min-height','0');important(map,'max-width','none');important(map,'max-height','none');important(map,'aspect-ratio','auto');important(map,'position','relative');important(map,'overflow','hidden');
-  const stage=qs(map,':scope>.world-stage');if(stage){important(stage,'position','absolute');important(stage,'inset','0');important(stage,'width','100%');important(stage,'height','100%');important(stage,'min-height','0');important(stage,'max-height','none');important(stage,'aspect-ratio','auto');}
+ function setPinFromPoint(map,clientX,clientY){
+  const r=map.getBoundingClientRect();
+  if(r.width<1||r.height<1)return;
+  pinState.x=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+  pinState.y=Math.max(0,Math.min(1,(clientY-r.top)/r.height));
+  ensureGhost();
  }
- function ensureViewerGrid(){const stage=document.querySelector('.release-map-region .world-stage');if(!stage)return;let viewer=qs(stage,':scope>.viewer-square-grid');if(!viewer){viewer=document.createElement('div');viewer.className='viewer-square-grid';stage.appendChild(viewer);}important(viewer,'position','absolute');important(viewer,'inset','0');important(viewer,'width','100%');important(viewer,'height','100%');const role=headerButton('GM')?'GM':'PC';document.querySelector('.release-map-region .map-shell')?.setAttribute('data-viewer-role',role);const movement=qs(stage,':scope>.grid');if(movement)movement.classList.add('movement-grid');if(!legacyGridMigrated&&currentGridLabel()==='Square'){legacyGridMigrated=true;const root=headerButton('Square');if(root){root.click();setTimeout(()=>{const none=[...document.querySelectorAll('#header-slider .root-menu-panel button')].find(b=>/^\s*None\s*$/i.test(b.textContent||''));none?.click();},0);}}document.querySelectorAll('#header-slider .root-menu-panel button').forEach(b=>{if(/^\s*Square\s*$/i.test(b.textContent||''))important(b,'display','none');});}
- function openCharacterSheet(){const load=headerButton('Load');if(!load)return;load.click();setTimeout(()=>{[...document.querySelectorAll('#header-slider .load-menu button')].find(x=>/Characters/i.test(x.textContent||''))?.click();},0);}
- function ensureAssetDecks(){for(const region of document.querySelectorAll('.release-public-region,.release-private-region')){let deck=qs(region,':scope>.character-sheet-deck');if(!deck){deck=document.createElement('button');deck.type='button';deck.className='character-sheet-deck';deck.setAttribute('aria-label','Open character sheet');deck.innerHTML='<span class="deck-face">Character</span>';deck.addEventListener('click',openCharacterSheet);region.appendChild(deck);}important(deck,'display','block');}}
- function installCircularScroll(){if(!window.ristWorld||window.ristWorld.__wrapInstalled)return;window.ristWorld.__wrapInstalled=true;window.ristWorld.scrollRail=(selector,direction)=>{const rail=document.querySelector(selector);if(!rail)return;const dir=Number(direction)<0?-1:1,vertical=rail.classList.contains('tile-browser-slider')||(rail.classList.contains('desktop-arrow-adaptive')&&matchMedia('(orientation: landscape)').matches),target=[...rail.children].find(el=>el.classList&&!el.classList.contains('rail-scroll-arrow')&&(vertical?el.scrollHeight>el.clientHeight+2:el.scrollWidth>el.clientWidth+2))||rail,max=vertical?target.scrollHeight-target.clientHeight:target.scrollWidth-target.clientWidth,pos=vertical?target.scrollTop:target.scrollLeft;if(max<=1)return;if(dir>0&&pos>=max-4)return target.scrollTo(vertical?{top:0,behavior:'smooth'}:{left:0,behavior:'smooth'});if(dir<0&&pos<=4)return target.scrollTo(vertical?{top:max,behavior:'smooth'}:{left:max,behavior:'smooth'});const amount=Math.max(96,(vertical?target.clientHeight:target.clientWidth)*.78)*dir;target.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});};}
- function sync(){const shell=document.querySelector('.release-map-region .map-shell'),map=qs(shell,':scope>.map');if(!shell||!map)return;qs(map,':scope>.status')?.style.setProperty('display','none','important');shell.querySelector(':scope>.map-frame-status')?.remove();shell.querySelector(':scope>.map-frame-corners')?.remove();const controls=ensureFrameControls(shell),mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';shell.dataset.worldMode=mode;const prefix=qs(controls,'.map-frame-title-prefix');if(prefix)prefix.textContent=mode==='mmo'?'Shaelvien:':'RIST:';hideLegacyLayout();enforceMapGeometry(shell,map);ensureContextMenu();bindMapPinEvents();ensureViewerGrid();ensureAssetDecks();installCircularScroll();setSettingsLabel();hideMapOverlayText();syncContextMenu();}
- let attempts=0;const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-controls')||attempts>=100)clearInterval(quick);},100);setInterval(sync,700);new MutationObserver(()=>requestAnimationFrame(sync)).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('resize',()=>requestAnimationFrame(sync));window.addEventListener('orientationchange',()=>setTimeout(sync,100));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+ function beginPinPlacement(){
+  pinState.mode='placing';pinState.x=.5;pinState.y=.5;pinState.moving=false;
+  ensureGhost();syncPinButton();
+ }
+ function cancelPinPlacement(){pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();}
+ function commitPinPlacement(){
+  const map=document.querySelector('.release-map-region .map-shell>.map');
+  const source=sourcePinButton();
+  if(!map||!source){cancelPinPlacement();return;}
+  const r=map.getBoundingClientRect();
+  const clientX=r.left+r.width*pinState.x,clientY=r.top+r.height*pinState.y;
+  const pointerId=9876;
+  try{source.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:1}));}catch{}
+  setTimeout(()=>{
+   try{source.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:0}));}catch{}
+  },40);
+  pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();
+ }
+ function deleteSelectedPin(){
+  clickHidden('.mmo-pin-delete-action');
+  pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();
+ }
+ function pinMenuClick(){
+  if(pinState.mode==='selected'){deleteSelectedPin();return;}
+  if(pinState.mode==='placing'){commitPinPlacement();return;}
+  beginPinPlacement();
+ }
+ function bindMapPinEvents(){
+  if(mapEventsBound)return;
+  mapEventsBound=true;
+  document.addEventListener('click',event=>{
+   const placed=event.target?.closest?.('.release-map-region .placed-pin');
+   if(!placed)return;
+   setTimeout(()=>{pinState.mode='selected';pinState.moving=false;removeGhost();syncPinButton();},0);
+  },true);
+  const mapEvent=(event,phase)=>{
+   if(pinState.mode!=='placing')return;
+   const map=event.target?.closest?.('.release-map-region .map-shell>.map')||document.querySelector('.release-map-region .map-shell>.map');
+   if(!map||!map.contains(event.target))return;
+   if(event.target?.closest?.('.placed-pin'))return;
+   if(phase==='down'){pinState.moving=true;setPinFromPoint(map,event.clientX,event.clientY);}
+   else if(phase==='move'&&pinState.moving)setPinFromPoint(map,event.clientX,event.clientY);
+   else if(phase==='up'){setPinFromPoint(map,event.clientX,event.clientY);pinState.moving=false;}
+   else return;
+   event.preventDefault();event.stopPropagation();
+  };
+  document.addEventListener('pointerdown',e=>mapEvent(e,'down'),true);
+  document.addEventListener('pointermove',e=>mapEvent(e,'move'),true);
+  document.addEventListener('pointerup',e=>mapEvent(e,'up'),true);
+  document.addEventListener('pointercancel',()=>{pinState.moving=false;},true);
+ }
+ function syncPinButton(){
+  const button=document.querySelector('#header-slider .map-menu-control-pin');
+  if(!button)return;
+  const strong=button.querySelector('strong');
+  button.classList.toggle('pin-setting',pinState.mode==='placing');
+  button.classList.toggle('pin-delete',pinState.mode==='selected');
+  if(strong)strong.textContent=pinState.mode==='placing'?'Set':pinState.mode==='selected'?'DEL':'Pin';
+  button.setAttribute('aria-label',pinState.mode==='placing'?'Set map pin':pinState.mode==='selected'?'Delete selected map pin':'Place map pin');
+ }
+ function ensureMenuControls(){
+  const track=document.querySelector('#header-slider .release-root-track');
+  if(!track)return;
+  const specs=[['mmo','MMO'],['pin','Pin'],['tier','Tier'],['layer','Layer']];
+  let anchor=track.firstElementChild;
+  for(const [kind,label] of specs){
+   let button=track.querySelector(`.map-menu-control[data-map-menu-control="${kind}"]`);
+   if(!button){
+    button=document.createElement('button');
+    button.type='button';
+    button.className=`root-menu-button map-menu-control map-menu-control-${kind}`;
+    button.dataset.mapMenuControl=kind;
+    button.setAttribute('aria-label',label);
+    button.innerHTML=`<strong>${label}</strong>`;
+    if(kind==='mmo')button.addEventListener('click',()=>{
+     const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';
+     clickHidden(mode==='mmo'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action');
+     setTimeout(sync,0);
+    });
+    else if(kind==='pin')button.addEventListener('click',pinMenuClick);
+    else button.addEventListener('click',()=>{const source=findPrivateControl(kind);if(source)source.click();});
+   }
+   if(button!==anchor)track.insertBefore(button,anchor);
+   anchor=button.nextElementSibling;
+  }
+  syncPinButton();
+ }
+ function ensureControls(shell){
+  let controls=qs(shell,':scope>.map-frame-controls');
+  if(controls)return controls;
+  controls=document.createElement('div');
+  controls.className='map-frame-controls';
+  controls.innerHTML=`
+   <button type="button" class="map-frame-corner-add top-left" data-frame-add="top-left" aria-label="Add from top left">+</button>
+   <button type="button" class="map-frame-corner-add top-right" data-frame-add="top-right" aria-label="Add from top right">+</button>
+   <button type="button" class="map-frame-corner-add bottom-left" data-frame-add="bottom-left" aria-label="Add from bottom left">+</button>
+   <button type="button" class="map-frame-corner-add bottom-right" data-frame-add="bottom-right" aria-label="Add from bottom right">+</button>
+   <label class="map-frame-title" aria-label="World name">
+    <span class="map-frame-title-prefix">Shaelvien:</span>
+    <input type="text" maxlength="40" aria-label="World name" value="Shaelvien">
+   </label>`;
+  shell.appendChild(controls);
+  controls.querySelectorAll('[data-frame-add]').forEach(button=>button.addEventListener('click',()=>{
+   shell.dispatchEvent(new CustomEvent('rist:map-frame-add',{bubbles:true,detail:{corner:button.dataset.frameAdd}}));
+  }));
+  const nameInput=qs(controls,'.map-frame-title input');
+  const savedName=localStorage.getItem('rist.world.frame-name');
+  if(savedName)nameInput.value=savedName;
+  nameInput.addEventListener('change',()=>{
+   const value=nameInput.value.trim()||'Shaelvien';nameInput.value=value;localStorage.setItem('rist.world.frame-name',value);
+  });
+  return controls;
+ }
+ function sync(){
+  const shell=document.querySelector('.release-map-region .map-shell');
+  const source=shell?.querySelector('.map>.status');
+  const map=shell?.querySelector(':scope>.map');
+  if(!shell||!source||!map)return;
+  let frame=shell.querySelector(':scope>.map-frame-status');
+  if(!frame){
+   frame=document.createElement('div');frame.className='map-frame-status';frame.setAttribute('aria-hidden','true');
+   Object.assign(frame.style,{position:'absolute',top:'0',left:'12px',right:'12px',boxSizing:'border-box',height:`${FRAME_HEIGHT}px`,minHeight:`${FRAME_HEIGHT}px`,maxHeight:`${FRAME_HEIGHT}px`,display:'block',overflow:'hidden',padding:'0',margin:'0',background:'#071015',pointerEvents:'none',zIndex:'159'});
+   shell.prepend(frame);
+  }
+  frame.textContent='';source.style.setProperty('display','none','important');
+  shell.querySelector(':scope>.map-frame-corners')?.remove();
+  const controls=ensureControls(shell);
+  ensureMenuControls();bindMapPinEvents();setSettingsLabel();hideMapOverlayText();
+  const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';
+  shell.dataset.worldMode=mode;
+  const titlePrefix=qs(controls,'.map-frame-title-prefix');if(titlePrefix)titlePrefix.textContent=mode==='mmo'?'Shaelvien:':'RIST:';
+  const modeButton=document.querySelector('#header-slider .map-menu-control-mmo');
+  if(modeButton){modeButton.querySelector('strong').textContent=mode==='mmo'?'MMO':'RIST';modeButton.dataset.mode=mode;}
+  for(const kind of ['tier','layer']){
+   const sourceControl=findPrivateControl(kind);if(sourceControl)sourceControl.classList.add('map-control-source-relocated');
+  }
+  const publicLead=document.querySelector('.release-public-region .public-assets-lead-controls');if(publicLead)publicLead.setAttribute('aria-hidden','true');
+ }
+ let attempts=0;const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-controls')||attempts>=100)clearInterval(quick);},100);
+ setInterval(sync,700);
+ new MutationObserver(()=>requestAnimationFrame(sync)).observe(document.documentElement,{childList:true,subtree:true});
+ window.addEventListener('resize',()=>requestAnimationFrame(sync));window.addEventListener('orientationchange',()=>setTimeout(sync,150));
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
 })();
