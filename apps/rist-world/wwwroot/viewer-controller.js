@@ -47,8 +47,48 @@
   target.prepend(button);
  }
 
+ /* Viewer authority only.
+    The map is a viewport, not an aspect-ratio card. It must fill the map-shell
+    center cell on every device/orientation. The world-stage then fills that
+    viewport. This intentionally does not alter menus, assets, chat, or footer. */
+ function fixViewer(){
+  const shell=document.querySelector('.release-map-region .map-shell');
+  const map=shell?.querySelector(':scope > .map');
+  const stage=map?.querySelector(':scope > .world-stage');
+  if(!shell||!map)return;
+
+  const important=(el,name,value)=>el.style.setProperty(name,value,'important');
+
+  important(map,'box-sizing','border-box');
+  important(map,'grid-column','2');
+  important(map,'grid-row','2');
+  important(map,'position','relative');
+  important(map,'width','100%');
+  important(map,'height','100%');
+  important(map,'min-width','0');
+  important(map,'min-height','0');
+  important(map,'max-width','none');
+  important(map,'max-height','none');
+  important(map,'aspect-ratio','auto');
+  important(map,'margin','0');
+  important(map,'overflow','hidden');
+
+  if(stage){
+   important(stage,'position','absolute');
+   important(stage,'inset','0');
+   important(stage,'width','100%');
+   important(stage,'height','100%');
+   important(stage,'min-width','0');
+   important(stage,'min-height','0');
+   important(stage,'max-width','none');
+   important(stage,'max-height','none');
+   important(stage,'aspect-ratio','auto');
+  }
+ }
+
  function enhance(){
   document.querySelectorAll('.root-menu-panel,.release-action-menu,#card-library,.asset-slider-stack,.rist-tutorial-shell').forEach(addClose);
+  fixViewer();
  }
 
  let queued=false;
@@ -61,6 +101,8 @@
  function start(){
   enhance();
   new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('resize',queue,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(queue,100),{passive:true});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
