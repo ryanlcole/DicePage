@@ -8,9 +8,10 @@
   const root=document.querySelector('.rist.release-world');
   if(root)root.dataset.assetScope=scope;
   document.querySelectorAll('.asset-scope-toggle button').forEach(button=>{
-   const active=button.dataset.scope===scope;
-   button.classList.toggle('active',active);
-   button.setAttribute('aria-pressed',active?'true':'false');
+   button.dataset.scope=scope;
+   button.textContent=scope==='private'?'Private':'Public';
+   button.setAttribute('aria-label',`Showing ${scope} assets. Tap to switch to ${scope==='public'?'private':'public'} assets.`);
+   button.setAttribute('aria-pressed','true');
   });
  }
 
@@ -18,14 +19,11 @@
   const nav=document.createElement('nav');
   nav.className='asset-scope-toggle';
   nav.setAttribute('aria-label','Asset visibility');
-  for(const [key,label] of [['public','Public'],['private','Private']]){
-   const button=document.createElement('button');
-   button.type='button';
-   button.dataset.scope=key;
-   button.textContent=label;
-   button.addEventListener('click',()=>apply(key));
-   nav.appendChild(button);
-  }
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='active';
+  button.addEventListener('click',()=>apply(scope==='public'?'private':'public'));
+  nav.appendChild(button);
   return nav;
  }
 
