@@ -83,8 +83,6 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
 }
 
 @media (orientation:landscape){
- /* Portrait is untouched. Landscape gives the map the entire upper workspace and
-    converts only the lower controls into a two-column deck. */
  html body #app{
   box-sizing:border-box!important;
   display:block!important;
@@ -108,7 +106,8 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   --rist-assets-menu-h:28px!important;
   --rist-assets-slider-h:42px!important;
   --rist-assets-h:70px!important;
-  --rist-map-frame-h:18px!important;
+  /* The coordinate HUD lives inside the map. Never reserve a second outer frame row. */
+  --rist-map-frame-h:0px!important;
   --rist-roleplay-h:24px!important;
   --rist-chat-menu-h:23px!important;
   --rist-chat-compose-h:23px!important;
@@ -148,7 +147,6 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   overflow:hidden!important;
  }
 
- /* Map first: full width directly beneath the stars bar. */
  html body #app .release-map-region{
   grid-column:1 / -1!important;
   grid-row:1!important;
@@ -158,7 +156,6 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   max-height:none!important;
  }
 
- /* Row two: Menu | Public Assets. */
  html body #app .release-menu-region{
   grid-column:1!important;
   grid-row:2!important;
@@ -176,9 +173,7 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   min-height:70px!important;
   max-height:70px!important;
  }
- html body #app #header-slider .release-root-track{
-  align-items:center!important;
- }
+ html body #app #header-slider .release-root-track{align-items:center!important}
  html body #app #header-slider .release-root-track>.root-menu-button,
  html body #app #header-slider .header-icon-button,
  html body #app #header-slider .control,
@@ -207,20 +202,14 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   max-height:70px!important;
  }
  html body #app .release-public-region .asset-rail-header{
-  width:100%!important;
-  height:28px!important;
-  min-height:28px!important;
-  max-height:28px!important;
+  width:100%!important;height:28px!important;min-height:28px!important;max-height:28px!important;
  }
  html body #app .release-public-region .public-assets-strip,
  html body #app .release-public-region .public-assets-items,
  html body #app .release-public-region .public-assets-strip>.rail-scroll-arrow{
-  height:42px!important;
-  min-height:42px!important;
-  max-height:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
  }
 
- /* Row three: Chat | Private Assets. */
  html body #app .release-footer-region{
   grid-column:1!important;
   grid-row:3!important;
@@ -242,69 +231,31 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
   overflow:hidden!important;
  }
  html body #app .release-footer-stack>.inline-chat-output{
-  grid-column:1!important;
-  grid-row:1!important;
-  width:100%!important;
-  height:24px!important;
-  min-height:24px!important;
-  max-height:24px!important;
-  padding-top:0!important;
-  padding-bottom:0!important;
+  grid-column:1!important;grid-row:1!important;width:100%!important;height:24px!important;min-height:24px!important;max-height:24px!important;padding-top:0!important;padding-bottom:0!important;
  }
  html body #app .release-footer-stack>.footer-dock,
  html body #app .release-footer-stack .home-inline-chat{
-  grid-column:1!important;
-  grid-row:2!important;
-  position:relative!important;
-  inset:auto!important;
-  width:100%!important;
-  height:46px!important;
-  min-height:46px!important;
-  max-height:46px!important;
+  grid-column:1!important;grid-row:2!important;position:relative!important;inset:auto!important;width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;
  }
  html body #app .release-footer-stack .home-inline-chat{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:23px 23px!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:23px 23px!important;
  }
  html body #app .release-footer-stack>.site-copyright-notice{
-  grid-column:1!important;
-  grid-row:3!important;
-  width:100%!important;
-  height:14px!important;
-  min-height:14px!important;
-  max-height:14px!important;
+  grid-column:1!important;grid-row:3!important;width:100%!important;height:14px!important;min-height:14px!important;max-height:14px!important;
  }
 
  html body #app .release-private-region{
-  grid-column:2!important;
-  grid-row:3!important;
-  width:100%!important;
-  height:84px!important;
-  min-height:84px!important;
-  max-height:84px!important;
+  grid-column:2!important;grid-row:3!important;width:100%!important;height:84px!important;min-height:84px!important;max-height:84px!important;
  }
  html body #app .release-private-region>.private-assets-rail{
-  box-sizing:border-box!important;
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:28px 56px!important;
-  width:100%!important;
-  height:84px!important;
-  min-height:84px!important;
-  max-height:84px!important;
+  box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:28px 56px!important;width:100%!important;height:84px!important;min-height:84px!important;max-height:84px!important;
  }
  html body #app .release-private-region .asset-rail-header{
-  width:100%!important;
-  height:28px!important;
-  min-height:28px!important;
-  max-height:28px!important;
+  width:100%!important;height:28px!important;min-height:28px!important;max-height:28px!important;
  }
  html body #app .release-private-region .private-assets-strip,
  html body #app .release-private-region .private-assets-items,
  html body #app .release-private-region .private-assets-strip>.rail-scroll-arrow{
-  height:56px!important;
-  min-height:56px!important;
-  max-height:56px!important;
+  height:56px!important;min-height:56px!important;max-height:56px!important;
  }
 }
