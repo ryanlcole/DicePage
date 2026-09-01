@@ -36,47 +36,16 @@
   if(frame.textContent!==source.textContent)frame.textContent=source.textContent;
   source.style.setProperty('display','none','important');
 
-  let corners=shell.querySelector(':scope>.map-frame-corners');
-  if(!corners){
-   corners=document.createElement('div');
-   corners.className='map-frame-corners';
-   corners.setAttribute('aria-hidden','true');
-   Object.assign(corners.style,{
-    position:'absolute',
-    inset:'0',
-    zIndex:'160',
-    pointerEvents:'none'
-   });
-   for(const pos of ['top-left','top-right','bottom-left','bottom-right']){
-    const corner=document.createElement('span');
-    corner.dataset.corner=pos;
-    Object.assign(corner.style,{
-     position:'absolute',
-     background:'#071015'
-    });
-    if(pos.startsWith('top'))corner.style.top='0';else corner.style.bottom='0';
-    if(pos.endsWith('left'))corner.style.left='0';else corner.style.right='0';
-    corners.appendChild(corner);
-   }
-   shell.appendChild(corners);
-  }
+  const staleCorners=shell.querySelector(':scope>.map-frame-corners');
+  if(staleCorners)staleCorners.remove();
 
   const shellRect=shell.getBoundingClientRect();
   const mapRect=map.getBoundingClientRect();
   const leftFrameWidth=Math.max(0,Math.round(mapRect.left-shellRect.left));
   const rightFrameWidth=Math.max(0,Math.round(shellRect.right-mapRect.right));
-  const topFrameHeight=Math.max(0,Math.round(mapRect.top-shellRect.top));
-  const bottomFrameHeight=Math.max(0,Math.round(shellRect.bottom-mapRect.bottom));
 
   frame.style.paddingLeft=`${leftFrameWidth}px`;
   frame.style.paddingRight=`${rightFrameWidth}px`;
-
-  corners.querySelectorAll('[data-corner]').forEach(corner=>{
-   const isLeft=corner.dataset.corner.endsWith('left');
-   const isTop=corner.dataset.corner.startsWith('top');
-   corner.style.width=`${isLeft?leftFrameWidth:rightFrameWidth}px`;
-   corner.style.height=`${isTop?topFrameHeight:bottomFrameHeight}px`;
-  });
  }
 
  let attempts=0;
