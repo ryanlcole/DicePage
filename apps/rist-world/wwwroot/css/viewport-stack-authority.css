@@ -1,0 +1,95 @@
+/* Final viewport stacking authority.
+   The context ticker owns one compact row. The main menu opens below it as an
+   overlay, and the map always begins at the top of the remaining world area. */
+html body #app{
+ --rist-context-h:28px!important;
+}
+
+html body #app>.world-context-strip{
+ box-sizing:border-box!important;
+ position:relative!important;
+ width:100%!important;
+ height:var(--rist-context-h)!important;
+ min-height:var(--rist-context-h)!important;
+ max-height:var(--rist-context-h)!important;
+ margin:0!important;
+ z-index:2147483001!important;
+}
+
+html body #app>.rist.release-world{
+ box-sizing:border-box!important;
+ position:relative!important;
+ width:100%!important;
+ height:calc(100dvh - var(--rist-context-h))!important;
+ min-height:calc(100dvh - var(--rist-context-h))!important;
+ max-height:calc(100dvh - var(--rist-context-h))!important;
+ margin:0!important;
+ overflow:hidden!important;
+}
+html body #app>.rist.release-world>.release-world-shell{
+ box-sizing:border-box!important;
+ position:relative!important;
+ width:100%!important;
+ height:100%!important;
+ min-height:100%!important;
+ max-height:100%!important;
+ margin:0!important;
+ overflow:hidden!important;
+}
+
+/* The main menu must never sit behind the ticker. It opens directly below the
+   ticker and overlays the map, so it consumes no permanent map height. */
+html body #app>.rist.release-world>.release-world-shell>.release-menu-region{
+ box-sizing:border-box!important;
+ position:fixed!important;
+ left:0!important;
+ right:0!important;
+ top:var(--rist-context-h)!important;
+ width:100%!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ margin:0!important;
+ padding:0!important;
+ overflow:hidden!important;
+ z-index:2147483050!important;
+ pointer-events:none!important;
+ opacity:0!important;
+ transform:translateY(-220%)!important;
+ transition:transform .18s ease-out,opacity .12s linear!important;
+}
+html body #app:has(>.world-context-strip .world-context-menu.active)>.rist.release-world>.release-world-shell>.release-menu-region,
+html body #app>.rist.release-world>.release-world-shell>.release-menu-region.rist-os-menu-open{
+ pointer-events:auto!important;
+ opacity:1!important;
+ transform:translateY(0)!important;
+}
+
+/* Eliminate any legacy/implicit row above the map. The map workspace and frame
+   are pinned to the upper edge of the world area; the menu simply floats over it. */
+html body #app>.rist.release-world>.release-world-shell>.release-map-region{
+ position:absolute!important;
+ left:0!important;
+ right:0!important;
+ top:0!important;
+ margin:0!important;
+ padding:0!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace{
+ box-sizing:border-box!important;
+ position:absolute!important;
+ inset:0!important;
+ width:100%!important;
+ height:100%!important;
+ margin:0!important;
+ padding:0!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace>.map-shell{
+ box-sizing:border-box!important;
+ position:absolute!important;
+ inset:0!important;
+ width:100%!important;
+ height:100%!important;
+ margin:0!important;
+ padding:0!important;
+}
