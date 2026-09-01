@@ -3,105 +3,37 @@
  let viewerResizeObserver=null;
  let selectedSection='chat';
  let menuOpen=false;
+ let chatAudience='roleplay';
  const ASSET_LABELS={cards:'Cards',tokens:'Tokens / Chits',minis:'Minis','rolling-stock':'Rolling Stock',pawns:'Pawns / Meeples',tiles:'Tiles',terrain:'Terrain',bits:'Bits',custom1:'Custom1',add:'+'};
  const SECTIONS=[['chat','Chat'],['dice','Dice'],['cards','Cards'],['tokens','Tokens'],['minis','Minis'],['rolling-stock','Rolling Stock'],['pawns','Pawns/Meeples'],['tiles','Tiles'],['terrain','Terrains'],['bits','Bits'],['logs','Logs'],['custom1','Custom1'],['add','+']];
  const imp=(el,name,value)=>el?.style.setProperty(name,value,'important');
-
  function clickButton(selector){const button=document.querySelector(selector);if(button){button.click();return true;}return false;}
- function closeTarget(target){
-  if(target.matches('.root-menu-panel'))return clickButton('#header-slider .root-menu-button.active[aria-expanded="true"]');
-  if(target.matches('.release-action-menu.save-menu'))return clickButton('#header-slider .root-menu-button[aria-label="Save and export"]');
-  if(target.matches('.release-action-menu.load-menu'))return clickButton('#header-slider .root-menu-button[aria-label="Load"]');
-  if(target.matches('#card-library'))return clickButton('#header-slider .root-menu-button[aria-label="Cards"]');
-  if(target.matches('.asset-slider-stack'))return clickButton('#header-slider .root-menu-button[aria-label="Browse asset library"]');
-  if(target.matches('.rist-tutorial-shell')){const skip=[...target.querySelectorAll('button')].find(button=>/skip tutorial|close/i.test(button.textContent||''));if(skip){skip.click();return true;}}
-  return false;
- }
+ function closeTarget(target){if(target.matches('.root-menu-panel'))return clickButton('#header-slider .root-menu-button.active[aria-expanded="true"]');if(target.matches('.release-action-menu.save-menu'))return clickButton('#header-slider .root-menu-button[aria-label="Save and export"]');if(target.matches('.release-action-menu.load-menu'))return clickButton('#header-slider .root-menu-button[aria-label="Load"]');if(target.matches('#card-library'))return clickButton('#header-slider .root-menu-button[aria-label="Cards"]');if(target.matches('.asset-slider-stack'))return clickButton('#header-slider .root-menu-button[aria-label="Browse asset library"]');if(target.matches('.rist-tutorial-shell')){const skip=[...target.querySelectorAll('button')].find(button=>/skip tutorial|close/i.test(button.textContent||''));if(skip){skip.click();return true;}}return false;}
  function addClose(target){if(!target||target.querySelector(`:scope>.${closeClass}`))return;const button=document.createElement('button');button.type='button';button.className=closeClass;button.setAttribute('aria-label','Close');button.title='Close';button.textContent='×';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closeTarget(target);});target.prepend(button);}
-
- function ensureSquareGridAuthority(){
-  if(document.getElementById('rist-viewer-square-grid-authority'))return;
-  const style=document.createElement('style');style.id='rist-viewer-square-grid-authority';style.textContent='.rist.release-world .map:has(.grid.square)::before{background-size:var(--rist-viewer-square-cell,64px) var(--rist-viewer-square-cell,64px)!important;}';document.head.appendChild(style);
- }
+ function ensureSquareGridAuthority(){if(document.getElementById('rist-viewer-square-grid-authority'))return;const style=document.createElement('style');style.id='rist-viewer-square-grid-authority';style.textContent='.rist.release-world .map:has(.grid.square)::before{background-size:var(--rist-viewer-square-cell,64px) var(--rist-viewer-square-cell,64px)!important;}';document.head.appendChild(style);}
  function updateSquareCellSize(map){if(!map)return;const rect=map.getBoundingClientRect();if(rect.width<2||rect.height<2)return;map.style.setProperty('--rist-viewer-square-cell',`${Math.max(24,Math.round(Math.min(rect.width,rect.height)/10))}px`);}
- function fixViewer(){
-  const shell=document.querySelector('.release-map-region .map-shell');const map=shell?.querySelector(':scope>.map');const stage=map?.querySelector(':scope>.world-stage');if(!shell||!map)return;
-  for(const [name,value] of Object.entries({'box-sizing':'border-box','grid-column':'2','grid-row':'2','position':'relative','width':'100%','height':'100%','min-width':'0','min-height':'0','max-width':'none','max-height':'none','aspect-ratio':'auto','margin':'0','overflow':'hidden'}))imp(map,name,value);
-  if(stage)for(const [name,value] of Object.entries({'position':'absolute','inset':'0','width':'100%','height':'100%','min-width':'0','min-height':'0','max-width':'none','max-height':'none','aspect-ratio':'auto'}))imp(stage,name,value);
-  ensureSquareGridAuthority();updateSquareCellSize(map);
-  if(!viewerResizeObserver)viewerResizeObserver=new ResizeObserver(entries=>{for(const entry of entries)if(entry.target.matches?.('.release-map-region .map-shell>.map'))updateSquareCellSize(entry.target);});
-  if(!map.dataset.viewerSquareObserved){map.dataset.viewerSquareObserved='1';viewerResizeObserver.observe(map);}
- }
-
- function buildBulletinFlow(track){
-  if(!track||track.querySelector(':scope>.bulletin-flow'))return;
-  const originals=[...track.children];const flow=document.createElement('div');flow.className='bulletin-flow';originals.forEach(el=>flow.appendChild(el));
-  [...flow.children].map(el=>el.cloneNode(true)).forEach(el=>{el.setAttribute('aria-hidden','true');flow.appendChild(el);});track.appendChild(flow);
- }
- function applyMenuState(){
-  const button=document.querySelector('.world-context-menu');const region=document.querySelector('.release-menu-region');if(!button||!region)return;
-  button.classList.toggle('active',menuOpen);button.setAttribute('aria-pressed',menuOpen?'true':'false');region.classList.toggle('rist-os-menu-open',menuOpen);
-  imp(region,'pointer-events',menuOpen?'auto':'none');imp(region,'opacity',menuOpen?'1':'0');imp(region,'transform',menuOpen?'translateY(0)':'translateY(-120%)');
- }
- function bindMenu(){
-  const button=document.querySelector('.world-context-menu');const track=document.querySelector('.world-context-track');if(!button)return;
-  buildBulletinFlow(track);
-  if(button.dataset.ristOsMenuBound!=='1'){
-   button.dataset.ristOsMenuBound='1';
-   const swallow=event=>{event.stopPropagation();};
-   button.addEventListener('pointerdown',swallow,true);button.addEventListener('pointerup',swallow,true);
-   button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();menuOpen=!menuOpen;applyMenuState();},true);
-  }
-  applyMenuState();
- }
-
- function ensureDeck(){
-  const root=document.querySelector('.rist.release-world');const shell=root?.querySelector(':scope>.release-world-shell');if(!root||!shell)return;
-  let selector=shell.querySelector(':scope>.rist-section-selector');
-  if(!selector){
-   selector=document.createElement('aside');selector.className='rist-section-selector';selector.setAttribute('aria-label','Section selector');
-   const up=document.createElement('button');up.type='button';up.className='selector-arrow';up.textContent='▲';up.setAttribute('aria-label','Scroll section selector up');
-   const list=document.createElement('div');list.className='rist-section-list';
-   const down=document.createElement('button');down.type='button';down.className='selector-arrow';down.textContent='▼';down.setAttribute('aria-label','Scroll section selector down');
-   up.addEventListener('click',()=>list.scrollBy({top:-Math.max(60,list.clientHeight*.75),behavior:'smooth'}));down.addEventListener('click',()=>list.scrollBy({top:Math.max(60,list.clientHeight*.75),behavior:'smooth'}));
-   for(const [key,label] of SECTIONS){const button=document.createElement('button');button.type='button';button.dataset.section=key;button.textContent=label;button.addEventListener('click',()=>selectSection(key));list.appendChild(button);}
-   selector.append(up,list,down);shell.appendChild(selector);
-  }
-  for(let i=1;i<=3;i++)if(!shell.querySelector(`:scope>.rist-deck-row.row${i}`)){const row=document.createElement('div');row.className=`rist-deck-row row${i}`;row.innerHTML='<span class="deck-copy"></span>';shell.appendChild(row);}
-  applySection(root,shell);
- }
- function clickAssetFilter(key){
-  const wanted=ASSET_LABELS[key];if(!wanted||key==='custom1'||key==='add')return;
-  const buttons=[...document.querySelectorAll('.release-public-region .asset-type-tabs button')];const match=buttons.find(button=>(button.textContent||'').trim().toLowerCase()===wanted.toLowerCase());match?.click();
- }
+ function fixViewer(){const shell=document.querySelector('.release-map-region .map-shell');const map=shell?.querySelector(':scope>.map');const stage=map?.querySelector(':scope>.world-stage');if(!shell||!map)return;for(const [name,value] of Object.entries({'box-sizing':'border-box','grid-column':'2','grid-row':'2','position':'relative','width':'100%','height':'100%','min-width':'0','min-height':'0','max-width':'none','max-height':'none','aspect-ratio':'auto','margin':'0','overflow':'hidden'}))imp(map,name,value);if(stage)for(const [name,value] of Object.entries({'position':'absolute','inset':'0','width':'100%','height':'100%','min-width':'0','min-height':'0','max-width':'none','max-height':'none','aspect-ratio':'auto'}))imp(stage,name,value);ensureSquareGridAuthority();updateSquareCellSize(map);if(!viewerResizeObserver)viewerResizeObserver=new ResizeObserver(entries=>{for(const entry of entries)if(entry.target.matches?.('.release-map-region .map-shell>.map'))updateSquareCellSize(entry.target);});if(!map.dataset.viewerSquareObserved){map.dataset.viewerSquareObserved='1';viewerResizeObserver.observe(map);}}
+ function buildBulletinFlow(track){if(!track||track.querySelector(':scope>.bulletin-flow'))return;const originals=[...track.children];const flow=document.createElement('div');flow.className='bulletin-flow';originals.forEach(el=>flow.appendChild(el));[...flow.children].map(el=>el.cloneNode(true)).forEach(el=>{el.setAttribute('aria-hidden','true');flow.appendChild(el);});track.appendChild(flow);}
+ function applyMenuState(){const button=document.querySelector('.world-context-menu');const region=document.querySelector('.release-menu-region');if(!button||!region)return;button.classList.toggle('active',menuOpen);button.setAttribute('aria-pressed',menuOpen?'true':'false');region.classList.toggle('rist-os-menu-open',menuOpen);}
+ function bindMenu(){const button=document.querySelector('.world-context-menu');const track=document.querySelector('.world-context-track');if(!button)return;buildBulletinFlow(track);if(button.dataset.ristOsMenuBound!=='1'){button.dataset.ristOsMenuBound='1';const swallow=event=>event.stopPropagation();button.addEventListener('pointerdown',swallow,true);button.addEventListener('pointerup',swallow,true);button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();menuOpen=!menuOpen;applyMenuState();},true);}applyMenuState();}
+ function ensureDeck(){const root=document.querySelector('.rist.release-world');const shell=root?.querySelector(':scope>.release-world-shell');if(!root||!shell)return;let selector=shell.querySelector(':scope>.rist-section-selector');if(!selector){selector=document.createElement('aside');selector.className='rist-section-selector';selector.setAttribute('aria-label','Section selector');const up=document.createElement('button');up.type='button';up.className='selector-arrow';up.textContent='▲';const list=document.createElement('div');list.className='rist-section-list';const down=document.createElement('button');down.type='button';down.className='selector-arrow';down.textContent='▼';up.addEventListener('click',()=>list.scrollBy({top:-Math.max(60,list.clientHeight*.75),behavior:'smooth'}));down.addEventListener('click',()=>list.scrollBy({top:Math.max(60,list.clientHeight*.75),behavior:'smooth'}));for(const [key,label] of SECTIONS){const button=document.createElement('button');button.type='button';button.dataset.section=key;button.textContent=label;button.addEventListener('click',()=>selectSection(key));list.appendChild(button);}selector.append(up,list,down);shell.appendChild(selector);}for(let i=1;i<=3;i++)if(!shell.querySelector(`:scope>.rist-deck-row.row${i}`)){const row=document.createElement('div');row.className=`rist-deck-row row${i}`;shell.appendChild(row);}applySection(root,shell);}
+ function clickAssetFilter(key){const wanted=ASSET_LABELS[key];if(!wanted||key==='custom1'||key==='add')return;const buttons=[...document.querySelectorAll('.release-public-region .asset-type-tabs button')];buttons.find(button=>(button.textContent||'').trim().toLowerCase()===wanted.toLowerCase())?.click();}
  function selectSection(key){selectedSection=key;clickAssetFilter(key);const root=document.querySelector('.rist.release-world');const shell=root?.querySelector(':scope>.release-world-shell');if(root&&shell)applySection(root,shell);}
- function assetNames(){const names=[...document.querySelectorAll('.public-assets-items .public-asset-card small,.private-assets-items .hand-card-wrap small,.private-assets-items button small')].map(el=>(el.textContent||'').trim()).filter(Boolean);return [...new Set(names)].slice(0,16);}
- function diceShorthand(){const labels=[...document.querySelectorAll('#footer-slider .die-button[aria-label]')].map(button=>(button.getAttribute('aria-label')||'').replace(/^Roll selected bonus die$/i,'+d5').replace(/^Roll selected penalty die$/i,'-d5').replace(/^Roll\s+/i,'').trim()).filter(Boolean);return [...new Set(labels)].join(' · ')||'Dice shorthand';}
- function diceResult(){const sum=document.querySelector('#footer-slider .sum');const text=(sum?.textContent||'').replace(/\s+/g,' ').trim();return text?`Dice results · ${text}`:'Dice results · no roll yet';}
- function setRow(shell,index,text,visible=true){const row=shell.querySelector(`:scope>.rist-deck-row.row${index}`);const copy=row?.querySelector('.deck-copy');if(copy)copy.textContent=text;if(row)imp(row,'display',visible?'flex':'none');}
- function placeRegion(region,top,height,show){
-  if(!region)return;imp(region,'display',show?'block':'none');imp(region,'left','15%');imp(region,'width','85%');imp(region,'top',top);imp(region,'height',height);imp(region,'min-height','0');imp(region,'max-height','none');
- }
- function applySection(root,shell){
-  root.classList.remove('deck-chat','deck-dice','deck-assets','deck-logs');
-  shell.querySelectorAll('.rist-section-list>button').forEach(button=>button.classList.toggle('active',button.dataset.section===selectedSection));
-  const pub=shell.querySelector(':scope>.release-public-region');const priv=shell.querySelector(':scope>.release-private-region');const footer=shell.querySelector(':scope>.release-footer-region');
-  placeRegion(pub,'0','0',false);placeRegion(priv,'0','0',false);placeRegion(footer,'0','0',false);for(let i=1;i<=3;i++)setRow(shell,i,'',false);
-  if(selectedSection==='chat'){
-   root.classList.add('deck-chat');placeRegion(footer,'70dvh','25dvh',true);
-  }else if(selectedSection==='dice'){
-   root.classList.add('deck-dice');setRow(shell,1,`Dice shorthand · ${diceShorthand()}`,true);setRow(shell,3,diceResult(),true);placeRegion(footer,'calc(70dvh + (25dvh / 3))','calc(25dvh / 3)',true);
-  }else if(selectedSection==='logs'){
-   root.classList.add('deck-logs');setRow(shell,1,'Log names · Roleplay Log · Roll Log',true);setRow(shell,2,'Log details',true);setRow(shell,3,'Log sharing options',true);
-  }else{
-   root.classList.add('deck-assets');const label=SECTIONS.find(entry=>entry[0]===selectedSection)?.[1]||'Assets';const names=assetNames();setRow(shell,1,names.length?`${label} · ${names.join(' · ')}`:`${label} · asset names`,true);placeRegion(pub,'calc(70dvh + (25dvh / 3))','calc(25dvh / 3)',true);placeRegion(priv,'calc(70dvh + (50dvh / 3))','calc(25dvh / 3)',true);
-  }
+ function setRow(shell,index,content,visible=true){const row=shell.querySelector(`:scope>.rist-deck-row.row${index}`);if(!row)return;row.replaceChildren();if(content instanceof Node)row.appendChild(content);else{const copy=document.createElement('span');copy.className='deck-copy';copy.textContent=content||'';row.appendChild(copy);}imp(row,'display',visible?'flex':'none');}
+ function placeRegion(region,top,height,show){if(!region)return;imp(region,'display',show?'block':'none');imp(region,'left','15%');imp(region,'width','85%');imp(region,'top',top);imp(region,'height',height);imp(region,'min-height','0');imp(region,'max-height','none');}
+ function chatHeader(){const wrap=document.createElement('div');wrap.className='rist-chat-audience';for(const [key,label] of [['roleplay','Roleplay'],['gm','GM'],['private','Private']]){const b=document.createElement('button');b.type='button';b.textContent=label;b.classList.toggle('active',chatAudience===key);b.addEventListener('click',()=>{chatAudience=key;applySection(document.querySelector('.rist.release-world'),document.querySelector('.rist.release-world>.release-world-shell'));});wrap.appendChild(b);}return wrap;}
+ function diceHeader(){const wrap=document.createElement('div');wrap.className='rist-deck-actions';for(const label of ['d4','+d5','-d5','d6','d8','d10','xd10','d20']){const b=document.createElement('button');b.type='button';b.textContent=label;wrap.appendChild(b);}return wrap;}
+ function diceResultNode(){const wrap=document.createElement('div');wrap.className='rist-deck-actions';const sum=document.querySelector('#footer-slider .sum');const sumText=(sum?.textContent||'SUM 0').replace(/\s+/g,' ').trim()||'SUM 0';const sumButton=document.createElement('button');sumButton.type='button';sumButton.textContent=sumText;const logButton=document.createElement('button');logButton.type='button';logButton.textContent='Log';logButton.addEventListener('click',()=>document.querySelector('#footer-slider .roll-history-toggle')?.click());wrap.append(sumButton,logButton);return wrap;}
+ function assetActionNode(){const wrap=document.createElement('div');wrap.className='rist-deck-actions';for(const [label,action] of [['Send to map','send'],['Remove from map','remove'],['Discard','discard']]){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.action=action;wrap.appendChild(b);}return wrap;}
+ function ensureAssetPlus(){const items=document.querySelector('.release-public-region .public-assets-items');if(!items)return;const hasAsset=items.querySelector('.public-asset-card,.token-pin-source');let plus=items.querySelector('.rist-asset-plus');if(hasAsset){plus?.remove();return;}if(!plus){plus=document.createElement('button');plus.type='button';plus.className='rist-asset-plus';plus.textContent='+';plus.title='Open assets';plus.addEventListener('click',()=>document.querySelector('#header-slider .root-menu-button[aria-label="Browse asset library"]')?.click());items.appendChild(plus);}}
+ function applySection(root,shell){if(!root||!shell)return;root.classList.remove('deck-chat','deck-dice','deck-assets','deck-logs');shell.querySelectorAll('.rist-section-list>button').forEach(button=>button.classList.toggle('active',button.dataset.section===selectedSection));const pub=shell.querySelector(':scope>.release-public-region');const priv=shell.querySelector(':scope>.release-private-region');const footer=shell.querySelector(':scope>.release-footer-region');placeRegion(pub,'0','0',false);placeRegion(priv,'0','0',false);placeRegion(footer,'0','0',false);for(let i=1;i<=3;i++)setRow(shell,i,'',false);
+  if(selectedSection==='chat'){root.classList.add('deck-chat');placeRegion(footer,'70dvh','25dvh',true);const rail=footer?.querySelector('.chat-mode-rail');if(rail){rail.replaceChildren(chatHeader());}}
+  else if(selectedSection==='dice'){root.classList.add('deck-dice');setRow(shell,1,diceHeader(),true);setRow(shell,3,diceResultNode(),true);placeRegion(footer,'calc(70dvh + (25dvh / 3))','calc(25dvh / 3)',true);}
+  else if(selectedSection==='logs'){root.classList.add('deck-logs');setRow(shell,1,'Log names',true);setRow(shell,2,'Log details',true);setRow(shell,3,'Log sharing options',true);}
+  else{root.classList.add('deck-assets');const label=SECTIONS.find(entry=>entry[0]===selectedSection)?.[1]||'Assets';setRow(shell,1,label,true);setRow(shell,3,assetActionNode(),true);ensureAssetPlus();placeRegion(pub,'calc(70dvh + (25dvh / 3))','calc(25dvh / 3)',true);}
   requestAnimationFrame(fixViewer);
  }
-
- function enhance(){
-  document.querySelectorAll('.root-menu-panel,.release-action-menu,#card-library,.asset-slider-stack,.rist-tutorial-shell').forEach(addClose);bindMenu();ensureDeck();fixViewer();
- }
+ function enhance(){document.querySelectorAll('.root-menu-panel,.release-action-menu,#card-library,.asset-slider-stack,.rist-tutorial-shell').forEach(addClose);bindMenu();ensureDeck();fixViewer();}
  let queued=false;function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance();});}
  function start(){enhance();new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});window.addEventListener('resize',queue,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(queue,120),{passive:true});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
