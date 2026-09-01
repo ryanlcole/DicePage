@@ -3,6 +3,9 @@
 #header-slider .release-root-track>.map-control-relocated{display:none!important}
 .release-private-region .map-control-source-relocated{display:none!important}
 
+/* Any cached coordinate frame still injected inside .map is obsolete. */
+.release-map-region .map>.rist-coordinate-frame{display:none!important}
+
 /* The map frame owns the coordinates and all frame controls. */
 .release-map-region .map-frame-status{left:12px!important;right:12px!important;width:auto!important;color:transparent!important;font-size:0!important}
 .release-map-region .map-frame-meta.right-meta{display:none!important}
@@ -23,40 +26,10 @@
  background:#071015!important;
  pointer-events:auto!important;
 }
-.release-map-region .map-frame-mode{
- flex:0 0 auto!important;
- box-sizing:border-box!important;
- height:10px!important;
- min-height:10px!important;
- margin:0!important;
- padding:0 4px!important;
- border-radius:3px!important;
- font:900 7px/8px system-ui,-apple-system,sans-serif!important;
- line-height:8px!important;
-}
+.release-map-region .map-frame-mode{flex:0 0 auto!important;box-sizing:border-box!important;height:10px!important;min-height:10px!important;margin:0!important;padding:0 4px!important;border-radius:3px!important;font:900 7px/8px system-ui,-apple-system,sans-serif!important;line-height:8px!important}
 .release-map-region .map-frame-world-name{flex:0 1 auto!important;min-width:38px!important;max-width:92px!important;height:10px!important;display:flex!important;align-items:center!important;overflow:hidden!important}
 .release-map-region .map-frame-world-name input{box-sizing:border-box!important;width:100%!important;min-width:38px!important;max-width:92px!important;height:10px!important;margin:0!important;padding:0 2px!important;border:0!important;border-bottom:1px solid #725d30!important;background:transparent!important;color:#e7d59d!important;font:800 7px/9px system-ui,-apple-system,sans-serif!important;line-height:9px!important;outline:none!important;text-overflow:ellipsis!important}
-.release-map-region .map-frame-quick{
- flex:0 0 auto!important;
- box-sizing:border-box!important;
- height:10px!important;
- min-height:10px!important;
- max-height:10px!important;
- margin:0!important;
- padding:0 3px!important;
- display:inline-flex!important;
- align-items:center!important;
- justify-content:center!important;
- gap:1px!important;
- border:1px solid #725d30!important;
- border-radius:3px!important;
- background:#0d171d!important;
- color:#d7be80!important;
- font:800 6px/8px system-ui,-apple-system,sans-serif!important;
- line-height:8px!important;
- white-space:nowrap!important;
- overflow:hidden!important;
-}
+.release-map-region .map-frame-quick{flex:0 0 auto!important;box-sizing:border-box!important;height:10px!important;min-height:10px!important;max-height:10px!important;margin:0!important;padding:0 3px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:1px!important;border:1px solid #725d30!important;border-radius:3px!important;background:#0d171d!important;color:#d7be80!important;font:800 6px/8px system-ui,-apple-system,sans-serif!important;line-height:8px!important;white-space:nowrap!important;overflow:hidden!important}
 .release-map-region .map-frame-quick strong{font:inherit!important;line-height:8px!important;color:inherit!important;white-space:nowrap!important}
 .release-map-region .map-frame-quick-pin{width:16px!important;min-width:16px!important;max-width:16px!important;padding:0!important}
 .release-map-region .map-frame-quick-pin .header-icon{width:9px!important;height:9px!important;min-width:9px!important;min-height:9px!important;margin:0!important}
