@@ -4,198 +4,94 @@
  const qs=(root,selector)=>root?.querySelector(selector);
  const pinState={mode:'idle',x:.5,y:.5,moving:false};
  let mapEventsBound=false;
+ let menuOpen=false;
+ let legacyGridMigrated=false;
 
- function clickHidden(selector){const el=document.querySelector(selector);if(el){el.click();return true;}return false;}
- function sourcePinButton(){return document.querySelector('.public-pin-button');}
- function findPrivateControl(kind){
-  const root=document.querySelector('.release-private-region');
+ const click=(el)=>{if(!el)return false;el.click();return true;};
+ const clickHidden=(selector)=>click(document.querySelector(selector));
+ const headerButton=(label)=>[...document.querySelectorAll('#header-slider .root-menu-button')].find(b=>(b.querySelector('strong')?.textContent||'').trim().toLowerCase()===label.toLowerCase());
+ function sourcePinButton(){return document.querySelector('.public-pin-source,.public-pin-button');}
+ function findAxisControl(kind){
+  const root=document.querySelector('.release-public-region');
   if(!root)return null;
-  const candidates=[...root.querySelectorAll('button,[role="button"]')];
-  if(kind==='tier')return candidates.find(el=>/^\s*TIER\b/i.test(el.textContent||''));
-  if(kind==='layer')return candidates.find(el=>/^\s*LAYER\b/i.test(el.textContent||''));
-  return null;
+  return [...root.querySelectorAll('button')].find(el=>new RegExp(`^\\s*${kind}\\b`,'i').test(el.textContent||''));
  }
+ function ensureContextMenu(){
+  const strip=document.querySelector('.world-context-strip');
+  if(!strip)return;
+  let menu=strip.querySelector(':scope>.universal-menu-button');
+  if(!menu){
+   menu=document.createElement('button');menu.type='button';menu.className='world-context-action universal-menu-button';menu.innerHTML='<strong>Menu</strong>';menu.setAttribute('aria-expanded','false');
+   menu.addEventListener('click',()=>{menuOpen=!menuOpen;menu.setAttribute('aria-expanded',String(menuOpen));syncContextMenu();});
+   strip.prepend(menu);
+  }
+  let group=strip.querySelector(':scope>.universal-menu-group');
+  if(!group){group=document.createElement('div');group.className='universal-menu-group';menu.after(group);}
+  const specs=[
+   ['mmo','MMO',toggleWorldMode],['gm','GM',()=>click(headerButton((headerButton('GM')?'GM':'RP'))||headerButton('RP'))],['tier','Tier',()=>click(findAxisControl('Tier'))],['layer','Layer',()=>click(findAxisControl('Layer'))],['pin','Pin',pinMenuClick],['grid','Grid',()=>click(headerButton(currentGridLabel()))],['scale','Scale',()=>click(headerButton('Scale'))],['assets','Assets',()=>click(headerButton('Assets'))],['options','Options',()=>click(document.querySelector('#header-slider [aria-label="Settings"]'))],['about','About',()=>{location.href='info.html';}]
+  ];
+  for(const [key,label,handler] of specs){
+   let b=group.querySelector(`[data-universal-menu="${key}"]`);
+   if(!b){b=document.createElement('button');b.type='button';b.className='world-context-action universal-menu-item';b.dataset.universalMenu=key;b.innerHTML=`<strong>${label}</strong>`;b.addEventListener('click',handler);group.appendChild(b);}
+  }
+  let login=strip.querySelector(':scope>.universal-login');
+  if(!login){login=document.createElement('button');login.type='button';login.className='world-context-action universal-login';login.addEventListener('click',()=>click(document.querySelector('#header-slider .door-button')));strip.appendChild(login);}
+  const source=document.querySelector('#header-slider .door-button strong');login.innerHTML=`<strong>${source?.textContent?.trim()||'Login'}</strong>`;
+  syncContextMenu();
+ }
+ function currentGridLabel(){const source=[...document.querySelectorAll('#header-slider .root-menu-button strong')].find(x=>/^(Square|Hex|No Grid)$/.test((x.textContent||'').trim()));return source?.textContent?.trim()||'No Grid';}
+ function syncContextMenu(){
+  const group=document.querySelector('.universal-menu-group');if(group)group.hidden=!menuOpen;
+  const mmo=document.querySelector('[data-universal-menu="mmo"] strong');const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';if(mmo)mmo.textContent=mode==='mmo'?'MMO':'RIST';
+  const pin=document.querySelector('[data-universal-menu="pin"]');if(pin){pin.classList.toggle('pin-setting',pinState.mode==='placing');pin.classList.toggle('pin-delete',pinState.mode==='selected');const s=pin.querySelector('strong');if(s)s.textContent=pinState.mode==='placing'?'Set':pinState.mode==='selected'?'DEL':'Pin';}
+ }
+ function toggleWorldMode(){const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';clickHidden(mode==='mmo'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action');setTimeout(sync,0);}
+
  function hideMapOverlayText(){
-  const root=document.querySelector('.release-map-region');
-  if(!root)return;
-  [...root.querySelectorAll('*')].forEach(el=>{
-   const text=(el.textContent||'').replace(/\s+/g,' ').trim();
-   if(!text||text.length>180)return;
-   const target=/Temporary Public Zone/i.test(text)||/SHAELVIEN\s+MMO.*AI\s*MAP/i.test(text);
-   if(!target)return;
-   if(el.matches('.map-frame-title,.rist-coordinate-axis,.rist-coordinate-tick,.map-frame-controls'))return;
-   if(el.children.length>4)return;
-   el.style.setProperty('display','none','important');
+  document.querySelectorAll('.release-map-region *').forEach(el=>{
+   if(el.matches('.map-frame-title,.rist-coordinate-axis,.rist-coordinate-tick,.map-frame-controls,.map-frame-corner-add'))return;
+   const own=[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').replace(/\s+/g,' ').trim();
+   const all=(el.textContent||'').replace(/\s+/g,' ').trim();
+   if(/SHAELVIEN\s+MMO.*AI\s*MAP/i.test(own)||/SHAELVIEN\s+MMO.*AI\s*MAP/i.test(all)&&el.children.length<=2)el.style.setProperty('display','none','important');
+   if(/Temporary Public Zone/i.test(own))el.style.setProperty('display','none','important');
   });
  }
- function setSettingsLabel(){
-  const label=document.querySelector('#header-slider [aria-label="Settings"] strong');
-  if(label&&label.textContent!=='Settings')label.textContent='Settings';
- }
- function ensureGhost(){
-  const map=document.querySelector('.release-map-region .map-shell>.map');
-  if(!map)return null;
-  let ghost=map.querySelector(':scope>.rist-pin-placement-ghost');
-  if(!ghost){
-   ghost=document.createElement('div');
-   ghost.className='rist-pin-placement-ghost';
-   ghost.setAttribute('aria-hidden','true');
-   ghost.textContent='●';
-   map.appendChild(ghost);
-  }
-  ghost.style.left=`${pinState.x*100}%`;
-  ghost.style.top=`${pinState.y*100}%`;
-  return ghost;
- }
+ function setSettingsLabel(){const label=document.querySelector('#header-slider [aria-label="Settings"] strong');if(label)label.textContent='Options';}
+ function ensureGhost(){const map=document.querySelector('.release-map-region .map-shell>.map');if(!map)return null;let ghost=map.querySelector(':scope>.rist-pin-placement-ghost');if(!ghost){ghost=document.createElement('div');ghost.className='rist-pin-placement-ghost';ghost.setAttribute('aria-hidden','true');ghost.textContent='●';map.appendChild(ghost);}ghost.style.left=`${pinState.x*100}%`;ghost.style.top=`${pinState.y*100}%`;return ghost;}
  function removeGhost(){document.querySelector('.rist-pin-placement-ghost')?.remove();}
- function setPinFromPoint(map,clientX,clientY){
-  const r=map.getBoundingClientRect();
-  if(r.width<1||r.height<1)return;
-  pinState.x=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
-  pinState.y=Math.max(0,Math.min(1,(clientY-r.top)/r.height));
-  ensureGhost();
- }
- function beginPinPlacement(){
-  pinState.mode='placing';pinState.x=.5;pinState.y=.5;pinState.moving=false;
-  ensureGhost();syncPinButton();
- }
- function cancelPinPlacement(){pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();}
- function commitPinPlacement(){
-  const map=document.querySelector('.release-map-region .map-shell>.map');
-  const source=sourcePinButton();
-  if(!map||!source){cancelPinPlacement();return;}
-  const r=map.getBoundingClientRect();
-  const clientX=r.left+r.width*pinState.x,clientY=r.top+r.height*pinState.y;
-  const pointerId=9876;
-  try{source.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:1}));}catch{}
-  setTimeout(()=>{
-   try{source.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:0}));}catch{}
-  },40);
-  pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();
- }
- function deleteSelectedPin(){
-  clickHidden('.mmo-pin-delete-action');
-  pinState.mode='idle';pinState.moving=false;removeGhost();syncPinButton();
- }
- function pinMenuClick(){
-  if(pinState.mode==='selected'){deleteSelectedPin();return;}
-  if(pinState.mode==='placing'){commitPinPlacement();return;}
-  beginPinPlacement();
- }
- function bindMapPinEvents(){
-  if(mapEventsBound)return;
-  mapEventsBound=true;
-  document.addEventListener('click',event=>{
-   const placed=event.target?.closest?.('.release-map-region .placed-pin');
-   if(!placed)return;
-   setTimeout(()=>{pinState.mode='selected';pinState.moving=false;removeGhost();syncPinButton();},0);
-  },true);
-  const mapEvent=(event,phase)=>{
-   if(pinState.mode!=='placing')return;
-   const map=event.target?.closest?.('.release-map-region .map-shell>.map')||document.querySelector('.release-map-region .map-shell>.map');
-   if(!map||!map.contains(event.target))return;
-   if(event.target?.closest?.('.placed-pin'))return;
-   if(phase==='down'){pinState.moving=true;setPinFromPoint(map,event.clientX,event.clientY);}
-   else if(phase==='move'&&pinState.moving)setPinFromPoint(map,event.clientX,event.clientY);
-   else if(phase==='up'){setPinFromPoint(map,event.clientX,event.clientY);pinState.moving=false;}
-   else return;
-   event.preventDefault();event.stopPropagation();
-  };
-  document.addEventListener('pointerdown',e=>mapEvent(e,'down'),true);
-  document.addEventListener('pointermove',e=>mapEvent(e,'move'),true);
-  document.addEventListener('pointerup',e=>mapEvent(e,'up'),true);
-  document.addEventListener('pointercancel',()=>{pinState.moving=false;},true);
- }
- function syncPinButton(){
-  const button=document.querySelector('#header-slider .map-menu-control-pin');
-  if(!button)return;
-  const strong=button.querySelector('strong');
-  button.classList.toggle('pin-setting',pinState.mode==='placing');
-  button.classList.toggle('pin-delete',pinState.mode==='selected');
-  if(strong)strong.textContent=pinState.mode==='placing'?'Set':pinState.mode==='selected'?'DEL':'Pin';
-  button.setAttribute('aria-label',pinState.mode==='placing'?'Set map pin':pinState.mode==='selected'?'Delete selected map pin':'Place map pin');
- }
- function ensureMenuControls(){
-  const track=document.querySelector('#header-slider .release-root-track');
-  if(!track)return;
-  const specs=[['mmo','MMO'],['pin','Pin'],['tier','Tier'],['layer','Layer']];
-  let anchor=track.firstElementChild;
-  for(const [kind,label] of specs){
-   let button=track.querySelector(`.map-menu-control[data-map-menu-control="${kind}"]`);
-   if(!button){
-    button=document.createElement('button');
-    button.type='button';
-    button.className=`root-menu-button map-menu-control map-menu-control-${kind}`;
-    button.dataset.mapMenuControl=kind;
-    button.setAttribute('aria-label',label);
-    button.innerHTML=`<strong>${label}</strong>`;
-    if(kind==='mmo')button.addEventListener('click',()=>{
-     const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';
-     clickHidden(mode==='mmo'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action');
-     setTimeout(sync,0);
-    });
-    else if(kind==='pin')button.addEventListener('click',pinMenuClick);
-    else button.addEventListener('click',()=>{const source=findPrivateControl(kind);if(source)source.click();});
-   }
-   if(button!==anchor)track.insertBefore(button,anchor);
-   anchor=button.nextElementSibling;
+ function setPinFromPoint(map,clientX,clientY){const r=map.getBoundingClientRect();if(r.width<1||r.height<1)return;pinState.x=Math.max(0,Math.min(1,(clientX-r.left)/r.width));pinState.y=Math.max(0,Math.min(1,(clientY-r.top)/r.height));ensureGhost();}
+ function beginPinPlacement(){pinState.mode='placing';pinState.x=.5;pinState.y=.5;pinState.moving=false;ensureGhost();syncContextMenu();}
+ function cancelPinPlacement(){pinState.mode='idle';pinState.moving=false;removeGhost();syncContextMenu();}
+ function commitPinPlacement(){const map=document.querySelector('.release-map-region .map-shell>.map'),source=sourcePinButton();if(!map||!source){cancelPinPlacement();return;}const r=map.getBoundingClientRect(),clientX=r.left+r.width*pinState.x,clientY=r.top+r.height*pinState.y,pointerId=9876;try{source.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:1}));}catch{}setTimeout(()=>{try{source.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId,clientX,clientY,pointerType:'mouse',isPrimary:true,button:0,buttons:0}));}catch{}},40);pinState.mode='idle';pinState.moving=false;removeGhost();syncContextMenu();}
+ function deleteSelectedPin(){clickHidden('.mmo-pin-delete-action');pinState.mode='idle';pinState.moving=false;removeGhost();syncContextMenu();}
+ function pinMenuClick(){if(pinState.mode==='selected'){deleteSelectedPin();return;}if(pinState.mode==='placing'){commitPinPlacement();return;}beginPinPlacement();}
+ function bindMapPinEvents(){if(mapEventsBound)return;mapEventsBound=true;document.addEventListener('click',event=>{const placed=event.target?.closest?.('.release-map-region .placed-pin');if(placed)setTimeout(()=>{pinState.mode='selected';removeGhost();syncContextMenu();},0);},true);const mapEvent=(event,phase)=>{if(pinState.mode!=='placing')return;const map=document.querySelector('.release-map-region .map-shell>.map');if(!map||!map.contains(event.target)||event.target?.closest?.('.placed-pin'))return;if(phase==='down'){pinState.moving=true;setPinFromPoint(map,event.clientX,event.clientY);}else if(phase==='move'&&pinState.moving)setPinFromPoint(map,event.clientX,event.clientY);else if(phase==='up'){setPinFromPoint(map,event.clientX,event.clientY);pinState.moving=false;}else return;event.preventDefault();event.stopPropagation();};document.addEventListener('pointerdown',e=>mapEvent(e,'down'),true);document.addEventListener('pointermove',e=>mapEvent(e,'move'),true);document.addEventListener('pointerup',e=>mapEvent(e,'up'),true);document.addEventListener('pointercancel',()=>pinState.moving=false,true);}
+ function ensureFrameControls(shell){let controls=qs(shell,':scope>.map-frame-controls');if(controls)return controls;controls=document.createElement('div');controls.className='map-frame-controls';controls.innerHTML='<button type="button" class="map-frame-corner-add top-left">+</button><button type="button" class="map-frame-corner-add top-right">+</button><button type="button" class="map-frame-corner-add bottom-left">+</button><button type="button" class="map-frame-corner-add bottom-right">+</button><label class="map-frame-title"><span class="map-frame-title-prefix">Shaelvien:</span><input type="text" maxlength="40" value="Shaelvien" aria-label="World name"></label>';shell.appendChild(controls);const input=qs(controls,'.map-frame-title input'),saved=localStorage.getItem('rist.world.frame-name');if(saved)input.value=saved;input.addEventListener('change',()=>{const v=input.value.trim()||'Shaelvien';input.value=v;localStorage.setItem('rist.world.frame-name',v);});return controls;}
+ function ensureViewerGrid(){
+  const stage=document.querySelector('.release-map-region .world-stage');if(!stage)return;
+  let viewer=stage.querySelector(':scope>.viewer-square-grid');if(!viewer){viewer=document.createElement('div');viewer.className='viewer-square-grid';stage.appendChild(viewer);}
+  const role=(headerButton('GM')?'GM':'PC');document.querySelector('.release-map-region .map-shell')?.setAttribute('data-viewer-role',role);
+  const movement=stage.querySelector(':scope>.grid');if(movement)movement.classList.add('movement-grid');
+  if(!legacyGridMigrated&&currentGridLabel()==='Square'){
+   legacyGridMigrated=true;const gridRoot=headerButton('Square');if(gridRoot){gridRoot.click();setTimeout(()=>{const panel=[...document.querySelectorAll('#header-slider .root-menu-panel button')].find(b=>/None/i.test(b.textContent||''));if(panel)panel.click();},0);}
   }
-  syncPinButton();
+  document.querySelectorAll('#header-slider .root-menu-panel button').forEach(b=>{if(/^\s*Square\s*$/i.test(b.textContent||''))b.style.setProperty('display','none','important');});
  }
- function ensureControls(shell){
-  let controls=qs(shell,':scope>.map-frame-controls');
-  if(controls)return controls;
-  controls=document.createElement('div');
-  controls.className='map-frame-controls';
-  controls.innerHTML=`
-   <button type="button" class="map-frame-corner-add top-left" data-frame-add="top-left" aria-label="Add from top left">+</button>
-   <button type="button" class="map-frame-corner-add top-right" data-frame-add="top-right" aria-label="Add from top right">+</button>
-   <button type="button" class="map-frame-corner-add bottom-left" data-frame-add="bottom-left" aria-label="Add from bottom left">+</button>
-   <button type="button" class="map-frame-corner-add bottom-right" data-frame-add="bottom-right" aria-label="Add from bottom right">+</button>
-   <label class="map-frame-title" aria-label="World name">
-    <span class="map-frame-title-prefix">Shaelvien:</span>
-    <input type="text" maxlength="40" aria-label="World name" value="Shaelvien">
-   </label>`;
-  shell.appendChild(controls);
-  controls.querySelectorAll('[data-frame-add]').forEach(button=>button.addEventListener('click',()=>{
-   shell.dispatchEvent(new CustomEvent('rist:map-frame-add',{bubbles:true,detail:{corner:button.dataset.frameAdd}}));
-  }));
-  const nameInput=qs(controls,'.map-frame-title input');
-  const savedName=localStorage.getItem('rist.world.frame-name');
-  if(savedName)nameInput.value=savedName;
-  nameInput.addEventListener('change',()=>{
-   const value=nameInput.value.trim()||'Shaelvien';nameInput.value=value;localStorage.setItem('rist.world.frame-name',value);
-  });
-  return controls;
+ function openCharacterSheet(){const load=headerButton('Load');if(!load)return;load.click();setTimeout(()=>{const b=[...document.querySelectorAll('#header-slider .load-menu button')].find(x=>/Characters/i.test(x.textContent||''));if(b)b.click();},0);}
+ function ensureAssetDecks(){
+  for(const region of document.querySelectorAll('.release-public-region,.release-private-region')){
+   region.classList.add('character-deck-region');let deck=region.querySelector(':scope>.character-sheet-deck');if(!deck){deck=document.createElement('button');deck.type='button';deck.className='character-sheet-deck';deck.setAttribute('aria-label','Open character sheet');deck.innerHTML='<span class="deck-face">Character</span>';deck.addEventListener('click',openCharacterSheet);region.appendChild(deck);}
+  }
+ }
+ function installCircularScroll(){
+  if(!window.ristWorld||window.ristWorld.__wrapInstalled)return;window.ristWorld.__wrapInstalled=true;
+  window.ristWorld.scrollRail=(selector,direction)=>{const rail=document.querySelector(selector);if(!rail)return;const dir=Number(direction)<0?-1:1;const vertical=rail.classList.contains('tile-browser-slider')||(rail.classList.contains('desktop-arrow-adaptive')&&matchMedia('(orientation: landscape)').matches);const target=[...rail.children].find(el=>el.classList&&!el.classList.contains('rail-scroll-arrow')&&(vertical?el.scrollHeight>el.clientHeight+2:el.scrollWidth>el.clientWidth+2))||rail;const max=vertical?target.scrollHeight-target.clientHeight:target.scrollWidth-target.clientWidth;const pos=vertical?target.scrollTop:target.scrollLeft;if(max<=1)return;if(dir>0&&pos>=max-4){target.scrollTo(vertical?{top:0,behavior:'smooth'}:{left:0,behavior:'smooth'});return;}if(dir<0&&pos<=4){target.scrollTo(vertical?{top:max,behavior:'smooth'}:{left:max,behavior:'smooth'});return;}const amount=Math.max(96,(vertical?target.clientHeight:target.clientWidth)*.78)*dir;target.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});};
  }
  function sync(){
-  const shell=document.querySelector('.release-map-region .map-shell');
-  const source=shell?.querySelector('.map>.status');
-  const map=shell?.querySelector(':scope>.map');
-  if(!shell||!source||!map)return;
-  let frame=shell.querySelector(':scope>.map-frame-status');
-  if(!frame){
-   frame=document.createElement('div');frame.className='map-frame-status';frame.setAttribute('aria-hidden','true');
-   Object.assign(frame.style,{position:'absolute',top:'0',left:'12px',right:'12px',boxSizing:'border-box',height:`${FRAME_HEIGHT}px`,minHeight:`${FRAME_HEIGHT}px`,maxHeight:`${FRAME_HEIGHT}px`,display:'block',overflow:'hidden',padding:'0',margin:'0',background:'#071015',pointerEvents:'none',zIndex:'159'});
-   shell.prepend(frame);
-  }
-  frame.textContent='';source.style.setProperty('display','none','important');
-  shell.querySelector(':scope>.map-frame-corners')?.remove();
-  const controls=ensureControls(shell);
-  ensureMenuControls();bindMapPinEvents();setSettingsLabel();hideMapOverlayText();
-  const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';
-  shell.dataset.worldMode=mode;
-  const titlePrefix=qs(controls,'.map-frame-title-prefix');if(titlePrefix)titlePrefix.textContent=mode==='mmo'?'Shaelvien:':'RIST:';
-  const modeButton=document.querySelector('#header-slider .map-menu-control-mmo');
-  if(modeButton){modeButton.querySelector('strong').textContent=mode==='mmo'?'MMO':'RIST';modeButton.dataset.mode=mode;}
-  for(const kind of ['tier','layer']){
-   const sourceControl=findPrivateControl(kind);if(sourceControl)sourceControl.classList.add('map-control-source-relocated');
-  }
-  const publicLead=document.querySelector('.release-public-region .public-assets-lead-controls');if(publicLead)publicLead.setAttribute('aria-hidden','true');
+  const shell=document.querySelector('.release-map-region .map-shell'),source=shell?.querySelector('.map>.status'),map=shell?.querySelector(':scope>.map');if(!shell||!source||!map)return;
+  source.style.setProperty('display','none','important');shell.querySelector(':scope>.map-frame-status')?.remove();shell.querySelector(':scope>.map-frame-corners')?.remove();
+  const controls=ensureFrameControls(shell),mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';shell.dataset.worldMode=mode;const prefix=qs(controls,'.map-frame-title-prefix');if(prefix)prefix.textContent=mode==='mmo'?'Shaelvien:':'RIST:';
+  ensureContextMenu();bindMapPinEvents();ensureViewerGrid();ensureAssetDecks();installCircularScroll();setSettingsLabel();hideMapOverlayText();syncContextMenu();
  }
- let attempts=0;const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-controls')||attempts>=100)clearInterval(quick);},100);
- setInterval(sync,700);
- new MutationObserver(()=>requestAnimationFrame(sync)).observe(document.documentElement,{childList:true,subtree:true});
- window.addEventListener('resize',()=>requestAnimationFrame(sync));window.addEventListener('orientationchange',()=>setTimeout(sync,150));
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+ let attempts=0;const quick=setInterval(()=>{attempts++;sync();if(document.querySelector('.map-frame-controls')||attempts>=100)clearInterval(quick);},100);setInterval(sync,900);new MutationObserver(()=>requestAnimationFrame(sync)).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('resize',()=>requestAnimationFrame(sync));window.addEventListener('orientationchange',()=>setTimeout(sync,150));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
 })();
