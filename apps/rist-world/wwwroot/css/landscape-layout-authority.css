@@ -1,6 +1,6 @@
-/* RIST responsive paired-layout authority.
-   Portrait keeps the existing vertical stack. Landscape pairs the upper and lower rails
-   so the map receives the center of the screen. */
+/* RIST responsive layout authority.
+   Portrait keeps the existing vertical stack. Landscape keeps the SAME stack and
+   only compacts row heights. Never flatten independent regions into columns. */
 
 /* Public/Private headers stay 28px total, but are now two compact lines:
    label on top, filter buttons directly beneath it. */
@@ -83,16 +83,12 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
 }
 
 @media (orientation:landscape){
- /* App only renders WorldTable, so flatten the existing component wrappers into one
-    two-column grid without duplicating controls or changing Blazor behavior. */
+ /* Landscape is the portrait architecture with denser rows. Keeping every region
+    inside release-world-shell prevents Public Assets / Roleplay from stealing half
+    of another row and protects portrait because every override is breakpoint-local. */
  html body #app{
-  --land-text:28px;
-  --land-image:42px;
-  --land-chat:56px;
-  --land-legal:14px;
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-  grid-template-rows:var(--land-text) var(--land-image) minmax(0,1fr) var(--land-text) var(--land-chat) var(--land-legal)!important;
+  box-sizing:border-box!important;
+  display:block!important;
   width:100vw!important;
   height:100dvh!important;
   min-height:0!important;
@@ -100,131 +96,138 @@ html body .rist.release-world .asset-rail-header>.asset-type-tabs>button{
  }
 
  html body #app>.world-context-strip{
-  grid-column:1!important;
-  grid-row:1!important;
+  box-sizing:border-box!important;
   width:100%!important;
-  height:var(--land-text)!important;
-  min-height:var(--land-text)!important;
-  max-height:var(--land-text)!important;
+  height:28px!important;
+  min-height:28px!important;
+  max-height:28px!important;
  }
 
- html body #app>.rist.release-world,
- html body #app>.rist.release-world>.release-world-shell,
- html body #app .release-public-region,
- html body #app .release-private-region,
- html body #app .release-public-region>.public-assets-rail,
- html body #app .release-private-region>.private-assets-rail,
- html body #app .release-footer-region,
- html body #app .release-footer-region>.release-footer-stack{
-  display:contents!important;
+ html body #app>.rist.release-world{
+  --rist-n:28px!important;
+  --rist-menu-h:42px!important;
+  --rist-assets-menu-h:28px!important;
+  --rist-assets-slider-h:42px!important;
+  --rist-assets-h:70px!important;
+  --rist-map-frame-h:18px!important;
+  --rist-roleplay-h:28px!important;
+  --rist-chat-menu-h:28px!important;
+  --rist-chat-compose-h:28px!important;
+  --rist-legal-h:14px!important;
+  --rist-footer-h:98px!important;
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  height:calc(100dvh - 28px)!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 28px)!important;
+  overflow:hidden!important;
  }
 
- /* Upper four rails. */
- html body #app .release-menu-region{
-  grid-column:1!important;
-  grid-row:2!important;
-  width:100%!important;
-  height:var(--land-image)!important;
-  min-height:var(--land-image)!important;
-  max-height:var(--land-image)!important;
- }
- html body #app .release-public-region .asset-rail-header{
-  grid-column:2!important;
-  grid-row:1!important;
-  width:100%!important;
-  height:var(--land-text)!important;
-  min-height:var(--land-text)!important;
-  max-height:var(--land-text)!important;
- }
- html body #app .release-public-region .public-assets-strip{
-  grid-column:2!important;
-  grid-row:2!important;
-  width:100%!important;
-  height:var(--land-image)!important;
-  min-height:var(--land-image)!important;
-  max-height:var(--land-image)!important;
- }
- html body #app .release-public-region .public-assets-items,
- html body #app .release-public-region .public-assets-strip>.rail-scroll-arrow{
-  height:var(--land-image)!important;
-  min-height:var(--land-image)!important;
-  max-height:var(--land-image)!important;
- }
-
- /* Map owns the full middle width. */
- html body #app .release-map-region{
-  grid-column:1 / -1!important;
-  grid-row:3!important;
+ html body #app>.rist.release-world>.release-world-shell{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:42px 70px minmax(0,1fr) 70px 98px!important;
   width:100%!important;
   height:100%!important;
+  min-width:0!important;
   min-height:0!important;
-  max-height:none!important;
+  overflow:hidden!important;
  }
 
- /* Lower four rails. */
- html body #app .release-private-region .asset-rail-header{
+ html body #app .release-menu-region,
+ html body #app .release-public-region,
+ html body #app .release-map-region,
+ html body #app .release-private-region,
+ html body #app .release-footer-region{
+  box-sizing:border-box!important;
   grid-column:1!important;
-  grid-row:4!important;
   width:100%!important;
-  height:var(--land-text)!important;
-  min-height:var(--land-text)!important;
-  max-height:var(--land-text)!important;
+  min-width:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+ }
+ html body #app .release-menu-region{grid-row:1!important;height:42px!important;min-height:42px!important;max-height:42px!important}
+ html body #app .release-public-region{grid-row:2!important;height:70px!important;min-height:70px!important;max-height:70px!important}
+ html body #app .release-map-region{grid-row:3!important;height:100%!important;min-height:0!important;max-height:none!important}
+ html body #app .release-private-region{grid-row:4!important;height:70px!important;min-height:70px!important;max-height:70px!important}
+ html body #app .release-footer-region{grid-row:5!important;height:98px!important;min-height:98px!important;max-height:98px!important}
+
+ /* Keep both asset rails full-width and internally stacked header + scroller. */
+ html body #app .release-public-region>.public-assets-rail,
+ html body #app .release-private-region>.private-assets-rail{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:28px 42px!important;
+  width:100%!important;
+  height:70px!important;
+  min-height:70px!important;
+  max-height:70px!important;
+ }
+ html body #app .release-public-region .asset-rail-header,
+ html body #app .release-private-region .asset-rail-header{
+  width:100%!important;
+  height:28px!important;
+  min-height:28px!important;
+  max-height:28px!important;
+ }
+ html body #app .release-public-region .public-assets-strip,
+ html body #app .release-private-region .private-assets-strip,
+ html body #app .release-public-region .public-assets-items,
+ html body #app .release-private-region .private-assets-items,
+ html body #app .release-public-region .public-assets-strip>.rail-scroll-arrow,
+ html body #app .release-private-region .private-assets-strip>.rail-scroll-arrow{
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+ }
+
+ /* Footer remains one full-width vertical stack: output, chat controls, legal. */
+ html body #app .release-footer-region>.release-footer-stack{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:28px 56px 14px!important;
+  width:100%!important;
+  height:98px!important;
+  min-height:98px!important;
+  max-height:98px!important;
+  overflow:hidden!important;
  }
  html body #app .release-footer-stack>.inline-chat-output{
-  grid-column:2!important;
-  grid-row:4!important;
+  grid-column:1!important;
+  grid-row:1!important;
   width:100%!important;
-  height:var(--land-text)!important;
-  min-height:var(--land-text)!important;
-  max-height:var(--land-text)!important;
+  height:28px!important;
+  min-height:28px!important;
+  max-height:28px!important;
   padding-top:0!important;
   padding-bottom:0!important;
  }
- html body #app .release-private-region .private-assets-strip{
-  grid-column:1!important;
-  grid-row:5!important;
-  width:100%!important;
-  height:var(--land-chat)!important;
-  min-height:var(--land-chat)!important;
-  max-height:var(--land-chat)!important;
- }
- html body #app .release-private-region .private-assets-items,
- html body #app .release-private-region .private-assets-strip>.rail-scroll-arrow{
-  height:var(--land-chat)!important;
-  min-height:var(--land-chat)!important;
-  max-height:var(--land-chat)!important;
- }
  html body #app .release-footer-stack>.footer-dock,
  html body #app .release-footer-stack .home-inline-chat{
-  grid-column:2!important;
-  grid-row:5!important;
+  grid-column:1!important;
+  grid-row:2!important;
   position:relative!important;
   inset:auto!important;
   width:100%!important;
-  height:var(--land-chat)!important;
-  min-height:var(--land-chat)!important;
-  max-height:var(--land-chat)!important;
+  height:56px!important;
+  min-height:56px!important;
+  max-height:56px!important;
  }
  html body #app .release-footer-stack .home-inline-chat{
   display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:28px 28px!important;
  }
-
  html body #app .release-footer-stack>.site-copyright-notice{
-  grid-column:1 / -1!important;
-  grid-row:6!important;
+  grid-column:1!important;
+  grid-row:3!important;
   width:100%!important;
-  height:var(--land-legal)!important;
-  min-height:var(--land-legal)!important;
-  max-height:var(--land-legal)!important;
- }
-
- /* Remove portrait-only fixed totals while flattened into the landscape grid. */
- html body #app>.rist.release-world{
-  width:auto!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow:visible!important;
+  height:14px!important;
+  min-height:14px!important;
+  max-height:14px!important;
  }
 }
