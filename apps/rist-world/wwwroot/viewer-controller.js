@@ -28,6 +28,8 @@
  function ensureBulletinStyle(){
   if(document.getElementById('rist-bulletin-authority'))return;
   const style=document.createElement('style');style.id='rist-bulletin-authority';style.textContent=`
+   .world-context-strip{position:relative!important;grid-template-columns:auto minmax(0,1fr)!important;padding-right:92px!important;}
+   .world-context-login{position:absolute!important;right:4px!important;top:50%!important;transform:translateY(-50%)!important;z-index:20!important;}
    .world-context-track{position:relative!important;overflow:hidden!important;display:block!important;}
    .world-context-track>.bulletin-flow{position:absolute!important;inset:0 auto 0 0!important;display:flex!important;align-items:center!important;gap:4px!important;width:max-content!important;min-width:max-content!important;will-change:transform!important;animation:ristBulletinFlow 28s linear infinite!important;}
    .world-context-track:hover>.bulletin-flow,.world-context-track:focus-within>.bulletin-flow{animation-play-state:paused!important;}
