@@ -37,11 +37,6 @@
     margin: 0 !important;
     overflow: hidden !important;
     container-type: size !important;
-
-    /* WORLD is 100 miles wide and every WORLD column is exactly one mile.
-       Using the map width (not the smaller viewport axis) keeps Ocean 071 and
-       the square grid locked to the same 100-column coordinate system. */
-    --rist-grid-cell: 1cqw;
 }
 
 .world-stage {
@@ -69,10 +64,16 @@
     min-height: 100% !important;
 }
 
-/* WorldMap.razor renders <div class="base ocean-world">.
-   Ocean 071 is the canonical one-mile WORLD terrain tile. The tile repeat and
-   square-grid repeat use the exact same cell variable, so the water starts
-   aligned to the one-mile grid rather than drifting between cells. */
+/*
+ * Grid geometry is a map-mode choice, never a screen-orientation choice.
+ * The cell edge uses the smaller map dimension so a square remains a square
+ * in portrait, landscape, split-screen, and resized desktop windows.
+ */
+.map {
+    --rist-grid-cell: min(1cqw, 1cqh);
+}
+
+/* WorldMap.razor renders <div class="base ocean-world">. */
 .base.ocean-world {
     z-index: 0 !important;
     background-color: #0a3040 !important;
@@ -80,23 +81,6 @@
     background-repeat: repeat !important;
     background-position: 0 0 !important;
     background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
-    image-rendering: auto !important;
-}
-
-/* Break up the obvious wallpaper effect without changing the one-mile tile
-   geometry. This is a low-contrast, large-scale water-light variation above
-   Ocean 071; it adds depth while keeping Ocean 071 itself as the terrain. */
-.base.ocean-world::after {
-    content: "" !important;
-    position: absolute !important;
-    inset: 0 !important;
-    pointer-events: none !important;
-    background:
-        radial-gradient(ellipse at 18% 24%, rgba(96, 169, 187, .10) 0 9%, transparent 27%),
-        radial-gradient(ellipse at 72% 68%, rgba(0, 19, 31, .16) 0 12%, transparent 34%),
-        linear-gradient(127deg, rgba(32, 101, 125, .08), transparent 37%, rgba(2, 25, 39, .10) 73%, transparent) !important;
-    background-size: 47% 41%, 59% 53%, 100% 100% !important;
-    mix-blend-mode: soft-light !important;
 }
 
 .world-stage > .grid {
@@ -105,7 +89,7 @@
     background-position: 0 0 !important;
 }
 
-/* Square mode shares the exact Ocean 071 repeat. One repeat = one mile. */
+/* Square mode always renders true square cells, regardless of viewport orientation. */
 .world-stage > .grid.square {
     background-image:
         linear-gradient(to right, rgba(217, 199, 145, .42) 1px, transparent 1px),
@@ -122,40 +106,6 @@
 .world-stage > .grid.none {
     background-image: none !important;
     background: none !important;
-}
-
-/* Authored tiles must meet edge-to-edge. Never let borders, inline-image
-   baselines, padding, or rounding reveal white seams around a placed tile. */
-.world-stage > .tile-cell {
-    box-sizing: border-box !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: 0 !important;
-    outline: 0 !important;
-    gap: 0 !important;
-    overflow: hidden !important;
-    background: transparent !important;
-}
-
-.world-stage > .tile-cell > .tile-image-crop {
-    position: absolute !important;
-    inset: -0.35px !important;
-    display: block !important;
-    width: calc(100% + 0.7px) !important;
-    height: calc(100% + 0.7px) !important;
-    overflow: hidden !important;
-    border: 0 !important;
-    outline: 0 !important;
-    line-height: 0 !important;
-}
-
-.world-stage > .tile-cell > .tile-image-crop > img {
-    display: block !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
-    border: 0 !important;
-    outline: 0 !important;
-    vertical-align: top !important;
 }
 
 /* Authored terrain, pieces, pins, labels and dice remain above base/grid. */
