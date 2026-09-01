@@ -5,15 +5,15 @@ html body .rist.release-world[data-asset-scope="private"] .release-public-region
 html body .rist.release-world[data-asset-scope="public"] .release-public-region,
 html body .rist.release-world[data-asset-scope="private"] .release-private-region{display:block!important}
 
-/* Portrait and default layout: menu / one asset rail / map / footer. */
+/* Default / portrait layout: menu / map / one asset rail / footer. */
 html body .rist.release-world>.release-world-shell{
  grid-template-columns:minmax(0,1fr)!important;
- grid-template-rows:var(--rist-menu-h) var(--rist-assets-h) minmax(0,1fr) var(--rist-footer-h)!important;
+ grid-template-rows:var(--rist-menu-h) minmax(0,1fr) var(--rist-assets-h) var(--rist-footer-h)!important;
 }
 html body .rist.release-world .release-menu-region{grid-column:1!important;grid-row:1!important}
+html body .rist.release-world .release-map-region{grid-column:1!important;grid-row:2!important}
 html body .rist.release-world .release-public-region,
-html body .rist.release-world .release-private-region{grid-column:1!important;grid-row:2!important;width:100%!important}
-html body .rist.release-world .release-map-region{grid-column:1!important;grid-row:3!important}
+html body .rist.release-world .release-private-region{grid-column:1!important;grid-row:3!important;width:100%!important}
 html body .rist.release-world .release-footer-region{grid-column:1!important;grid-row:4!important}
 
 /* Use the tiny title line as the Public / Private selector. */
