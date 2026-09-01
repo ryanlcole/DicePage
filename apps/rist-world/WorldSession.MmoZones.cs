@@ -7,9 +7,11 @@ public sealed partial class WorldSession
 
     public async Task SetOperatingModeAsync(string value)
     {
-        if(!IsLoggedIn)return;
+        // Mode choice is a UI/world-view decision and must work before login.
+        // Persist it only when an authenticated private session exists.
         RestoreOperatingMode(value);
         Notify();
+        if(!IsLoggedIn)return;
         await SaveAsync();
         await AutoSavePrivateAsync();
     }
