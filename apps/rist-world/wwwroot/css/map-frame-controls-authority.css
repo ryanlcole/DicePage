@@ -1,33 +1,86 @@
-/* Map frame/control cleanup. Keep the existing top rail geometry unchanged. */
+/* Permanent map-frame controls. The existing menu rail geometry is untouched. */
 #header-slider .release-root-track>.root-menu-button[aria-label="Toggle Sandbox and MMO"]{display:none!important}
-#header-slider .release-root-track>.map-control-relocated{
- box-sizing:border-box!important;
- flex:0 0 auto!important;
+#header-slider .release-root-track>.map-control-relocated{display:none!important}
+.release-private-region .map-control-source-relocated{display:none!important}
+
+/* The map frame owns the coordinates and all frame controls. */
+.release-map-region .map-frame-status{left:12px!important;right:12px!important;width:auto!important;color:transparent!important;font-size:0!important}
+.release-map-region .map-frame-meta.right-meta{display:none!important}
+.release-map-region .map-frame-meta.left-meta{
+ left:12px!important;
+ right:12px!important;
+ top:0!important;
  width:auto!important;
- min-width:0!important;
  max-width:none!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
+ height:12px!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:3px!important;
+ padding:0 2px!important;
+ overflow:hidden!important;
+ white-space:nowrap!important;
+ background:#071015!important;
+ pointer-events:auto!important;
+}
+.release-map-region .map-frame-mode{
+ flex:0 0 auto!important;
+ box-sizing:border-box!important;
+ height:10px!important;
+ min-height:10px!important;
  margin:0!important;
- padding:0 6px!important;
+ padding:0 4px!important;
+ border-radius:3px!important;
+ font:900 7px/8px system-ui,-apple-system,sans-serif!important;
+ line-height:8px!important;
+}
+.release-map-region .map-frame-world-name{flex:0 1 auto!important;min-width:38px!important;max-width:92px!important;height:10px!important;display:flex!important;align-items:center!important;overflow:hidden!important}
+.release-map-region .map-frame-world-name input{box-sizing:border-box!important;width:100%!important;min-width:38px!important;max-width:92px!important;height:10px!important;margin:0!important;padding:0 2px!important;border:0!important;border-bottom:1px solid #725d30!important;background:transparent!important;color:#e7d59d!important;font:800 7px/9px system-ui,-apple-system,sans-serif!important;line-height:9px!important;outline:none!important;text-overflow:ellipsis!important}
+.release-map-region .map-frame-quick{
+ flex:0 0 auto!important;
+ box-sizing:border-box!important;
+ height:10px!important;
+ min-height:10px!important;
+ max-height:10px!important;
+ margin:0!important;
+ padding:0 3px!important;
  display:inline-flex!important;
  align-items:center!important;
  justify-content:center!important;
- gap:2px!important;
- border-radius:7px!important;
- font:800 9px/20px system-ui,-apple-system,sans-serif!important;
- line-height:20px!important;
+ gap:1px!important;
+ border:1px solid #725d30!important;
+ border-radius:3px!important;
+ background:#0d171d!important;
+ color:#d7be80!important;
+ font:800 6px/8px system-ui,-apple-system,sans-serif!important;
+ line-height:8px!important;
  white-space:nowrap!important;
+ overflow:hidden!important;
 }
-#header-slider .release-root-track>.map-control-pin{width:24px!important;min-width:24px!important;max-width:24px!important;padding:0 3px!important}
-#header-slider .release-root-track>.map-control-pin .header-icon{width:15px!important;height:15px!important;min-width:15px!important;min-height:15px!important;margin:0!important}
-.release-private-region .map-control-source-relocated{display:none!important}
+.release-map-region .map-frame-quick strong{font:inherit!important;line-height:8px!important;color:inherit!important;white-space:nowrap!important}
+.release-map-region .map-frame-quick-pin{width:16px!important;min-width:16px!important;max-width:16px!important;padding:0!important}
+.release-map-region .map-frame-quick-pin .header-icon{width:9px!important;height:9px!important;min-width:9px!important;min-height:9px!important;margin:0!important}
+.release-map-region .map-frame-quick-tier,.release-map-region .map-frame-quick-layer{max-width:70px!important;text-overflow:ellipsis!important}
 
-/* The frame's own top row contains only mode + editable world name. */
-.release-map-region .map-frame-status{color:transparent!important;font-size:0!important}
-.release-map-region .map-frame-meta.right-meta{display:none!important}
+/* Coordinates render only in the already-empty 12px rails. They never create a second inset frame. */
+.release-map-region .map-shell>.rist-coordinate-frame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;box-sizing:border-box!important;pointer-events:none!important;z-index:165!important;border:0!important;overflow:hidden!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.top{left:12px!important;right:12px!important;top:0!important;height:12px!important;overflow:hidden!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.bottom{left:12px!important;right:12px!important;bottom:0!important;height:12px!important;overflow:hidden!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.left{left:0!important;top:12px!important;bottom:12px!important;width:12px!important;overflow:hidden!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.right{right:0!important;top:12px!important;bottom:12px!important;width:12px!important;overflow:hidden!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.top .rist-coordinate-tick{display:none!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-tick{font-size:7px!important;line-height:1!important;white-space:nowrap!important;max-width:calc(100% - 2px)!important;overflow:hidden!important;text-overflow:clip!important}
+
+/* The four plus buttons own the four corners and all other text stops before them. */
+.release-map-region .map-frame-corner-add{z-index:180!important}
 
 /* RIST mode is blue; MMO mode remains green. */
 .release-map-region .map-frame-mode[data-mode="mmo"]{border-color:#386c46!important;background:#102b18!important;color:#74eb8d!important}
 .release-map-region .map-frame-mode[data-mode="sandbox"]{border-color:#356b93!important;background:#0c2233!important;color:#69b9ff!important}
+
+@media(max-width:620px){
+ .release-map-region .map-frame-meta.left-meta{gap:2px!important;padding-inline:1px!important}
+ .release-map-region .map-frame-world-name{max-width:70px!important}
+ .release-map-region .map-frame-world-name input{max-width:70px!important}
+ .release-map-region .map-frame-quick-tier,.release-map-region .map-frame-quick-layer{max-width:58px!important;padding-inline:2px!important}
+}
