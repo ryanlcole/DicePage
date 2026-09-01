@@ -9,7 +9,9 @@
  z-index:8!important;pointer-events:none!important;transform:none!important
 }
 
-/* Coordinate frame is a HUD/cursor around the viewport. */
+/* Coordinate frame is a HUD/cursor around the viewport. Keep the edge strips
+   narrower than the first visible grid cells so the frame never covers them. */
+:root{--rist-coordinate-edge:12px}
 .rist-coordinate-frame{
  position:absolute!important;inset:0!important;width:auto!important;height:auto!important;box-sizing:border-box!important;
  z-index:18!important;pointer-events:none!important;overflow:hidden!important;border:1px solid #7a632f!important;
@@ -17,27 +19,27 @@
 }
 .rist-coordinate-axis{position:absolute!important;pointer-events:none!important;background:#030608d9!important;margin:0!important;box-sizing:border-box!important}
 /* Top is the map/status readout. */
-.rist-coordinate-axis.top{left:18px!important;right:18px!important;top:0!important;height:18px!important;border-bottom:1px solid #55451f!important}
+.rist-coordinate-axis.top{left:var(--rist-coordinate-edge)!important;right:var(--rist-coordinate-edge)!important;top:0!important;height:var(--rist-coordinate-edge)!important;border-bottom:1px solid #55451f!important}
 /* Left = Y, right = Z, bottom = X. */
-.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:18px!important;bottom:18px!important;width:18px!important}
+.rist-coordinate-axis.left,.rist-coordinate-axis.right{top:var(--rist-coordinate-edge)!important;bottom:var(--rist-coordinate-edge)!important;width:var(--rist-coordinate-edge)!important}
 .rist-coordinate-axis.left{left:0!important;border-right:1px solid #55451f!important}
 .rist-coordinate-axis.right{right:0!important;border-left:1px solid #55451f!important}
-.rist-coordinate-axis.bottom{display:block!important;left:18px!important;right:18px!important;bottom:0!important;height:18px!important;border-top:1px solid #55451f!important}
+.rist-coordinate-axis.bottom{display:block!important;left:var(--rist-coordinate-edge)!important;right:var(--rist-coordinate-edge)!important;bottom:0!important;height:var(--rist-coordinate-edge)!important;border-top:1px solid #55451f!important}
 .rist-coordinate-tick{position:absolute;white-space:nowrap;opacity:.88}
-.top .rist-coordinate-tick{left:var(--p);top:5px;transform:translateX(-50%)}
-.bottom .rist-coordinate-tick{left:var(--p);top:5px;transform:translateX(-50%)}
+.top .rist-coordinate-tick{left:var(--p);top:2px;transform:translateX(-50%)}
+.bottom .rist-coordinate-tick{left:var(--p);top:2px;transform:translateX(-50%)}
 .left .rist-coordinate-tick,.right .rist-coordinate-tick{top:var(--p);transform:translateY(-50%);writing-mode:vertical-rl}
-.left .rist-coordinate-tick{left:4px;transform:translateY(-50%) rotate(180deg)}
-.right .rist-coordinate-tick{right:4px}
+.left .rist-coordinate-tick{left:2px;transform:translateY(-50%) rotate(180deg)}
+.right .rist-coordinate-tick{right:2px}
 .rist-coordinate-tick.zero{color:#fff7d1;font-weight:900;opacity:1}
 .rist-coordinate-axis-label{position:absolute;color:#fff7d1;font-weight:900;z-index:1}
-.rist-coordinate-axis.left .rist-coordinate-axis-label{left:4px;top:4px;writing-mode:horizontal-tb!important}
-.rist-coordinate-axis.right .rist-coordinate-axis-label{right:4px;top:4px;writing-mode:horizontal-tb!important}
-.rist-coordinate-axis.bottom .rist-coordinate-axis-label{left:4px;top:5px}
-.rist-coordinate-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6d6ad;font-weight:700}
+.rist-coordinate-axis.left .rist-coordinate-axis-label{left:2px;top:2px;writing-mode:horizontal-tb!important}
+.rist-coordinate-axis.right .rist-coordinate-axis-label{right:2px;top:2px;writing-mode:horizontal-tb!important}
+.rist-coordinate-axis.bottom .rist-coordinate-axis-label{left:2px;top:2px}
+.rist-coordinate-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6d6ad;font-weight:700}
 
 /* The old in-map status strip is represented by the HUD top edge. */
-.map-shell .map>.status{position:absolute!important;left:18px!important;right:18px!important;top:0!important;bottom:auto!important;height:18px!important;z-index:19!important;margin:0!important;padding:0 5px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;pointer-events:none!important;background:#030608e8!important;border:0!important;border-bottom:1px solid #55451f!important;color:#e6d6ad!important;font:700 8px/1 system-ui,-apple-system,sans-serif!important}
+.map-shell .map>.status{position:absolute!important;left:var(--rist-coordinate-edge)!important;right:var(--rist-coordinate-edge)!important;top:0!important;bottom:auto!important;height:var(--rist-coordinate-edge)!important;z-index:19!important;margin:0!important;padding:0 4px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;pointer-events:none!important;background:#030608e8!important;border:0!important;border-bottom:1px solid #55451f!important;color:#e6d6ad!important;font:700 8px/1 system-ui,-apple-system,sans-serif!important}
 
 .rist-art-studio main{position:relative}.rist-art-studio main>.rist-coordinate-frame{inset:0;z-index:4}
 @media(max-width:800px){.rist-coordinate-frame{font-size:7px}.map-shell .map>.status{font-size:7px!important}}
