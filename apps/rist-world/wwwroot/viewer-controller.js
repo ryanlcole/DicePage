@@ -1,5 +1,6 @@
 (()=>{
  const closeClass='map-viewer-close';
+ let viewerResizeObserver=null;
 
  function clickButton(selector){
   const button=document.querySelector(selector);
@@ -47,6 +48,28 @@
   target.prepend(button);
  }
 
+ function ensureSquareGridAuthority(){
+  if(document.getElementById('rist-viewer-square-grid-authority'))return;
+  const style=document.createElement('style');
+  style.id='rist-viewer-square-grid-authority';
+  style.textContent=`
+   .rist.release-world .map:has(.grid.square)::before{
+    background-size:var(--rist-viewer-square-cell,32px) var(--rist-viewer-square-cell,32px)!important;
+   }
+  `;
+  document.head.appendChild(style);
+ }
+
+ function updateSquareCellSize(map){
+  if(!map)return;
+  const rect=map.getBoundingClientRect();
+  if(rect.width<2||rect.height<2)return;
+  /* Keep a stable ~20-cell density across the viewer, but use one value for
+     both axes so late landscape/footer layout changes can never make rectangles. */
+  const cell=Math.max(12,Math.round(Math.min(rect.width,rect.height)/20));
+  map.style.setProperty('--rist-viewer-square-cell',`${cell}px`);
+ }
+
  /* Viewer authority only.
     The map is a viewport, not an aspect-ratio card. It must fill the map-shell
     center cell on every device/orientation. The world-stage then fills that
@@ -83,6 +106,21 @@
    important(stage,'max-width','none');
    important(stage,'max-height','none');
    important(stage,'aspect-ratio','auto');
+  }
+
+  ensureSquareGridAuthority();
+  updateSquareCellSize(map);
+
+  if(!viewerResizeObserver){
+   viewerResizeObserver=new ResizeObserver(entries=>{
+    for(const entry of entries){
+     if(entry.target.matches?.('.release-map-region .map-shell>.map'))updateSquareCellSize(entry.target);
+    }
+   });
+  }
+  if(!map.dataset.viewerSquareObserved){
+   map.dataset.viewerSquareObserved='1';
+   viewerResizeObserver.observe(map);
   }
  }
 
