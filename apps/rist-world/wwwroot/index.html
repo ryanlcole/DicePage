@@ -15,8 +15,17 @@
  <link rel="stylesheet" href="css/ui-cleanup-authority.css?v=20260831-cache-clear-4">
 </head>
 <body>
- <div id="app"></div>
+ <div id="app"><div id="rist-boot-probe" style="box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div></div>
  <script>
+  (()=>{
+   const stage=message=>{const el=document.getElementById('rist-boot-stage');if(el)el.textContent=message};
+   window.addEventListener('error',event=>stage('Startup error: '+(event.message||'unknown browser error')));
+   window.addEventListener('unhandledrejection',event=>stage('Startup error: '+(event.reason?.message||event.reason||'unhandled promise rejection')));
+   document.addEventListener('DOMContentLoaded',()=>stage('Page scripts loaded; waiting for Blazor'));
+   setTimeout(()=>{
+    if(document.getElementById('rist-boot-probe'))stage('Blazor has not rendered after 15 seconds');
+   },15000);
+  })();
   if('serviceWorker' in navigator){
    navigator.serviceWorker.getRegistrations().then(registrations=>{
     for(const registration of registrations)registration.unregister().catch(()=>{});
