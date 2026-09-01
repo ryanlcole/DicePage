@@ -15,15 +15,29 @@
  <link rel="stylesheet" href="css/ui-cleanup-authority.css?v=20260831-cache-clear-4">
 </head>
 <body>
- <div id="app"><div id="rist-boot-probe" style="box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div></div>
+ <div id="rist-boot-probe" style="position:fixed;inset:0;z-index:2147483647;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center;pointer-events:none"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div>
+ <div id="app"></div>
  <script>
   (()=>{
+   const probe=()=>document.getElementById('rist-boot-probe');
    const stage=message=>{const el=document.getElementById('rist-boot-stage');if(el)el.textContent=message};
-   window.addEventListener('error',event=>stage('Startup error: '+(event.message||'unknown browser error')));
-   window.addEventListener('unhandledrejection',event=>stage('Startup error: '+(event.reason?.message||event.reason||'unhandled promise rejection')));
+   const app=()=>document.getElementById('app');
+   window.RistBoot={
+    stage,
+    complete:()=>probe()?.remove()
+   };
+   window.addEventListener('error',event=>stage('Browser startup error: '+(event.message||'unknown browser error')));
+   window.addEventListener('unhandledrejection',event=>stage('Browser startup error: '+(event.reason?.message||event.reason||'unhandled promise rejection')));
    document.addEventListener('DOMContentLoaded',()=>stage('Page scripts loaded; waiting for Blazor'));
+   const root=app();
+   if(root)new MutationObserver(()=>{
+    if(root.children.length>0){
+     stage('Blazor rendered the application');
+     setTimeout(()=>probe()?.remove(),250);
+    }else stage('Blazor claimed the app root; waiting for first render');
+   }).observe(root,{childList:true});
    setTimeout(()=>{
-    if(document.getElementById('rist-boot-probe'))stage('Blazor has not rendered after 15 seconds');
+    if(probe())stage(root&&root.children.length===0?'Blazor started but first render has not completed':'Blazor runtime has not claimed the app root');
    },15000);
   })();
   if('serviceWorker' in navigator){
