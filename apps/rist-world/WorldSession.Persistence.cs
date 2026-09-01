@@ -3,8 +3,8 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
- const string OceanResetVersion="2026-08-28-topology-v2";
- const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
+ const string OceanResetVersion="2026-09-01-grid20-v1";
+ const string OceanResetMarkerKey="rist.world.reset.2026-09-01-grid20-v1";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
@@ -124,7 +124,7 @@ public sealed partial class WorldSession
   Layer="WORLD";
   GridStyle="square";
   DistanceUnit="mi";
-  GridDiameter=48;
+  GridDiameter=20;
   GridDistance=1;
   GridCalibrationZoom=1;
   ViewZoom=1;
