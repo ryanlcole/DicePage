@@ -1,0 +1,33 @@
+/* Map frame/control cleanup. Keep the existing top rail geometry unchanged. */
+#header-slider .release-root-track>.root-menu-button[aria-label="Toggle Sandbox and MMO"]{display:none!important}
+#header-slider .release-root-track>.map-control-relocated{
+ box-sizing:border-box!important;
+ flex:0 0 auto!important;
+ width:auto!important;
+ min-width:0!important;
+ max-width:none!important;
+ height:22px!important;
+ min-height:22px!important;
+ max-height:22px!important;
+ margin:0!important;
+ padding:0 6px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:2px!important;
+ border-radius:7px!important;
+ font:800 9px/20px system-ui,-apple-system,sans-serif!important;
+ line-height:20px!important;
+ white-space:nowrap!important;
+}
+#header-slider .release-root-track>.map-control-pin{width:24px!important;min-width:24px!important;max-width:24px!important;padding:0 3px!important}
+#header-slider .release-root-track>.map-control-pin .header-icon{width:15px!important;height:15px!important;min-width:15px!important;min-height:15px!important;margin:0!important}
+.release-private-region .map-control-source-relocated{display:none!important}
+
+/* The frame's own top row contains only mode + editable world name. */
+.release-map-region .map-frame-status{color:transparent!important;font-size:0!important}
+.release-map-region .map-frame-meta.right-meta{display:none!important}
+
+/* RIST mode is blue; MMO mode remains green. */
+.release-map-region .map-frame-mode[data-mode="mmo"]{border-color:#386c46!important;background:#102b18!important;color:#74eb8d!important}
+.release-map-region .map-frame-mode[data-mode="sandbox"]{border-color:#356b93!important;background:#0c2233!important;color:#69b9ff!important}
