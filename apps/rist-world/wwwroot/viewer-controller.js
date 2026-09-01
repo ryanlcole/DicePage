@@ -54,7 +54,7 @@
   style.id='rist-viewer-square-grid-authority';
   style.textContent=`
    .rist.release-world .map:has(.grid.square)::before{
-    background-size:var(--rist-viewer-square-cell,32px) var(--rist-viewer-square-cell,32px)!important;
+    background-size:var(--rist-viewer-square-cell,64px) var(--rist-viewer-square-cell,64px)!important;
    }
   `;
   document.head.appendChild(style);
@@ -64,16 +64,11 @@
   if(!map)return;
   const rect=map.getBoundingClientRect();
   if(rect.width<2||rect.height<2)return;
-  /* Keep a stable ~20-cell density across the viewer, but use one value for
-     both axes so late landscape/footer layout changes can never make rectangles. */
-  const cell=Math.max(12,Math.round(Math.min(rect.width,rect.height)/20));
+  /* One new square covers the area of four old squares: double both side lengths. */
+  const cell=Math.max(24,Math.round(Math.min(rect.width,rect.height)/10));
   map.style.setProperty('--rist-viewer-square-cell',`${cell}px`);
  }
 
- /* Viewer authority only.
-    The map is a viewport, not an aspect-ratio card. It must fill the map-shell
-    center cell on every device/orientation. The world-stage then fills that
-    viewport. This intentionally does not alter menus, assets, chat, or footer. */
  function fixViewer(){
   const shell=document.querySelector('.release-map-region .map-shell');
   const map=shell?.querySelector(':scope > .map');
