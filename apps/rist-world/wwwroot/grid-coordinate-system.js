@@ -39,20 +39,19 @@
   return frame;
  }
  function setTick(tick,value,unit,inside,zeroTolerance){
-  if(!inside){
-   tick.textContent='';
-   tick.classList.remove('zero');
-   tick.classList.add('outside-world');
-   return;
-  }
+  if(!inside){tick.textContent='';tick.classList.remove('zero');tick.classList.add('outside-world');return;}
   tick.classList.remove('outside-world');
   tick.textContent=`${number(value)}${unit?` ${unit}`:''}`;
   tick.classList.toggle('zero',Math.abs(value)<zeroTolerance);
  }
  function decorateMap(map){
   const stage=map.querySelector('.world-stage');
-  if(!stage)return;
-  const frame=ensureFrame(map,'map-coordinates');
+  const shell=map.closest('.map-shell');
+  if(!stage||!shell)return;
+  /* Coordinates belong to the permanent shell frame, never inside the map. */
+  const stale=map.querySelector(':scope > .rist-coordinate-frame');
+  if(stale)stale.remove();
+  const frame=ensureFrame(shell,'map-coordinates');
   const mapRect=map.getBoundingClientRect();
   const stageRect=stage.getBoundingClientRect();
   if(mapRect.width<2||mapRect.height<2||stageRect.width<2||stageRect.height<2)return;
@@ -65,49 +64,22 @@
   const bottom=frame.querySelectorAll('.bottom .rist-coordinate-tick');
   const left=frame.querySelectorAll('.left .rist-coordinate-tick');
   const right=frame.querySelectorAll('.right .rist-coordinate-tick');
-  bottom.forEach((tick,i)=>{
-   const x=mapRect.left+mapRect.width*i/(TICKS-1);
-   setTick(tick,xAt(x),scale.unit,insideX(x),scale.distance/1000);
-  });
-  left.forEach((tick,i)=>{
-   const y=mapRect.top+mapRect.height*i/(TICKS-1);
-   setTick(tick,yAt(y),scale.unit,insideY(y),scale.distance/1000);
-  });
+  bottom.forEach((tick,i)=>{const x=mapRect.left+mapRect.width*i/(TICKS-1);setTick(tick,xAt(x),scale.unit,insideX(x),scale.distance/1000);});
+  left.forEach((tick,i)=>{const y=mapRect.top+mapRect.height*i/(TICKS-1);setTick(tick,yAt(y),scale.unit,insideY(y),scale.distance/1000);});
   const z=Number((map.querySelector('.status')?.textContent||'').match(/(?:^|\s)z=(-?\d+)/i)?.[1]||0);
   const center=Math.floor(TICKS/2);
-  right.forEach((tick,i)=>{
-   tick.textContent=i===center?number(z):'';
-   tick.classList.toggle('zero',z===0&&i===center);
-  });
+  right.forEach((tick,i)=>{tick.textContent=i===center?number(z):'';tick.classList.toggle('zero',z===0&&i===center);});
   frame.querySelectorAll('.top .rist-coordinate-tick').forEach(tick=>tick.textContent='');
  }
  function decorateCanvas(main){
-  const canvas=main.querySelector(':scope > canvas');
-  if(!canvas)return;
-  const frame=ensureFrame(main,'canvas-coordinates');
-  const rect=canvas.getBoundingClientRect();
-  if(rect.width<2||rect.height<2)return;
-  const label=main.closest('.rist-art-studio')?.querySelector('.rist-art-zoom-value')?.textContent||'1×';
-  const zoom=Math.max(1,Number.parseFloat(label)||1);
-  const xAt=x=>((x-rect.left)-rect.width/2)/zoom;
-  const yAt=y=>(rect.height/2-(y-rect.top))/zoom;
-  frame.querySelectorAll('.bottom .rist-coordinate-tick').forEach((tick,i)=>{
-   const value=xAt(rect.left+rect.width*i/(TICKS-1));
-   tick.textContent=number(value);
-   tick.classList.toggle('zero',Math.abs(value)<.0001);
-  });
-  frame.querySelectorAll('.left .rist-coordinate-tick').forEach((tick,i)=>{
-   const value=yAt(rect.top+rect.height*i/(TICKS-1));
-   tick.textContent=number(value);
-   tick.classList.toggle('zero',Math.abs(value)<.0001);
-  });
+  const canvas=main.querySelector(':scope > canvas');if(!canvas)return;
+  const frame=ensureFrame(main,'canvas-coordinates');const rect=canvas.getBoundingClientRect();if(rect.width<2||rect.height<2)return;
+  const label=main.closest('.rist-art-studio')?.querySelector('.rist-art-zoom-value')?.textContent||'1×';const zoom=Math.max(1,Number.parseFloat(label)||1);
+  const xAt=x=>((x-rect.left)-rect.width/2)/zoom;const yAt=y=>(rect.height/2-(y-rect.top))/zoom;
+  frame.querySelectorAll('.bottom .rist-coordinate-tick').forEach((tick,i)=>{const value=xAt(rect.left+rect.width*i/(TICKS-1));tick.textContent=number(value);tick.classList.toggle('zero',Math.abs(value)<.0001);});
+  frame.querySelectorAll('.left .rist-coordinate-tick').forEach((tick,i)=>{const value=yAt(rect.top+rect.height*i/(TICKS-1));tick.textContent=number(value);tick.classList.toggle('zero',Math.abs(value)<.0001);});
  }
- function update(){
-  document.querySelectorAll('.map').forEach(decorateMap);
-  document.querySelectorAll('.rist-art-studio main').forEach(decorateCanvas);
- }
+ function update(){document.querySelectorAll('.map').forEach(decorateMap);document.querySelectorAll('.rist-art-studio main').forEach(decorateCanvas);}
  const queue=()=>window.RistRuntime?.frame?.('coordinates',update)??requestAnimationFrame(update);
- document.addEventListener('rist:dom-change',queue);
- document.addEventListener('rist:viewport-change',queue);
- queue();
+ document.addEventListener('rist:dom-change',queue);document.addEventListener('rist:viewport-change',queue);queue();
 })();
