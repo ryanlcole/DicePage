@@ -3,8 +3,8 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
- const string OceanResetVersion="2026-09-01-grid20-v1";
- const string OceanResetMarkerKey="rist.world.reset.2026-09-01-grid20-v1";
+ const string OceanResetVersion="2026-08-28-topology-v2";
+ const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
@@ -16,8 +16,9 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=4,
+   Version=5,
    Reset=OceanResetVersion,
+   OperatingMode,
    Role,
    Layer,
    GridStyle,
@@ -121,10 +122,11 @@ public sealed partial class WorldSession
  void ResetToCanonicalOrigin()
  {
   EncounterActive=false;
+  RestoreOperatingMode("mmo");
   Layer="WORLD";
   GridStyle="square";
   DistanceUnit="mi";
-  GridDiameter=20;
+  GridDiameter=48;
   GridDistance=1;
   GridCalibrationZoom=1;
   ViewZoom=1;
@@ -139,7 +141,7 @@ public sealed partial class WorldSession
  public void LoadMapJson(string json)
  {
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
-  EncounterActive=false;Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);GridStyle=save.GridStyle;
+  EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);

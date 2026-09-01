@@ -195,7 +195,10 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/*' --query 'Invalidation.Id' --output text)
+          # Invalidate the game namespace so stable-name JS/CSS updates cannot be
+          # mixed with a fresh index. Browser max-age headers still preserve the
+          # client-side cache; this only keeps CloudFront's copy coherent.
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
