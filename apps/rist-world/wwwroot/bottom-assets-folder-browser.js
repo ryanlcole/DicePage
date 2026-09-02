@@ -10,7 +10,7 @@
   tiles:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
   terrain:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
   sprites:{base:['Shaelvien','Sprites'],children:{'':[]}},
-  library:{base:['Shaelvien','Manuals'],children:{'':[]}}
+  library:{base:['Library'],children:{'':['Shaelvien','Calforth'],'Shaelvien':['Manuals'],'Calforth':['Rule Books']}}
  };
  let catalog=[],loaded=false,loading=false,path=[];
  const q=(s,r=document)=>r?.querySelector(s);
@@ -18,7 +18,6 @@
  const row=n=>q(`.release-world-shell>.rist-deck-row.row${n}`);
  const current=()=>q('.rist-section-list>button.active')?.dataset.section||'';
  const same=(a,b)=>String(a||'').toLowerCase()===String(b||'').toLowerCase();
- const label=k=>TYPES.get(k)||k;
  const keyOf=p=>p.join('/');
  const text=e=>(e?.textContent||'').replace(/\s+/g,' ').trim();
 
@@ -34,7 +33,7 @@
   const raw=`${a?.name||''} ${a?.folder||''} ${a?.directory||''} ${a?.layer||''} ${a?.image||''}`.toLowerCase();
   if(section==='terrain')return /terrain|beach|coast|ocean|river|lake|forest|jungle|plains|hill|mountain|cliff|canyon|desert|swamp|snow|ice|volcano|vent/.test(raw);
   if(section==='sprites')return /sprite|animation|animated|motion/.test(raw);
-  if(section==='library')return /manual|book|library|guide|rule/.test(raw);
+  if(section==='library')return /manual|book|library|guide|rule|shaelvien|calforth/.test(raw);
   if(section==='tiles')return true;
   return section==='cards'?/card/.test(raw):section==='tokens'?/token|chit|marker|pin/.test(raw):section==='minis'?/mini/.test(raw):section==='rolling-stock'?/rolling|locomotive|train|vehicle/.test(raw):section==='pawns'?/pawn|meeple/.test(raw):section==='bits'?/bit|prop|object/.test(raw):true;
  }
@@ -44,6 +43,11 @@
    const root=image.includes('/region/')||layer==='region'?'Region_Map':'World_Map';
    if(root==='World_Map'&&(same(dir,'Terrain')||section==='terrain'))return [root,'Terrain',folder].filter(Boolean);
    return [root,dir,folder].filter(Boolean);
+  }
+  if(section==='library'){
+   const raw=`${a?.name||''} ${a?.folder||''} ${a?.directory||''} ${a?.image||''}`.toLowerCase();
+   if(raw.includes('calforth'))return ['Calforth','Rule Books'];
+   return ['Shaelvien','Manuals'];
   }
   return [String(a?.directory||''),String(a?.folder||'')].filter(Boolean);
  }
