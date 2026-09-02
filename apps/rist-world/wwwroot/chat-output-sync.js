@@ -28,7 +28,7 @@
  }
  function characterName(){return (q('[data-character-name]')?.getAttribute('data-character-name')||q('.character-name')?.textContent||q('.sheet-character-name')?.textContent||'Unknown').trim()||'Unknown'}
  function characterPortrait(){return liveParts().portrait||q('.character-portrait img')?.src||''}
- function playerProfileImage(){return window.RistProfileImage?.get?.()||localStorage.getItem('rist.playerProfileImage.v1')||''}
+ function playerProfileImage(){return window.RistProfileImage?.get?.()||window.RistProfileImage?.current?.()||localStorage.getItem('rist.profile.image.v1')||''}
  function paintPortrait(host,src,kind){
   if(!host)return;host.replaceChildren();host.dataset.portraitKind=kind;
   if(src){const img=document.createElement('img');img.src=src;img.alt='';host.appendChild(img);return}
