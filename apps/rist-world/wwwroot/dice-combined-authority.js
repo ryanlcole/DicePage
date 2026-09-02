@@ -1,9 +1,15 @@
 (()=>{
  'use strict';
- const LABELS=['d4','Bonus','Penalty','d6','d8','d10','xd10','d20'];
+ const LABELS={d4:'d4','d5-bonus':'Bonus','d5-penalty':'Penalty',d6:'d6',d8:'d8',d10:'d10','d10-inverse':'xd10',d12:'d12',d20:'d20'};
  let queued=false;
  const q=(s,r=document)=>r?.querySelector(s);
  const qa=(s,r=document)=>[...(r?.querySelectorAll(s)||[])];
+ function dieKey(el){
+  const sprite=el?.matches?.('.die-sprite')?el:el?.querySelector?.('.die-sprite');
+  if(!sprite)return '';
+  const cls=[...sprite.classList].find(c=>/^die-d/.test(c)&&c!=='die-sprite');
+  return cls?cls.replace(/^die-/,''):'';
+ }
  function rolledValue(el){
   const title=(el.getAttribute('title')||'').trim();
   if(/\brolling$/i.test(title))return el.classList.contains('die-d10-inverse')?10:0;
@@ -26,10 +32,11 @@
   const shell=q(':scope>.release-world-shell',root),row1=q(':scope>.rist-deck-row.row1',shell),row2=q(':scope>.rist-deck-row.row2',shell),art=q('.rist-dice-image-loop',row2);
   if(!row1||!row2||!art)return;
   row1.classList.add('rist-dice-header-merged');row2.classList.add('rist-dice-combined-row');
-  qa(':scope>.rist-dice-proxy',art).forEach((proxy,index)=>{
-   const logical=index%LABELS.length;proxy.dataset.loopIndex=String(logical);
+  qa(':scope>.rist-dice-proxy',art).forEach(proxy=>{
+   const key=dieKey(proxy);if(!key)return;
+   proxy.dataset.dieKey=key;
    let label=q(':scope>.rist-dice-combined-label',proxy);if(!label){label=document.createElement('div');label.className='rist-dice-combined-label';proxy.prepend(label)}
-   label.textContent=LABELS[logical];
+   label.textContent=LABELS[key]||key;
   });
   paintTotal(root);
  }
