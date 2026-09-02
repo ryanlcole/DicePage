@@ -19,32 +19,92 @@ html body #app .release-map-region .map-frame-title,
 html body #app .release-map-region .map-frame-title input{pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important}
 html body #app .release-map-region .map-frame-title input{caret-color:transparent!important}
 
-/* Chat header is owned by the deck row. Footer contributes only output/input. */
+/* The lower deck is bounded by the ACTUAL remaining world-shell height.
+   No fixed 25dvh assumption survives Safari chrome changes. */
+html body #app>.rist.release-world>.release-world-shell{
+ --rist-deck-top:70dvh;
+ --rist-deck-h:calc(100% - var(--rist-deck-top));
+}
+html body #app>.rist.release-world>.release-world-shell>.rist-section-selector{
+ top:var(--rist-deck-top)!important;
+ height:var(--rist-deck-h)!important;
+ min-height:0!important;
+ max-height:none!important;
+ bottom:0!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.rist-deck-row{
+ min-height:0!important;
+ max-height:none!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.rist-deck-row.row1{
+ top:var(--rist-deck-top)!important;
+ height:calc(var(--rist-deck-h) / 3)!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.rist-deck-row.row2{
+ top:calc(var(--rist-deck-top) + (var(--rist-deck-h) / 3))!important;
+ height:calc(var(--rist-deck-h) / 3)!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.rist-deck-row.row3{
+ top:calc(var(--rist-deck-top) + ((var(--rist-deck-h) / 3) * 2))!important;
+ height:calc(var(--rist-deck-h) / 3)!important;
+ bottom:0!important;
+}
+
+/* Chat uses its requested 20 / 40 / 40 split inside the same bounded remainder. */
 html body #app>.rist.release-world.deck-chat>.release-world-shell>.rist-deck-row.row1{
- display:flex!important;top:70dvh!important;height:5dvh!important;
+ display:flex!important;
+ top:var(--rist-deck-top)!important;
+ height:calc(var(--rist-deck-h) * .2)!important;
 }
 html body #app>.rist.release-world.deck-chat>.release-world-shell>.release-footer-region{
- top:75dvh!important;height:20dvh!important;min-height:20dvh!important;max-height:20dvh!important;
+ top:var(--rist-deck-top)!important;
+ height:var(--rist-deck-h)!important;
+ min-height:0!important;
+ max-height:none!important;
+ bottom:0!important;
 }
 html body #app>.rist.release-world.deck-chat .release-footer-region>.release-footer-stack{
- width:100%!important;height:20dvh!important;min-height:20dvh!important;max-height:20dvh!important;
- display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:10dvh 10dvh!important;
+ box-sizing:border-box!important;
+ width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:20% 40% 40%!important;
 }
 html body #app>.rist.release-world.deck-chat .release-footer-stack>.inline-chat-output{
- grid-column:1!important;grid-row:1!important;width:100%!important;height:10dvh!important;min-height:10dvh!important;max-height:10dvh!important;
+ grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
 }
 html body #app>.rist.release-world.deck-chat .release-footer-stack>.footer-dock,
 html body #app>.rist.release-world.deck-chat .release-footer-stack .home-inline-chat{display:contents!important}
 html body #app>.rist.release-world.deck-chat .release-footer-stack .chat-mode-rail{display:none!important}
 html body #app>.rist.release-world.deck-chat .release-footer-stack .chat-compose-rail{
- grid-column:1!important;grid-row:2!important;width:100%!important;height:10dvh!important;min-height:10dvh!important;max-height:10dvh!important;
+ grid-column:1!important;grid-row:3!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+}
+html body #app>.rist.release-world.deck-chat .release-footer-stack .home-chat-compose,
+html body #app>.rist.release-world.deck-chat .release-footer-stack .home-chat-compose textarea,
+html body #app>.rist.release-world.deck-chat .release-footer-stack .home-chat-send,
+html body #app>.rist.release-world.deck-chat .release-footer-stack .dice-tray-toggle{
+ max-height:calc(100% - 6px)!important;
 }
 
-/* Dice must use the actual live footer rail and original sprite backgrounds. */
+/* Dice: header / live dice images / results, each one third of the exact remainder. */
+html body #app>.rist.release-world.deck-dice>.release-world-shell>.release-footer-region{
+ top:var(--rist-deck-top)!important;
+ height:var(--rist-deck-h)!important;
+ min-height:0!important;
+ max-height:none!important;
+ bottom:0!important;
+ pointer-events:none!important;
+}
+html body #app>.rist.release-world.deck-dice .release-footer-region>.release-footer-stack{
+ position:relative!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important;
+}
+html body #app>.rist.release-world.deck-dice .footer-dock{
+ position:absolute!important;left:0!important;right:0!important;top:calc(100% / 3)!important;height:calc(100% / 3)!important;min-height:0!important;max-height:none!important;overflow:hidden!important;pointer-events:auto!important;
+}
 html body #app>.rist.release-world.deck-dice .release-footer-stack.dice-tray-open #footer-slider{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
  display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
 }
 html body #app>.rist.release-world.deck-dice .release-footer-stack.dice-tray-open #footer-slider .release-footer-track{
+ box-sizing:border-box!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
  display:flex!important;opacity:1!important;visibility:visible!important;align-items:center!important;
 }
 html body #app>.rist.release-world.deck-dice #footer-slider .die-button,
@@ -53,15 +113,31 @@ html body #app>.rist.release-world.deck-dice #footer-slider .die-control{
 }
 html body #app>.rist.release-world.deck-dice #footer-slider .die-sprite{
  display:block!important;opacity:1!important;visibility:visible!important;flex:0 0 auto!important;
- width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;max-width:52px!important;max-height:52px!important;
+ width:min(52px,calc(var(--rist-deck-h) / 3 - 12px))!important;height:min(52px,calc(var(--rist-deck-h) / 3 - 12px))!important;
+ min-width:36px!important;min-height:36px!important;max-width:52px!important;max-height:52px!important;
  background-repeat:no-repeat!important;background-color:transparent!important;
 }
 html body #app>.rist.release-world.deck-dice #footer-slider .d5-control{
  display:grid!important;grid-template-rows:20px minmax(0,1fr)!important;min-width:56px!important;
 }
-html body #app>.rist.release-world.deck-dice #footer-slider .d5-control .die-button{height:52px!important;min-height:52px!important;max-height:52px!important}
 
-/* Asset deck owns the old public rail content; unhide only real asset buttons here. */
+/* Assets: header / draggable assets / actions, each one third of the remainder. */
+html body #app>.rist.release-world.deck-assets>.release-world-shell>.release-public-region{
+ top:var(--rist-deck-top)!important;
+ height:var(--rist-deck-h)!important;
+ min-height:0!important;
+ max-height:none!important;
+ bottom:0!important;
+ pointer-events:none!important;
+}
+html body #app>.rist.release-world.deck-assets .release-public-region>.public-assets-rail,
+html body #app>.rist.release-world.deck-assets .release-public-region .public-assets-strip{
+ position:relative!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;display:block!important;overflow:hidden!important;
+}
+html body #app>.rist.release-world.deck-assets .release-public-region .public-assets-items{
+ box-sizing:border-box!important;position:absolute!important;left:0!important;right:0!important;top:calc(100% / 3)!important;height:calc(100% / 3)!important;
+ min-height:0!important;max-height:none!important;display:flex!important;align-items:center!important;gap:6px!important;padding:4px 6px!important;overflow-x:auto!important;overflow-y:hidden!important;pointer-events:auto!important;
+}
 html body #app>.rist.release-world.deck-assets .release-public-region .public-assets-items>.public-asset-card{
  box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 auto!important;
  height:calc(100% - 6px)!important;min-height:0!important;max-height:100%!important;width:auto!important;
@@ -73,7 +149,7 @@ html body #app>.rist.release-world.deck-assets .release-public-region .public-as
 /* Empty asset slot is an explicit Add control. */
 html body #app>.rist.release-world.deck-assets .rist-asset-plus{
  box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 56px!important;
- width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;
+ width:56px!important;height:min(56px,calc(100% - 8px))!important;min-width:56px!important;min-height:40px!important;
  border:1px solid #a57c2f!important;border-radius:9px!important;background:#111920!important;color:#f1d68f!important;
  font:900 28px/1 system-ui!important;touch-action:manipulation!important;
 }
