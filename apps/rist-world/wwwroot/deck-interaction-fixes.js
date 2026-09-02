@@ -29,6 +29,18 @@
    if(mirror&&mirror.value!==value)mirror.value=value;
   });
  }
+ function clearDice(){q('#footer-slider .clear-dice')?.click();}
+ function ensureClearDiceButton(){
+  const root=q('.rist.release-world');
+  const shell=q(':scope > .release-world-shell',root);
+  const row3=q(':scope > .rist-deck-row.row3',shell);
+  const actions=q('.rist-deck-actions',row3);
+  if(!actions||q('.rist-clear-dice',actions))return;
+  const button=document.createElement('button');
+  button.type='button';button.className='rist-clear-dice';button.textContent='Clear Dice';
+  button.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();clearDice();},true);
+  actions.appendChild(button);
+ }
 
  function ensureTripleLoop(loop){
   if(!loop)return;
@@ -70,7 +82,7 @@
   const head=q('.rist-dice-header-loop',row1);
   const art=q('.rist-dice-image-loop',row2);
   if(!row1||!row2||!head||!art)return;
-  ensureTripleLoop(head);ensureTripleLoop(art);
+  ensureTripleLoop(head);ensureTripleLoop(art);ensureClearDiceButton();
   head.classList.remove('rist-dice-synced');art.classList.remove('rist-dice-synced');
   if(row1.dataset.diceLinked!=='1'){
    row1.dataset.diceLinked='1';row2.dataset.diceLinked='1';
