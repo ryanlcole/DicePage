@@ -61,6 +61,15 @@ html body #app>.rist.release-world.deck-dice #footer-slider .d5-control{
 }
 html body #app>.rist.release-world.deck-dice #footer-slider .d5-control .die-button{height:52px!important;min-height:52px!important;max-height:52px!important}
 
+/* Asset deck owns the old public rail content; unhide only real asset buttons here. */
+html body #app>.rist.release-world.deck-assets .release-public-region .public-assets-items>.public-asset-card{
+ box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 auto!important;
+ height:calc(100% - 6px)!important;min-height:0!important;max-height:100%!important;width:auto!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;touch-action:manipulation!important;
+}
+html body #app>.rist.release-world.deck-assets .release-public-region .public-assets-items>.public-asset-card img{
+ display:block!important;width:auto!important;height:100%!important;max-height:100%!important;object-fit:contain!important;
+}
 /* Empty asset slot is an explicit Add control. */
 html body #app>.rist.release-world.deck-assets .rist-asset-plus{
  box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 56px!important;
