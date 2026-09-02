@@ -46,18 +46,35 @@ html body #app>.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row
 .rist-dice-image-loop .die-d5-bonus,.rist-dice-image-loop .die-d5-penalty{
  background-color:#0b141b!important;background-blend-mode:multiply!important;
 }
+/* D5s reserve the lower strip for their value selectors, matching the original tray proportions. */
 .rist-dice-image-loop>.rist-dice-proxy.d5-control,
-.rist-dice-image-loop>.rist-dice-proxy.die-control{
- display:grid!important;grid-template-rows:22px minmax(0,1fr)!important;align-items:center!important;justify-items:center!important;
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-bonus),
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-penalty){
+ display:grid!important;grid-template-rows:minmax(0,1fr) 20px!important;align-items:center!important;justify-items:center!important;
  padding:2px!important;
 }
-.rist-dice-image-loop>.rist-dice-proxy.d5-control select,
-.rist-dice-image-loop>.rist-dice-proxy.die-control select{
- box-sizing:border-box!important;display:block!important;width:calc(100% - 6px)!important;height:20px!important;min-height:20px!important;
- margin:0!important;padding:0 3px!important;border:1px solid #725d30!important;border-radius:5px!important;
- background:#101920!important;color:#f0d58d!important;font:800 10px/1 system-ui!important;text-align:center!important;
-}
 .rist-dice-image-loop>.rist-dice-proxy.d5-control .die-button,
-.rist-dice-image-loop>.rist-dice-proxy.die-control .die-button{height:100%!important;min-height:0!important}
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-bonus) .die-button,
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-penalty) .die-button{
+ grid-row:1!important;height:100%!important;min-height:0!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy.d5-control select,
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-bonus) select,
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-penalty) select{
+ box-sizing:border-box!important;display:block!important;grid-row:2!important;width:calc(100% - 8px)!important;height:18px!important;min-height:18px!important;
+ margin:0!important;padding:0 3px!important;border:1px solid #725d30!important;border-radius:5px!important;
+ background:#101920!important;color:#f0d58d!important;font:800 9px/1 system-ui!important;text-align:center!important;order:2!important;
+}
 .rist-dice-image-loop>.rist-dice-proxy.d5-control .die-sprite,
-.rist-dice-image-loop>.rist-dice-proxy.die-control .die-sprite{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important}
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-bonus) .die-sprite,
+.rist-dice-image-loop>.rist-dice-proxy.die-control:has(.die-d5-penalty) .die-sprite{
+ width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important;
+}
+
+/* Bottom dice actions include SUM, Log and Clear Dice. */
+html body #app>.rist.release-world.deck-dice .rist-deck-row.row3 .rist-deck-actions{
+ display:flex!important;align-items:center!important;gap:6px!important;overflow-x:auto!important;overflow-y:hidden!important;
+}
+html body #app>.rist.release-world.deck-dice .rist-deck-row.row3 .rist-clear-dice{
+ flex:0 0 auto!important;white-space:nowrap!important;
+}
