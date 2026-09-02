@@ -6,7 +6,7 @@
  let mapEventsBound=false;
 
  function clickHidden(selector){const el=document.querySelector(selector);if(el){el.click();return true;}return false;}
- function sourcePinButton(){return document.querySelector('.public-pin-button');}
+ function sourcePinButton(){return document.querySelector('.public-pin-source,.token-pin-source,.private-pin-source');}
  function findPrivateControl(kind){
   const root=document.querySelector('.release-private-region');
   if(!root)return null;
@@ -39,7 +39,7 @@
   if(!ghost){
    ghost=document.createElement('div');
    ghost.className='rist-pin-placement-ghost';
-   ghost.setAttribute('aria-hidden','true');
+   ghost.setAttribute('aria-label','Pin placement cursor');
    ghost.textContent='●';
    map.appendChild(ghost);
   }
@@ -115,6 +115,23 @@
   if(strong)strong.textContent=pinState.mode==='placing'?'Set':pinState.mode==='selected'?'DEL':'Pin';
   button.setAttribute('aria-label',pinState.mode==='placing'?'Set map pin':pinState.mode==='selected'?'Delete selected map pin':'Place map pin');
  }
+ function closeAxisOverlay(){document.querySelector('.rist-axis-menu-overlay')?.remove();}
+ function openAxisMenu(kind){
+  closeAxisOverlay();
+  const source=findPrivateControl(kind);
+  if(!source)return;
+  source.click();
+  setTimeout(()=>{
+   const picker=source.closest('.z-axis-picker');
+   const originals=[...(picker?.querySelectorAll('.z-axis-options>button')||[])];
+   const overlay=document.createElement('div');overlay.className='rist-axis-menu-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label',`${kind} options`);
+   const title=document.createElement('strong');title.textContent=kind==='tier'?'Tier':'Layer';overlay.appendChild(title);
+   if(originals.length===0){const current=document.createElement('span');current.textContent=(source.textContent||'').replace(/\s+/g,' ').trim();overlay.appendChild(current);}
+   for(const original of originals){const clone=document.createElement('button');clone.type='button';clone.textContent=(original.textContent||'').replace(/\s+/g,' ').trim();clone.className=original.className;clone.addEventListener('click',()=>{original.click();closeAxisOverlay();});overlay.appendChild(clone);}
+   const close=document.createElement('button');close.type='button';close.textContent='×';close.className='axis-overlay-close';close.addEventListener('click',closeAxisOverlay);overlay.appendChild(close);
+   document.body.appendChild(overlay);
+  },60);
+ }
  function ensureMenuControls(){
   const track=document.querySelector('#header-slider .release-root-track');
   if(!track)return;
@@ -135,7 +152,7 @@
      setTimeout(sync,0);
     });
     else if(kind==='pin')button.addEventListener('click',pinMenuClick);
-    else button.addEventListener('click',()=>{const source=findPrivateControl(kind);if(source)source.click();});
+    else button.addEventListener('click',()=>openAxisMenu(kind));
    }
    if(button!==anchor)track.insertBefore(button,anchor);
    anchor=button.nextElementSibling;
@@ -152,10 +169,10 @@
    <button type="button" class="map-frame-corner-add top-right" data-frame-add="top-right" aria-label="Add from top right">+</button>
    <button type="button" class="map-frame-corner-add bottom-left" data-frame-add="bottom-left" aria-label="Add from bottom left">+</button>
    <button type="button" class="map-frame-corner-add bottom-right" data-frame-add="bottom-right" aria-label="Add from bottom right">+</button>
-   <label class="map-frame-title" aria-label="World name">
+   <div class="map-frame-title" aria-label="World name">
     <span class="map-frame-title-prefix">Shaelvien:</span>
-    <input type="text" maxlength="40" aria-label="World name" value="Shaelvien">
-   </label>`;
+    <input type="text" maxlength="40" aria-label="World name" value="Shaelvien" readonly tabindex="-1">
+   </div>`;
   shell.appendChild(controls);
   controls.querySelectorAll('[data-frame-add]').forEach(button=>button.addEventListener('click',()=>{
    shell.dispatchEvent(new CustomEvent('rist:map-frame-add',{bubbles:true,detail:{corner:button.dataset.frameAdd}}));
@@ -163,9 +180,7 @@
   const nameInput=qs(controls,'.map-frame-title input');
   const savedName=localStorage.getItem('rist.world.frame-name');
   if(savedName)nameInput.value=savedName;
-  nameInput.addEventListener('change',()=>{
-   const value=nameInput.value.trim()||'Shaelvien';nameInput.value=value;localStorage.setItem('rist.world.frame-name',value);
-  });
+  nameInput.style.pointerEvents='none';
   return controls;
  }
  function sync(){
