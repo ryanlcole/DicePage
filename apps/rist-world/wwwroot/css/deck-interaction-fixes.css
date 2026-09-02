@@ -1,0 +1,63 @@
+/* Focused interaction fixes for the near-final control deck. */
+
+/* Preserve iOS focus and keep the themed chat controls touch-friendly. */
+.rist-themed-chat-input textarea[data-stable-chat="1"]{
+ -webkit-user-select:text!important;user-select:text!important;touch-action:manipulation!important;
+}
+.rist-private-user-select{
+ box-sizing:border-box!important;flex:0 0 auto!important;height:calc(100% - 4px)!important;min-height:28px!important;
+ max-width:42%!important;padding:0 28px 0 10px!important;border:1px solid #725d30!important;border-radius:9px!important;
+ background:#101920!important;color:#f0d58d!important;font:800 10px/1 system-ui!important;
+}
+
+/* The dice rows themselves are the synchronized swipe surfaces. */
+html body #app>.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row1,
+html body #app>.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row2{
+ overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;
+ touch-action:pan-x!important;overscroll-behavior-x:contain!important;scroll-behavior:auto!important;
+}
+html body #app>.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row1::-webkit-scrollbar,
+html body #app>.rist.release-world.deck-dice>.release-world-shell>.rist-deck-row.row2::-webkit-scrollbar{display:none!important}
+.rist-dice-header-loop,.rist-dice-image-loop,
+.rist-dice-header-loop.rist-dice-synced,.rist-dice-image-loop.rist-dice-synced{
+ animation:none!important;transform:none!important;display:flex!important;align-items:center!important;gap:6px!important;
+ width:max-content!important;min-width:max-content!important;height:100%!important;white-space:nowrap!important;
+}
+.rist-dice-header-loop>button,.rist-dice-image-loop>.rist-dice-proxy{
+ box-sizing:border-box!important;flex:0 0 72px!important;width:72px!important;min-width:72px!important;max-width:72px!important;
+}
+.rist-dice-header-loop>button{
+ height:calc(100% - 10px)!important;min-height:28px!important;padding:0 6px!important;border-radius:10px!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy{
+ height:calc(100% - 8px)!important;min-height:44px!important;max-height:none!important;padding:2px!important;
+ border:1px solid #725d30!important;border-radius:9px!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy>.die-button,
+.rist-dice-image-loop>.rist-dice-proxy .die-button{
+ box-sizing:border-box!important;display:grid!important;place-items:center!important;width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+}
+.rist-dice-image-loop .die-sprite{
+ display:block!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;background-repeat:no-repeat!important;background-color:transparent!important;
+}
+/* The source d5 sheets contain light square pixels; blend them into the dark game tray. */
+.rist-dice-image-loop .die-d5-bonus,.rist-dice-image-loop .die-d5-penalty{
+ background-color:#0b141b!important;background-blend-mode:multiply!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy.d5-control,
+.rist-dice-image-loop>.rist-dice-proxy.die-control{
+ display:grid!important;grid-template-rows:22px minmax(0,1fr)!important;align-items:center!important;justify-items:center!important;
+ padding:2px!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy.d5-control select,
+.rist-dice-image-loop>.rist-dice-proxy.die-control select{
+ box-sizing:border-box!important;display:block!important;width:calc(100% - 6px)!important;height:20px!important;min-height:20px!important;
+ margin:0!important;padding:0 3px!important;border:1px solid #725d30!important;border-radius:5px!important;
+ background:#101920!important;color:#f0d58d!important;font:800 10px/1 system-ui!important;text-align:center!important;
+}
+.rist-dice-image-loop>.rist-dice-proxy.d5-control .die-button,
+.rist-dice-image-loop>.rist-dice-proxy.die-control .die-button{height:100%!important;min-height:0!important}
+.rist-dice-image-loop>.rist-dice-proxy.d5-control .die-sprite,
+.rist-dice-image-loop>.rist-dice-proxy.die-control .die-sprite{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important}
