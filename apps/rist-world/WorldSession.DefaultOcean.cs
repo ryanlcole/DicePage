@@ -8,10 +8,17 @@ public sealed partial class WorldSession
     public bool ReplaceDefaultMapWithRandomOcean30()
     {
         if (AtlasTiles.Count == 0) return false;
+        if (PlacedTiles.Count > 0 && PlacedTiles.All(tile => tile.Id.StartsWith("default-ocean-", StringComparison.Ordinal)))
+        {
+            GridStyle = "square";
+            DistanceUnit = "mi";
+            GridDistance = 1;
+            GridCalibrationZoom = 1;
+            return false;
+        }
 
         var existingIsDefault = PlacedTiles.Count == 0 ||
-            PlacedTiles.All(tile => tile.Id.StartsWith("naeja-map-", StringComparison.Ordinal) ||
-                                    tile.Id.StartsWith("default-ocean-", StringComparison.Ordinal));
+            PlacedTiles.All(tile => tile.Id.StartsWith("naeja-map-", StringComparison.Ordinal));
         if (!existingIsDefault) return false;
 
         var oceanTiles = AtlasTiles
