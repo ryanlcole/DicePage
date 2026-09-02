@@ -3,6 +3,7 @@
    overlay, and the map always begins at the top of the remaining world area. */
 html body #app{
  --rist-context-h:28px!important;
+ --rist-menu-overlay-h:22px!important;
 }
 
 html body #app>.world-context-strip{
@@ -37,8 +38,7 @@ html body #app>.rist.release-world>.release-world-shell{
  overflow:hidden!important;
 }
 
-/* The main menu must never sit behind the ticker. It opens directly below the
-   ticker and overlays the map, so it consumes no permanent map height. */
+/* The main menu overlays the viewer and consumes no permanent map height. */
 html body #app>.rist.release-world>.release-world-shell>.release-menu-region{
  box-sizing:border-box!important;
  position:fixed!important;
@@ -46,12 +46,12 @@ html body #app>.rist.release-world>.release-world-shell>.release-menu-region{
  right:0!important;
  top:var(--rist-context-h)!important;
  width:100%!important;
- height:22px!important;
- min-height:22px!important;
- max-height:22px!important;
+ height:var(--rist-menu-overlay-h)!important;
+ min-height:var(--rist-menu-overlay-h)!important;
+ max-height:var(--rist-menu-overlay-h)!important;
  margin:0!important;
  padding:0!important;
- overflow:hidden!important;
+ overflow:visible!important;
  z-index:2147483050!important;
  pointer-events:none!important;
  opacity:0!important;
@@ -63,6 +63,42 @@ html body #app>.rist.release-world>.release-world-shell>.release-menu-region.ris
  pointer-events:auto!important;
  opacity:1!important;
  transform:translateY(0)!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.release-menu-region>#header-slider,
+html body #app>.rist.release-world>.release-world-shell>.release-menu-region>#header-slider>.release-root-track{
+ overflow:visible!important;
+}
+html body #app>.rist.release-world>.release-world-shell>.release-menu-region>#header-slider>.release-root-track{
+ overflow-x:auto!important;
+ overflow-y:visible!important;
+}
+
+/* Header subpanels are floating viewer overlays, not layout rows. */
+html body #app .release-menu-region .root-menu-panel,
+html body #app .release-menu-region .release-action-menu{
+ box-sizing:border-box!important;
+ position:fixed!important;
+ left:8px!important;
+ right:8px!important;
+ top:calc(var(--rist-context-h) + var(--rist-menu-overlay-h) + 2px)!important;
+ width:auto!important;
+ max-width:none!important;
+ max-height:min(70dvh,520px)!important;
+ margin:0!important;
+ padding:12px!important;
+ overflow:auto!important;
+ z-index:2147483060!important;
+ background:#071015f8!important;
+ border:1px solid #725d30!important;
+ border-radius:10px!important;
+ box-shadow:0 12px 30px #000b!important;
+ pointer-events:auto!important;
+}
+html body #app .release-menu-region .root-menu-panel.compact-root-panel,
+html body #app .release-menu-region .scale-root-panel,
+html body #app .release-menu-region .header-action-menu{
+ width:min(520px,calc(100vw - 16px))!important;
+ right:auto!important;
 }
 
 /* Eliminate any legacy/implicit row above the map. The map workspace and frame
