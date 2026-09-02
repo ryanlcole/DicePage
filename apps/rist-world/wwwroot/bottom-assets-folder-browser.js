@@ -6,11 +6,12 @@
   ['pawns','Pawns / Meeples'],['tiles','Tiles'],['terrain','Terrains'],['sprites','Sprites'],['bits','Bits'],['library','Library']
  ]);
  const TERRAIN_FOLDERS=['Beach','Canyons','Cliffs','Desert','Forest','Hills','Ice','Jungle','Lakes','Mountains','Plains','Rivers','Snow','Swamp','Vent Fields','Volcano'];
+ const CALFORTH_GAMES=['Backgammon','Battleship','Chess','Chinese Checkers','Cribbage','Dominoes','Go','Jax','Marbles','Othello','Playing Cards'];
  const TREE={
   tiles:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
   terrain:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
   sprites:{base:['Shaelvien','Sprites'],children:{'':[]}},
-  library:{base:['Library'],children:{'':['Shaelvien','Calforth'],'Shaelvien':['Manuals'],'Calforth':['Rule Books']}}
+  library:{base:['Library'],children:{'':['Shaelvien','Calforth'],'Shaelvien':['Manuals'],'Calforth':['Rule Books','Assets'],'Calforth/Rule Books':CALFORTH_GAMES,'Calforth/Assets':CALFORTH_GAMES}}
  };
  let catalog=[],loaded=false,loading=false,path=[];
  const q=(s,r=document)=>r?.querySelector(s);
@@ -33,10 +34,11 @@
   const raw=`${a?.name||''} ${a?.folder||''} ${a?.directory||''} ${a?.layer||''} ${a?.image||''}`.toLowerCase();
   if(section==='terrain')return /terrain|beach|coast|ocean|river|lake|forest|jungle|plains|hill|mountain|cliff|canyon|desert|swamp|snow|ice|volcano|vent/.test(raw);
   if(section==='sprites')return /sprite|animation|animated|motion/.test(raw);
-  if(section==='library')return /manual|book|library|guide|rule|shaelvien|calforth/.test(raw);
+  if(section==='library')return /manual|book|library|guide|rule|shaelvien|calforth|chess|backgammon|battleship|checkers|cribbage|domino|go|jax|marble|othello|card/.test(raw);
   if(section==='tiles')return true;
   return section==='cards'?/card/.test(raw):section==='tokens'?/token|chit|marker|pin/.test(raw):section==='minis'?/mini/.test(raw):section==='rolling-stock'?/rolling|locomotive|train|vehicle/.test(raw):section==='pawns'?/pawn|meeple/.test(raw):section==='bits'?/bit|prop|object/.test(raw):true;
  }
+ function gameName(raw){return CALFORTH_GAMES.find(game=>raw.includes(game.toLowerCase()))||''}
  function assetPath(a,section){
   if(section==='terrain'||section==='tiles'){
    const image=String(a?.image||'').toLowerCase();const layer=String(a?.layer||'').toLowerCase();const dir=String(a?.directory||'');const folder=String(a?.folder||'');
@@ -46,7 +48,7 @@
   }
   if(section==='library'){
    const raw=`${a?.name||''} ${a?.folder||''} ${a?.directory||''} ${a?.image||''}`.toLowerCase();
-   if(raw.includes('calforth'))return ['Calforth','Rule Books'];
+   if(raw.includes('calforth')){const game=gameName(raw);const isRules=/rule|manual|book|guide/.test(raw);return ['Calforth',isRules?'Rule Books':'Assets',game].filter(Boolean)}
    return ['Shaelvien','Manuals'];
   }
   return [String(a?.directory||''),String(a?.folder||'')].filter(Boolean);
