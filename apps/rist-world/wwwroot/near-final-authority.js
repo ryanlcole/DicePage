@@ -24,14 +24,19 @@
  }
  function rebuildSelector(){
   const list=selectorList();if(!list)return;
-  qsa('button[data-section="custom1"]',list).forEach(b=>b.remove());
-  qsa('button[data-custom-section]',list).forEach(b=>b.remove());
+  const oldCustom1=qs('button[data-section="custom1"]',list);if(oldCustom1)oldCustom1.remove();
+  const items=loadCustom();
+  const desired=items.map(x=>`${x.id}:${x.name}`).join('|');
+  const current=qsa('button[data-custom-section]',list).map(x=>`${x.dataset.customSection}:${x.textContent||''}`).join('|');
   let add=qs('button[data-section="add"]',list);
   if(!add){add=document.createElement('button');add.type='button';add.dataset.section='add';add.textContent='+';list.appendChild(add)}
-  for(const item of loadCustom()){
-   const b=document.createElement('button');b.type='button';b.dataset.customSection=item.id;b.textContent=item.name;
-   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();activeCustom=item.id;clickFilter(item.filter||'cards');renderCustomSection(item.id)});
-   list.insertBefore(b,add);
+  if(current!==desired){
+   qsa('button[data-custom-section]',list).forEach(b=>b.remove());
+   for(const item of items){
+    const b=document.createElement('button');b.type='button';b.dataset.customSection=item.id;b.textContent=item.name;
+    b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();activeCustom=item.id;clickFilter(item.filter||'cards');renderCustomSection(item.id)});
+    list.insertBefore(b,add);
+   }
   }
   if(add.dataset.nearFinalBound!=='1'){
    add.dataset.nearFinalBound='1';
@@ -44,7 +49,7 @@
   return wrap;
  }
  function customHeader(item){
-  const wrap=document.createElement('div');wrap.className='rist-custom-header';
+  const wrap=document.createElement('div');wrap.className='rist-custom-header';wrap.dataset.customId=item.id;
   const input=document.createElement('input');input.type='text';input.maxLength=32;input.value=item.name;input.setAttribute('aria-label','Asset section name');
   const saveName=()=>{const name=input.value.trim();if(!name)return;const all=loadCustom();const found=all.find(x=>x.id===item.id);if(found){found.name=name;saveCustom(all);rebuildSelector();}}
   input.addEventListener('change',saveName);input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveName();input.blur();}});
@@ -53,11 +58,11 @@
  }
  function showAssetRegion(){
   const root=deckRoot();const shell=deckShell();const pub=qs(':scope>.release-public-region',shell);if(!root||!pub)return;
-  root.classList.remove('deck-chat','deck-dice','deck-logs');root.classList.add('deck-assets');
+  root.classList.remove('deck-chat','deck-dice','deck-logs','deck-custom-editor');root.classList.add('deck-assets');
   imp(pub,'display','block');imp(pub,'left','15%');imp(pub,'width','85%');imp(pub,'top','70%');imp(pub,'height','30%');imp(pub,'min-height','0');imp(pub,'max-height','none');
  }
  function renderCustomSection(id){
-  const item=customById(id);if(!item)return;rebuildSelector();clickFilter(item.filter||'cards');showAssetRegion();
+  const item=customById(id);if(!item)return;activeCustom=id;rebuildSelector();clickFilter(item.filter||'cards');showAssetRegion();
   const [r1,,r3]=rows();setRow(r1,customHeader(item));setRow(r3,assetActions());
   selectorList()?.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.customSection===id));
  }
@@ -71,7 +76,7 @@
   root.classList.remove('deck-chat','deck-dice','deck-assets','deck-logs');root.classList.add('deck-custom-editor');
   const pub=qs(':scope>.release-public-region',shell);if(pub)imp(pub,'display','none');
   const [r1,r2,r3]=rows();
-  const head=document.createElement('div');head.className='rist-custom-editor-head';
+  const head=document.createElement('div');head.className='rist-custom-editor-head';head.dataset.editorFor=existing?.id||'new';
   const name=document.createElement('input');name.type='text';name.maxLength=32;name.placeholder='Name this asset section';name.value=existing?.name||'';head.appendChild(name);setRow(r1,head);
   const rerenderPicker=()=>setRow(r2,filterPicker(editorFilter,key=>{editorFilter=key;rerenderPicker()}));rerenderPicker();
   const actions=document.createElement('div');actions.className='rist-deck-actions';
@@ -100,7 +105,16 @@
   const selector=qs(':scope>.rist-section-selector',shell);if(selector){imp(selector,'top','70%');imp(selector,'height','30%');imp(selector,'bottom','0')}
   if(root.classList.contains('deck-assets')){const pub=qs(':scope>.release-public-region',shell);if(pub){imp(pub,'top','70%');imp(pub,'height','30%')}}
  }
- function patch(){rebuildSelector();syncDiceTracks();normalizeLandscapeAndMap();if(activeCustom==='editor')renderCustomEditor();else if(activeCustom&&activeCustom!=='editor-existing')renderCustomSection(activeCustom)}
+ function patch(){
+  rebuildSelector();syncDiceTracks();normalizeLandscapeAndMap();
+  if(activeCustom==='editor'){
+   if(!qs('.rist-custom-editor-head[data-editor-for="new"]'))renderCustomEditor();
+  }else if(activeCustom==='editor-existing'){
+   /* Existing editor is rendered directly by its Filter button and then left alone. */
+  }else if(activeCustom){
+   if(qs('.rist-custom-header')?.dataset.customId!==activeCustom)renderCustomSection(activeCustom);
+  }
+ }
  function queue(){if(patchQueued)return;patchQueued=true;requestAnimationFrame(()=>{patchQueued=false;patch()})}
  function start(){patch();new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});window.addEventListener('resize',queue,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(queue,120),{passive:true})}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
