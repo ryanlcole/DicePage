@@ -20,7 +20,7 @@ html body #app>.rist.release-world.deck-chat>.release-world-shell>.rist-deck-row
 .rist-dice-header-loop>button{justify-content:center!important}
 .rist-dice-image-loop>.rist-dice-proxy{height:calc(100% - 6px)!important;max-height:none!important}
 .rist-dice-image-loop .die-sprite{width:min(58px,calc(100% - 8px))!important;height:min(58px,calc(100% - 8px))!important;min-width:44px!important;min-height:44px!important;max-width:58px!important;max-height:58px!important}
-@keyframes ristDiceSynchronizedLoop{from{transform:translateX(0)}to{transform:translateX(calc(-8 * 99px))}}
+@keyframes ristDiceSynchronizedLoop{from{transform:translateX(0)}to{transform:translateX(-792px)}}
 
 /* Remove the former placeholder custom section. */
 .rist-section-list>button[data-section="custom1"]{display:none!important}
