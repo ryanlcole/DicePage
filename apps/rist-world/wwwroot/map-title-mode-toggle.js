@@ -4,18 +4,14 @@
  function mode(){return q('.mmo-zone-actions')?.dataset.worldMode||q('.map-shell')?.dataset.worldMode||'mmo'}
  function toggle(){q(mode()==='mmo'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action')?.click()}
  function sync(){
-  const title=q('.release-map-region .map-frame-title');if(!title)return;
-  const prefix=title.querySelector('.map-frame-title-prefix');
-  const input=title.querySelector('input');
+  const button=q('.release-map-region .map-frame-mode-toggle');if(!button)return;
   const m=mode();
-  if(prefix)prefix.textContent='';
-  if(input){input.value=m==='mmo'?'Shaelvien MMO - AI Map':'RIST Sandbox - Map';input.setAttribute('aria-label','Toggle MMO and Sandbox');}
-  title.classList.add('rist-world-mode-title');
-  title.setAttribute('role','button');title.setAttribute('tabindex','0');title.setAttribute('aria-label',m==='mmo'?'Shaelvien MMO - AI Map; switch to Sandbox':'RIST Sandbox - Map; switch to MMO');title.setAttribute('aria-pressed',m==='mmo'?'true':'false');
-  if(title.dataset.ristModeBound==='1')return;
-  title.dataset.ristModeBound='1';
-  title.addEventListener('click',e=>{e.preventDefault();toggle()});
-  title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+  button.textContent=m==='mmo'?'MMO':'Sandbox';
+  button.setAttribute('aria-label',m==='mmo'?'Switch to Sandbox':'Switch to MMO');
+  button.setAttribute('aria-pressed',m==='mmo'?'true':'false');
+  if(button.dataset.ristModeBound==='1')return;
+  button.dataset.ristModeBound='1';
+  button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggle()});
  }
  let queued=false;const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync()})};
  new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-world-mode']});

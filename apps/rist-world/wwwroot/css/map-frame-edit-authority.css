@@ -1,10 +1,9 @@
 /* Map-frame role/edit authority. The obsolete top menu remains source-only and is never visible. */
 .map-shell{position:relative!important}
 .release-menu-region{display:none!important;height:0!important;min-height:0!important;max-height:0!important;overflow:hidden!important;pointer-events:none!important}
-.rist-map-frame-controls{position:absolute!important;left:12px!important;right:auto!important;top:0!important;height:12px!important;z-index:2147482500!important;display:flex!important;align-items:center!important;gap:3px!important;pointer-events:auto!important}
 .rist-map-frame-toggle{box-sizing:border-box!important;position:relative!important;height:12px!important;min-height:12px!important;width:auto!important;min-width:0!important;padding:0 4px!important;border:0!important;border-radius:3px!important;background:#071015!important;color:#d7be80!important;font:900 7px/10px system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important;white-space:nowrap!important;box-shadow:none!important;touch-action:manipulation!important;overflow:visible!important}
-.rist-map-frame-toggle::before{content:"";position:absolute;left:-5px;right:-5px;top:-10px;bottom:-10px;z-index:-1}
-.rist-map-frame-toggle.active,.rist-map-frame-toggle[aria-pressed="true"]{color:#f2d88c!important;text-shadow:0 0 4px #d6aa4f66!important}
+.rist-map-frame-toggle::before{content:"";position:absolute;left:-5px;right:-5px;top:-5px;bottom:-5px;z-index:-1}
+.rist-edit-float{position:absolute!important;right:14px!important;top:14px!important;z-index:2147482500!important;height:22px!important;min-height:22px!important;padding:0 7px!important;border:1px solid var(--rist-frame-accent,#725d30)!important;background:#071015e8!important;color:var(--rist-frame-accent,#d7be80)!important;pointer-events:auto!important}
 .rist-edit-toggle[hidden]{display:none!important}
 .rist-edit-toggle.active{color:#75ef9b!important;text-shadow:0 0 5px #30c86988!important}
 .rist-map-editing .world-stage .tile-cell,.rist-map-editing .world-stage .piece{outline:2px solid #a22!important;outline-offset:-2px!important;filter:saturate(.72)!important}
@@ -13,4 +12,4 @@
 .rist-edit-lock-toggle{position:absolute!important;right:2px!important;top:2px!important;z-index:2147482000!important;display:grid!important;place-items:center!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;padding:0!important;border:1px solid #d44747!important;border-radius:50%!important;background:#351010ee!important;color:#ff6f6f!important;font:900 9px/1 system-ui!important;pointer-events:auto!important;touch-action:manipulation!important}
 .rist-edit-unlocked>.rist-edit-lock-toggle{border-color:#30c869!important;background:#0f321cee!important;color:#66ef94!important}
 .rist-edit-locked:not(.rist-map-editing *){cursor:not-allowed!important}
-@media(min-width:900px){.rist-map-frame-controls{left:24px!important;height:24px!important}.rist-map-frame-toggle{height:24px!important;min-height:24px!important;padding:0 7px!important;font-size:10px!important;line-height:20px!important}}
+@media(min-width:900px){.rist-map-frame-toggle{height:24px!important;min-height:24px!important;padding:0 7px!important;font-size:10px!important;line-height:20px!important}.rist-edit-float{right:28px!important;top:28px!important}}

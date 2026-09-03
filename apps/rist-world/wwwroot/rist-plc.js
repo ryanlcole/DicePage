@@ -18,7 +18,7 @@
   interaction:[
    'portrait-editor-live.js?v=3',
    'card-appearance.js?v=3',
-   'mmo-build.js?v=3',
+   'mmo-build.js?v=4',
    'asset-credit.js?v=2',
    'cursors-haptics.js?v=2',
    'art-studio.js?v=7',

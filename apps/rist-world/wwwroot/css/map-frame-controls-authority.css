@@ -2,6 +2,13 @@
 #header-slider .release-root-track>.root-menu-button[aria-label="Toggle Sandbox and MMO"]{display:none!important}
 .release-private-region .map-control-source-relocated{display:none!important}
 
+/* One state color describes the active world/role pair everywhere on the frame. */
+.release-map-region .map-shell{--rist-frame-accent:#63e681;--rist-frame-glow:#2ea94d88;--rist-frame-surface:#07150d}
+.release-map-region .map-shell[data-world-mode="mmo"][data-world-role="gamemaster"]{--rist-frame-accent:#bd7cff;--rist-frame-glow:#8f45db88;--rist-frame-surface:#1a0e28}
+.release-map-region .map-shell[data-world-mode="sandbox"][data-world-role="roleplayer"]{--rist-frame-accent:#69b9ff;--rist-frame-glow:#2c86ca88;--rist-frame-surface:#0d2232}
+.release-map-region .map-shell[data-world-mode="sandbox"][data-world-role="gamemaster"]{--rist-frame-accent:#ff7272;--rist-frame-glow:#cf383888;--rist-frame-surface:#2a1010}
+html body .rist.release-world .release-map-region>.table-workspace>.map-shell{border-color:var(--rist-frame-accent)!important}
+
 /* MMO / Pin / Tier / Layer are native-sized members of the existing menu rail. */
 #header-slider .release-root-track>.map-menu-control{
  box-sizing:border-box!important;flex:0 0 auto!important;width:auto!important;min-width:max-content!important;max-width:none!important;
@@ -26,22 +33,31 @@
 /* Any cached coordinate frame still injected inside .map is obsolete. */
 .release-map-region .map>.rist-coordinate-frame{display:none!important}
 
-/* The map top rail contains only centered world identity. */
+/* The top frame is one row: corner +, left mode, centered world, right role. */
 .release-map-region .map-frame-status{left:12px!important;right:12px!important;width:auto!important;color:transparent!important;font-size:0!important}
 .release-map-region .map-frame-meta{display:none!important}
 .release-map-region .map-frame-title{
  position:absolute!important;left:12px!important;right:12px!important;top:0!important;box-sizing:border-box!important;
  height:12px!important;min-height:12px!important;max-height:12px!important;margin:0!important;padding:0 4px!important;
- display:flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;overflow:hidden!important;white-space:nowrap!important;
- background:#071015!important;color:#d7be80!important;pointer-events:auto!important;z-index:172!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(36px,auto) minmax(0,1fr)!important;align-items:center!important;gap:3px!important;overflow:hidden!important;white-space:nowrap!important;
+ border-bottom:1px solid var(--rist-frame-accent)!important;background:var(--rist-frame-surface)!important;color:var(--rist-frame-accent)!important;pointer-events:auto!important;z-index:172!important;
 }
-.release-map-region .map-frame-title-prefix{flex:0 0 auto!important;font:900 7px/10px system-ui,-apple-system,sans-serif!important;line-height:10px!important;color:#d7be80!important}
-.release-map-region .map-frame-title input{
- box-sizing:border-box!important;flex:0 1 auto!important;width:auto!important;min-width:36px!important;max-width:min(180px,55vw)!important;height:10px!important;
- margin:0!important;padding:0 2px!important;border:0!important;border-bottom:1px solid transparent!important;background:transparent!important;color:#e7d59d!important;
- font:800 7px/9px system-ui,-apple-system,sans-serif!important;line-height:9px!important;text-align:center!important;outline:none!important;text-overflow:ellipsis!important;
+.release-map-region .map-frame-mode-toggle,.release-map-region .rist-role-toggle{
+ box-sizing:border-box!important;width:max-content!important;min-width:0!important;max-width:100%!important;height:11px!important;min-height:11px!important;margin:0!important;padding:0 3px!important;
+ border:0!important;border-radius:2px!important;background:transparent!important;color:inherit!important;font:900 7px/10px system-ui,-apple-system,sans-serif!important;line-height:10px!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;box-shadow:none!important;touch-action:manipulation!important;
 }
-.release-map-region .map-frame-title input:focus{border-bottom-color:#725d30!important;background:#0b151b!important}
+.release-map-region .map-frame-mode-toggle{justify-self:start!important;text-align:left!important}
+.release-map-region .rist-role-toggle{justify-self:end!important;text-align:right!important}
+.release-map-region .map-frame-world-name{box-sizing:border-box!important;display:block!important;min-width:36px!important;max-width:min(220px,48vw)!important;padding:0 3px!important;color:inherit!important;font:900 7px/10px system-ui,-apple-system,sans-serif!important;line-height:10px!important;text-align:center!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;text-shadow:0 0 4px var(--rist-frame-glow)!important}
+.release-map-region .map-frame-role-slot{justify-self:end!important}
+html body .rist.release-world .release-map-region .map-frame-corner-add{z-index:180!important;background:var(--rist-frame-surface)!important;color:var(--rist-frame-accent)!important;text-shadow:0 0 4px var(--rist-frame-glow)!important}
+.release-map-region .map-frame-corner-add:not(.top-left),.release-map-region .mmo-corner-plus{display:none!important}
+
+/* World identity now lives only in the top frame. */
+html body .rist-mmo-shaelvien .release-map-region .map::after,
+html body .rist-mmo-shaelvien.rist-mmo-owned-zone .release-map-region .map::after{content:none!important;display:none!important}
+.release-map-region .rist-default-ocean-label{display:none!important}
 
 /* Coordinates occupy only the existing frame rails. */
 .release-map-region .map-shell>.rist-coordinate-frame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;box-sizing:border-box!important;pointer-events:none!important;z-index:165!important;border:0!important;overflow:hidden!important}
@@ -51,13 +67,10 @@
 .release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.right{right:0!important;top:12px!important;bottom:12px!important;width:12px!important;overflow:hidden!important}
 .release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.top .rist-coordinate-tick{display:none!important}
 .release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-tick{font-size:7px!important;line-height:1!important;white-space:nowrap!important;max-width:calc(100% - 2px)!important;overflow:hidden!important;text-overflow:clip!important}
-.release-map-region .map-frame-corner-add{z-index:180!important}
-
-/* Axis letters and zero/center values follow world mode. */
-.release-map-region .map-shell[data-world-mode="mmo"]>.rist-coordinate-frame .rist-coordinate-axis-label,
-.release-map-region .map-shell[data-world-mode="mmo"]>.rist-coordinate-frame .rist-coordinate-tick.zero{color:#63e681!important;text-shadow:0 0 4px #2ea94d88!important}
-.release-map-region .map-shell[data-world-mode="sandbox"]>.rist-coordinate-frame .rist-coordinate-axis-label,
-.release-map-region .map-shell[data-world-mode="sandbox"]>.rist-coordinate-frame .rist-coordinate-tick.zero{color:#69b9ff!important;text-shadow:0 0 4px #2c86ca88!important}
+/* Axis rails and labels share the active world/role color. */
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis{border-color:var(--rist-frame-accent)!important}
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis-label,
+.release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-tick.zero{color:var(--rist-frame-accent)!important;text-shadow:0 0 4px var(--rist-frame-glow)!important}
 
 /* Public Assets is intentionally empty of controls for now. */
 .release-public-region .asset-type-tabs,
@@ -70,7 +83,7 @@
 
 @media(max-width:620px){
  #header-slider .release-root-track>.map-menu-control{padding-inline:7px!important}
- .release-map-region .map-frame-title input{max-width:44vw!important}
+ .release-map-region .map-frame-world-name{max-width:44vw!important}
 }
 
 /* Laptop / desktop authority. Mobile keeps the compact 12px frame and arrow controls. */
@@ -86,8 +99,8 @@
  html body .rist.release-world .release-map-region>.table-workspace>.map-shell{--rist-coordinate-edge:24px!important}
  .release-map-region .map-frame-status{left:24px!important;right:24px!important;height:24px!important;min-height:24px!important;max-height:24px!important}
  .release-map-region .map-frame-title{left:24px!important;right:24px!important;height:24px!important;min-height:24px!important;max-height:24px!important;gap:5px!important}
- .release-map-region .map-frame-title-prefix{font-size:10px!important;line-height:20px!important}
- .release-map-region .map-frame-title input{height:18px!important;max-width:260px!important;font-size:10px!important;line-height:17px!important}
+ .release-map-region .map-frame-mode-toggle,.release-map-region .rist-role-toggle{height:22px!important;min-height:22px!important;padding-inline:6px!important;font-size:10px!important;line-height:20px!important}
+ .release-map-region .map-frame-world-name{height:22px!important;max-width:260px!important;font-size:10px!important;line-height:20px!important}
  .release-map-region .map-frame-corner-add{width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;font-size:19px!important;line-height:24px!important}
  .release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.top{left:24px!important;right:24px!important;height:24px!important}
  .release-map-region .map-shell>.rist-coordinate-frame .rist-coordinate-axis.bottom{left:24px!important;right:24px!important;height:24px!important}

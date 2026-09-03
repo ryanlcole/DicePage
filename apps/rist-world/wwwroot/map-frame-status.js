@@ -165,22 +165,21 @@
   controls=document.createElement('div');
   controls.className='map-frame-controls';
   controls.innerHTML=`
-   <button type="button" class="map-frame-corner-add top-left" data-frame-add="top-left" aria-label="Add from top left">+</button>
-   <button type="button" class="map-frame-corner-add top-right" data-frame-add="top-right" aria-label="Add from top right">+</button>
-   <button type="button" class="map-frame-corner-add bottom-left" data-frame-add="bottom-left" aria-label="Add from bottom left">+</button>
-   <button type="button" class="map-frame-corner-add bottom-right" data-frame-add="bottom-right" aria-label="Add from bottom right">+</button>
-   <div class="map-frame-title" aria-label="World name">
-    <span class="map-frame-title-prefix">Shaelvien:</span>
-    <input type="text" maxlength="40" aria-label="World name" value="Shaelvien" readonly tabindex="-1">
+   <button type="button" class="map-frame-corner-add top-left" data-frame-add="nw" aria-label="Add world">+</button>
+   <div class="map-frame-title" role="toolbar" aria-label="World mode, name, and role">
+    <button type="button" class="map-frame-mode-toggle" aria-label="Switch to Sandbox">MMO</button>
+    <span class="map-frame-world-name" aria-label="World name">Shaelvien</span>
+    <span class="map-frame-role-slot" aria-hidden="true"></span>
    </div>`;
   shell.appendChild(controls);
-  controls.querySelectorAll('[data-frame-add]').forEach(button=>button.addEventListener('click',()=>{
-   shell.dispatchEvent(new CustomEvent('rist:map-frame-add',{bubbles:true,detail:{corner:button.dataset.frameAdd}}));
-  }));
-  const nameInput=qs(controls,'.map-frame-title input');
-  const savedName=localStorage.getItem('rist.world.frame-name');
-  if(savedName)nameInput.value=savedName;
-  nameInput.style.pointerEvents='none';
+  controls.querySelector('[data-frame-add]')?.addEventListener('click',event=>{
+   event.stopPropagation();
+   const direction=event.currentTarget.dataset.frameAdd||'nw';
+   const open=()=>window.RistMmoBuild?.open?.(direction);
+   if(window.RistMmoBuild?.open){open();return;}
+   document.addEventListener('rist:mmo-build-ready',open,{once:true});
+   document.dispatchEvent(new CustomEvent('rist:need-interaction'));
+  });
   return controls;
  }
  function sync(){
@@ -200,7 +199,12 @@
   ensureMenuControls();bindMapPinEvents();setSettingsLabel();hideMapOverlayText();
   const mode=qs(document,'.mmo-zone-actions')?.dataset.worldMode||'mmo';
   shell.dataset.worldMode=mode;
-  const titlePrefix=qs(controls,'.map-frame-title-prefix');if(titlePrefix)titlePrefix.textContent=mode==='mmo'?'Shaelvien:':'RIST:';
+  const roleLabel=document.querySelector('#header-slider button[aria-label="Role"] strong')?.textContent||'RP';
+  shell.dataset.worldRole=/^GM$/i.test(roleLabel.trim())?'gamemaster':'roleplayer';
+  const worldName=qs(controls,'.map-frame-world-name');
+  if(worldName)worldName.textContent=map.dataset.worldName||'Shaelvien';
+  const frameMode=qs(controls,'.map-frame-mode-toggle');
+  if(frameMode)frameMode.textContent=mode==='mmo'?'MMO':'Sandbox';
   const modeButton=document.querySelector('#header-slider .map-menu-control-mmo');
   if(modeButton){modeButton.querySelector('strong').textContent=mode==='mmo'?'MMO':'RIST';modeButton.dataset.mode=mode;}
   for(const kind of ['tier','layer']){

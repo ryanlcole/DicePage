@@ -1,7 +1,7 @@
 (()=>{
  'use strict';
  const STORE='rist.mapEditLocks.v1';
- let editing=false,lockedLayer='',host=null,roleSource=null,roleBtn=null,editBtn=null,observer=null;
+ let editing=false,lockedLayer='',roleSource=null,roleBtn=null,editBtn=null,observer=null;
  const assetSelector='.world-stage .tile-cell,.world-stage .piece';
  const qa=(s,r=document)=>[...(r?.querySelectorAll?.(s)||[])];
  const q=(s,r=document)=>r?.querySelector?.(s)||null;
@@ -22,7 +22,7 @@
  function enterEdit(){if(!isGm())return;editing=true;lockedLayer=layerKey();document.documentElement.classList.add('rist-map-editing');qa(assetSelector).forEach(el=>el.dataset.ristSeenBeforeEdit='1');syncAssets();updateEditButton()}
  function leaveEdit(){editing=false;document.documentElement.classList.remove('rist-map-editing');clearEditMarks();lockedLayer='';updateEditButton()}
  function toggleEdit(){editing?leaveEdit():enterEdit()}
- function frame(){const shell=q('.map-shell');if(!shell)return null;if(host&&!document.body.contains(host))host=null;if(!host){host=document.createElement('div');host.className='rist-map-frame-controls rist-map-frame-role-controls';host.setAttribute('role','toolbar');host.setAttribute('aria-label','Map role controls');shell.appendChild(host)}return host}
+ function frame(){return q('.release-map-region .map-frame-title')}
  function chooseRole(){
   roleSource=q('#header-slider button[aria-label="Role"]')||roleSource;if(!roleSource)return;
   const target=isGm()?'RolePlayer':'GameMaster';
@@ -33,12 +33,15 @@
    if(choice)choice.click();
   },0);
  }
- function updateRoleButton(){if(!roleBtn)return;const gm=isGm();roleBtn.textContent=gm?'GameMaster':'RolePlayer';roleBtn.classList.toggle('active',gm);roleBtn.setAttribute('aria-pressed',gm?'true':'false');updateEditButton()}
+ function updateRoleButton(){if(!roleBtn)return;const gm=isGm(),shell=q('.release-map-region .map-shell');roleBtn.textContent=gm?'GameMaster':'Roleplayer';roleBtn.classList.toggle('active',gm);roleBtn.setAttribute('aria-pressed',gm?'true':'false');if(shell)shell.dataset.worldRole=gm?'gamemaster':'roleplayer';updateEditButton()}
  function locateRoleControl(){
   roleSource=q('#header-slider button[aria-label="Role"]')||roleSource;
   const f=frame();if(!f)return;
-  if(!roleBtn){roleBtn=document.createElement('button');roleBtn.type='button';roleBtn.className='rist-map-frame-toggle rist-role-toggle';roleBtn.setAttribute('aria-label','Toggle GameMaster and RolePlayer');roleBtn.addEventListener('click',chooseRole);f.appendChild(roleBtn)}else if(roleBtn.parentElement!==f)f.appendChild(roleBtn);
-  if(!editBtn){editBtn=document.createElement('button');editBtn.type='button';editBtn.className='rist-map-frame-toggle rist-edit-toggle';editBtn.addEventListener('click',toggleEdit);f.appendChild(editBtn)}else if(editBtn.parentElement!==f)f.appendChild(editBtn);
+  if(!roleBtn){roleBtn=document.createElement('button');roleBtn.type='button';roleBtn.className='rist-map-frame-toggle rist-role-toggle';roleBtn.setAttribute('aria-label','Toggle GameMaster and Roleplayer');roleBtn.addEventListener('click',chooseRole)}
+  const slot=q('.map-frame-role-slot',f);if(slot)slot.replaceWith(roleBtn);else if(roleBtn.parentElement!==f)f.appendChild(roleBtn);
+  const shell=q('.release-map-region .map-shell');
+  if(!editBtn){editBtn=document.createElement('button');editBtn.type='button';editBtn.className='rist-map-frame-toggle rist-edit-toggle rist-edit-float';editBtn.addEventListener('click',toggleEdit)}
+  if(shell&&editBtn.parentElement!==shell)shell.appendChild(editBtn);
   updateRoleButton();
  }
  function removeDuplicateMenu(){

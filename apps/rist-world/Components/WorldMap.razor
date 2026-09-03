@@ -112,7 +112,7 @@
  }
 
  <section class="map-shell">
-  <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive @Session.MapIdentityLabel map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
+  <div class="map" data-world-name="@Session.MapAlias" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive @Session.MapIdentityLabel map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
    <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true"><button type="button" @onclick="ZoomOut">−</button><button type="button" @onclick="ZoomIn">+</button></div>
    @if(Session.LockedTileMenuOpen)
    {
