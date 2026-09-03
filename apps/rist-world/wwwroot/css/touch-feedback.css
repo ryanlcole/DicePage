@@ -1,0 +1,31 @@
+/* Immediate visual confirmation for touch/pen input. */
+html body #app button,
+html body #app [role="button"],
+html body #app label,
+html body #app a,
+html body #app .rist-bottom-folder-card,
+html body #app .rist-bottom-asset-card,
+html body #app .rist-folder-fixed{
+ -webkit-tap-highlight-color:transparent;
+}
+html body #app button:active,
+html body #app [role="button"]:active,
+html body #app label:active,
+html body #app a:active,
+html body #app .rist-touch-active{
+ filter:brightness(1.28)!important;
+ box-shadow:inset 0 0 0 2px #d8b75a,0 0 10px #d8b75a66!important;
+ outline:1px solid #f0d58d!important;
+ outline-offset:-2px!important;
+}
+html body #app button.rist-touch-active,
+html body #app [role="button"].rist-touch-active,
+html body #app .rist-bottom-folder-card.rist-touch-active,
+html body #app .rist-bottom-asset-card.rist-touch-active{
+ transform:scale(.985)!important;
+}
+html body #app button>*,
+html body #app [role="button"]>*,
+html body #app label>*{
+ pointer-events:none;
+}
