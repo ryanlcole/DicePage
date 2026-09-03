@@ -1,16 +1,19 @@
 /* Map-frame mode/edit authority. */
 .map-shell{position:relative!important}
 .rist-map-frame-controls{position:absolute!important;left:0!important;right:0!important;top:0!important;height:0!important;z-index:2147482500!important;pointer-events:none!important}
-.rist-map-frame-left,.rist-map-frame-right{position:absolute!important;top:2px!important;display:flex!important;align-items:center!important;gap:4px!important;pointer-events:auto!important}
+.rist-map-frame-left,.rist-map-frame-right{position:absolute!important;top:1px!important;display:flex!important;align-items:center!important;gap:3px!important;pointer-events:auto!important}
 .rist-map-frame-left{left:33.333%!important;transform:translateX(-50%)!important}
 .rist-map-frame-right{right:33.333%!important;transform:translateX(50%)!important}
-.rist-map-frame-toggle{box-sizing:border-box!important;height:20px!important;min-height:20px!important;width:auto!important;min-width:44px!important;padding:0 8px!important;border:1px solid #725d30!important;border-radius:6px!important;background:#0a141aee!important;color:#d7be80!important;font:900 9px/18px system-ui,-apple-system,sans-serif!important;white-space:nowrap!important;box-shadow:0 0 0 1px #000!important;touch-action:manipulation!important}
-.rist-map-frame-toggle.active,.rist-map-frame-toggle[aria-pressed="true"]{border-color:#c69a42!important;background:#18242b!important;color:#f2d88c!important;box-shadow:0 0 7px #d6aa4f66,inset 0 -2px #9b752d!important}
+/* Visually frame-sized, with a larger invisible touch surface supplied by ::before. */
+.rist-map-frame-toggle{box-sizing:border-box!important;position:relative!important;height:18px!important;min-height:18px!important;width:auto!important;min-width:38px!important;padding:0 6px!important;border:1px solid #725d30!important;border-radius:5px!important;background:#071116e8!important;color:#bca96f!important;font:900 8px/16px system-ui,-apple-system,sans-serif!important;letter-spacing:.035em!important;white-space:nowrap!important;box-shadow:0 0 0 1px #000!important;touch-action:manipulation!important;overflow:visible!important}
+.rist-map-frame-toggle::before{content:"";position:absolute;left:-7px;right:-7px;top:-12px;bottom:-12px;z-index:-1}
+.rist-map-frame-toggle.active,.rist-map-frame-toggle[aria-pressed="true"]{border-color:#c69a42!important;background:#162127!important;color:#f2d88c!important;box-shadow:0 0 5px #d6aa4f55,inset 0 -1px #9b752d!important}
 .rist-edit-toggle[hidden]{display:none!important}
+.rist-edit-toggle.active{border-color:#36bd68!important;color:#75ef9b!important;box-shadow:0 0 5px #30c86966!important}
 .rist-map-editing .world-stage .tile-cell,.rist-map-editing .world-stage .piece{outline:2px solid #a22!important;outline-offset:-2px!important;filter:saturate(.72)!important}
 .rist-map-editing .world-stage .rist-edit-unlocked{outline-color:#30c869!important;filter:none!important}
 .rist-map-editing .world-stage .rist-edit-locked{outline-color:#d44747!important}
 .rist-edit-lock-toggle{position:absolute!important;right:2px!important;top:2px!important;z-index:2147482000!important;display:grid!important;place-items:center!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;padding:0!important;border:1px solid #d44747!important;border-radius:50%!important;background:#351010ee!important;color:#ff6f6f!important;font:900 9px/1 system-ui!important;pointer-events:auto!important;touch-action:manipulation!important}
 .rist-edit-unlocked>.rist-edit-lock-toggle{border-color:#30c869!important;background:#0f321cee!important;color:#66ef94!important}
 .rist-edit-locked:not(.rist-map-editing *){cursor:not-allowed!important}
-@media(max-width:700px){.rist-map-frame-left{left:33%!important}.rist-map-frame-right{right:28%!important}.rist-map-frame-toggle{min-width:38px!important;padding-inline:5px!important;font-size:8px!important}}
+@media(max-width:700px){.rist-map-frame-left{left:33.333%!important}.rist-map-frame-right{right:33.333%!important}.rist-map-frame-toggle{height:17px!important;min-height:17px!important;min-width:34px!important;padding-inline:5px!important;font-size:7.5px!important;line-height:15px!important}}
