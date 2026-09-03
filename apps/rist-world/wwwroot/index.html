@@ -28,6 +28,7 @@
  <link rel="stylesheet" href="css/full-hit-target-authority.css?v=20260903-full-control-hit-1">
  <link rel="stylesheet" href="css/touch-feedback.css?v=20260903-touch-feedback-1">
  <link rel="stylesheet" href="css/rail-accessibility.css?v=20260903-conditional-arrows-1">
+ <link rel="stylesheet" href="css/public-preview-gate.css?v=20260903-public-preview-1">
 </head>
 <body>
  <div id="rist-boot-probe" style="position:fixed;inset:0;z-index:2147483647;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center;pointer-events:none"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div>
@@ -50,6 +51,7 @@
   })();
   if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>{for(const registration of registrations)registration.unregister().catch(()=>{})}).catch(()=>{})}
  </script>
+ <script src="public-preview-gate.js?v=20260903-public-preview-1"></script>
  <script src="rist.js?v=20260831-cache-clear-1"></script>
  <script src="tileset-cutter.js?v=20260831-cache-clear-1"></script>
  <script src="slider-controller.js?v=20260901-repeat-menu-1"></script>
