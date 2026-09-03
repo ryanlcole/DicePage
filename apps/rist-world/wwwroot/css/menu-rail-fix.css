@@ -1,0 +1,44 @@
+/* Final main-menu rail authority: fill the available row and keep one MMO/Sandbox control. */
+html body #app .release-menu-region>#header-slider.release-root-rail{
+ box-sizing:border-box!important;
+ display:grid!important;
+ grid-template-columns:20px minmax(0,1fr) 20px!important;
+ width:100%!important;
+ min-width:0!important;
+ overflow:hidden!important;
+}
+html body #app #header-slider>.release-root-track{
+ box-sizing:border-box!important;
+ display:flex!important;
+ align-items:stretch!important;
+ justify-content:stretch!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:none!important;
+ gap:4px!important;
+ padding:0 4px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ scrollbar-width:none!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+html body #app #header-slider>.release-root-track::-webkit-scrollbar{display:none!important}
+html body #app #header-slider>.release-root-track>.root-menu-button:not(.door-button){
+ box-sizing:border-box!important;
+ flex:1 1 0!important;
+ width:auto!important;
+ min-width:max-content!important;
+ max-width:none!important;
+ margin:0!important;
+ padding-inline:8px!important;
+}
+/* Login is represented by the context-row login button. */
+html body #app #header-slider>.release-root-track>.door-button{display:none!important}
+/* Only the canonical World button may represent MMO/Sandbox in the visible menu. */
+html body #app #header-slider>.release-root-track>[aria-label="Toggle Sandbox and MMO"]{display:inline-flex!important}
+html body #app #header-slider>.release-root-track>.header-mmo-button:not([aria-label="Toggle Sandbox and MMO"]),
+html body #app #header-slider>.release-root-track>[data-mmo-toggle]:not([aria-label="Toggle Sandbox and MMO"]),
+html body #app #header-slider>.release-root-track>[data-world-mode-toggle]:not([aria-label="Toggle Sandbox and MMO"]){display:none!important}
+@media (orientation:landscape){
+ html body #app #header-slider>.release-root-track>.root-menu-button:not(.door-button){min-width:58px!important}
+}
