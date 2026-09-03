@@ -1,0 +1,12 @@
+/* Accessible repeating navigation for all scroll rails. */
+.rist-bottom-assets-strip,.rist-folder-breadcrumb,.rist-map-tools-panel,.rist-section-list{scroll-behavior:smooth!important;overscroll-behavior:contain!important}
+.rist-bottom-assets-strip,.rist-folder-breadcrumb,.rist-map-tools-panel{touch-action:pan-x!important}
+.rist-bottom-folder-card{touch-action:pan-x!important}
+.rist-rail-nav{box-sizing:border-box!important;position:sticky!important;z-index:2147483100!important;display:grid!important;place-items:center!important;flex:0 0 42px!important;min-width:42px!important;width:42px!important;height:calc(100% - 4px)!important;min-height:38px!important;padding:0!important;border:1px solid #b48b38!important;border-radius:9px!important;background:#0d171dF2!important;color:#f1d68f!important;font:900 24px/1 system-ui!important;box-shadow:0 0 0 1px #000,inset 0 1px #ffffff12!important;touch-action:none!important;-webkit-user-select:none!important;user-select:none!important}
+.rist-rail-nav.prev{left:2px!important;margin-right:2px!important}
+.rist-rail-nav.next{right:2px!important;margin-left:2px!important}
+.rist-rail-nav:active,.rist-rail-nav.holding{background:#3b321c!important;border-color:#f1d68f!important;box-shadow:0 0 10px #f1d68f88,inset 0 0 0 2px #f1d68f55!important}
+.rist-section-list>.rist-rail-nav{position:sticky!important;left:0!important;right:0!important;top:2px!important;bottom:auto!important;width:calc(100% - 4px)!important;min-width:0!important;flex:0 0 44px!important;height:44px!important;min-height:44px!important;margin:2px!important;font-size:18px!important}
+.rist-section-list>.rist-rail-nav.next{top:auto!important;bottom:2px!important}
+.rist-bottom-assets-strip:focus-visible,.rist-folder-breadcrumb:focus-visible,.rist-map-tools-panel:focus-visible,.rist-section-list:focus-visible{outline:2px solid #f1d68f!important;outline-offset:-2px!important}
+@media(max-width:520px){.rist-rail-nav{flex-basis:38px!important;min-width:38px!important;width:38px!important;font-size:22px!important}}
