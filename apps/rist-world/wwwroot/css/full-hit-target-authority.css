@@ -1,0 +1,54 @@
+/* Full hit-target authority.
+   The painted control is the interactive surface; decorative children must not
+   become smaller independent hit targets on touch browsers. */
+html body #app button,
+html body #app [role="button"],
+html body #app [role="menuitem"],
+html body #app [role="tab"]{
+ box-sizing:border-box!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+ -webkit-tap-highlight-color:transparent;
+}
+
+/* Let the parent button receive a tap anywhere inside its visible box. */
+html body #app button > :not(input):not(select):not(textarea):not(option),
+html body #app [role="button"] > :not(input):not(select):not(textarea):not(option),
+html body #app [role="menuitem"] > :not(input):not(select):not(textarea):not(option),
+html body #app [role="tab"] > :not(input):not(select):not(textarea):not(option){
+ pointer-events:none!important;
+}
+
+/* Checkbox/radio rows: the whole visible label toggles the control. */
+html body #app label:has(input[type="checkbox"]),
+html body #app label:has(input[type="radio"]){
+ box-sizing:border-box!important;
+ cursor:pointer!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+ -webkit-tap-highlight-color:transparent;
+}
+html body #app label:has(input[type="checkbox"]) > :not(input),
+html body #app label:has(input[type="radio"]) > :not(input){
+ pointer-events:none!important;
+}
+html body #app label:has(input[type="checkbox"]) > input,
+html body #app label:has(input[type="radio"]) > input{
+ pointer-events:auto!important;
+}
+
+/* Known RIST rails/cards must keep their complete painted rectangle active. */
+html body #app .rist-section-list>button,
+html body #app .root-menu-button,
+html body #app .world-context-menu,
+html body #app .world-context-action,
+html body #app .world-context-login,
+html body #app .rist-bottom-folder-card,
+html body #app .rist-folder-breadcrumb>button,
+html body #app .rist-folder-upload,
+html body #app .rist-map-tools-panel>button,
+html body #app .rist-axis-menu-overlay>button{
+ position:relative!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+}
