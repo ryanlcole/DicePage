@@ -109,35 +109,30 @@
  function attachOrientation(){
   if(motion.attached)return;motion.attached=true;
   addEventListener('deviceorientation',event=>{
-   const detail={
-    alpha:Number.isFinite(event.alpha)?event.alpha:0,
-    beta:Number.isFinite(event.beta)?event.beta:0,
-    gamma:Number.isFinite(event.gamma)?event.gamma:0,
-    absolute:!!event.absolute
-   };
+   const detail={alpha:Number.isFinite(event.alpha)?event.alpha:0,beta:Number.isFinite(event.beta)?event.beta:0,gamma:Number.isFinite(event.gamma)?event.gamma:0,absolute:!!event.absolute};
    dispatchEvent(new CustomEvent('rist:orientation',{detail}));
   },{passive:true});
  }
  function requestOrientation(){
-  if(motion.attached)return Promise.resolve(true);
-  if(motion.promise)return motion.promise;
-  motion.requested=true;
-  motion.promise=(async()=>{
-   try{
-    const ctor=window.DeviceOrientationEvent;if(!ctor)return false;
-    if(typeof ctor.requestPermission==='function'){
-     const permission=await ctor.requestPermission();if(permission!=='granted')return false;
-    }
-    attachOrientation();return true;
-   }catch{return false}
-   finally{if(!motion.attached)motion.promise=null}
-  })();
+  if(motion.attached)return Promise.resolve(true);if(motion.promise)return motion.promise;motion.requested=true;
+  motion.promise=(async()=>{try{const ctor=window.DeviceOrientationEvent;if(!ctor)return false;if(typeof ctor.requestPermission==='function'){const permission=await ctor.requestPermission();if(permission!=='granted')return false}attachOrientation();return true}catch{return false}finally{if(!motion.attached)motion.promise=null}})();
   return motion.promise;
  }
 
  const core=()=>void scanCore(),interaction=()=>void scanInteraction();
  addEventListener('rist:app-ready',core,{once:true});setTimeout(core,10000);
- addEventListener('pointerdown',interaction,{once:true,capture:true,passive:true});addEventListener('keydown',interaction,{once:true,capture:true});
+ // Do not make an ordinary menu/button tap pay the cost of loading the full editor stack.
+ // Load it on the first direct workspace/editor interaction instead.
+ const maybeInteraction=event=>{
+  const target=event.target;
+  if(!(target instanceof Element))return;
+  if(target.closest('button,a,input,select,textarea,label,[role="button"]'))return;
+  if(!target.closest('.map,.table-workspace,.rist-art-studio,.portrait-editor,.sprite-creator'))return;
+  document.removeEventListener('pointerdown',maybeInteraction,true);
+  setTimeout(interaction,0);
+ };
+ document.addEventListener('pointerdown',maybeInteraction,{capture:true,passive:true});
+ addEventListener('rist:need-interaction',interaction,{once:true});
  document.addEventListener('pointerdown',event=>{
   if((event.pointerType==='touch'||event.pointerType==='pen')&&event.target instanceof Element&&event.target.closest('.map'))void requestOrientation();
  },{capture:true,passive:true});
