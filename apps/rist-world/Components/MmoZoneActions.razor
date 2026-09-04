@@ -1,7 +1,9 @@
 @inject WorldSession Session
-<div class="mmo-zone-actions" hidden aria-hidden="true" data-world-mode="@Session.OperatingMode">
+<div class="mmo-zone-actions" hidden aria-hidden="true" data-world-mode="@Session.OperatingMode" data-world-role="@Session.Role">
  <button type="button" class="mmo-mode-sandbox-action" @onclick="Session.SetSandboxModeAsync" tabindex="-1">Sandbox mode</button>
  <button type="button" class="mmo-mode-shaelvien-action" @onclick="Session.SetMmoModeAsync" tabindex="-1">MMO mode</button>
+ <button type="button" class="mmo-role-gm-action" @onclick="()=>Session.SetRole("GM")" tabindex="-1">GameMaster role</button>
+ <button type="button" class="mmo-role-player-action" @onclick="()=>Session.SetRole("PC")" tabindex="-1">Roleplayer role</button>
  <button type="button" class="mmo-personal-zone-action" @onclick="Session.BeginPersonalZone" tabindex="-1">Personal zone</button>
  <button type="button" class="mmo-shaelvien-zone-action" @onclick="Session.ClaimShaelvienZone" tabindex="-1">Shaelvien zone</button>
  <button type="button" class="mmo-pin-delete-action" @onclick="Session.RemoveSelectedPin" tabindex="-1">Delete selected pin</button>
