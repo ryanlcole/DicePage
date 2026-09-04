@@ -68,7 +68,7 @@
   if(found){mode=found[0];prior=prior.slice(mode.length).trimStart();}
   wrap.dataset.ristComposer='1';wrap.replaceChildren();
   const modeDrop=buildModeDropdown();
-  const input=document.createElement('textarea');input.className='rist-chat-line-input';input.maxLength=1200;input.placeholder='character line…';input.value=prior;input.setAttribute('aria-label','Character line');input.addEventListener('input',()=>setLiveValue(input.value));
+  const input=document.createElement('textarea');input.className='rist-chat-line-input';input.maxLength=1200;input.placeholder='Line…';input.value=prior;input.setAttribute('aria-label','Character line');input.addEventListener('input',()=>setLiveValue(input.value));
   const actions=document.createElement('div');actions.className='rist-chat-action-row';
   const send=document.createElement('button');send.type='button';send.className='rist-chat-action-button rist-chat-send';send.innerHTML='<span aria-hidden="true">➤</span>';send.title='Send';send.setAttribute('aria-label','Send');send.addEventListener('click',()=>{setLiveValue(input.value);requestAnimationFrame(()=>{q('.home-chat-send')?.click();setTimeout(()=>{input.value='';setLiveValue('');},0);});});
   const log=document.createElement('button');log.type='button';log.className='rist-chat-action-button';log.innerHTML='<span aria-hidden="true">▤</span>';log.title='Chat log';log.setAttribute('aria-label','Chat log');log.addEventListener('click',()=>window.RistChatScripts?.open?.());
