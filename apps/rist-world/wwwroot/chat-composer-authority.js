@@ -29,18 +29,16 @@
   setter?.call(live,value);
   live.dispatchEvent(new Event('input',{bubbles:true}));
  }
- function positionMenu(menu,button){
-  if(!menu||!button)return;
-  const r=button.getBoundingClientRect();
-  const width=Math.min(310,Math.max(220,window.innerWidth-20));
-  const left=Math.max(8,Math.min(window.innerWidth-width-8,r.left));
-  const maxHeight=Math.max(160,Math.min(window.innerHeight*.62,r.top-16));
+ function positionMenu(menu){
+  if(!menu)return;
+  const width=Math.min(330,Math.max(230,window.innerWidth-16));
   menu.style.setProperty('width',`${width}px`,'important');
-  menu.style.setProperty('left',`${left}px`,'important');
+  menu.style.setProperty('left','50%','important');
   menu.style.setProperty('right','auto','important');
   menu.style.setProperty('bottom','auto','important');
-  menu.style.setProperty('top','8px','important');
-  menu.style.setProperty('max-height',`${maxHeight}px`,'important');
+  menu.style.setProperty('top','max(8px, env(safe-area-inset-top))','important');
+  menu.style.setProperty('transform','translateX(-50%)','important');
+  menu.style.setProperty('max-height','min(62dvh, 520px)','important');
  }
  function closeMenu(){
   if(activeMenu){activeMenu.classList.remove('open');activeMenu.remove();activeMenu=null;}
@@ -57,7 +55,7 @@
     option.addEventListener('click',()=>{mode=code;button.textContent=mode;const input=q('.rist-chat-line-input');if(input)setLiveValue(input.value);closeMenu();});
     menu.appendChild(option);
    }
-   document.body.appendChild(menu);activeMenu=menu;activeButton=button;button.setAttribute('aria-expanded','true');positionMenu(menu,button);
+   document.body.appendChild(menu);activeMenu=menu;activeButton=button;button.setAttribute('aria-expanded','true');positionMenu(menu);
   }
   button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(activeButton===button)closeMenu();else openMenu();});
   root.append(button);return root;
@@ -71,16 +69,16 @@
   wrap.dataset.ristComposer='1';wrap.replaceChildren();
   const modeDrop=buildModeDropdown();
   const input=document.createElement('textarea');input.className='rist-chat-line-input';input.maxLength=1200;input.placeholder='character line…';input.value=prior;input.setAttribute('aria-label','Character line');input.addEventListener('input',()=>setLiveValue(input.value));
-  const send=document.createElement('button');send.type='button';send.className='rist-chat-send';send.textContent='Send';send.addEventListener('click',()=>{setLiveValue(input.value);requestAnimationFrame(()=>{q('.home-chat-send')?.click();setTimeout(()=>{input.value='';setLiveValue('');},0);});});
-  const tools=document.createElement('div');tools.className='rist-chat-tool-stack';
-  const log=document.createElement('button');log.type='button';log.className='rist-chat-icon-button';log.innerHTML='<span aria-hidden="true">▤</span>';log.title='Chat log';log.setAttribute('aria-label','Chat log');log.addEventListener('click',()=>window.RistChatScripts?.open?.());
-  const settings=document.createElement('button');settings.type='button';settings.className='rist-chat-icon-button';settings.innerHTML='<span aria-hidden="true">⚙</span>';settings.title='Chat settings';settings.setAttribute('aria-label','Chat settings');settings.addEventListener('click',()=>window.RistStartMenu?.open?.());
-  tools.append(log,settings);wrap.append(modeDrop,input,send,tools);setLiveValue(input.value);
+  const actions=document.createElement('div');actions.className='rist-chat-action-row';
+  const send=document.createElement('button');send.type='button';send.className='rist-chat-action-button rist-chat-send';send.innerHTML='<span aria-hidden="true">➤</span>';send.title='Send';send.setAttribute('aria-label','Send');send.addEventListener('click',()=>{setLiveValue(input.value);requestAnimationFrame(()=>{q('.home-chat-send')?.click();setTimeout(()=>{input.value='';setLiveValue('');},0);});});
+  const log=document.createElement('button');log.type='button';log.className='rist-chat-action-button';log.innerHTML='<span aria-hidden="true">▤</span>';log.title='Chat log';log.setAttribute('aria-label','Chat log');log.addEventListener('click',()=>window.RistChatScripts?.open?.());
+  const settings=document.createElement('button');settings.type='button';settings.className='rist-chat-action-button';settings.innerHTML='<span aria-hidden="true">⚙</span>';settings.title='Chat settings';settings.setAttribute('aria-label','Chat settings');settings.addEventListener('click',()=>window.RistStartMenu?.open?.());
+  actions.append(send,log,settings);wrap.append(modeDrop,input,actions);setLiveValue(input.value);
  }
  function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance()})}
  document.addEventListener('click',e=>{if(!e.target.closest('.rist-rp-mode-button')&&!e.target.closest('.rist-rp-mode-menu-portal'))closeMenu();},true);
- window.addEventListener('resize',()=>{if(activeMenu&&activeButton)positionMenu(activeMenu,activeButton)},{passive:true});
- window.addEventListener('orientationchange',()=>setTimeout(()=>{if(activeMenu&&activeButton)positionMenu(activeMenu,activeButton)},120),{passive:true});
+ window.addEventListener('resize',()=>{if(activeMenu)positionMenu(activeMenu)},{passive:true});
+ window.addEventListener('orientationchange',()=>setTimeout(()=>{if(activeMenu)positionMenu(activeMenu)},120),{passive:true});
  new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',queue,{once:true});else queue();
 })();
