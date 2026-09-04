@@ -1,46 +1,18 @@
 (()=>{
  'use strict';
  const LABELS={d4:'d4','d5-bonus':'Bonus','d5-penalty':'Penalty',d6:'d6',d8:'d8',d10:'d10','d10-inverse':'xd10',d12:'d12',d20:'d20'};
- let queued=false;
+ let queued=false,lastTotal=null;
  const q=(s,r=document)=>r?.querySelector(s);
  const qa=(s,r=document)=>[...(r?.querySelectorAll(s)||[])];
- function dieKey(el){
-  const sprite=el?.matches?.('.die-sprite')?el:el?.querySelector?.('.die-sprite');
-  if(!sprite)return '';
-  const cls=[...sprite.classList].find(c=>/^die-d/.test(c)&&c!=='die-sprite');
-  return cls?cls.replace(/^die-/,''):'';
- }
- function rolledValue(el){
-  const title=(el.getAttribute('title')||'').trim();
-  if(/\brolling$/i.test(title))return el.classList.contains('die-d10-inverse')?10:0;
-  const match=title.match(/(-?\d+)\s*$/);return match?Number(match[1]):0;
- }
- function correctedTotal(){
-  const rolls=qa('.world-stage .rolled-die');
-  let base=0;const multipliers=[];
-  rolls.forEach(el=>{const value=rolledValue(el);if(el.classList.contains('die-d10-inverse'))multipliers.push(value===0?10:value);else base+=value});
-  return multipliers.reduce((total,m)=>total*m,base);
- }
- function paintTotal(root){
-  const actions=q('.rist-deck-row.row3 .rist-deck-actions',root);if(!actions)return;
-  const sum=qa('button',actions).find(b=>/^SUM\b/i.test((b.textContent||'').trim()));if(!sum)return;
-  sum.textContent=`SUM ${correctedTotal()}`;
-  sum.title='xd10 multiplies the sum of all other dice; 0 = ×10';
- }
- function patch(){
-  const root=q('.rist.release-world');if(!root?.classList.contains('deck-dice'))return;
-  const shell=q(':scope>.release-world-shell',root),row1=q(':scope>.rist-deck-row.row1',shell),row2=q(':scope>.rist-deck-row.row2',shell),art=q('.rist-dice-image-loop',row2);
-  if(!row1||!row2||!art)return;
-  row1.classList.add('rist-dice-header-merged');row2.classList.add('rist-dice-combined-row');
-  qa(':scope>.rist-dice-proxy',art).forEach(proxy=>{
-   const key=dieKey(proxy);if(!key)return;
-   proxy.dataset.dieKey=key;
-   let label=q(':scope>.rist-dice-combined-label',proxy);if(!label){label=document.createElement('div');label.className='rist-dice-combined-label';proxy.prepend(label)}
-   label.textContent=LABELS[key]||key;
-  });
-  paintTotal(root);
- }
+ function dieKey(el){const sprite=el?.matches?.('.die-sprite')?el:el?.querySelector?.('.die-sprite');if(!sprite)return '';const cls=[...sprite.classList].find(c=>/^die-d/.test(c)&&c!=='die-sprite');return cls?cls.replace(/^die-/,''):''}
+ function rolledValue(el){const candidates=[el.getAttribute('data-value'),el.dataset?.rollValue,el.getAttribute('aria-valuenow'),el.getAttribute('title'),el.getAttribute('aria-label'),el.textContent];for(const candidate of candidates){if(candidate==null)continue;const text=String(candidate).trim();if(/\brolling\b/i.test(text))continue;const matches=text.match(/-?\d+/g);if(matches?.length)return Number(matches[matches.length-1])}return 0}
+ function isMultiplier(el){return el.classList.contains('die-d10-inverse')||!!el.querySelector?.('.die-d10-inverse')||/\bxd10\b|inverse/i.test(`${el.className} ${el.getAttribute('title')||''} ${el.getAttribute('aria-label')||''}`)}
+ function rolledDice(){const stage=q('.world-stage')||document;const selectors=['.rolled-die','[data-roll-value]','[data-die-result]'];const found=[];for(const sel of selectors)for(const el of qa(sel,stage))if(!found.includes(el))found.push(el);return found}
+ function correctedTotal(){const rolls=rolledDice();let base=0;const multipliers=[];for(const el of rolls){const value=rolledValue(el);if(isMultiplier(el))multipliers.push(value===0?10:value);else base+=value}return multipliers.reduce((total,m)=>total*m,base)}
+ function ensureResult(root){const actions=q('.rist-deck-row.row3 .rist-deck-actions',root);if(!actions)return null;let out=q('.rist-dice-sum-result',actions);if(out)return out;const legacy=qa('button',actions).find(b=>/^SUM\b/i.test((b.textContent||'').trim()));out=document.createElement('output');out.className='rist-dice-sum-result sum';out.setAttribute('aria-live','polite');out.setAttribute('aria-label','Dice sum result');out.innerHTML='<span>SUM</span><strong>0</strong>';if(legacy)legacy.replaceWith(out);else actions.appendChild(out);return out}
+ function paintTotal(root){const out=ensureResult(root);if(!out)return;const total=correctedTotal();const strong=q('strong',out);if(strong)strong.textContent=String(total);else out.textContent=`SUM ${total}`;out.value=String(total);out.title='Result of rolled dice; xd10 multiplies the sum of all other dice and 0 = ×10';if(total!==lastTotal){lastTotal=total;document.dispatchEvent(new CustomEvent('rist:dice-sum-updated',{detail:{total}}))}}
+ function patch(){const root=q('.rist.release-world');if(!root?.classList.contains('deck-dice'))return;const shell=q(':scope>.release-world-shell',root),row1=q(':scope>.rist-deck-row.row1',shell),row2=q(':scope>.rist-deck-row.row2',shell),art=q('.rist-dice-image-loop',row2);if(!row1||!row2||!art)return;row1.classList.add('rist-dice-header-merged');row2.classList.add('rist-dice-combined-row');qa(':scope>.rist-dice-proxy',art).forEach(proxy=>{const key=dieKey(proxy);if(!key)return;proxy.dataset.dieKey=key;let label=q(':scope>.rist-dice-combined-label',proxy);if(!label){label=document.createElement('div');label.className='rist-dice-combined-label';proxy.prepend(label)}label.textContent=LABELS[key]||key});paintTotal(root)}
  function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;patch()})}
- function start(){patch();new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','class']});}
+ function start(){patch();new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','class','data-value','data-roll-value','data-die-result','aria-valuenow','aria-label']});document.addEventListener('rist:dice-roll-result',queue);document.addEventListener('rist:dice-roll-intent',()=>setTimeout(queue,0))}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
