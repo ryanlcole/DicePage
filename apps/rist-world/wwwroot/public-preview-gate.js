@@ -21,18 +21,18 @@
   if(!target||target.closest('.rist-game-start'))return;
   if(target.dataset.previewLocked==='1'||isLockedControl(target)){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}
  }
- function openTitle(authenticated=false){window.RistGameStartScreen?.open?.({authenticated})}
+ function openTitle(authenticated=false,view){window.RistGameStartScreen?.open?.(authenticated?{authenticated:true}:{authenticated:false,view})}
  function start(){
   const params=new URLSearchParams(location.search);
   const alreadyPreview=params.get('preview')==='1'||sessionStorage.getItem('rist-public-preview')==='1';
   if(alreadyPreview){lockPreview();window.RistGameStartScreen?.close?.();observe();return}
   if(sessionStorage.getItem('rist.session')){openTitle(true);observe();return}
   if(params.has('rist_handoff')||location.hash.includes('rist_session')){
-   openTitle(false);
-   let attempts=0;const timer=setInterval(()=>{if(sessionStorage.getItem('rist.session')){clearInterval(timer);openTitle(true)}else if(++attempts>=100){clearInterval(timer);openTitle(false)}},100);
+   openTitle(false,'authwait');
+   let attempts=0;const timer=setInterval(()=>{if(sessionStorage.getItem('rist.session')){clearInterval(timer);openTitle(true)}else if(++attempts>=100){clearInterval(timer);openTitle(false,'entry')}},100);
    observe();return;
   }
-  openTitle(false);observe();
+  openTitle(false,'splash');observe();
  }
  function observe(){new MutationObserver(()=>requestAnimationFrame(scanLocks)).observe(document.getElementById('app')||document.body,{childList:true,subtree:true})}
  document.addEventListener('click',blockLocked,true);
