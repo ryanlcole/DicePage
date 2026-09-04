@@ -3,6 +3,7 @@
  const ASSIGN_KEY='rist.roleplay.voice.assignments.v1';
  const DEFAULT_KEY='rist.roleplay.voice.default.v1';
  const ENABLED_KEY='rist.roleplay.voice.enabled.v1';
+ const DEFAULT_VOICE_NAME='Matthew';
  let voices=[];
  const synth=window.speechSynthesis;
  const readJson=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key)||'')||fallback}catch{return fallback}};
@@ -13,7 +14,7 @@
   refreshVoices();
   const saved=localStorage.getItem(DEFAULT_KEY)||'';
   if(saved){const hit=voices.find(v=>v.voiceURI===saved||v.name===saved);if(hit)return hit}
-  const preferred=['Samantha','Alex','Google US English','Microsoft Aria','Microsoft David'];
+  const preferred=[DEFAULT_VOICE_NAME,'Amazon Matthew','Matthew Neural','Samantha','Alex','Google US English','Microsoft Aria','Microsoft David'];
   for(const name of preferred){const hit=voices.find(v=>v.name===name||v.name.includes(name));if(hit){try{localStorage.setItem(DEFAULT_KEY,hit.voiceURI||hit.name)}catch{}return hit}}
   const hit=voices.find(v=>v.default&&/^en(?:-|$)/i.test(v.lang))||voices.find(v=>/^en-US$/i.test(v.lang))||voices.find(v=>/^en(?:-|$)/i.test(v.lang))||voices[0]||null;
   if(hit)try{localStorage.setItem(DEFAULT_KEY,hit.voiceURI||hit.name)}catch{}
@@ -52,6 +53,7 @@
  function setEnabled(value){try{localStorage.setItem(ENABLED_KEY,value?'true':'false')}catch{}if(!value)synth?.cancel?.()}
  if(synth){refreshVoices();synth.addEventListener?.('voiceschanged',refreshVoices);setTimeout(refreshVoices,250)}
  window.RistRoleplayVoice={
+  defaultVoiceName:DEFAULT_VOICE_NAME,
   speak,cancel:()=>synth?.cancel?.(),refresh:refreshVoices,
   getVoices:()=>refreshVoices().map(v=>({name:v.name,lang:v.lang,voiceURI:v.voiceURI,default:v.default,localService:v.localService})),
   getDefault:()=>{const v=chooseDefault();return v?{name:v.name,lang:v.lang,voiceURI:v.voiceURI}:null},
