@@ -6,6 +6,7 @@
 /* Settings/About moved to the title menu. Role/World changes are also title-settings authority. */
 #header-slider [aria-label="Settings"],#header-slider [aria-label="About"],#header-slider [aria-label="Role"],#header-slider [aria-label="Toggle Sandbox and MMO"]{display:none!important}
 .map-frame-mode-toggle[disabled]{opacity:1!important;color:inherit!important;background:transparent!important;border:0!important;box-shadow:none!important}.map-frame-role-slot{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;white-space:nowrap!important}
+.rist-start-voice{display:grid!important;gap:5px!important;padding:3px 8px 8px!important;color:#ffe4a0!important;font-size:12px!important;letter-spacing:.08em!important;text-transform:uppercase!important}.rist-start-voice select{box-sizing:border-box;width:100%;min-height:38px;padding:5px 2px;border:0;border-bottom:1px solid rgba(255,228,160,.72);border-radius:0;background:rgba(2,5,11,.78);color:#fff6d7;font:800 15px/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}.rist-start-voice select:focus-visible{outline:2px dashed rgba(255,241,183,.9);outline-offset:2px}
 /* GM-only world-edit controls. Non-GMs never see them. Locked GM layers also hide mutation tools. */
 html:not([data-rist-game-role="gm"]) .map-frame-corner-add,
 html:not([data-rist-game-role="gm"]) .zone-editor,
