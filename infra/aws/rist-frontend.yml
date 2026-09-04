@@ -49,6 +49,23 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  FrontendDirectoryIndexFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${AWS::StackName}-directory-index'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Resolve clean folder routes to their index documents
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          if (request.uri.endsWith('/')) {
+            request.uri += 'index.html';
+          }
+          return request;
+        }
+
   SecurityHeaders:
     Type: AWS::CloudFront::ResponseHeadersPolicy
     Properties:
@@ -161,6 +178,9 @@ Resources:
           CachedMethods: [GET, HEAD, OPTIONS]
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           ResponseHeadersPolicyId: !Ref SecurityHeaders
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt FrontendDirectoryIndexFunction.FunctionARN
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
