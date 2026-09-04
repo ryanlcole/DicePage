@@ -1,0 +1,26 @@
+/* Profile launcher, read-only frame state, and GM edit lock authority. */
+.rist-game-profile-launcher{position:fixed;top:calc(var(--rist-context-h,28px) + 4px);right:max(6px,env(safe-area-inset-right));z-index:2147483075;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;border:1px solid #b88a35;border-radius:50%;overflow:hidden;background:#071015;color:#f1d68f;display:grid;place-items:center;box-shadow:0 2px 8px #000a;cursor:pointer}
+.rist-game-profile-launcher img{width:100%;height:100%;object-fit:cover;display:block}.rist-game-profile-launcher span{font-size:18px}
+.rist-gm-layer-lock{position:absolute;top:18px;right:8px;z-index:230;width:38px;height:38px;min-width:38px;min-height:38px;padding:0;border:1px solid #b88a35;border-radius:8px;background:#071015e8;color:#f1d68f;font-size:22px;line-height:1;display:grid;place-items:center;box-shadow:0 3px 10px #0009;cursor:pointer;touch-action:manipulation}
+.rist-gm-layer-lock[data-locked="0"]{background:#16231b;border-color:#8ebc72}
+/* Settings/About moved to the title menu. Role/World changes are also title-settings authority. */
+#header-slider [aria-label="Settings"],#header-slider [aria-label="About"],#header-slider [aria-label="Role"],#header-slider [aria-label="Toggle Sandbox and MMO"]{display:none!important}
+.map-frame-mode-toggle[disabled]{opacity:1!important;color:inherit!important;background:transparent!important;border:0!important;box-shadow:none!important}.map-frame-role-slot{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;white-space:nowrap!important}
+/* GM-only world-edit controls. Non-GMs never see them. Locked GM layers also hide mutation tools. */
+html:not([data-rist-game-role="gm"]) .map-frame-corner-add,
+html:not([data-rist-game-role="gm"]) .zone-editor,
+html:not([data-rist-game-role="gm"]) .tileset-upload,
+html:not([data-rist-game-role="gm"]) .library-deck-toolbar,
+html:not([data-rist-game-role="gm"]) .tile-browser,
+html:not([data-rist-game-role="gm"]) .tray-item.tile,
+html:not([data-rist-game-role="gm"]) #header-slider [data-gm-edit-only="1"],
+html:not([data-rist-game-role="gm"]) #header-slider .map-menu-control-pin{display:none!important}
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .map-frame-corner-add,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .zone-editor,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .tileset-upload,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .library-deck-toolbar,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .tile-browser,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] .tray-item.tile,
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] #header-slider [data-gm-edit-only="1"],
+html[data-rist-game-role="gm"][data-rist-layer-locked="1"] #header-slider .map-menu-control-pin{display:none!important}
+@media(max-width:620px){.rist-game-profile-launcher{width:32px;height:32px;min-width:32px;min-height:32px}.rist-gm-layer-lock{width:36px;height:36px;min-width:36px;min-height:36px;font-size:20px}}
