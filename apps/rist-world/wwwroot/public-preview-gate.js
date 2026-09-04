@@ -45,7 +45,8 @@
    const cfg=await fetch('auth-config.json',{cache:'no-store'}).then(r=>r.json());
    if(cfg?.apiBaseUrl){
     const next=encodeURIComponent(location.href.split('#')[0]);
-    location.href=`${cfg.apiBaseUrl.replace(/\/$/,'')}/login?next=${next}&intent=${mode}`;
+    const loginPath=String(cfg.loginPath||'/auth/login').startsWith('/')?String(cfg.loginPath||'/auth/login'):`/${cfg.loginPath}`;
+    location.href=`${cfg.apiBaseUrl.replace(/\/$/,'')}${loginPath}?next=${next}&intent=${encodeURIComponent(mode)}`;
     return;
    }
   }catch{}
