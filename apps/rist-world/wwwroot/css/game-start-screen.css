@@ -1,66 +1,33 @@
-/* Full-screen post-authentication and public-preview launch menu.
-   Retro title-screen presentation: artwork stays visible; controls read as text. */
+/* Unified Shaelvien title / auth / campaign screen. */
 .rist-game-start[hidden]{display:none!important}
-.rist-game-start{
- position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex;align-items:flex-end;justify-content:center;
- box-sizing:border-box;overflow:hidden;padding:clamp(18px,4vh,42px);isolation:isolate;background:#03050a;color:#f7e8b7;
- font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace
-}
+.rist-game-start{position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid;place-items:center;box-sizing:border-box;overflow:hidden;padding:20px;isolation:isolate;background:#03050a;color:#f7e8b7;font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace}
 .rist-game-start-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3}
-.rist-game-start-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,transparent 0 58%,rgba(1,3,8,.08) 72%,rgba(1,3,8,.48) 100%);pointer-events:none}
-.rist-game-start-panel{
- position:relative;box-sizing:border-box;width:min(470px,92vw);padding:0;border:0;border-radius:0;background:transparent;
- box-shadow:none;backdrop-filter:none;text-shadow:0 2px 5px #000,0 0 8px rgba(0,0,0,.9)
-}
-.rist-game-start-grid{display:grid;grid-template-columns:1fr;gap:7px}
-.rist-game-start fieldset{min-width:0;margin:0;padding:0;border:0}
-.rist-game-start legend,.rist-game-start-invite>span{display:block;margin:0 0 1px;color:#ffe4a0;font-size:12px;font-weight:900;line-height:1.2;letter-spacing:.18em;text-transform:uppercase}
-.rist-game-start-segments{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0;border:0;border-radius:0;background:transparent}
-.rist-game-start-segments label{min-width:0;cursor:pointer}
-.rist-game-start-segments input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-.rist-game-start-segments span{box-sizing:border-box;display:flex;align-items:center;min-height:34px;padding:3px 0;border:0;border-radius:0;background:transparent;color:#d6d8e5;font-size:18px;font-weight:850;line-height:1.05;letter-spacing:.025em;text-align:left;transition:color .12s ease,text-shadow .12s ease,transform .12s ease}
-.rist-game-start-segments input:checked+span{background:transparent;color:#fff1b7;box-shadow:none;text-shadow:0 0 8px rgba(255,222,128,.75),0 2px 5px #000;transform:translateX(8px)}
-.rist-game-start-segments input:checked+span::before{content:"▶ ";font-size:.72em;margin-right:4px;color:#fff1b7}
-.rist-game-start-segments input:focus-visible+span,.rist-game-start button:focus-visible,.rist-game-start input:focus-visible{outline:2px dashed #fff0b0;outline-offset:3px}
-.rist-game-start-invite{display:block;min-width:0}
-.rist-game-start-invite input{box-sizing:border-box;width:100%;min-height:34px;padding:3px 0 5px;border:0;border-bottom:1px solid rgba(255,228,160,.72);border-radius:0;background:transparent;color:#fff4cc;font:800 18px/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.04em;box-shadow:none;text-shadow:0 2px 5px #000}
-.rist-game-start-invite input::placeholder{color:rgba(222,224,235,.68)}
-.rist-game-start button{box-sizing:border-box;width:auto;min-height:34px;padding:3px 0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;cursor:pointer;color:#f8e8b1;font:900 18px/1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.16em;text-align:left;text-transform:uppercase;text-shadow:0 2px 5px #000;touch-action:manipulation}
-.rist-game-start button::before{content:"> ";color:#fff1b7}
-.rist-game-start button:hover,.rist-game-start button:active{color:#fff8dc;text-shadow:0 0 8px rgba(255,231,159,.8),0 2px 5px #000;transform:translateX(6px)}
-.rist-game-start-settings-button,.rist-game-start-submit,.rist-game-start-save,.rist-game-start-cancel{border:0;background:transparent;color:#f8e8b1}
-.rist-game-start-submit{font-size:21px;color:#fff2ae}
-.rist-game-start button:disabled{cursor:wait;opacity:.55}
-.rist-game-start-status{min-height:0;margin:0;color:#d8ddff;font-size:12px;font-weight:800;line-height:1.3;text-align:left}
-.rist-game-start-status:not(:empty){min-height:16px;margin:5px 0 0}
-.rist-game-start-status.error{color:#ffb1b1}
-.rist-game-start-options{position:absolute;left:0;right:0;bottom:0;z-index:2;box-sizing:border-box;padding:12px 14px;border:1px solid rgba(255,228,160,.5);border-radius:3px;background:rgba(2,5,11,.78);box-shadow:0 8px 26px rgba(0,0,0,.6);backdrop-filter:blur(5px)}
-.rist-game-start-options[hidden]{display:none!important}
-.rist-game-start-options-head,.rist-game-start-setting,.rist-game-start-options-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.rist-game-start-options-head{margin-bottom:4px}.rist-game-start-options h2{margin:0;color:#ffe4a0;font-size:16px;letter-spacing:.15em;text-transform:uppercase}
-.rist-game-start-options-close{width:auto!important;min-height:30px!important;padding:3px 0!important;font-size:12px!important}
-.rist-game-start-setting{min-height:43px;border-top:1px solid rgba(255,228,160,.22);color:#f3e7c7;font-size:13px;font-weight:800}.rist-game-start-setting input{width:22px;height:22px;accent-color:#d8b85e}
-.rist-game-start-options-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:5px}
-.rist-game-start[data-high-contrast="1"] .rist-game-start-panel{background:transparent;border:0}.rist-game-start[data-high-contrast="1"] .rist-game-start-segments,.rist-game-start[data-high-contrast="1"] .rist-game-start-invite input{border-color:#fff1ad}
+.rist-game-start-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,rgba(1,3,8,.02) 0 36%,rgba(1,3,8,.18) 62%,rgba(1,3,8,.56) 100%);pointer-events:none}
+.rist-game-start-panel{box-sizing:border-box;width:min(540px,92vw);min-height:260px;display:grid;align-content:center;justify-items:stretch;padding:24px 28px;border:1px solid rgba(206,159,58,.68);border-radius:22px;background:rgba(3,10,15,.82);box-shadow:0 18px 50px rgba(0,0,0,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);text-shadow:0 2px 5px #000}
+.rist-start-menu,.rist-start-card{display:grid;gap:14px}
+.rist-start-card h1{margin:0 0 4px;text-align:center;color:#ffe4a0;font-size:30px;letter-spacing:.04em}
+.rist-game-start button{box-sizing:border-box;min-height:56px;padding:10px 14px;border:1px solid rgba(212,170,77,.8);border-radius:12px;background:rgba(12,23,30,.82);color:#f8e8b1;font:900 22px/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.03em;text-align:center;cursor:pointer;touch-action:manipulation}
+.rist-game-start button:hover,.rist-game-start button:active{background:rgba(31,45,53,.9);border-color:#f1d68f}
+.rist-game-start button:focus-visible,.rist-game-start input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.rist-start-anykey,.rist-start-welcome{border:0!important;background:transparent!important;box-shadow:none!important;text-shadow:0 3px 8px #000,0 0 12px #000!important}
+.rist-start-anykey{font-size:24px!important;animation:rist-start-pulse 1.45s steps(2,end) infinite}
+.rist-start-welcome{display:grid!important;gap:14px!important}
+.rist-start-welcome strong{font-size:32px}.rist-start-welcome span{font-size:18px;font-weight:700}
+.rist-start-card label{display:grid;gap:6px;color:#ffe4a0;font-size:15px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.rist-start-card input[type="text"],.rist-start-card input:not([type]){box-sizing:border-box;width:100%;min-height:48px;padding:10px 12px;border:1px solid rgba(212,170,77,.8);border-radius:9px;background:rgba(0,0,0,.72);color:#fff6d7;font:800 18px/1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+.rist-start-agreement{grid-template-columns:auto 1fr!important;align-items:center!important;text-transform:none!important;letter-spacing:0!important}
+.rist-start-agreement input{width:24px;height:24px;accent-color:#d6b35c}
+.rist-start-card fieldset{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0;padding:0;border:0}
+.rist-start-card legend{grid-column:1/-1;margin:6px 0 2px;color:#ffe4a0;font-size:14px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.rist-start-card fieldset label{position:relative;display:block!important}
+.rist-start-card fieldset input{position:absolute;width:1px;height:1px;opacity:0}
+.rist-start-card fieldset span{display:grid;min-height:48px;place-items:center;padding:8px;border:1px solid rgba(212,170,77,.62);border-radius:9px;background:rgba(0,0,0,.58);color:#dfe1e9;font-size:16px;text-transform:none;letter-spacing:0;cursor:pointer}
+.rist-start-card fieldset input:checked+span{border-color:#f0d98e;color:#fff2b7;background:rgba(66,54,23,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.rist-start-back{min-height:44px!important;font-size:16px!important;opacity:.82}
 body.rist-game-start-open{overflow:hidden!important}
 body.rist-game-start-open> :not(.rist-game-start){visibility:hidden!important}
 body.rist-game-start-open>.rist-game-start{visibility:visible!important}
-body.rist-reduce-motion .rist-game-start *{transition:none!important;animation:none!important}
-@media(max-width:620px){
- .rist-game-start{padding:16px 22px max(24px,env(safe-area-inset-bottom));align-items:flex-end}
- .rist-game-start-art{object-position:center center}
- .rist-game-start-shade{background:linear-gradient(180deg,transparent 0 63%,rgba(1,3,8,.06) 76%,rgba(1,3,8,.5) 100%)}
- .rist-game-start-panel{width:100%;max-width:430px}
- .rist-game-start-grid{gap:5px}
- .rist-game-start-segments{gap:8px}
- .rist-game-start-segments span{min-height:31px;font-size:17px}
- .rist-game-start-invite input,.rist-game-start button{min-height:31px;font-size:17px}
- .rist-game-start-submit{font-size:20px}
-}
-@media(max-height:700px) and (orientation:landscape){
- .rist-game-start{justify-content:flex-end;align-items:flex-end}
- .rist-game-start-panel{width:min(430px,48vw)}
- .rist-game-start-grid{grid-template-columns:1fr 1fr}
- .rist-game-start-invite,.rist-game-start-settings-button,.rist-game-start-submit{grid-column:1/-1}
-}
-@media(prefers-reduced-motion:reduce){.rist-game-start *{transition:none!important;animation:none!important}}
+@keyframes rist-start-pulse{50%{opacity:.45}}
+@media(max-width:620px){.rist-game-start{padding:16px}.rist-game-start-panel{width:min(92vw,460px);padding:20px 18px;border-radius:18px;min-height:300px}.rist-game-start button{min-height:54px;font-size:20px}.rist-start-card h1{font-size:27px}.rist-start-anykey{font-size:20px!important}.rist-start-welcome strong{font-size:28px}.rist-start-card fieldset{grid-template-columns:1fr 1fr}}
+@media(max-height:700px) and (orientation:landscape){.rist-game-start-panel{width:min(500px,58vw);min-height:220px;padding:14px 18px}.rist-start-menu,.rist-start-card{gap:8px}.rist-game-start button{min-height:42px;font-size:17px}.rist-start-card h1{font-size:22px}}
+@media(prefers-reduced-motion:reduce){.rist-start-anykey{animation:none}}
