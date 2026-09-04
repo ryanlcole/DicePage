@@ -8,29 +8,11 @@
  function profileImage(){return localStorage.getItem(IMG_KEY)||window.RistProfileImage?.current?.()||sessionAvatar()||''}
  function actualRole(){const raw=document.querySelector('.mmo-zone-actions[data-world-role]')?.dataset.worldRole;return raw==='GM'?'GameMaster':raw==='PC'?'Roleplayer':prefs().role}
  function isLocked(){const b=document.querySelector('.map-lock-button');if(!b)return true;const title=(b.getAttribute('title')||'').toLowerCase();return title.includes('unlock')||b.getAttribute('aria-pressed')==='false'}
- function ensureProfile(){
-  let b=document.querySelector('.rist-game-profile-launcher');
-  if(!loggedIn()){b?.remove();return}
-  if(!b){b=document.createElement('button');b.type='button';b.className='rist-game-profile-launcher';b.setAttribute('aria-label','Open Shaelvien start menu');b.addEventListener('click',()=>window.RistGameStartScreen?.open?.({authenticated:true,fromGame:true,view:'home'}));document.body.appendChild(b)}
-  const src=profileImage();b.replaceChildren();if(src){const img=document.createElement('img');img.src=src;img.alt='';b.appendChild(img)}else{const span=document.createElement('span');span.textContent='●';span.setAttribute('aria-hidden','true');b.appendChild(span)}
- }
- function ensureLock(){
-  const shell=document.querySelector('.release-map-region .map-shell');let b=document.querySelector('.rist-gm-layer-lock');const gm=actualRole()==='GameMaster';
-  if(!shell||!gm){b?.remove();return}
-  if(!b){b=document.createElement('button');b.type='button';b.className='rist-gm-layer-lock';b.addEventListener('click',()=>{document.querySelector('.map-lock-button')?.click();setTimeout(sync,30)});shell.appendChild(b)}
-  const locked=isLocked();b.dataset.locked=locked?'1':'0';b.setAttribute('aria-label',locked?'Unlock current tier and layer for editing':'Lock current tier and layer');b.setAttribute('aria-pressed',locked?'false':'true');b.textContent=locked?'🔒':'🔓'
- }
- function gateTools(){
-  const gm=actualRole()==='GameMaster',locked=isLocked();document.documentElement.dataset.ristGameRole=gm?'gm':'roleplayer';document.documentElement.dataset.ristLayerLocked=locked?'1':'0';
-  document.querySelectorAll('#header-slider .assets-root-panel button').forEach(b=>{const t=(b.textContent||'').trim().toLowerCase();if(['terrain','tiles','all'].includes(t))b.dataset.gmEditOnly='1'});
- }
- function makeFrameReadOnly(){
-  const mode=document.querySelector('.map-frame-mode-toggle');if(mode){mode.disabled=true;mode.setAttribute('aria-disabled','true');mode.setAttribute('tabindex','-1');mode.style.pointerEvents='none'}
-  const role=document.querySelector('.map-frame-role-slot');if(role){role.removeAttribute('aria-hidden');role.textContent=actualRole();role.setAttribute('aria-label',`Current role: ${actualRole()}`)}
- }
+ function ensureProfile(){let b=document.querySelector('.rist-game-profile-launcher');if(!loggedIn()){b?.remove();return}if(!b){b=document.createElement('button');b.type='button';b.className='rist-game-profile-launcher';b.setAttribute('aria-label','Open Shaelvien start menu');b.addEventListener('click',()=>window.RistGameStartScreen?.open?.({authenticated:true,fromGame:true,view:'home'}));document.body.appendChild(b)}const src=profileImage();b.replaceChildren();if(src){const img=document.createElement('img');img.src=src;img.alt='';b.appendChild(img)}else{const span=document.createElement('span');span.textContent='●';span.setAttribute('aria-hidden','true');b.appendChild(span)}}
+ function ensureLock(){const shell=document.querySelector('.release-map-region .map-shell');let b=document.querySelector('.rist-gm-layer-lock');const gm=actualRole()==='GameMaster';if(!shell||!gm){b?.remove();return}if(!b){b=document.createElement('button');b.type='button';b.className='rist-gm-layer-lock';b.addEventListener('click',()=>{document.querySelector('.map-lock-button')?.click();setTimeout(sync,60)});shell.appendChild(b)}const locked=isLocked();b.dataset.locked=locked?'1':'0';b.setAttribute('aria-label',locked?'Unlock current tier and layer for editing':'Lock current tier and layer');b.setAttribute('aria-pressed',locked?'false':'true');b.textContent=locked?'🔒':'🔓'}
+ function gateTools(){const gm=actualRole()==='GameMaster',locked=isLocked();document.documentElement.dataset.ristGameRole=gm?'gm':'roleplayer';document.documentElement.dataset.ristLayerLocked=locked?'1':'0';document.querySelectorAll('#header-slider .assets-root-panel button').forEach(b=>{const t=(b.textContent||'').trim().toLowerCase();if(['terrain','tiles','all'].includes(t))b.dataset.gmEditOnly='1'});document.querySelectorAll('#header-slider .root-menu-panel[aria-label="Choose table mode"] button').forEach(b=>{const t=(b.textContent||'').trim().toLowerCase();if(['worldbuilder','forge'].includes(t))b.dataset.gmEditOnly='1'})}
+ function makeFrameReadOnly(){const p=prefs();const mode=document.querySelector('.map-frame-mode-toggle');if(mode){mode.textContent=p.domain==='RIST'?'RIST':'MMO';mode.disabled=true;mode.setAttribute('aria-disabled','true');mode.setAttribute('aria-label',`Current domain: ${p.domain}`);mode.setAttribute('tabindex','-1');mode.style.pointerEvents='none'}const role=document.querySelector('.map-frame-role-slot');if(role){const r=actualRole();role.removeAttribute('aria-hidden');role.textContent=r;role.setAttribute('aria-label',`Current role: ${r}`)}}
  function sync(){ensureProfile();ensureLock();gateTools();makeFrameReadOnly()}
  document.addEventListener('rist:profile-image-changed',sync);document.addEventListener('rist:start-settings-changed',()=>setTimeout(sync,50));document.addEventListener('rist:start-settings-applied',()=>setTimeout(sync,50));document.addEventListener('rist:game-start',()=>setTimeout(sync,50));
- let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync()})}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-world-mode','data-world-role','aria-pressed','title']});
- setInterval(sync,700);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
- window.RistGameShell={sync};
+ let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync()})}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-world-mode','data-world-role','aria-pressed','title']});setInterval(sync,700);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();window.RistGameShell={sync};
 })();
