@@ -2,21 +2,29 @@
  'use strict';
  const MODES=[
   ['/s','says…','Normal speaking range'],
-  ['/e','exclaims…','Emphatic speaking range'],
+  ['/e','exclaims…','Raised or emphatic speaking range'],
+  ['/q','quietly says…','Low voice / short range'],
   ['/w','whispers…','Very close, quiet range'],
+  ['/h','hails…','Moderate-distance calling range'],
   ['/y','yells…','Long audible range'],
-  ['/c','clarion calls…','Very long battlefield-style call'],
-  ['/a','announces…','Broad area announcement'],
-  ['/g','signals…','Visible / line-of-sight communication'],
-  ['/m','magically messages…','Magical ranged communication'],
-  ['/t','telepathically messages…','Telepathic communication']
+  ['/b','bellows…','Maximum natural voice range'],
+  ['/c','clarion calls…','Very long battlefield-style audible range'],
+  ['/a','announces…','Broad local-area announcement'],
+  ['/sng','sings…','Audible singing range'],
+  ['/sgn','signs…','Visual / line-of-sight communication'],
+  ['/g','signals…','Visible signal / line-of-sight range'],
+  ['/m','magically messages…','Magical range set by the effect'],
+  ['/t','telepathically messages…','Telepathic range set by the effect'],
+  ['/r','radios…','Device-defined communication range'],
+  ['/p','projects…','Amplified or supernatural voice range']
  ];
  let mode='/s',queued=false;
  const q=(s,r=document)=>r?.querySelector?.(s)||null;
  function setLiveValue(line){
   const live=q('.home-chat-compose textarea');
   if(!live)return;
-  const value=line.trim()?`${mode} ${line}`:line;
+  const clean=line||'';
+  const value=clean.trim()?`${mode} ${clean}`:clean;
   const setter=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')?.set;
   setter?.call(live,value);
   live.dispatchEvent(new Event('input',{bubbles:true}));
@@ -36,11 +44,14 @@
  }
  function enhance(){
   const wrap=q('.rist-themed-chat-input');if(!wrap||wrap.dataset.ristComposer==='1')return;
-  const prior=q('textarea',wrap)?.value||'';
+  const source=q('.home-chat-compose textarea');
+  let prior=source?.value||q('textarea',wrap)?.value||'';
+  const found=MODES.find(([code])=>prior===code||prior.startsWith(code+' '));
+  if(found){mode=found[0];prior=prior.slice(mode.length).trimStart();}
   wrap.dataset.ristComposer='1';wrap.replaceChildren();
   const modeDrop=buildModeDropdown();
-  const input=document.createElement('textarea');input.className='rist-chat-line-input';input.maxLength=1200;input.placeholder='character line…';input.value=prior.replace(/^\/[a-z]\s+/i,'');input.setAttribute('aria-label','Character line');input.addEventListener('input',()=>setLiveValue(input.value));
-  const send=document.createElement('button');send.type='button';send.className='rist-chat-send';send.textContent='Send';send.addEventListener('click',()=>{setLiveValue(input.value);requestAnimationFrame(()=>q('.home-chat-send')?.click())});
+  const input=document.createElement('textarea');input.className='rist-chat-line-input';input.maxLength=1200;input.placeholder='character line…';input.value=prior;input.setAttribute('aria-label','Character line');input.addEventListener('input',()=>setLiveValue(input.value));
+  const send=document.createElement('button');send.type='button';send.className='rist-chat-send';send.textContent='Send';send.addEventListener('click',()=>{setLiveValue(input.value);requestAnimationFrame(()=>{q('.home-chat-send')?.click();setTimeout(()=>{input.value='';setLiveValue('');},0);});});
   const tools=document.createElement('div');tools.className='rist-chat-tool-stack';
   const log=document.createElement('button');log.type='button';log.className='rist-chat-icon-button';log.innerHTML='<span aria-hidden="true">▤</span>';log.title='Chat log';log.setAttribute('aria-label','Chat log');log.addEventListener('click',()=>window.RistChatScripts?.open?.());
   const settings=document.createElement('button');settings.type='button';settings.className='rist-chat-icon-button';settings.innerHTML='<span aria-hidden="true">⚙</span>';settings.title='Chat settings';settings.setAttribute('aria-label','Chat settings');settings.addEventListener('click',()=>window.RistStartMenu?.open?.());
