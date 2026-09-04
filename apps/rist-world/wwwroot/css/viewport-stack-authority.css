@@ -75,24 +75,28 @@ html body #app>.rist.release-world>.release-world-shell>.release-menu-region>#he
 
 /* Header subpanels are floating viewer overlays, not layout rows. */
 html body #app .release-menu-region .root-menu-panel,
-html body #app .release-menu-region .release-action-menu{
+html body #app .release-menu-region .release-action-menu,
+html body #app .root-menu-panel,
+html body #app .release-action-menu{
  box-sizing:border-box!important;
  position:fixed!important;
- left:8px!important;
- right:8px!important;
- top:calc(var(--rist-context-h) + var(--rist-menu-overlay-h) + 2px)!important;
+ left:max(8px,env(safe-area-inset-left))!important;
+ right:max(8px,env(safe-area-inset-right))!important;
+ top:calc(var(--rist-context-h) + var(--rist-menu-overlay-h) + 4px)!important;
  width:auto!important;
- max-width:none!important;
- max-height:min(70dvh,520px)!important;
+ max-width:calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right))!important;
+ max-height:calc(100dvh - var(--rist-context-h) - var(--rist-menu-overlay-h) - 16px)!important;
  margin:0!important;
  padding:12px!important;
  overflow:auto!important;
+ overscroll-behavior:contain!important;
  z-index:2147483060!important;
  background:#071015f8!important;
  border:1px solid #725d30!important;
  border-radius:10px!important;
  box-shadow:0 12px 30px #000b!important;
  pointer-events:auto!important;
+ transform:none!important;
 }
 html body #app .release-menu-region .root-menu-panel.compact-root-panel,
 html body #app .release-menu-region .scale-root-panel,
@@ -128,4 +132,26 @@ html body #app>.rist.release-world>.release-world-shell>.release-map-region>.tab
  height:100%!important;
  margin:0!important;
  padding:0!important;
+}
+
+/* On phones the ticker is physically taller than the desktop authority value.
+   Reserve its real height so the gold menu strip and its opened panel cannot
+   sit behind the ticker or escape through the left edge. */
+@media (max-width:760px){
+ html body #app{
+  --rist-context-h:54px!important;
+  --rist-menu-overlay-h:44px!important;
+ }
+ html body #app>.rist.release-world>.release-world-shell>.release-menu-region{
+  padding-left:max(0px,env(safe-area-inset-left))!important;
+  padding-right:max(0px,env(safe-area-inset-right))!important;
+ }
+ html body #app .root-menu-panel,
+ html body #app .release-action-menu{
+  left:max(8px,env(safe-area-inset-left))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  top:calc(var(--rist-context-h) + var(--rist-menu-overlay-h) + 4px)!important;
+  width:auto!important;
+  max-width:none!important;
+ }
 }
