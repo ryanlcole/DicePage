@@ -13,8 +13,25 @@
  async function driveUntil(readState,wanted,buttonSelector,timeout=5000){const start=Date.now();while(Date.now()-start<timeout){if(readState()===wanted)return true;const button=document.querySelector(buttonSelector);if(button)button.click();await new Promise(r=>setTimeout(r,140));}return readState()===wanted}
  function shell(){return `<img class="rist-game-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="Primordial dragons forming Shaelvien with their breath weapons."><div class="rist-game-start-shade" aria-hidden="true"></div><main class="rist-game-start-panel" data-start-panel></main>`}
  function ensure(){if(root&&document.body.contains(root))return;root=document.createElement('section');root.className='rist-game-start';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Shaelvien start screen');root.innerHTML=shell();document.body.appendChild(root);root.addEventListener('click',onClick);root.addEventListener('submit',onSubmit);root.addEventListener('change',onChange)}
- function voiceOptions(){const voices=window.RistRoleplayVoice?.getVoices?.()||[];const current=window.RistRoleplayVoice?.getDefault?.();return `<div class="rist-start-voice-row"><label class="rist-start-voice">Default voice<select name="defaultVoice" aria-label="Default voice"><option value="">System default</option>${voices.map(v=>`<option value="${String(v.voiceURI||v.name).replace(/"/g,'&quot;')}" ${(current&&(current.voiceURI===v.voiceURI||current.name===v.name))?'selected':''}>${v.name}${v.lang?` (${v.lang})`:''}</option>`).join('')}</select></label><button type="button" class="rist-start-voice-demo" data-action="voice-demo" aria-label="Play selected voice demo" title="Play selected voice demo">▶</button></div>`}
- function playVoiceDemo(){const select=root?.querySelector('select[name="defaultVoice"]');const voiceId=select?.value||'';if(voiceId)window.RistRoleplayVoice?.setDefault?.(voiceId);const synth=window.speechSynthesis;if(!synth){window.RistRoleplayVoice?.speak?.({text:VOICE_DEMO,identity:'default'});return}const voices=synth.getVoices?.()||[];const voice=voiceId?voices.find(v=>v.voiceURI===voiceId||v.name===voiceId):voices.find(v=>v.default)||null;const utter=new SpeechSynthesisUtterance(VOICE_DEMO);if(voice){utter.voice=voice;utter.lang=voice.lang||'en-US'}synth.cancel();synth.speak(utter)}
+ function voiceOptions(){
+  const voices=window.RistRoleplayVoice?.getVoices?.()||[];
+  const current=window.RistRoleplayVoice?.getDefault?.();
+  const currentId=current?.id||'';
+  const categories=window.RistRoleplayVoice?.categories||[];
+  const grouped=categories.map(category=>{
+   const entries=voices.filter(v=>v.category===category);
+   if(!entries.length)return'';
+   return `<optgroup label="${category}">${entries.map(v=>`<option value="${String(v.id||v.voiceURI||v.name).replace(/"/g,'&quot;')}" ${(currentId&&(currentId===(v.id||v.voiceURI||v.name)))?'selected':''}>${v.name}${v.lang?` (${v.lang})`:''}${v.engine==='kokoro'?' · Kokoro':''}</option>`).join('')}</optgroup>`;
+  }).join('');
+  const ungrouped=voices.filter(v=>!categories.includes(v.category)).map(v=>`<option value="${String(v.id||v.voiceURI||v.name).replace(/"/g,'&quot;')}" ${(currentId&&(currentId===(v.id||v.voiceURI||v.name)))?'selected':''}>${v.name}${v.lang?` (${v.lang})`:''}</option>`).join('');
+  return `<div class="rist-start-voice-row"><label class="rist-start-voice">Default voice<select name="defaultVoice" aria-label="Default roleplay voice"><option value="">System default</option>${grouped}${ungrouped}</select></label><button type="button" class="rist-start-voice-demo" data-action="voice-demo" aria-label="Play selected voice demo" title="Play selected voice demo">▶</button></div>`;
+ }
+ function playVoiceDemo(){
+  const select=root?.querySelector('select[name="defaultVoice"]');
+  const voiceId=select?.value||window.RistRoleplayVoice?.getDefault?.()?.id||'';
+  if(voiceId)window.RistRoleplayVoice?.setDefault?.(voiceId);
+  return window.RistRoleplayVoice?.preview?.(voiceId,VOICE_DEMO)??window.RistRoleplayVoice?.speak?.({text:VOICE_DEMO,identity:'default'})??false;
+ }
  function setView(next){ensure();view=next;const panel=root.querySelector('[data-start-panel]');const p=savedPrefs();
   if(next==='splash')panel.innerHTML=`<button class="rist-start-anykey" type="button" data-action="continue">Press any key to continue…</button>`;
   if(next==='authwait')panel.innerHTML=`<div class="rist-start-authwait" role="status" aria-live="polite">Signing in…</div>`;
@@ -36,7 +53,7 @@
  function onChange(e){if(!e.target.closest('[data-settings-form]'))return;if(e.target.name==='defaultVoice'){if(e.target.value)window.RistRoleplayVoice?.setDefault?.(e.target.value);playVoiceDemo()}}
  async function onSubmit(e){if(e.target.matches('[data-signup-form]')){e.preventDefault();const data=new FormData(e.target);const draft={handle:clean(data.get('handle')),plan:clean(data.get('plan')),agreements:data.get('agreements')==='on'};if(!draft.handle||!draft.plan||!draft.agreements)return;localStorage.setItem(SIGNUP_KEY,JSON.stringify(draft));localStorage.setItem(AUTH_INTENT_KEY,'signup');document.dispatchEvent(new CustomEvent('rist:signup-draft',{detail:draft}));discordAuth('signup');return}if(e.target.matches('[data-settings-form]')){e.preventDefault();const data=new FormData(e.target);const p={role:String(data.get('role')||'Roleplayer'),domain:String(data.get('domain')||'Shaelvien MMO')};persistPrefs(p);if(data.get('defaultVoice'))window.RistRoleplayVoice?.setDefault?.(String(data.get('defaultVoice')));await applyPrefs();setView('home')}}
  function open(options={}){ensure();root.hidden=false;document.body.classList.add('rist-game-start-open');if(options.authenticated||options.fromGame){if(options.view)setView(options.view);else{const intent=localStorage.getItem(AUTH_INTENT_KEY)||'login';if(intent==='signup'&&localStorage.getItem(WELCOME_KEY)!=='1')setView('welcome');else setView('home')}}else setView(options.view||'splash')}
- function close(){if(!root)return;root.hidden=true;document.body.classList.remove('rist-game-start-open');window.speechSynthesis?.cancel?.()}
+ function close(){if(!root)return;root.hidden=true;document.body.classList.remove('rist-game-start-open');window.RistRoleplayVoice?.cancel?.();window.speechSynthesis?.cancel?.()}
  addEventListener('keydown',e=>{if(root&&!root.hidden&&view==='splash'){e.preventDefault();setView('entry')}else if(e.key==='Escape'&&root&&!root.hidden&&view!=='authwait'){if(view==='settings'||view==='about')setView('home');else if(view!=='entry'&&view!=='home')setView('entry')}});
  addEventListener('pointerdown',e=>{if(root&&!root.hidden&&view==='splash'&&!e.target.closest('button'))setView('entry')});
  window.RistGameStartScreen={open,close,setView,getSelection:savedPrefs,applyPrefs};
