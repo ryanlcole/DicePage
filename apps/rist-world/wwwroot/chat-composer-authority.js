@@ -18,7 +18,7 @@
   ['/r','radios…','Device-defined communication range'],
   ['/p','projects…','Amplified or supernatural voice range']
  ];
- let mode='/s',queued=false;
+ let mode='/s',queued=false,activeMenu=null,activeButton=null;
  const q=(s,r=document)=>r?.querySelector?.(s)||null;
  function setLiveValue(line){
   const live=q('.home-chat-compose textarea');
@@ -29,18 +29,38 @@
   setter?.call(live,value);
   live.dispatchEvent(new Event('input',{bubbles:true}));
  }
- function closeMenus(except){document.querySelectorAll('.rist-rp-mode-menu.open').forEach(m=>{if(m!==except)m.classList.remove('open')});}
+ function positionMenu(menu,button){
+  if(!menu||!button)return;
+  const r=button.getBoundingClientRect();
+  const width=Math.min(310,Math.max(220,window.innerWidth-20));
+  const left=Math.max(8,Math.min(window.innerWidth-width-8,r.left));
+  const maxHeight=Math.max(160,Math.min(window.innerHeight*.62,r.top-16));
+  menu.style.setProperty('width',`${width}px`,'important');
+  menu.style.setProperty('left',`${left}px`,'important');
+  menu.style.setProperty('right','auto','important');
+  menu.style.setProperty('bottom','auto','important');
+  menu.style.setProperty('top','8px','important');
+  menu.style.setProperty('max-height',`${maxHeight}px`,'important');
+ }
+ function closeMenu(){
+  if(activeMenu){activeMenu.classList.remove('open');activeMenu.remove();activeMenu=null;}
+  if(activeButton){activeButton.setAttribute('aria-expanded','false');activeButton=null;}
+ }
  function buildModeDropdown(){
   const root=document.createElement('div');root.className='rist-rp-mode-dropdown';
   const button=document.createElement('button');button.type='button';button.className='rist-rp-mode-button';button.textContent=mode;button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label','Roleplay communication mode');
-  const menu=document.createElement('div');menu.className='rist-rp-mode-menu';menu.setAttribute('role','listbox');
-  for(const [code,label,range] of MODES){
-   const option=document.createElement('button');option.type='button';option.className='rist-rp-mode-option';option.setAttribute('role','option');option.dataset.code=code;option.innerHTML=`<strong>${code}</strong><span>${label}</span><small>${range}</small>`;
-   option.addEventListener('click',()=>{mode=code;button.textContent=mode;button.setAttribute('aria-expanded','false');menu.classList.remove('open');const input=q('.rist-chat-line-input');if(input)setLiveValue(input.value);});
-   menu.appendChild(option);
+  function openMenu(){
+   closeMenu();
+   const menu=document.createElement('div');menu.className='rist-rp-mode-menu rist-rp-mode-menu-portal open';menu.setAttribute('role','listbox');
+   for(const [code,label,range] of MODES){
+    const option=document.createElement('button');option.type='button';option.className='rist-rp-mode-option';option.setAttribute('role','option');option.dataset.code=code;option.innerHTML=`<strong>${code}</strong><span>${label}</span><small>${range}</small>`;
+    option.addEventListener('click',()=>{mode=code;button.textContent=mode;const input=q('.rist-chat-line-input');if(input)setLiveValue(input.value);closeMenu();});
+    menu.appendChild(option);
+   }
+   document.body.appendChild(menu);activeMenu=menu;activeButton=button;button.setAttribute('aria-expanded','true');positionMenu(menu,button);
   }
-  button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const open=!menu.classList.contains('open');closeMenus(menu);menu.classList.toggle('open',open);button.setAttribute('aria-expanded',open?'true':'false');});
-  root.append(button,menu);return root;
+  button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(activeButton===button)closeMenu();else openMenu();});
+  root.append(button);return root;
  }
  function enhance(){
   const wrap=q('.rist-themed-chat-input');if(!wrap||wrap.dataset.ristComposer==='1')return;
@@ -58,7 +78,9 @@
   tools.append(log,settings);wrap.append(modeDrop,input,send,tools);setLiveValue(input.value);
  }
  function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance()})}
- document.addEventListener('click',e=>{if(!e.target.closest('.rist-rp-mode-dropdown'))closeMenus();},true);
+ document.addEventListener('click',e=>{if(!e.target.closest('.rist-rp-mode-button')&&!e.target.closest('.rist-rp-mode-menu-portal'))closeMenu();},true);
+ window.addEventListener('resize',()=>{if(activeMenu&&activeButton)positionMenu(activeMenu,activeButton)},{passive:true});
+ window.addEventListener('orientationchange',()=>setTimeout(()=>{if(activeMenu&&activeButton)positionMenu(activeMenu,activeButton)},120),{passive:true});
  new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',queue,{once:true});else queue();
 })();
