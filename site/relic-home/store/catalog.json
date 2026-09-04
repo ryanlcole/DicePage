@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "storeStatus": "invite-preview",
+  "invitationsIssued": false,
+  "categories": [
+    "Maps",
+    "Tiles",
+    "Tokens",
+    "Miniatures",
+    "Sprites",
+    "Cards",
+    "Scenery",
+    "Audio",
+    "Campaign Tools"
+  ],
+  "products": []
+}

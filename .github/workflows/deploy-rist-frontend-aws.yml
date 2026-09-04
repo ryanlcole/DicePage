@@ -188,6 +188,14 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
+          aws s3 cp site/relic-home/store/index.html "s3://${BUCKET}/store/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/store/catalog.json "s3://${BUCKET}/store/catalog.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json; charset=utf-8' \
+            --only-show-errors
 
       - name: Invalidate and verify AWS frontend surfaces
         shell: bash
@@ -198,13 +206,21 @@ jobs:
           # Invalidate the game namespace so stable-name JS/CSS updates cannot be
           # mixed with a fresh index. Browser max-age headers still preserve the
           # client-side cache; this only keeps CloudFront's copy coherent.
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
           grep -q 'site-language' /tmp/relic-home.html
+          grep -q 'href="/store/"' /tmp/relic-home.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store.html "${URL}store/"
+          grep -q 'ReLiC Creator Store' /tmp/relic-store.html
+          grep -q 'data-creator-invite-form' /tmp/relic-store.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store-catalog.json "${URL}store/catalog.json"
+          grep -q '"invitationsIssued": false' /tmp/relic-store-catalog.json
+          grep -q '"products": \[\]' /tmp/relic-store-catalog.json
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
@@ -239,6 +255,7 @@ jobs:
           done
 
           echo "ReLiCGameMaster home verified at $URL"
+          echo "ReLiC Creator Store verified at ${URL}store/"
           echo "RIST WORLD + PLC verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
           if [ "$STORY_MISSING" -eq 0 ]; then

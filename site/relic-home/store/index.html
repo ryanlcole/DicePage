@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>ReLiC Creator Store | Playable Assets for RIST</title>
+  <meta name="description" content="Discover creator-made maps, tiles, tokens, sprites, cards, scenery, and other playable assets for ReLiCGameMaster and RIST.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#071117">
+  <link rel="canonical" href="https://relicgamemaster.com/store/">
+  <link rel="stylesheet" href="/store/store.css?v=20260904-invite-preview-1">
+</head>
+<body>
+  <a class="skip-link" href="#catalog">Skip to the catalog</a>
+
+  <header class="store-header">
+    <a class="store-brand" href="/" aria-label="ReLiCGameMaster home">
+      <span class="store-brand-name">ReLiC</span>
+      <span class="store-brand-product">Creator Store</span>
+    </a>
+    <nav aria-label="Store navigation">
+      <a href="/">Home</a>
+      <a href="/store/" aria-current="page">Store</a>
+      <a class="game-link" href="/Game/index.html">Game Now</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="store-intro" aria-labelledby="store-title">
+      <div class="intro-copy">
+        <p class="eyebrow">ReLiC Creator Store</p>
+        <h1 id="store-title">Playable art, with its origin still attached.</h1>
+        <p>Find maps, tiles, tokens, miniatures, sprites, cards, scenery, audio, and campaign tools made for the table. Every published listing will identify its creator, production method, license, and permitted use.</p>
+      </div>
+      <aside class="store-status" aria-label="Store availability">
+        <div><span class="status-light" aria-hidden="true"></span><strong>Storefront visible</strong></div>
+        <p>The catalog is open for viewing. Creator publishing remains invitation-only.</p>
+        <span class="status-label" data-invitation-state>No creator invitations issued</span>
+      </aside>
+    </section>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+      <div class="catalog-heading">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h2 id="catalog-title">Creator asset packs</h2>
+        </div>
+        <p class="catalog-count" data-catalog-count aria-live="polite">Loading catalog…</p>
+      </div>
+
+      <div class="catalog-controls" aria-label="Catalog controls">
+        <label class="search-control">
+          <span>Search</span>
+          <input type="search" data-store-search placeholder="Search playable assets" autocomplete="off">
+        </label>
+        <label class="provenance-control">
+          <span>Production</span>
+          <select data-store-provenance>
+            <option value="all">All disclosed sources</option>
+            <option value="human-made">Human-made</option>
+            <option value="ai-assisted">AI-assisted</option>
+            <option value="mixed">Mixed production</option>
+            <option value="public-domain">Public domain</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="category-list" data-category-list aria-label="Asset categories"></div>
+
+      <div class="product-grid" data-product-grid></div>
+
+      <div class="catalog-empty" data-catalog-empty hidden>
+        <div class="empty-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="eyebrow">An intentional empty shelf</p>
+        <h3>No creator packs are published yet.</h3>
+        <p>The storefront is live so its safeguards and catalog can be tested before anyone is invited to sell. Approved assets will appear here without changing how players browse the store.</p>
+      </div>
+
+      <div class="catalog-error" data-catalog-error role="status" hidden>
+        The catalog could not be loaded. Please try again later.
+      </div>
+    </section>
+
+    <section class="store-standards" aria-labelledby="standards-title">
+      <div class="standards-heading">
+        <p class="eyebrow">What follows every asset</p>
+        <h2 id="standards-title">Attribution is part of the object.</h2>
+      </div>
+      <div class="standards-grid">
+        <article>
+          <span class="standard-number">01</span>
+          <h3>Creator</h3>
+          <p>The credited artist or publisher remains visible when the asset enters a player library.</p>
+        </article>
+        <article>
+          <span class="standard-number">02</span>
+          <h3>Production</h3>
+          <p>Human-made, AI-assisted, mixed, licensed, and public-domain material are identified plainly.</p>
+        </article>
+        <article>
+          <span class="standard-number">03</span>
+          <h3>Rights</h3>
+          <p>Game use, streaming, modification, download, and redistribution permissions are stated before access.</p>
+        </article>
+        <article>
+          <span class="standard-number">04</span>
+          <h3>Provenance</h3>
+          <p>Product versions and asset hashes help preserve the source and history of approved files.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="creator-access" id="creator-access" aria-labelledby="creator-title">
+      <div>
+        <p class="eyebrow">Invite-only creator access</p>
+        <h2 id="creator-title">Publishing begins with permission.</h2>
+        <p>Creator accounts are opened individually after authorship, licensing, and production disclosures are reviewed. ReLiC is not accepting public seller registrations during this preview.</p>
+      </div>
+      <form class="invite-form" data-creator-invite-form novalidate>
+        <label for="creator-invite-code">Creator invitation code</label>
+        <div class="invite-entry">
+          <input id="creator-invite-code" name="inviteCode" maxlength="64" autocomplete="off" spellcheck="false" placeholder="Enter an invitation code">
+          <button type="submit">Continue</button>
+        </div>
+        <output data-invite-message aria-live="polite">No invitations have been issued.</output>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien · RIST</p>
+    <p>Catalog recommendations use the category being viewed—not behavioral tracking.</p>
+  </footer>
+
+  <script src="/store/store.js?v=20260904-invite-preview-1"></script>
+</body>
+</html>
