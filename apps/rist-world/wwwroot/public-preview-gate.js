@@ -16,7 +16,8 @@
  }
  function scanLocks(){
   if(document.documentElement.dataset.ristPublicPreview!=='1')return;
-  document.querySelectorAll('button,a,[role="button"],[role="menuitem"],[role="tab"],label').forEach(el=>{
+ document.querySelectorAll('button,a,[role="button"],[role="menuitem"],[role="tab"],label').forEach(el=>{
+   if(el.closest('.rist-game-start'))return;
    if(isLockedControl(el)){
     el.dataset.previewLocked='1';el.setAttribute('aria-disabled','true');el.title='Locked in public preview';
    }
@@ -31,13 +32,15 @@
   if(document.documentElement.dataset.ristPublicPreview!=='1')return;
   const target=event.target instanceof Element?event.target.closest('button,a,[role="button"],[role="menuitem"],[role="tab"],label,input,textarea,select,[contenteditable]'):null;
   if(!target)return;
+  if(target.closest('.rist-game-start'))return;
   if(target.dataset.previewLocked==='1'||isLockedControl(target)){
    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
   }
  }
  async function auth(mode){
-  sessionStorage.removeItem('rist-public-preview');
+ sessionStorage.removeItem('rist-public-preview');
   delete document.documentElement.dataset.ristPublicPreview;
+  localStorage.setItem('rist.auth.intent',mode);
   try{
    const cfg=await fetch('auth-config.json',{cache:'no-store'}).then(r=>r.json());
    if(cfg?.apiBaseUrl){
@@ -58,7 +61,7 @@
   if(document.querySelector('.rist-entry-gate'))return;
   const wrap=document.createElement('div');wrap.className='rist-entry-gate';wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-labelledby','rist-entry-title');
   wrap.innerHTML='<div class="rist-entry-dialog"><h2 id="rist-entry-title">Enter Shaelvien</h2><p>Log in to play, create an account, or look around in a read-only public preview.</p><div class="rist-entry-actions"><button type="button" data-entry="login">Log In</button><button type="button" data-entry="signup">Sign Up</button><button type="button" class="preview" data-entry="preview">Preview</button></div></div>';
-  wrap.addEventListener('click',e=>{const b=e.target.closest?.('[data-entry]');if(!b)return;const action=b.dataset.entry;if(action==='preview'){lockPreview();wrap.remove()}else auth(action)});
+  wrap.addEventListener('click',e=>{const b=e.target.closest?.('[data-entry]');if(!b)return;const action=b.dataset.entry;if(action==='preview'){lockPreview();wrap.remove();window.RistGameStartScreen?.open?.({preview:true})}else auth(action)});
   document.body.append(wrap);setTimeout(()=>wrap.querySelector('button')?.focus(),0);
  }
  document.addEventListener('click',blockLocked,true);
@@ -66,7 +69,12 @@
  const observe=()=>new MutationObserver(()=>requestAnimationFrame(scanLocks)).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
  function start(){
   const params=new URLSearchParams(location.search);
-  if(params.get('preview')==='1'||sessionStorage.getItem('rist-public-preview')==='1')lockPreview();
+  const preview=params.get('preview')==='1'||sessionStorage.getItem('rist-public-preview')==='1';
+  if(preview){lockPreview();window.RistGameStartScreen?.open?.({preview:true})}
+  else if(sessionStorage.getItem('rist.session'))window.RistGameStartScreen?.open?.({preview:false});
+  else if(params.has('rist_handoff')||location.hash.includes('rist_session')){
+   let attempts=0;const timer=setInterval(()=>{if(sessionStorage.getItem('rist.session')){clearInterval(timer);window.RistGameStartScreen?.open?.({preview:false})}else if(++attempts>=100){clearInterval(timer);gate()}},100);
+  }
   else gate();
   observe();
  }
