@@ -134,12 +134,11 @@ html body #app>.rist.release-world>.release-world-shell>.release-map-region>.tab
  padding:0!important;
 }
 
-/* On phones the ticker is physically taller than the desktop authority value.
-   Reserve its real height so the gold menu strip and its opened panel cannot
-   sit behind the ticker or escape through the left edge. */
+/* Phones keep the ticker compact. The menu/panel is kept in view independently
+   instead of stealing height from the ticker. */
 @media (max-width:760px){
  html body #app{
-  --rist-context-h:54px!important;
+  --rist-context-h:28px!important;
   --rist-menu-overlay-h:44px!important;
  }
  html body #app>.rist.release-world>.release-world-shell>.release-menu-region{
