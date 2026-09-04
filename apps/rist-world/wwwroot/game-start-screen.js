@@ -1,58 +1,36 @@
 (()=>{
  'use strict';
- const SELECTION_KEY='rist.gameStart.selection.v1',SETTINGS_KEY='rist.gameStart.settings.v1';
- let root=null,status=null,settingsPanel=null;
- const parse=(value,fallback)=>{try{return value?JSON.parse(value):fallback}catch{return fallback}};
- const clean=value=>String(value||'').trim().slice(0,64);
- const waitFor=(test,timeout=5000)=>new Promise(resolve=>{const started=Date.now();const poll=()=>{let value=null;try{value=test()}catch{}if(value)return resolve(value);if(Date.now()-started>=timeout)return resolve(null);setTimeout(poll,80)};poll()});
- function markup(){return `<img class="rist-game-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="Primordial dragons forming the infinite Light and Unlit lands of Shaelvien with their breath weapons."><div class="rist-game-start-shade" aria-hidden="true"></div><form class="rist-game-start-panel" data-game-start-form><div class="rist-game-start-grid"><fieldset><legend>Role</legend><div class="rist-game-start-segments"><label><input type="radio" name="role" value="GameMaster"><span>GameMaster</span></label><label><input type="radio" name="role" value="Roleplayer"><span>Roleplayer</span></label></div></fieldset><fieldset><legend>Domain</legend><div class="rist-game-start-segments"><label><input type="radio" name="domain" value="Shaelvien"><span>Shaelvien</span></label><label><input type="radio" name="domain" value="Sandbox"><span>Sandbox</span></label></div></fieldset><label class="rist-game-start-invite"><span>Invite</span><input name="inviteCode" maxlength="64" autocomplete="off" placeholder="Campaign code"></label><button class="rist-game-start-settings-button" type="button" data-game-start-settings>Settings</button><button class="rist-game-start-submit" type="submit">Start</button></div><p class="rist-game-start-status" data-game-start-status role="status" aria-live="polite"></p><section class="rist-game-start-options" data-game-start-options hidden><div class="rist-game-start-options-head"><h2>Settings</h2><button class="rist-game-start-options-close" type="button" data-game-start-settings-close aria-label="Close settings">Close</button></div><label class="rist-game-start-setting"><span>Reduce motion</span><input type="checkbox" data-game-start-motion></label><label class="rist-game-start-setting"><span>High contrast</span><input type="checkbox" data-game-start-contrast></label><div class="rist-game-start-options-actions"><button class="rist-game-start-cancel" type="button" data-game-start-settings-close>Cancel</button><button class="rist-game-start-save" type="button" data-game-start-settings-save>Save</button></div></section></form>`}
- function ensure(){
-  if(root&&document.body.contains(root))return;
-  root=document.createElement('section');root.className='rist-game-start';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Start Shaelvien');root.innerHTML=markup();document.body.appendChild(root);
-  status=root.querySelector('[data-game-start-status]');settingsPanel=root.querySelector('[data-game-start-options]');
-  root.addEventListener('click',event=>{const target=event.target.closest?.('button');if(!target)return;if(target.matches('[data-game-start-settings]'))toggleSettings(true);if(target.matches('[data-game-start-settings-close]'))toggleSettings(false);if(target.matches('[data-game-start-settings-save]'))saveSettings()});
-  root.querySelector('[data-game-start-form]').addEventListener('submit',startGame);
+ const PREF_KEY='rist.gameStart.selection.v2';
+ const SIGNUP_KEY='rist.signup.draft.v1';
+ const WELCOME_KEY='rist.signup.welcomeSeen.v1';
+ const AUTH_INTENT_KEY='rist.auth.intent';
+ let root=null,view='splash';
+ const parse=(v,f)=>{try{return v?JSON.parse(v):f}catch{return f}};
+ const clean=v=>String(v||'').trim().slice(0,64);
+ const savedPrefs=()=>{const p=parse(localStorage.getItem(PREF_KEY),{});return{role:p.role==='GameMaster'?'GameMaster':'Roleplayer',domain:p.domain==='RIST'?'RIST':'Shaelvien MMO'}};
+ const waitFor=(test,timeout=7000)=>new Promise(resolve=>{const start=Date.now();const tick=()=>{let value=null;try{value=test()}catch{}if(value)return resolve(value);if(Date.now()-start>=timeout)return resolve(null);setTimeout(tick,80)};tick()});
+ function shell(){return `<img class="rist-game-start-art" src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="Primordial dragons forming Shaelvien with their breath weapons."><div class="rist-game-start-shade" aria-hidden="true"></div><main class="rist-game-start-panel" data-start-panel></main>`}
+ function ensure(){if(root&&document.body.contains(root))return;root=document.createElement('section');root.className='rist-game-start';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Shaelvien start screen');root.innerHTML=shell();document.body.appendChild(root);root.addEventListener('click',onClick);root.addEventListener('submit',onSubmit);}
+ function setView(next){ensure();view=next;const panel=root.querySelector('[data-start-panel]');const p=savedPrefs();
+  if(next==='splash')panel.innerHTML=`<button class="rist-start-anykey" type="button" data-action="continue">Press any key to continue…</button>`;
+  if(next==='entry')panel.innerHTML=`<nav class="rist-start-menu" aria-label="Start"><button type="button" data-action="signin">Sign In</button><button type="button" data-action="signup">Sign Up</button><button type="button" data-action="preview">Preview</button></nav>`;
+  if(next==='signin')panel.innerHTML=`<section class="rist-start-card"><h1>Sign In</h1><button type="button" data-action="discord-login">Discord Login</button><button class="rist-start-back" type="button" data-action="entry">Return</button></section>`;
+  if(next==='signup')panel.innerHTML=`<form class="rist-start-card" data-signup-form><h1>Sign Up</h1><label>Handle<input name="handle" maxlength="64" autocomplete="nickname" required></label><label>Plan<input name="plan" maxlength="64" placeholder="Plan" required></label><label class="rist-start-agreement"><input type="checkbox" name="agreements" required><span>Agreements</span></label><button type="submit">Continue…</button><button class="rist-start-back" type="button" data-action="entry">Return</button></form>`;
+  if(next==='welcome')panel.innerHTML=`<button class="rist-start-welcome" type="button" data-action="welcome-continue"><strong>Welcome to Shaelvien</strong><span>Click to continue…</span></button>`;
+  if(next==='home')panel.innerHTML=`<nav class="rist-start-menu rist-start-home" aria-label="Campaign"><button type="button" data-action="new-campaign">New Campaign</button><button type="button" data-action="load-campaign">Load Campaign</button><button type="button" data-action="settings">Settings</button></nav>`;
+  if(next==='settings')panel.innerHTML=`<form class="rist-start-card" data-settings-form><h1>Settings</h1><fieldset><legend>Role</legend><label><input type="radio" name="role" value="GameMaster" ${p.role==='GameMaster'?'checked':''}><span>GameMaster</span></label><label><input type="radio" name="role" value="Roleplayer" ${p.role==='Roleplayer'?'checked':''}><span>Roleplayer</span></label></fieldset><fieldset><legend>Domain</legend><label><input type="radio" name="domain" value="Shaelvien MMO" ${p.domain==='Shaelvien MMO'?'checked':''}><span>Shaelvien MMO</span></label><label><input type="radio" name="domain" value="RIST" ${p.domain==='RIST'?'checked':''}><span>RIST</span></label></fieldset><button type="submit">Save</button><button class="rist-start-back" type="button" data-action="home">Return</button></form>`;
+  requestAnimationFrame(()=>panel.querySelector('button,input')?.focus());
  }
- function setRadio(name,value){root.querySelectorAll(`input[name="${name}"]`).forEach(input=>input.checked=input.value===value)}
- function selection(){const data=new FormData(root.querySelector('[data-game-start-form]'));return{role:String(data.get('role')||'Roleplayer'),domain:String(data.get('domain')||'Shaelvien'),inviteCode:clean(data.get('inviteCode')),preview:document.documentElement.dataset.ristPublicPreview==='1'}}
- function persist(value){
-  localStorage.setItem(SELECTION_KEY,JSON.stringify(value));sessionStorage.setItem('rist.gameStart.current',JSON.stringify(value));
-  localStorage.setItem('rist.topFrame.userRole',value.role);localStorage.setItem('rist.topFrame.domain',value.domain);localStorage.setItem('rist.topFrame.inviteCode',value.inviteCode);
- }
- function showStatus(message,error=false){if(!status)return;status.textContent=message;status.classList.toggle('error',error)}
- function toggleSettings(open){settingsPanel.hidden=!open;if(open)root.querySelector('[data-game-start-motion]')?.focus();else root.querySelector('[data-game-start-settings]')?.focus()}
- function settings(){return{reduceMotion:root.querySelector('[data-game-start-motion]').checked,highContrast:root.querySelector('[data-game-start-contrast]').checked}}
- function applySettings(value){root.dataset.highContrast=value.highContrast?'1':'0';document.body.classList.toggle('rist-reduce-motion',Boolean(value.reduceMotion));root.querySelector('[data-game-start-motion]').checked=Boolean(value.reduceMotion);root.querySelector('[data-game-start-contrast]').checked=Boolean(value.highContrast)}
- function saveSettings(){const value=settings();localStorage.setItem(SETTINGS_KEY,JSON.stringify(value));applySettings(value);toggleSettings(false);showStatus('Settings saved.')}
- async function selectDomain(domain){
-  const wanted=domain==='Sandbox'?'sandbox':'mmo';
-  const state=()=>document.querySelector('.mmo-zone-actions[data-world-mode]')?.dataset.worldMode||document.querySelector('.map-shell[data-world-mode]')?.dataset.worldMode;
-  if(state()===wanted)return true;
-  const action=await waitFor(()=>document.querySelector(wanted==='sandbox'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action'));
-  if(!action)return false;action.click();return Boolean(await waitFor(()=>state()===wanted,2500));
- }
- async function selectRole(role){
-  const wanted=role==='GameMaster'?'gamemaster':'roleplayer';
-  const state=()=>document.querySelector('.map-shell[data-world-role]')?.dataset.worldRole;
-  if(state()===wanted)return true;
-  const opener=await waitFor(()=>document.querySelector('#header-slider .root-menu-button[aria-label="Role"]'));
-  if(!opener)return false;opener.click();
-  const choice=await waitFor(()=>[...document.querySelectorAll('.root-menu-panel[aria-label="Choose role"] button')].find(button=>button.textContent.trim().toLowerCase()===(role==='GameMaster'?'gamemaster':'roleplayer')),1800);
-  if(!choice)return false;choice.click();return Boolean(await waitFor(()=>state()===wanted,2500));
- }
- async function startGame(event){
-  event.preventDefault();const value=selection(),button=root.querySelector('.rist-game-start-submit');button.disabled=true;showStatus('Preparing the world…');
-  const worldReady=await waitFor(()=>document.querySelector('.rist.release-world'),9000);if(!worldReady){button.disabled=false;showStatus('The world is still loading. Please try Start again.',true);return}
-  const domainReady=await selectDomain(value.domain);const roleReady=domainReady&&await selectRole(value.role);
-  if(!domainReady||!roleReady){button.disabled=false;showStatus(value.role==='GameMaster'?'GameMaster access is not available for this map.':'The selected world could not be opened yet. Please try again.',true);return}
-  persist(value);document.dispatchEvent(new CustomEvent('rist:game-start',{detail:value}));root.hidden=true;document.body.classList.remove('rist-game-start-open');showStatus('');
-  document.querySelector('.release-map-region .map-frame-mode-toggle')?.focus();
- }
- function open(options={}){
-  ensure();const preview=Boolean(options.preview);const saved=parse(localStorage.getItem(SELECTION_KEY),{});const value=preview?{role:'Roleplayer',domain:'Sandbox',inviteCode:'Geonaph'}:{role:saved.role||'Roleplayer',domain:saved.domain||'Shaelvien',inviteCode:saved.inviteCode||''};
-  setRadio('role',value.role);setRadio('domain',value.domain);root.querySelector('[name="inviteCode"]').value=value.inviteCode;applySettings(parse(localStorage.getItem(SETTINGS_KEY),{}));settingsPanel.hidden=true;showStatus('');root.hidden=false;document.body.classList.add('rist-game-start-open');setTimeout(()=>root.querySelector('input:checked')?.focus(),0);
- }
+ async function discordAuth(intent){localStorage.setItem(AUTH_INTENT_KEY,intent);sessionStorage.removeItem('rist-public-preview');delete document.documentElement.dataset.ristPublicPreview;try{const cfg=await fetch('auth-config.json',{cache:'no-store'}).then(r=>r.json());if(cfg?.apiBaseUrl){const next=encodeURIComponent(location.href.split('#')[0]);const path=String(cfg.loginPath||'/auth/login').startsWith('/')?String(cfg.loginPath||'/auth/login'):`/${cfg.loginPath}`;location.href=`${cfg.apiBaseUrl.replace(/\/$/,'')}${path}?next=${next}&intent=${encodeURIComponent(intent)}`;return}}catch{} document.dispatchEvent(new CustomEvent('rist:auth-request',{detail:{intent}}));}
+ function persistPrefs(p){localStorage.setItem(PREF_KEY,JSON.stringify(p));localStorage.setItem('rist.topFrame.userRole',p.role);localStorage.setItem('rist.topFrame.domain',p.domain);}
+ async function applyPrefs(){const p=savedPrefs();const wantedMode=p.domain==='RIST'?'sandbox':'mmo';const mode=()=>document.querySelector('.mmo-zone-actions[data-world-mode]')?.dataset.worldMode||document.querySelector('.map-shell[data-world-mode]')?.dataset.worldMode;if(mode()!==wantedMode){const btn=await waitFor(()=>document.querySelector(wantedMode==='sandbox'?'.mmo-mode-sandbox-action':'.mmo-mode-shaelvien-action'));btn?.click();await waitFor(()=>mode()===wantedMode,2500)}const wantedRole=p.role==='GameMaster'?'gamemaster':'roleplayer';const role=()=>document.querySelector('.map-shell[data-world-role]')?.dataset.worldRole;if(role()!==wantedRole){const opener=await waitFor(()=>document.querySelector('#header-slider .root-menu-button[aria-label="Role"]'));opener?.click();const choice=await waitFor(()=>[...document.querySelectorAll('.root-menu-panel[aria-label="Choose role"] button')].find(b=>b.textContent.trim().toLowerCase()===(p.role==='GameMaster'?'gamemaster':'roleplayer')),1800);choice?.click();await waitFor(()=>role()===wantedRole,2500)}return p;}
+ async function launch(kind){const p=await applyPrefs();sessionStorage.setItem('rist.gameStart.current',JSON.stringify({...p,kind}));document.dispatchEvent(new CustomEvent(kind==='load'?'rist:load-campaign':'rist:new-campaign',{detail:p}));document.dispatchEvent(new CustomEvent('rist:game-start',{detail:{...p,kind}}));close();}
+ function preview(){document.dispatchEvent(new CustomEvent('rist:preview-request'));close();}
+ function onClick(e){const b=e.target.closest?.('[data-action]');if(!b)return;const a=b.dataset.action;if(a==='continue'||a==='entry')setView(a==='continue'?'entry':'entry');else if(a==='signin')setView('signin');else if(a==='signup')setView('signup');else if(a==='preview')preview();else if(a==='discord-login')discordAuth('login');else if(a==='welcome-continue'){localStorage.setItem(WELCOME_KEY,'1');setView('home')}else if(a==='new-campaign')launch('new');else if(a==='load-campaign')launch('load');else if(a==='settings')setView('settings');else if(a==='home')setView('home');}
+ function onSubmit(e){if(e.target.matches('[data-signup-form]')){e.preventDefault();const data=new FormData(e.target);const draft={handle:clean(data.get('handle')),plan:clean(data.get('plan')),agreements:data.get('agreements')==='on'};if(!draft.handle||!draft.plan||!draft.agreements)return;localStorage.setItem(SIGNUP_KEY,JSON.stringify(draft));localStorage.setItem(AUTH_INTENT_KEY,'signup');document.dispatchEvent(new CustomEvent('rist:signup-draft',{detail:draft}));discordAuth('signup');return}if(e.target.matches('[data-settings-form]')){e.preventDefault();const data=new FormData(e.target);persistPrefs({role:String(data.get('role')||'Roleplayer'),domain:String(data.get('domain')||'Shaelvien MMO')});setView('home')}}
+ function open(options={}){ensure();root.hidden=false;document.body.classList.add('rist-game-start-open');if(options.authenticated){const intent=localStorage.getItem(AUTH_INTENT_KEY)||'login';if(intent==='signup'&&localStorage.getItem(WELCOME_KEY)!=='1')setView('welcome');else setView('home');}else setView(options.view||'splash');}
  function close(){if(!root)return;root.hidden=true;document.body.classList.remove('rist-game-start-open')}
- addEventListener('keydown',event=>{if(event.key==='Escape'&&root&&!root.hidden&&!settingsPanel.hidden){event.preventDefault();toggleSettings(false)}});
- window.RistGameStartScreen={open,close,getSelection:selection};
+ addEventListener('keydown',e=>{if(root&&!root.hidden&&view==='splash'){e.preventDefault();setView('entry')}else if(e.key==='Escape'&&root&&!root.hidden){if(view==='settings')setView('home');else if(view!=='entry'&&view!=='home')setView('entry')}});
+ addEventListener('pointerdown',e=>{if(root&&!root.hidden&&view==='splash'&&!e.target.closest('button'))setView('entry')});
+ window.RistGameStartScreen={open,close,setView,getSelection:savedPrefs};
 })();
