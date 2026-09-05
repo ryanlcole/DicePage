@@ -6,10 +6,18 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - 'apps/rist-world/**'
+      - 'site/relic-home/Play/**'
+      - 'infra/aws/rist-frontend.yml'
+      - '.github/workflows/deploy-rist-frontend-aws.yml'
+      - '.github/workflows/deploy-rist-discord-auth.yml'
       - '.github/workflows/rist-auth-regression.yml'
   pull_request:
     paths:
       - 'apps/rist-world/**'
+      - 'site/relic-home/Play/**'
+      - 'infra/aws/rist-frontend.yml'
+      - '.github/workflows/deploy-rist-frontend-aws.yml'
+      - '.github/workflows/deploy-rist-discord-auth.yml'
       - '.github/workflows/rist-auth-regression.yml'
 
 permissions:
@@ -42,14 +50,30 @@ jobs:
           test -f apps/rist-world/wwwroot/auth-entry.js
           grep -q '/auth/login' apps/rist-world/wwwroot/auth-entry.js
 
-          if grep -Rni --exclude-dir=obj --exclude-dir=bin --exclude='rist-auth-regression.yml' -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world; then
+          test -f site/relic-home/Play/index.html
+          grep -q 'Sign In' site/relic-home/Play/index.html
+          grep -q 'Sign Up' site/relic-home/Play/index.html
+          grep -q 'rist_session' site/relic-home/Play/index.html
+          grep -q '/Game/index.html' site/relic-home/Play/index.html
+
+          grep -q 'PathPattern: Game/\*' infra/aws/rist-frontend.yml
+          grep -q 'EventType: viewer-request' infra/aws/rist-frontend.yml
+          grep -q 'GameEdgeAuthVersion' infra/aws/rist-frontend.yml
+          grep -q '/Play/?reason=' infra/aws/rist-frontend.yml
+          grep -q 'AuthApiBaseUrl' infra/aws/rist-frontend.yml
+
+          grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
+          grep -q 'refusing to publish an unprotected game' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'Anonymous Game/index.html and framework access correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
+
+          if grep -Rni --exclude-dir=obj --exclude-dir=bin --exclude='rist-auth-regression.yml' -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world site/relic-home/Play; then
             echo 'Anonymous preview code is forbidden in RIST WORLD.' >&2
             exit 1
           fi
 
-          if grep -q 'public-preview-gate' apps/rist-world/wwwroot/index.html; then
-            echo 'Legacy preview asset is still referenced by index.html.' >&2
+          if grep -qi 'preview' site/relic-home/Play/index.html; then
+            echo 'Public Play launcher contains forbidden preview language.' >&2
             exit 1
           fi
 
-          echo 'RIST authentication gate regression checks passed.'
+          echo 'RIST authentication gate and edge-delivery regression checks passed.'
