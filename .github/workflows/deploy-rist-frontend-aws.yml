@@ -95,11 +95,6 @@ jobs:
             echo "Waiting for CDN asset: $path"
             curl --fail --location --retry 18 --retry-delay 5 --retry-all-errors --output /dev/null "${ASSET_BASE_URL}${path}"
           done
-          for path in assets/ui/mmo-toggle.webp assets/ui/sandbox-toggle.webp; do
-            if ! curl --fail --location --retry 2 --retry-delay 2 --output /dev/null "${ASSET_BASE_URL}${path}"; then
-              echo "::warning::Optional world-toggle artwork unavailable: $path"
-            fi
-          done
 
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
