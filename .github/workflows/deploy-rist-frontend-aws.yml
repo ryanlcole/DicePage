@@ -155,12 +155,14 @@ jobs:
             echo "Translation endpoint injected."
           fi
 
-      - name: Publish public launcher and protected game to private S3 origin
+      - name: Publish launcher, public preview, and protected game to private S3 origin
         shell: bash
         run: |
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
+          # Authenticated game. Only Game/index.html is edge-session gated; static
+          # framework payload remains directly fetchable for reliable WASM boot.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
             --exclude 'Launcher/*' \
@@ -179,6 +181,21 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
+
+          # Public Preview uses the same renderer but a distinct URL boundary.
+          # Runtime code detects /Preview/ and disables campaign persistence and
+          # private sync. It is intentionally outside the Game edge-auth behavior.
+          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Preview/" \
+            --delete \
+            --exclude 'Launcher/*' \
+            --exclude 'assets/shaelvien/*' \
+            --cache-control 'public,max-age=3600' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Preview/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+
           aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
@@ -220,7 +237,7 @@ jobs:
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Play/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Play/*' '/Preview/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
@@ -230,7 +247,15 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
           grep -q 'SHAELVIEN' /tmp/play.html
           grep -q 'Sign In' /tmp/play.html
+          grep -q 'Preview' /tmp/play.html
 
+          # Preview must be public and serve the actual RIST runtime, not a redirect
+          # or a copy of the marketing home page.
+          PREVIEW_STATUS=$(curl --silent --show-error --output /tmp/preview.html --write-out '%{http_code}' "${URL}Preview/index.html")
+          test "$PREVIEW_STATUS" = "200"
+          grep -q 'ReLiCGameMaster RIST WORLD' /tmp/preview.html
+
+          # Game HTML remains authenticated at the edge.
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
           test "$STATUS" = "302"
           grep -Eiq '^location: /Play/' /tmp/anonymous-game.headers
@@ -258,7 +283,8 @@ jobs:
           grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "Public authenticated launcher verified at ${URL}Play/index.html"
+          echo "Public account launcher verified at ${URL}Play/index.html"
+          echo "Public nonpersistent preview verified at ${URL}Preview/index.html"
           echo "Anonymous Game/index.html correctly blocked at the edge"
           echo "Blazor framework payload verified as directly fetchable static content"
           echo "Protected RIST payload verified directly in private S3 origin"
