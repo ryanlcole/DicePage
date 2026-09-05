@@ -1,6 +1,13 @@
 window.ristAuth={
  idleMs:30*60*1000,
  idleTimer:0,
+ setEdgeCookie:token=>{
+  if(!token)return;
+  document.cookie='rist_session='+encodeURIComponent(token)+'; Path=/Game/; Max-Age=28800; Secure; SameSite=Lax';
+ },
+ clearEdgeCookie:()=>{
+  document.cookie='rist_session=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax';
+ },
  installIdleExpiry:()=>{
   if(window.ristAuth.idleInstalled)return;
   window.ristAuth.idleInstalled=true;
@@ -9,7 +16,7 @@ window.ristAuth={
    const last=Number(sessionStorage.getItem('rist.lastActivity'))||Date.now();
    const remaining=window.ristAuth.idleMs-(Date.now()-last);
    clearTimeout(window.ristAuth.idleTimer);
-   if(remaining<=0){window.ristAuth.clearSession();location.reload();return;}
+   if(remaining<=0){window.ristAuth.clearSession();location.replace('/Play/?reason=idle');return;}
    window.ristAuth.idleTimer=setTimeout(expire,remaining);
   };
   const activity=()=>{
@@ -47,13 +54,14 @@ window.ristAuth={
    history.replaceState(null,'',location.pathname+(clean?'?'+clean:''));
   }
   const token=sessionStorage.getItem('rist.session');
-  if(token)window.ristAuth.installIdleExpiry();
+  if(token){window.ristAuth.setEdgeCookie(token);window.ristAuth.installIdleExpiry();}
   return token;
  },
  clearSession:()=>{
   clearTimeout(window.ristAuth.idleTimer);
   sessionStorage.removeItem('rist.session');
   sessionStorage.removeItem('rist.lastActivity');
+  window.ristAuth.clearEdgeCookie();
  },
  navigate:url=>location.assign(url)
 };
@@ -175,6 +183,6 @@ window.ristWorld.scrollRail=(selector,direction)=>{
  const axisOverflow=el=>vertical?el.scrollHeight>el.clientHeight+2:el.scrollWidth>el.clientWidth+2;
  const middle=[...rail.children].find(el=>el.classList&&!el.classList.contains('rail-scroll-arrow')&&axisOverflow(el));
  const target=middle||rail;
- const amount=Math.max(96,(vertical?target.clientHeight:target.clientWidth)*.78)*dir;
- target.scrollBy(vertical?{top:amount,behavior:'smooth'}:{left:amount,behavior:'smooth'});
+ if(vertical)target.scrollBy({top:dir*Math.max(72,target.clientHeight*.82),behavior:'smooth'});
+ else target.scrollBy({left:dir*Math.max(92,target.clientWidth*.82),behavior:'smooth'});
 };
