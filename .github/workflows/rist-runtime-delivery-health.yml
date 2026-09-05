@@ -35,6 +35,16 @@ jobs:
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
 
+          is_html_document() {
+            python - "$1" <<'PY'
+          from pathlib import Path
+          import re, sys
+          data = Path(sys.argv[1]).read_bytes()[:1024]
+          data = data.lstrip(b'\xef\xbb\xbf\x00\t\r\n ')
+          raise SystemExit(0 if re.match(br'(?is)<!doctype\s+html\b|<html\b', data) else 1)
+          PY
+          }
+
           aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/game-index.html --only-show-errors
           RUNTIME_SRC=$(python - <<'PY'
           from pathlib import Path
@@ -52,11 +62,12 @@ jobs:
           aws s3api head-object --bucket "$BUCKET" --key "Game/${RUNTIME_SRC}"
           aws s3 cp "s3://${BUCKET}/Game/${RUNTIME_SRC}" /tmp/s3-game-runtime.js --only-show-errors
           test "$(stat -c%s /tmp/s3-game-runtime.js)" -gt 1000
-          if grep -Eiq '<!doctype html|<html' /tmp/s3-game-runtime.js; then
-            echo 'S3 Game runtime object contains HTML.' >&2
+          if is_html_document /tmp/s3-game-runtime.js; then
+            echo 'S3 Game runtime object begins with an HTML document.' >&2
             exit 1
           fi
           echo "S3 Game runtime bytes: $(stat -c%s /tmp/s3-game-runtime.js)"
+          echo "S3 Game runtime prefix: $(head -c 80 /tmp/s3-game-runtime.js | tr '\n' ' ')"
 
           echo '--- S3 Preview runtime object ---'
           aws s3api head-object --bucket "$BUCKET" --key "Preview/${RUNTIME_SRC}"
@@ -69,18 +80,19 @@ jobs:
             echo "HTTP $STATUS"
             cat "/tmp/${surface}.headers"
             echo "bytes=$(stat -c%s /tmp/${surface}.body)"
-            if grep -Eiq '<!doctype html|<html' "/tmp/${surface}.body"; then
-              echo "${surface} runtime returned HTML." >&2
+            echo "prefix=$(head -c 80 /tmp/${surface}.body | tr '\n' ' ')"
+            if is_html_document "/tmp/${surface}.body"; then
+              echo "${surface} runtime begins with an HTML document." >&2
             else
-              echo "${surface} runtime returned non-HTML payload."
+              echo "${surface} runtime returned a non-HTML payload."
             fi
           done
 
-          if grep -Eiq '<!doctype html|<html' /tmp/Game.body; then
+          if is_html_document /tmp/Game.body; then
             echo 'CloudFront Game runtime delivery is broken although the S3 origin object is valid.' >&2
             exit 1
           fi
-          if grep -Eiq '<!doctype html|<html' /tmp/Preview.body; then
+          if is_html_document /tmp/Preview.body; then
             echo 'CloudFront Preview runtime delivery is broken although the S3 origin object is valid.' >&2
             exit 1
           fi
