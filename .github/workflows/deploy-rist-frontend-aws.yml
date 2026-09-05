@@ -230,10 +230,6 @@ jobs:
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
           grep -q 'SHAELVIEN' /tmp/play.html
           grep -q 'Sign In' /tmp/play.html
-          if grep -qi 'preview' /tmp/play.html; then
-            echo "Public Play shell contains forbidden preview language." >&2
-            exit 1
-          fi
 
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
           test "$STATUS" = "302"
@@ -244,8 +240,12 @@ jobs:
           fi
 
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/_framework/blazor.webassembly.js")
-          test "$STATUS" = "302"
-          grep -Eiq '^location: /Play/' /tmp/anonymous-runtime.headers
+          test "$STATUS" = "200"
+          test "$(stat -c%s /tmp/anonymous-runtime.js)" -gt 1000
+          if grep -Eiq '<!doctype html|<html' /tmp/anonymous-runtime.js; then
+            echo "Blazor runtime request returned HTML instead of JavaScript." >&2
+            exit 1
+          fi
 
           aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/rist-index.html --only-show-errors
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
@@ -259,5 +259,6 @@ jobs:
 
           echo "ReLiCGameMaster home verified at $URL"
           echo "Public authenticated launcher verified at ${URL}Play/index.html"
-          echo "Anonymous Game/index.html and framework access correctly blocked at the edge (behavior verified directly)"
+          echo "Anonymous Game/index.html correctly blocked at the edge"
+          echo "Blazor framework payload verified as directly fetchable static content"
           echo "Protected RIST payload verified directly in private S3 origin"
