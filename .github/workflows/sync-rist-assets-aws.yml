@@ -64,9 +64,7 @@ jobs:
             test "$(stat -c%s "$target")" -gt "$min_bytes"
           }
 
-          # Standalone static controls. These must never be served as atlas crops.
-          verify_asset assets/ui/mmo-toggle.webp 1000
-          verify_asset assets/ui/sandbox-toggle.webp 1000
+          # Runtime controls that are present in the current app.
           verify_asset assets/ui/map-pin.svg 300
           verify_asset assets/ui/icons/door.svg 100
           verify_asset assets/ui/icons/mode.svg 100
