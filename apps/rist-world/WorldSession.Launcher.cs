@@ -16,8 +16,22 @@ public sealed partial class WorldSession
     {
         var intent = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherIntentKey);
         var settingsJson = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherSettingsKey);
+        var isNew = string.Equals(intent, "new", StringComparison.OrdinalIgnoreCase);
+        var isLoad = string.Equals(intent, "load", StringComparison.OrdinalIgnoreCase);
 
-        if (string.Equals(intent, "new", StringComparison.OrdinalIgnoreCase))
+        // This method also runs during ordinary restored/direct game sessions.
+        // Launcher defaults must never overwrite an already-restored world unless
+        // the launcher explicitly handed off a New/Load Campaign intent.
+        if (!isNew && !isLoad)
+        {
+            // Clear any orphaned settings payload so a partial/stale handoff can
+            // never become authoritative during a later session initialization.
+            if (!string.IsNullOrWhiteSpace(settingsJson))
+                await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
+            return;
+        }
+
+        if (isNew)
         {
             // Start a clean in-memory world without destroying the user's
             // previous checkpoint merely because they selected New Campaign.
@@ -31,7 +45,7 @@ public sealed partial class WorldSession
         // Load Campaign has already been restored by InitializeAsync. Opening the
         // existing load menu makes the intent visible and preserves the current
         // local/private checkpoint controls rather than inventing a second store.
-        if (string.Equals(intent, "load", StringComparison.OrdinalIgnoreCase))
+        if (isLoad)
         {
             LoadMenuOpen = true;
             SaveMenuOpen = false;
