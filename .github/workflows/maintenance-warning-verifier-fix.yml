@@ -1,0 +1,71 @@
+name: One-shot warning and verifier maintenance
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/maintenance-warning-verifier-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Apply focused maintenance
+        shell: python
+        run: |
+          from pathlib import Path
+
+          ai = Path('apps/rist-world/ExternalAiAccess.cs')
+          text = ai.read_text(encoding='utf-8')
+          old = '    public const bool OwnerReleased = false;'
+          new = '    public static readonly bool OwnerReleased = false;'
+          assert old in text, 'External AI release gate shape changed unexpectedly'
+          ai.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          nav = Path('apps/rist-world/WorldSession.Navigation.cs')
+          text = nav.read_text(encoding='utf-8')
+          old = ' public static readonly string[] TableLayers = RecursionTiers;'
+          new = ' public static string[] TableLayers => RecursionTiers;'
+          assert old in text, 'TableLayers initialization shape changed unexpectedly'
+          nav.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          deploy = Path('.github/workflows/deploy-rist-frontend-aws.yml')
+          text = deploy.read_text(encoding='utf-8')
+          old = '''          EDGE_ASSOCIATIONS=$(aws cloudfront get-distribution-config --id "$DIST" --query "DistributionConfig.CacheBehaviors.Items[?PathPattern=='Game/*'].LambdaFunctionAssociations.Quantity | [0]" --output text)\n          test "$EDGE_ASSOCIATIONS" = "1"\n\n'''
+          assert old in text, 'Redundant CloudFront config verifier shape changed unexpectedly'
+          text = text.replace(old, '', 1)
+          text = text.replace(
+              '          echo "Anonymous Game/index.html and framework access correctly blocked at the edge"',
+              '          echo "Anonymous Game/index.html and framework access correctly blocked at the edge (behavior verified directly)"',
+              1,
+          )
+          deploy.write_text(text, encoding='utf-8')
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release --no-restore || dotnet build apps/rist-world/RistWorld.csproj -c Release
+      - name: Confirm removed warnings are absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet build apps/rist-world/RistWorld.csproj -c Release 2>&1 | tee /tmp/build.log
+          ! grep -q 'CS0162' /tmp/build.log
+          ! grep -q 'CS8601' /tmp/build.log
+      - name: Commit repairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/rist-world/ExternalAiAccess.cs apps/rist-world/WorldSession.Navigation.cs .github/workflows/deploy-rist-frontend-aws.yml
+          git diff --cached --check
+          git commit -m 'Remove build warnings and redundant edge verifier'
+          git push origin HEAD:live-alpha-rist-blazor-world
