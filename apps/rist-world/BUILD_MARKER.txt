@@ -1,2 +1,3 @@
 RIST WORLD live alpha
 AWS authority foundation build: c50b4399
+Asset normalization quarantine validation: 2026-09-05
