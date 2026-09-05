@@ -107,6 +107,6 @@ jobs:
           grep -q 'AuthApiBaseUrl' infra/aws/rist-frontend.yml
           grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
           grep -q 'refusing to publish an unprotected game' .github/workflows/deploy-rist-frontend-aws.yml
-          grep -q 'Anonymous Game/index.html and framework access correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'Anonymous Game/index.html correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
 
           echo 'RIST launcher, preview, authentication and runtime authority checks passed.'
