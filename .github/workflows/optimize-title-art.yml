@@ -30,6 +30,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+          import re
 
           source = Path('apps/rist-world/wwwroot/assets/branding/shaelvien-dragon-creation-startup-screen.png')
           output = source.parent
@@ -43,6 +44,14 @@ jobs:
                   path = output / f'shaelvien-dragon-creation-startup-screen-{width}.webp'
                   resized.save(path, 'WEBP', quality=78, method=6)
                   print(f'{path}: {target_w}x{target_h}, {path.stat().st_size} bytes')
+
+          start_js = Path('apps/rist-world/wwwroot/game-start-screen.js')
+          text = start_js.read_text(encoding='utf-8')
+          replacement = '''function shell(){return `<picture><source type=\"image/webp\" srcset=\"assets/branding/shaelvien-dragon-creation-startup-screen-720.webp 720w, assets/branding/shaelvien-dragon-creation-startup-screen-1080.webp 1080w, assets/branding/shaelvien-dragon-creation-startup-screen-1440.webp 1440w\" sizes=\"100vw\"><img class=\"rist-game-start-art\" src=\"assets/branding/shaelvien-dragon-creation-startup-screen.png\" alt=\"Primordial dragons forming Shaelvien with their breath weapons.\" decoding=\"async\" fetchpriority=\"high\"></picture><div class=\"rist-game-start-shade\" aria-hidden=\"true\"></div><main class=\"rist-game-start-panel\" data-start-panel></main>`}'''
+          updated, count = re.subn(r'function shell\(\)\{return `.*?`\}', replacement, text, count=1)
+          if count != 1:
+              raise RuntimeError('Unable to locate title-screen shell markup')
+          start_js.write_text(updated, encoding='utf-8')
           PY
 
       - name: Commit optimized title artwork
@@ -53,10 +62,11 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add apps/rist-world/wwwroot/assets/branding/shaelvien-dragon-creation-startup-screen-720.webp \
                   apps/rist-world/wwwroot/assets/branding/shaelvien-dragon-creation-startup-screen-1080.webp \
-                  apps/rist-world/wwwroot/assets/branding/shaelvien-dragon-creation-startup-screen-1440.webp
+                  apps/rist-world/wwwroot/assets/branding/shaelvien-dragon-creation-startup-screen-1440.webp \
+                  apps/rist-world/wwwroot/game-start-screen.js
           if git diff --cached --quiet; then
             echo 'Responsive title artwork is already current.'
             exit 0
           fi
-          git commit -m 'Add responsive title screen artwork'
+          git commit -m 'Use responsive title screen artwork'
           git push origin HEAD:live-alpha-rist-blazor-world
