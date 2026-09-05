@@ -1,0 +1,55 @@
+name: RIST Auth Regression
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/**'
+      - '.github/workflows/rist-auth-regression.yml'
+  pull_request:
+    paths:
+      - 'apps/rist-world/**'
+      - '.github/workflows/rist-auth-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  auth-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
+
+      - name: Enforce authenticated world entry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
+          grep -q '<WorldTable />' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'Auth.InitializeAsync' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'Sign In' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'Sign Up' apps/rist-world/Components/AuthenticatedWorld.razor
+
+          test -f apps/rist-world/wwwroot/auth-entry.js
+          grep -q '/auth/login' apps/rist-world/wwwroot/auth-entry.js
+
+          if grep -Rni --exclude-dir=obj --exclude-dir=bin --exclude='rist-auth-regression.yml' -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world; then
+            echo 'Anonymous preview code is forbidden in RIST WORLD.' >&2
+            exit 1
+          fi
+
+          if grep -q 'public-preview-gate' apps/rist-world/wwwroot/index.html; then
+            echo 'Legacy preview asset is still referenced by index.html.' >&2
+            exit 1
+          fi
+
+          echo 'RIST authentication gate regression checks passed.'
