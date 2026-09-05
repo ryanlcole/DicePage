@@ -194,7 +194,11 @@
    const token=sessionStorage.getItem('rist.session');
    if(!token)return false;
    try{
-    if(await verify(token)){setCookie(token);authenticated=true;return true}
+    if(await verify(token)){
+     setCookie(token);authenticated=true;
+     if(intro.hidden&&currentView==='entry')setView('menu');
+     return true;
+    }
    }catch{}
    sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');clearCookie();
    return false;
