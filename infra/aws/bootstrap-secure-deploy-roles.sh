@@ -71,7 +71,7 @@ cat >/tmp/relic-cfn-exec-policy.json <<JSON
     {
       "Sid":"ReLiCCloudFrontWaf",
       "Effect":"Allow",
-      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:ListTagsForResource","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:ListTagsForResource","wafv2:TagResource","wafv2:UntagResource"],
+      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:ListTagsForResource","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","cloudfront:CreateFunction","cloudfront:UpdateFunction","cloudfront:DeleteFunction","cloudfront:DescribeFunction","cloudfront:GetFunction","cloudfront:PublishFunction","cloudfront:CreateResponseHeadersPolicy","cloudfront:UpdateResponseHeadersPolicy","cloudfront:DeleteResponseHeadersPolicy","cloudfront:GetResponseHeadersPolicy","cloudfront:GetResponseHeadersPolicyConfig","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:ListTagsForResource","wafv2:TagResource","wafv2:UntagResource"],
       "Resource":"*"
     },
     {
