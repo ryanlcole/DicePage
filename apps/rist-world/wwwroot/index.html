@@ -38,17 +38,29 @@
  <script>
   (()=>{
    const probe=()=>document.getElementById('rist-boot-probe');
-   const stage=message=>{const el=document.getElementById('rist-boot-stage');if(el)el.textContent=message};
    const root=()=>document.getElementById('app');
-   window.RistBoot={stage,complete:()=>probe()?.remove()};
-   window.addEventListener('error',event=>stage('Browser startup error: '+(event.message||'unknown browser error')));
-   window.addEventListener('unhandledrejection',event=>stage('Browser startup error: '+(event.reason?.message||event.reason||'unhandled promise rejection')));
-   document.addEventListener('DOMContentLoaded',()=>stage('Page scripts loaded; loading Blazor runtime'));
+   let rank=0;
+   const stage=(message,nextRank=rank)=>{
+    if(nextRank<rank)return;
+    rank=nextRank;
+    const el=document.getElementById('rist-boot-stage');
+    if(el)el.textContent=message;
+   };
+   window.RistBoot={
+    stage:(message,nextRank)=>stage(message,Number.isFinite(nextRank)?nextRank:rank+1),
+    complete:()=>probe()?.remove()
+   };
+   window.addEventListener('error',event=>stage('Browser startup error: '+(event.message||'unknown browser error'),100));
+   window.addEventListener('unhandledrejection',event=>stage('Browser startup error: '+(event.reason?.message||event.reason||'unhandled promise rejection'),100));
+   document.addEventListener('DOMContentLoaded',()=>stage('Page scripts loaded; loading Blazor runtime',10));
    const app=root();
    if(app)new MutationObserver(()=>{
-    if(app.children.length>0){stage('Blazor rendered the application');setTimeout(()=>probe()?.remove(),250)}
-    else stage('Blazor root is empty after a render change');
+    if(app.children.length>0){stage('Blazor rendered the application',90);setTimeout(()=>probe()?.remove(),250)}
+    else stage('Blazor root is empty after a render change',80);
    }).observe(app,{childList:true});
+   setTimeout(()=>{
+    if(probe()&&(!app||app.children.length===0))stage('Blazor has not rendered yet; checking runtime startup',70);
+   },12000);
   })();
   if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>{for(const registration of registrations)registration.unregister().catch(()=>{})}).catch(()=>{})}
  </script>
@@ -81,7 +93,7 @@
  <script src="map-frame-edit-authority.js?v=20260903-frame-state-1"></script>
  <script src="map-title-mode-toggle.js?v=20260903-frame-state-1"></script>
  <script src="chat-composer-authority.js?v=20260903-chat-composer-2"></script>
- <script src="_framework/blazor.webassembly.js" onload="window.RistBoot?.stage('Blazor runtime loaded; starting application')" onerror="window.RistBoot?.stage('Blazor runtime script failed to load')"></script>
+ <script src="_framework/blazor.webassembly#[.{fingerprint}].js" onload="window.RistBoot?.stage('Blazor runtime loaded; starting application',40)" onerror="window.RistBoot?.stage('Blazor runtime script failed to load',100)"></script>
  <script src="rist-plc.js?v=20260903-frame-state-1"></script>
 </body>
 </html>
