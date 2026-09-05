@@ -76,14 +76,42 @@ jobs:
             echo "Waiting for CDN asset: $path"
             curl --fail --location --retry 18 --retry-delay 5 --retry-all-errors --output /dev/null "${ASSET_BASE_URL}${path}"
           done
-          for path in assets/ui/mmo-toggle.webp assets/ui/sandbox-toggle.webp; do
-            if ! curl --fail --location --retry 2 --retry-delay 2 --output /dev/null "${ASSET_BASE_URL}${path}"; then
-              echo "::warning::Optional world-toggle artwork unavailable: $path"
-            fi
-          done
 
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
+
+      - name: Wait for frontend stack stabilization
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            STATUS=$(aws cloudformation describe-stacks \
+              --stack-name "$FRONTEND_STACK" \
+              --query 'Stacks[0].StackStatus' \
+              --output text)
+            case "$STATUS" in
+              *_IN_PROGRESS)
+                echo "Frontend stack is $STATUS; waiting for rollback/update completion ($attempt/120)..."
+                sleep 5
+                ;;
+              *_FAILED)
+                echo "Frontend stack is in terminal failure state: $STATUS"
+                aws cloudformation describe-stack-events \
+                  --stack-name "$FRONTEND_STACK" \
+                  --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
+                  --output table || true
+                exit 1
+                ;;
+              *)
+                echo "Frontend stack is stable: $STATUS"
+                break
+                ;;
+            esac
+            if [ "$attempt" -eq 120 ]; then
+              echo "Frontend stack did not stabilize within the deployment window."
+              exit 1
+            fi
+          done
 
       - name: Deploy protected frontend origin and CloudFront through execution role
         shell: bash
@@ -203,9 +231,6 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          # Invalidate the game namespace so stable-name JS/CSS updates cannot be
-          # mixed with a fresh index. Browser max-age headers still preserve the
-          # client-side cache; this only keeps CloudFront's copy coherent.
           INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/store/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
