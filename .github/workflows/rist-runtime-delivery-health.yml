@@ -1,0 +1,87 @@
+name: RIST Runtime Delivery Health
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/rist-runtime-delivery-health.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  FRONTEND_STACK: rist-frontend
+
+jobs:
+  runtime-delivery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify origin and CloudFront runtime delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
+
+          aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/game-index.html --only-show-errors
+          RUNTIME_SRC=$(python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('/tmp/game-index.html').read_text(encoding='utf-8')
+          match = re.search(r'<script[^>]+src="([^"]*blazor\.webassembly[^"/]*\.js)"', html, re.I)
+          if not match:
+              raise SystemExit('Game/index.html does not reference a published Blazor runtime')
+          print(match.group(1))
+          PY
+          )
+          echo "Game index runtime: $RUNTIME_SRC"
+
+          echo '--- S3 Game runtime object ---'
+          aws s3api head-object --bucket "$BUCKET" --key "Game/${RUNTIME_SRC}"
+          aws s3 cp "s3://${BUCKET}/Game/${RUNTIME_SRC}" /tmp/s3-game-runtime.js --only-show-errors
+          test "$(stat -c%s /tmp/s3-game-runtime.js)" -gt 1000
+          if grep -Eiq '<!doctype html|<html' /tmp/s3-game-runtime.js; then
+            echo 'S3 Game runtime object contains HTML.' >&2
+            exit 1
+          fi
+          echo "S3 Game runtime bytes: $(stat -c%s /tmp/s3-game-runtime.js)"
+
+          echo '--- S3 Preview runtime object ---'
+          aws s3api head-object --bucket "$BUCKET" --key "Preview/${RUNTIME_SRC}"
+          aws s3 cp "s3://${BUCKET}/Preview/${RUNTIME_SRC}" /tmp/s3-preview-runtime.js --only-show-errors
+          cmp /tmp/s3-game-runtime.js /tmp/s3-preview-runtime.js
+
+          for surface in Game Preview; do
+            echo "--- CloudFront ${surface} runtime ---"
+            STATUS=$(curl --silent --show-error --output "/tmp/${surface}.body" --dump-header "/tmp/${surface}.headers" --write-out '%{http_code}' "${URL}${surface}/${RUNTIME_SRC}")
+            echo "HTTP $STATUS"
+            cat "/tmp/${surface}.headers"
+            echo "bytes=$(stat -c%s /tmp/${surface}.body)"
+            if grep -Eiq '<!doctype html|<html' "/tmp/${surface}.body"; then
+              echo "${surface} runtime returned HTML." >&2
+            else
+              echo "${surface} runtime returned non-HTML payload."
+            fi
+          done
+
+          if grep -Eiq '<!doctype html|<html' /tmp/Game.body; then
+            echo 'CloudFront Game runtime delivery is broken although the S3 origin object is valid.' >&2
+            exit 1
+          fi
+          if grep -Eiq '<!doctype html|<html' /tmp/Preview.body; then
+            echo 'CloudFront Preview runtime delivery is broken although the S3 origin object is valid.' >&2
+            exit 1
+          fi
+          echo 'RIST runtime delivery is healthy from S3 through CloudFront.'
