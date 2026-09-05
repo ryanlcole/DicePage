@@ -185,14 +185,16 @@
    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
    setCookie(p.sessionToken);authenticated=true;
    history.replaceState(null,'',location.pathname);
-   const draft=authIntent==='signup'?sessionStorage.getItem(signupDraftKey):null;
+   const isSignup=authIntent==='signup';
+   const draft=isSignup?sessionStorage.getItem(signupDraftKey):null;
    sessionStorage.removeItem(authIntentKey);
-   if(draft){
-    let handle='';try{handle=JSON.parse(draft)?.handle||''}catch{}
+   if(isSignup){
+    let handle='';
+    if(draft){try{handle=JSON.parse(draft)?.handle||''}catch{}}
     $('welcome-copy').textContent=handle?`Welcome, ${handle}. Your account is ready.`:'Your account is ready.';
     setView('welcome');
    }else{
-    if(authIntent!=='signup')sessionStorage.removeItem(signupDraftKey);
+    sessionStorage.removeItem(signupDraftKey);
     setView('menu');
    }
   }
