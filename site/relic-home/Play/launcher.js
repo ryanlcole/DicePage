@@ -5,6 +5,7 @@
  const views={entry:$('entry'),signup:$('signup'),welcome:$('welcome'),home:$('home'),settings:$('settings')};
  const error=$('error'),status=$('status');
  const game='/Game/index.html';
+ const previewGame='/Game/index.html?preview=Geonaph';
  const cookieName='rist_session';
  const signupDraftKey='rist.signup.draft';
  const authIntentKey='rist.auth.intent';
@@ -128,7 +129,7 @@
    sessionStorage.setItem('rist.launch.settings',JSON.stringify(settings));
    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
    status.textContent=preview?'Opening public preview…':'Entering Shaelvien…';
-   location.assign(game);
+   location.assign(preview?previewGame:game);
   }catch(e){
    launching=false;
    error.textContent=e?.message||'Shaelvien could not be started.';
