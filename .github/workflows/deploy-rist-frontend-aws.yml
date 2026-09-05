@@ -13,6 +13,12 @@ on:
       - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-frontend-aws.yml'
 
+# Production CloudFormation is a single-writer resource. Never cancel an active
+# deployment: cancelling GitHub does not cancel the already-running stack update.
+concurrency:
+  group: rist-frontend-production
+  cancel-in-progress: false
+
 permissions:
   contents: read
   id-token: write
@@ -56,6 +62,35 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Wait for frontend stack writer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 90); do
+            STATUS=$(aws cloudformation describe-stacks \
+              --stack-name "$FRONTEND_STACK" \
+              --query 'Stacks[0].StackStatus' \
+              --output text 2>/dev/null || echo NOT_FOUND)
+            case "$STATUS" in
+              *_IN_PROGRESS|REVIEW_IN_PROGRESS)
+                echo "Frontend stack is busy ($STATUS); waiting for the active writer ($attempt/90)..."
+                sleep 10
+                ;;
+              UPDATE_ROLLBACK_FAILED|ROLLBACK_FAILED|CREATE_FAILED|DELETE_FAILED)
+                echo "Frontend stack is in terminal failure state: $STATUS" >&2
+                exit 1
+                ;;
+              *)
+                echo "Frontend stack is available: $STATUS"
+                break
+                ;;
+            esac
+            if [ "$attempt" = "90" ]; then
+              echo "Frontend stack remained busy for 15 minutes; refusing a concurrent update." >&2
+              exit 1
+            fi
+          done
 
       - name: Resolve authentication authority
         shell: bash
