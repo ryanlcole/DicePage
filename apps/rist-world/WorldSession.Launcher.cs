@@ -8,50 +8,50 @@ public sealed partial class WorldSession
     private const string LauncherSettingsKey = "rist.launch.settings";
 
     /// <summary>
-    /// Applies the authenticated launcher's one-shot startup choices after the
-    /// normal session/world initialization has completed. Saved map metadata may
-    /// not override the role/domain explicitly selected for this launch.
+    /// Applies the authenticated launcher's one-shot startup choice after the
+    /// normal session/world initialization has completed. A plain Play handoff
+    /// always enters Shaelvien MMO as a Roleplayer. World/campaign creation is
+    /// intentionally handled inside the game rather than by authentication.
     /// </summary>
     public async Task ApplyLauncherStartupAsync()
     {
         var intent = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherIntentKey);
         var settingsJson = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherSettingsKey);
+        var isPlay = string.Equals(intent, "play", StringComparison.OrdinalIgnoreCase);
         var isNew = string.Equals(intent, "new", StringComparison.OrdinalIgnoreCase);
         var isLoad = string.Equals(intent, "load", StringComparison.OrdinalIgnoreCase);
 
         // This method also runs during ordinary restored/direct game sessions.
         // Launcher defaults must never overwrite an already-restored world unless
-        // the launcher explicitly handed off a New/Load Campaign intent.
-        if (!isNew && !isLoad)
+        // the launcher explicitly handed off a supported one-shot intent.
+        if (!isPlay && !isNew && !isLoad)
         {
-            // Clear any orphaned settings payload so a partial/stale handoff can
-            // never become authoritative during a later session initialization.
             if (!string.IsNullOrWhiteSpace(settingsJson))
                 await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
             return;
         }
 
-        var (role, domain) = ParseLauncherSettings(settingsJson);
+        var (role, domain) = isPlay
+            ? ("Roleplayer", "Shaelvien MMO")
+            : ParseLauncherSettings(settingsJson);
 
-        // New/Load are one-shot commands. Consume both browser keys before any
-        // world mutation so a later exception or refresh cannot replay a partially
-        // applied New Campaign and unexpectedly reset the restored session again.
+        // Consume browser handoff keys before mutating world state so refreshes or
+        // later initialization cannot replay a partially applied startup command.
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
 
         if (isNew)
         {
-            // Start a clean in-memory world without destroying the user's
-            // previous checkpoint merely because they selected New Campaign.
+            // Legacy compatibility only. New world/campaign creation now belongs
+            // inside the authenticated game rather than the login launcher.
             ResetToCanonicalOrigin();
         }
 
         RestoreOperatingMode(string.Equals(domain, "RIST", StringComparison.OrdinalIgnoreCase) ? "sandbox" : "mmo");
         ApplyUserMode(string.Equals(role, "GameMaster", StringComparison.OrdinalIgnoreCase) ? "GameMaster" : "Player");
 
-        // Load Campaign has already been restored by InitializeAsync. Opening the
-        // existing load menu makes the intent visible and preserves the current
-        // local/private checkpoint controls rather than inventing a second store.
+        // Legacy compatibility only. Existing old launcher links can still expose
+        // the current load controls without making Load Campaign part of sign-in.
         if (isLoad)
         {
             LoadMenuOpen = true;
