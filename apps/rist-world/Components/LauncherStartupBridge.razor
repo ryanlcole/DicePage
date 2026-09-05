@@ -13,7 +13,7 @@
 
  void SessionChanged()
  {
-  if (!_armed) return;
+  if (!_armed || !Session.IsLoggedIn) return;
   _armed = false;
   _ = InvokeAsync(ApplyAsync);
  }
