@@ -73,7 +73,7 @@
 
    <form id="signup" class="signup" hidden>
     <label>Handle<input id="handle" type="text" maxlength="32" autocomplete="nickname" required></label>
-    <label>Plan<select id="plan"><option value="player">Roleplayer</option><option value="gm-player">GameMaster + Roleplayer</option></select></label>
+    <label>Plan<select id="plan" required><option value="" selected disabled>Choose Plan…</option><option value="player">Roleplayer</option><option value="gm-player">GameMaster + Roleplayer</option></select></label>
     <label class="check"><input id="agreements" type="checkbox"><span>I agree to the current account terms and community agreements.</span></label>
     <div class="actions">
      <button id="signup-back" type="button" class="secondary">Back</button>
@@ -131,8 +131,9 @@
   const settingsKey='rist.launcher.settings';
   const signupDraftKey='rist.signup.draft';
   const authIntentKey='rist.auth.intent';
+  const profileKey='account/profile.json';
   const defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'};
-  let api='',authenticated=false,currentView='entry';
+  let api='',authenticated=false,profileReady=false,currentView='entry';
 
   const setCookie=token=>{document.cookie=`${cookieName}=${encodeURIComponent(token)}; Path=/Game/; Max-Age=28800; Secure; SameSite=Lax`};
   const clearCookie=()=>{document.cookie=`${cookieName}=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax`};
@@ -157,7 +158,7 @@
   const showLauncher=name=>{intro.hidden=true;launcher.hidden=false;setView(name)};
   const advanceIntro=()=>{
    if(intro.hidden)return;
-   showLauncher(authenticated?'menu':'entry');
+   showLauncher(authenticated?(profileReady?'menu':'signup'):'entry');
   };
 
   async function config(){
@@ -173,6 +174,44 @@
    const r=await fetch(base+'/me',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
    return r.ok;
   }
+  async function loadProfile(token){
+   const base=await config();
+   const r=await fetch(base+'/storage/download?key='+encodeURIComponent(profileKey),{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+   if(r.status===404)return null;
+   if(!r.ok)throw new Error('Your RIST profile could not be checked.');
+   const p=await r.json();
+   if(!p?.url)return null;
+   const file=await fetch(p.url,{cache:'no-store'});
+   if(file.status===404)return null;
+   if(!file.ok)throw new Error('Your RIST profile could not be checked.');
+   return await file.json();
+  }
+  async function createProfile(token,draft){
+   const handle=(draft?.handle||'').trim();
+   const plan=draft?.plan||'';
+   if(handle.length<1||handle.length>32)throw new Error('Enter a handle from 1 to 32 characters.');
+   if(plan!=='player'&&plan!=='gm-player')throw new Error('Choose a plan before continuing.');
+   if(!draft?.agreements)throw new Error('Accept the agreements before continuing.');
+   const existing=await loadProfile(token);
+   if(existing){profileReady=true;return existing}
+   const created={
+    AccountId:crypto.randomUUID(),PlayerAlias:handle,Plan:plan,
+    CreatedAtUtc:new Date().toISOString(),TermsAcceptedAtUtc:new Date().toISOString(),TermsVersion:'2026-08-30',
+    NsfwAccessEnabled:false,Age21AttestedAtUtc:null,NsfwAttestationVersion:null,ContentAccess:null
+   };
+   const base=await config();
+   const prep=await fetch(base+'/storage/upload',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({key:profileKey,contentType:'application/json'})});
+   if(!prep.ok)throw new Error('Your RIST profile could not be created. Please try again.');
+   const post=await prep.json();
+   if(!post?.url||!post?.fields)throw new Error('Your RIST profile could not be created. Please try again.');
+   const form=new FormData();
+   Object.entries(post.fields).forEach(([key,value])=>form.append(key,value));
+   form.append('file',new Blob([JSON.stringify(created)],{type:'application/json'}),'profile.json');
+   const upload=await fetch(post.url,{method:'POST',body:form});
+   if(!upload.ok)throw new Error('Your RIST profile could not be created. Please try again.');
+   profileReady=true;
+   return created;
+  }
   async function completeHandoff(handoff){
    intro.hidden=true;launcher.hidden=false;setView('entry');status.textContent='Completing secure sign in…';
    const authIntent=sessionStorage.getItem(authIntentKey);
@@ -185,16 +224,20 @@
    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
    setCookie(p.sessionToken);authenticated=true;
    const isSignup=authIntent==='signup';
-   const draft=isSignup?sessionStorage.getItem(signupDraftKey):null;
+   const rawDraft=isSignup?sessionStorage.getItem(signupDraftKey):null;
    sessionStorage.removeItem(authIntentKey);
    if(isSignup){
-    let handle='';
-    if(draft){try{handle=JSON.parse(draft)?.handle||''}catch{}}
+    let draft=null;
+    if(rawDraft){try{draft=JSON.parse(rawDraft)}catch{}}
+    await createProfile(p.sessionToken,draft);
+    const handle=draft?.handle||'';
     $('welcome-copy').textContent=handle?`Welcome, ${handle}. Your account is ready.`:'Your account is ready.';
     setView('welcome');
    }else{
     sessionStorage.removeItem(signupDraftKey);
-    setView('menu');
+    profileReady=!!(await loadProfile(p.sessionToken));
+    if(profileReady)setView('menu');
+    else{setView('signup');error.textContent='Complete your RIST profile before starting or loading a campaign.'}
    }
   }
   async function resume(){
@@ -203,11 +246,13 @@
    try{
     if(await verify(token)){
      setCookie(token);authenticated=true;
-     if(intro.hidden&&currentView==='entry')setView('menu');
+     profileReady=!!(await loadProfile(token));
+     if(intro.hidden&&currentView==='entry')setView(profileReady?'menu':'signup');
      return true;
     }
    }catch{}
    sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');clearCookie();
+   authenticated=false;profileReady=false;
    return false;
   }
   async function begin(intent){
@@ -236,8 +281,12 @@
    const domain=settings.querySelector('input[name="domain"]:checked')?.value||defaultSettings.domain;
    writeSettings({role,domain});setView('menu');
   }
-  function launch(intent){
+  async function launch(intent){
    if(!authenticated){setView('entry');return}
+   const token=sessionStorage.getItem('rist.session');
+   if(!token){authenticated=false;profileReady=false;setView('entry');return}
+   try{profileReady=!!(await loadProfile(token))}catch(e){error.textContent=e?.message||'Your RIST profile could not be checked.';return}
+   if(!profileReady){setView('signup');error.textContent='Complete your RIST profile before starting or loading a campaign.';return}
    const selected=readSettings();
    sessionStorage.setItem('rist.launch.intent',intent);
    sessionStorage.setItem('rist.launch.settings',JSON.stringify(selected));
@@ -249,21 +298,33 @@
   document.addEventListener('keydown',e=>{if(!intro.hidden){e.preventDefault();advanceIntro()}});
   $('signin').addEventListener('click',()=>begin('login'));
   $('signup-open').addEventListener('click',()=>{setView('signup');$('handle').focus()});
-  $('signup-back').addEventListener('click',()=>setView('entry'));
-  desktopBack.addEventListener('click',()=>currentView==='settings'?setView('menu'):setView('entry'));
-  signup.addEventListener('submit',e=>{
+  $('signup-back').addEventListener('click',()=>setView(authenticated&&profileReady?'menu':'entry'));
+  desktopBack.addEventListener('click',()=>currentView==='settings'?setView('menu'):setView(authenticated&&profileReady?'menu':'entry'));
+  signup.addEventListener('submit',async e=>{
    e.preventDefault();
    const handle=$('handle').value.trim();
+   const plan=$('plan').value;
    if(handle.length<1||handle.length>32){error.textContent='Enter a handle from 1 to 32 characters.';return}
+   if(plan!=='player'&&plan!=='gm-player'){error.textContent='Choose a plan before continuing.';return}
    if(!$('agreements').checked){error.textContent='Accept the agreements before continuing.';return}
-   const plan=$('plan').value==='gm-player'?'gm-player':'player';
+   const draft={handle,plan,agreements:true,agreedAt:new Date().toISOString()};
    try{
-    sessionStorage.setItem(signupDraftKey,JSON.stringify({handle,plan,agreedAt:new Date().toISOString()}));
+    sessionStorage.setItem(signupDraftKey,JSON.stringify(draft));
     localStorage.setItem('rist.signup.alias',handle);
     localStorage.setItem('rist.signup.plan',plan);
     localStorage.setItem('rist.signup.termsAccepted','true');
    }catch{
     error.textContent='Account details could not be saved in this browser. Enable site storage and try again.';
+    return;
+   }
+   const token=sessionStorage.getItem('rist.session');
+   if(authenticated&&token){
+    try{
+     status.textContent='Creating your RIST profile…';
+     await createProfile(token,draft);
+     $('welcome-copy').textContent=`Welcome, ${handle}. Your account is ready.`;
+     setView('welcome');
+    }catch(e){error.textContent=e?.message||'Your RIST profile could not be created. Please try again.'}
     return;
    }
    begin('signup');
@@ -284,7 +345,7 @@
     const q=new URLSearchParams(location.search),handoff=q.get('rist_handoff');
     if(handoff){history.replaceState(null,'',location.pathname);await completeHandoff(handoff);return}
     authenticated=await resume();
-   }catch(e){clearCookie();authenticated=false;status.textContent='';error.textContent=e?.message||'Unable to complete sign in.'}
+   }catch(e){clearCookie();authenticated=false;profileReady=false;status.textContent='';error.textContent=e?.message||'Unable to complete sign in.'}
   })();
  })();
  </script>
