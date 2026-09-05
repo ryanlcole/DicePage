@@ -184,7 +184,6 @@
    sessionStorage.setItem('rist.session',p.sessionToken);
    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
    setCookie(p.sessionToken);authenticated=true;
-   history.replaceState(null,'',location.pathname);
    const isSignup=authIntent==='signup';
    const draft=isSignup?sessionStorage.getItem(signupDraftKey):null;
    sessionStorage.removeItem(authIntentKey);
@@ -268,7 +267,7 @@
   (async()=>{
    try{
     const q=new URLSearchParams(location.search),handoff=q.get('rist_handoff');
-    if(handoff){await completeHandoff(handoff);return}
+    if(handoff){history.replaceState(null,'',location.pathname);await completeHandoff(handoff);return}
     authenticated=await resume();
    }catch(e){clearCookie();authenticated=false;status.textContent='';error.textContent=e?.message||'Unable to complete sign in.'}
   })();
