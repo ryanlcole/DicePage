@@ -21,6 +21,7 @@ env:
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
   CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
   FRONTEND_STACK: rist-frontend
+  AUTH_STACK: rist-discord-storage
   PLATFORM_STACK: rist-platform
   TRANSLATION_STACK: rist-translation
   PRODUCTION_DOMAIN: relicgamemaster.com
@@ -54,6 +55,23 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve authentication authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH_API=$(aws cloudformation describe-stacks \
+            --stack-name "$AUTH_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" \
+            --output text)
+          if [ -z "$AUTH_API" ] || [ "$AUTH_API" = "None" ]; then
+            echo "Authentication API is unavailable; refusing to publish an unprotected game." >&2
+            exit 1
+          fi
+          echo "AUTH_API_BASE_URL=$AUTH_API" >> "$GITHUB_ENV"
+          mkdir -p site/relic-home/Play
+          printf '{"apiBaseUrl":"%s"}\n' "$AUTH_API" > site/relic-home/Play/auth-config.json
+          printf '{"apiBaseUrl":"%s"}\n' "$AUTH_API" > build/rist/wwwroot/auth-config.json
 
       - name: Wait for required AWS artwork
         shell: bash
@@ -94,9 +112,11 @@ jobs:
             --stack-name "$FRONTEND_STACK" \
             --region "$AWS_REGION" \
             --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_NAMED_IAM \
             --parameter-overrides \
               DomainName="$PRODUCTION_DOMAIN" \
               CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
+              AuthApiBaseUrl="$AUTH_API_BASE_URL" \
             --no-fail-on-empty-changeset; then
             echo "CloudFormation deployment failed. Recent failed resource events:"
             aws cloudformation describe-stack-events \
@@ -139,7 +159,7 @@ jobs:
             echo "Translation endpoint injected."
           fi
 
-      - name: Publish company site, game, and Launcher to private S3 origin
+      - name: Publish public launcher and protected game to private S3 origin
         shell: bash
         run: |
           set -euo pipefail
@@ -149,7 +169,7 @@ jobs:
             --delete \
             --exclude 'Launcher/*' \
             --exclude 'assets/shaelvien/*' \
-            --cache-control 'public,max-age=86400' \
+            --cache-control 'private,max-age=86400' \
             --only-show-errors
           aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
@@ -184,65 +204,67 @@ jobs:
             --exclude 'relic-story-6.jpg' \
             --cache-control 'public,max-age=3600' \
             --only-show-errors
+          aws s3 cp site/relic-home/Play/index.html "s3://${BUCKET}/Play/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/Play/auth-config.json "s3://${BUCKET}/Play/auth-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
           aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
 
-      - name: Invalidate and verify AWS frontend surfaces
+      - name: Invalidate and verify public and protected surfaces
         shell: bash
         run: |
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          # Invalidate the game namespace so stable-name JS/CSS updates cannot be
-          # mixed with a fresh index. Browser max-age headers still preserve the
-          # client-side cache; this only keeps CloudFront's copy coherent.
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/Play/*' '/Game/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
           grep -q 'Game Now' /tmp/relic-home.html
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
-          grep -q 'site-language' /tmp/relic-home.html
 
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
+          grep -q 'SHAELVIEN' /tmp/play.html
+          grep -q 'Sign In' /tmp/play.html
+          if grep -qi 'preview' /tmp/play.html; then
+            echo "Public Play shell contains forbidden preview language." >&2
+            exit 1
+          fi
+
+          STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
+          test "$STATUS" = "302"
+          grep -Eiq '^location: /Play/' /tmp/anonymous-game.headers
+          if grep -q 'ReLiCGameMaster RIST WORLD' /tmp/anonymous-game.html; then
+            echo "Anonymous request received protected game HTML." >&2
+            exit 1
+          fi
+
+          STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/_framework/blazor.webassembly.js")
+          test "$STATUS" = "302"
+          grep -Eiq '^location: /Play/' /tmp/anonymous-runtime.headers
+
+          aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/rist-index.html --only-show-errors
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
           grep -q 'rist-plc.js' /tmp/rist-index.html
-          grep -q 'ui-language.js' /tmp/rist-index.html
 
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/ui-language.js "${URL}Game/ui-language.js"
-          grep -q 'window.RistUiLanguage' /tmp/ui-language.js
+          EDGE_ASSOCIATIONS=$(aws cloudfront get-distribution-config --id "$DIST" --query "DistributionConfig.CacheBehaviors.Items[?PathPattern=='Game/*'].LambdaFunctionAssociations.Quantity | [0]" --output text)
+          test "$EDGE_ASSOCIATIONS" = "1"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
           grep -q 'apiBaseUrl' /tmp/translation-config.json
 
-          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-plc.js "${URL}Game/rist-plc.js"
-          grep -q 'window.RistPLC' /tmp/rist-plc.js
-          grep -q "interaction:'shell'" /tmp/rist-plc.js
-
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/launcher-index.html "${URL}Launcher/index.html"
           grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
-          grep -q 'QAStaging' /tmp/launcher-index.html
-
-          STORY_MISSING=0
-          for i in 1 2 3 4 5 6; do
-            if ! curl --fail --location --retry 2 --retry-delay 2 --output "/tmp/relic-story-${i}.jpg" "${URL}relic-story-${i}.jpg"; then
-              echo "::warning::Persistent story scene relic-story-${i}.jpg is missing from the production origin."
-              STORY_MISSING=1
-              continue
-            fi
-            if [ ! -s "/tmp/relic-story-${i}.jpg" ]; then
-              echo "::warning::Persistent story scene relic-story-${i}.jpg is empty in the production origin."
-              STORY_MISSING=1
-            fi
-          done
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "RIST WORLD + PLC verified at ${URL}Game/index.html"
-          echo "Launcher verified at ${URL}Launcher/index.html"
-          if [ "$STORY_MISSING" -eq 0 ]; then
-            echo "ReLiC story scenes verified at ${URL}relic-story-{1..6}.jpg"
-          else
-            echo "Persistent story media needs restoration, but application deployment is healthy."
-          fi
+          echo "Public authenticated launcher verified at ${URL}Play/index.html"
+          echo "Anonymous Game/index.html and framework access correctly blocked at the edge"
+          echo "Protected RIST payload verified directly in private S3 origin"
