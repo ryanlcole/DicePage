@@ -1,6 +1,8 @@
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
 
+@* Single-authority boundary: /Play owns account entry and profile creation.
+   /Game only validates an existing session and mounts the protected runtime. *@
 @if (!_ready)
 {
  <main class="rist-auth-shell" aria-busy="true">
