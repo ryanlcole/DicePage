@@ -61,11 +61,46 @@ jobs:
           echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
           echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
 
-      - name: Deploy production Discord auth return
+      - name: Sync live Discord return URL
         shell: bash
         run: |
           set -euo pipefail
-          if ! sam deploy \
+          CURRENT_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='FrontendUrl'].ParameterValue | [0]" \
+            --output text)
+          CURRENT_ORIGIN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='FrontendOrigin'].ParameterValue | [0]" \
+            --output text)
+          CURRENT_HOURS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Parameters[?ParameterKey=='SessionHours'].ParameterValue | [0]" \
+            --output text)
+          if [ "$CURRENT_URL" = "$PRODUCTION_PLAY_URL" ] && [ "$CURRENT_ORIGIN" = "$PRODUCTION_ORIGIN" ] && [ "$CURRENT_HOURS" = "$SESSION_HOURS" ]; then
+            echo "Live Discord auth return is already synchronized."
+            exit 0
+          fi
+          aws cloudformation update-stack \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --use-previous-template \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --parameters \
+              ParameterKey=DiscordClientId,UsePreviousValue=true \
+              ParameterKey=DiscordClientSecretArn,UsePreviousValue=true \
+              ParameterKey=FrontendOrigin,ParameterValue="$PRODUCTION_ORIGIN" \
+              ParameterKey=FrontendUrl,ParameterValue="$PRODUCTION_PLAY_URL" \
+              ParameterKey=SessionHours,ParameterValue="$SESSION_HOURS"
+          aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"
+
+      - name: Deploy production Discord auth template
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          sam deploy \
             --template-file infra/aws/rist-discord-storage.yml \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
@@ -79,14 +114,7 @@ jobs:
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
               "FrontendUrl=$PRODUCTION_PLAY_URL" \
-              "SessionHours=$SESSION_HOURS"; then
-            echo "Discord auth deployment failed. Recent failed CloudFormation events:"
-            aws cloudformation describe-stack-events \
-              --stack-name "$STACK_NAME" \
-              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
-              --output table || true
-            exit 1
-          fi
+              "SessionHours=$SESSION_HOURS"
 
       - name: Verify production return configuration
         shell: bash
