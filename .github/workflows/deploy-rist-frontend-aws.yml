@@ -1,5 +1,6 @@
 name: Deploy RIST Frontend to AWS
 
+# Edge-auth CloudFormation execution-role permissions verified 2026-09-05.
 on:
   workflow_dispatch:
   push:
