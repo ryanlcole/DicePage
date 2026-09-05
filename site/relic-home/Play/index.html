@@ -214,8 +214,14 @@
    error.textContent='';
    try{
     const base=await config();
-    if(intent==='login')sessionStorage.removeItem(signupDraftKey);
+    if(intent==='login'){
+     sessionStorage.removeItem(signupDraftKey);
+     localStorage.removeItem('rist.signup.alias');
+     localStorage.removeItem('rist.signup.plan');
+     localStorage.removeItem('rist.signup.termsAccepted');
+    }
     sessionStorage.setItem(authIntentKey,intent);
+    localStorage.setItem(authIntentKey,intent);
     location.assign(base+'/auth/login');
    }catch(e){error.textContent=e?.message||'Unable to start sign in.'}
   }
@@ -250,7 +256,16 @@
    const handle=$('handle').value.trim();
    if(handle.length<1||handle.length>32){error.textContent='Enter a handle from 1 to 32 characters.';return}
    if(!$('agreements').checked){error.textContent='Accept the agreements before continuing.';return}
-   sessionStorage.setItem(signupDraftKey,JSON.stringify({handle,plan:$('plan').value==='gm-player'?'gm-player':'player',agreedAt:new Date().toISOString()}));
+   const plan=$('plan').value==='gm-player'?'gm-player':'player';
+   try{
+    sessionStorage.setItem(signupDraftKey,JSON.stringify({handle,plan,agreedAt:new Date().toISOString()}));
+    localStorage.setItem('rist.signup.alias',handle);
+    localStorage.setItem('rist.signup.plan',plan);
+    localStorage.setItem('rist.signup.termsAccepted','true');
+   }catch{
+    error.textContent='Account details could not be saved in this browser. Enable site storage and try again.';
+    return;
+   }
    begin('signup');
   });
   $('welcome-continue').addEventListener('click',()=>{sessionStorage.removeItem(signupDraftKey);setView('menu')});
