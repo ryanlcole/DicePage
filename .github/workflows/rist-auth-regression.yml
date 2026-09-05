@@ -54,10 +54,27 @@ jobs:
           grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
 
           test -f site/relic-home/Play/index.html
+          grep -q 'Press any key to continue' site/relic-home/Play/index.html
           grep -q 'Sign In' site/relic-home/Play/index.html
           grep -q 'Sign Up' site/relic-home/Play/index.html
+          grep -q 'New Campaign' site/relic-home/Play/index.html
+          grep -q 'Load Campaign' site/relic-home/Play/index.html
+          grep -q '>Settings<' site/relic-home/Play/index.html
+          grep -q 'GameMaster' site/relic-home/Play/index.html
+          grep -q 'Roleplayer' site/relic-home/Play/index.html
+          grep -q 'Shaelvien MMO' site/relic-home/Play/index.html
+          grep -q 'value="RIST"' site/relic-home/Play/index.html
+          grep -q "defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'}" site/relic-home/Play/index.html
+          grep -q "settingsKey='rist.launcher.settings'" site/relic-home/Play/index.html
+          grep -q "signupDraftKey='rist.signup.draft'" site/relic-home/Play/index.html
+          grep -q "sessionStorage.setItem('rist.launch.intent',intent)" site/relic-home/Play/index.html
           grep -q 'rist_session' site/relic-home/Play/index.html
           grep -q '/Game/index.html' site/relic-home/Play/index.html
+
+          # A valid session or OAuth handoff must stop at the authenticated menu/welcome,
+          # never jump directly into protected game content.
+          ! grep -q 'location.replace(game)' site/relic-home/Play/index.html
+          ! grep -q 'setCookie(token);location.replace(game)' site/relic-home/Play/index.html
 
           grep -q 'PathPattern: Game/\*' infra/aws/rist-frontend.yml
           grep -q 'EventType: viewer-request' infra/aws/rist-frontend.yml
@@ -79,4 +96,4 @@ jobs:
             exit 1
           fi
 
-          echo 'RIST authentication gate, edge delivery, and logout cleanup regression checks passed.'
+          echo 'RIST authentication gate and startup launcher regression checks passed.'
