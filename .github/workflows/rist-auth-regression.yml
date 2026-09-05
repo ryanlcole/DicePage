@@ -36,17 +36,21 @@ jobs:
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
 
-      - name: Enforce authenticated world entry
+      - name: Enforce single-authority authenticated world entry
         shell: bash
         run: |
           set -euo pipefail
 
+          # /Game is a protected runtime, not a second account launcher.
           grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
           grep -q '<WorldTable />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q '<LauncherStartupBridge />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Auth.InitializeAsync' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'Sign In' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'Sign Up' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'Navigation.NavigateTo("/Play/", forceLoad: true)' apps/rist-world/Components/AuthenticatedWorld.razor
+          ! grep -q '>Sign In<' apps/rist-world/Components/AuthenticatedWorld.razor
+          ! grep -q '>Sign Up<' apps/rist-world/Components/AuthenticatedWorld.razor
+          ! test -e apps/rist-world/wwwroot/auth-entry.js
+          ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
 
           test -f apps/rist-world/Components/LauncherStartupBridge.razor
           grep -q 'Session.Changed += SessionChanged' apps/rist-world/Components/LauncherStartupBridge.razor
@@ -55,63 +59,49 @@ jobs:
           grep -q 'sessionStorage.removeItem", LauncherIntentKey' apps/rist-world/WorldSession.Launcher.cs
           grep -q 'sessionStorage.removeItem", LauncherSettingsKey' apps/rist-world/WorldSession.Launcher.cs
 
-          test -f apps/rist-world/wwwroot/auth-entry.js
-          grep -q '/auth/login' apps/rist-world/wwwroot/auth-entry.js
+          # Session expiration always returns to the one account-entry authority.
           grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
           grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
           grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
 
+          # /Play owns account entry, profile creation, Discord handoff and game launch.
           test -f site/relic-home/Play/index.html
+          test -f site/relic-home/Play/launcher.js
           grep -q 'Press any key to continue' site/relic-home/Play/index.html
-          grep -q 'Sign In' site/relic-home/Play/index.html
-          grep -q 'Sign Up' site/relic-home/Play/index.html
-          grep -q 'New Campaign' site/relic-home/Play/index.html
-          grep -q 'Load Campaign' site/relic-home/Play/index.html
-          grep -q '>Settings<' site/relic-home/Play/index.html
-          grep -q 'GameMaster' site/relic-home/Play/index.html
-          grep -q 'Roleplayer' site/relic-home/Play/index.html
-          grep -q 'Shaelvien MMO' site/relic-home/Play/index.html
-          grep -q 'value="RIST"' site/relic-home/Play/index.html
-          grep -q "defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'}" site/relic-home/Play/index.html
-          grep -q "settingsKey='rist.launcher.settings'" site/relic-home/Play/index.html
-          grep -q "signupDraftKey='rist.signup.draft'" site/relic-home/Play/index.html
-          grep -q "authIntentKey='rist.auth.intent'" site/relic-home/Play/index.html
-          grep -q "const isSignup=authIntent==='signup';" site/relic-home/Play/index.html
-          grep -q 'if(isSignup){' site/relic-home/Play/index.html
-          grep -q "if(intent==='login')" site/relic-home/Play/index.html
-          grep -q "localStorage.setItem(authIntentKey,intent)" site/relic-home/Play/index.html
-          grep -q "localStorage.setItem('rist.signup.alias',handle)" site/relic-home/Play/index.html
-          grep -q "localStorage.setItem('rist.signup.plan',plan)" site/relic-home/Play/index.html
-          grep -q "localStorage.setItem('rist.signup.termsAccepted','true')" site/relic-home/Play/index.html
-          grep -q "localStorage.removeItem('rist.signup.alias')" site/relic-home/Play/index.html
-          grep -q "sessionStorage.setItem('rist.launch.intent',intent)" site/relic-home/Play/index.html
-          grep -q "if(handoff){history.replaceState(null,'',location.pathname);await completeHandoff(handoff);return}" site/relic-home/Play/index.html
-          grep -q 'rist_session' site/relic-home/Play/index.html
-          grep -q '/Game/index.html' site/relic-home/Play/index.html
+          grep -q '>Sign In<' site/relic-home/Play/index.html
+          grep -q '>Sign Up<' site/relic-home/Play/index.html
+          grep -q '>Enter Shaelvien<' site/relic-home/Play/index.html
+          grep -q 'launcher.js' site/relic-home/Play/index.html
+          grep -q "const game='/Game/index.html'" site/relic-home/Play/launcher.js
+          grep -q "const playSettings={role:'Roleplayer',domain:'Shaelvien MMO'}" site/relic-home/Play/launcher.js
+          grep -q "const signupDraftKey='rist.signup.draft'" site/relic-home/Play/launcher.js
+          grep -q "const authIntentKey='rist.auth.intent'" site/relic-home/Play/launcher.js
+          grep -q "const profileKey='account/profile.json'" site/relic-home/Play/launcher.js
+          grep -q 'async function createProfile' site/relic-home/Play/launcher.js
+          grep -q "sessionStorage.setItem('rist.launch.intent','play')" site/relic-home/Play/launcher.js
+          grep -q "sessionStorage.setItem('rist.launch.settings',JSON.stringify(playSettings))" site/relic-home/Play/launcher.js
+          grep -q 'location.assign(game)' site/relic-home/Play/launcher.js
+          grep -q '/auth/session?handoff=' site/relic-home/Play/launcher.js
+          grep -q 'rist_session' site/relic-home/Play/launcher.js
 
-          # A valid session or OAuth handoff must stop at the authenticated menu/welcome,
-          # never jump directly into protected game content.
-          ! grep -q 'location.replace(game)' site/relic-home/Play/index.html
-          ! grep -q 'setCookie(token);location.replace(game)' site/relic-home/Play/index.html
+          # Anonymous preview code remains forbidden in the authenticated MMO path.
+          if grep -Rni --exclude-dir=obj --exclude-dir=bin --exclude='rist-auth-regression.yml' -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world site/relic-home/Play; then
+            echo 'Anonymous preview code is forbidden in RIST WORLD.' >&2
+            exit 1
+          fi
+          if grep -qi 'preview' site/relic-home/Play/index.html site/relic-home/Play/launcher.js; then
+            echo 'Public Play launcher contains forbidden preview language.' >&2
+            exit 1
+          fi
 
+          # Edge protection remains the final authority around /Game.
           grep -q 'PathPattern: Game/\*' infra/aws/rist-frontend.yml
           grep -q 'EventType: viewer-request' infra/aws/rist-frontend.yml
           grep -q 'GameEdgeAuthVersion' infra/aws/rist-frontend.yml
           grep -q '/Play/?reason=' infra/aws/rist-frontend.yml
           grep -q 'AuthApiBaseUrl' infra/aws/rist-frontend.yml
-
           grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
           grep -q 'refusing to publish an unprotected game' .github/workflows/deploy-rist-frontend-aws.yml
           grep -q 'Anonymous Game/index.html and framework access correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
 
-          if grep -Rni --exclude-dir=obj --exclude-dir=bin --exclude='rist-auth-regression.yml' -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world site/relic-home/Play; then
-            echo 'Anonymous preview code is forbidden in RIST WORLD.' >&2
-            exit 1
-          fi
-
-          if grep -qi 'preview' site/relic-home/Play/index.html; then
-            echo 'Public Play launcher contains forbidden preview language.' >&2
-            exit 1
-          fi
-
-          echo 'RIST authentication gate and startup launcher regression checks passed.'
+          echo 'RIST single-authority authentication and startup regression checks passed.'
