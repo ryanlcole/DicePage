@@ -288,7 +288,10 @@ Resources:
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           ResponseHeadersPolicyId: !Ref SecurityHeaders
         CacheBehaviors:
-          - PathPattern: Game/*
+          # Only the HTML entry point needs an online session check. The Blazor
+          # framework payload is static application code and must be fetchable
+          # without invoking Lambda@Edge for every JS/WASM/DLL request during boot.
+          - PathPattern: Game/index.html
             TargetOriginId: frontend
             ViewerProtocolPolicy: redirect-to-https
             Compress: true
@@ -300,6 +303,14 @@ Resources:
               - EventType: viewer-request
                 IncludeBody: false
                 LambdaFunctionARN: !Ref GameEdgeAuthVersion
+          - PathPattern: Game/*
+            TargetOriginId: frontend
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            ResponseHeadersPolicyId: !Ref SecurityHeaders
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
