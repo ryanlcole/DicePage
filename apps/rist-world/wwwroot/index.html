@@ -82,20 +82,7 @@
  <script src="map-frame-edit-authority.js?v=20260903-frame-state-1"></script>
  <script src="map-title-mode-toggle.js?v=20260903-frame-state-1"></script>
  <script src="chat-composer-authority.js?v=20260903-chat-composer-2"></script>
- <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false" onload="window.RistBoot?.stage('Blazor runtime script loaded; starting runtime')" onerror="window.RistBoot?.stage('Blazor runtime script failed to load')"></script>
- <script>
-  (()=>{
-   const fail=error=>window.RistBoot?.stage('Blazor startup failed: '+(error?.message||error||'unknown runtime error'));
-   const start=()=>{
-    if(!window.Blazor){fail('Blazor global was not created');return;}
-    window.RistBoot?.stage('Starting Blazor runtime…');
-    Blazor.start().then(()=>{
-     window.RistBoot?.stage(document.getElementById('app')?.children.length?'Blazor runtime started; application rendered':'Blazor runtime started; waiting for root render');
-    }).catch(fail);
-   };
-   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  })();
- </script>
+ <script src="_framework/blazor.webassembly#[.{fingerprint}].js" onload="window.RistBoot?.stage('Blazor runtime loaded; starting application')" onerror="window.RistBoot?.stage('Blazor runtime script failed to load')"></script>
  <script src="rist-plc.js?v=20260903-frame-state-1"></script>
 </body>
 </html>
