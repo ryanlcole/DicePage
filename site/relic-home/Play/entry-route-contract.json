@@ -1,0 +1,6 @@
+{
+  "publicEntry": "/Play/index.html",
+  "protectedGame": "/Game/index.html",
+  "anonymousGameBehavior": "redirect-to-public-entry",
+  "purpose": "Keep homepage game entry on the public authentication launcher while Game remains edge-protected."
+}
