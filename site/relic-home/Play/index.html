@@ -61,7 +61,6 @@
     <div class="actions">
      <button id="signin" type="button">Sign In</button>
      <button id="signup-open" type="button" class="secondary">Sign Up</button>
-     <button id="preview" type="button" class="secondary">Preview</button>
     </div>
    </div>
 
@@ -93,7 +92,6 @@
   const error=$('error'),status=$('status'),desktopBack=$('desktop-back');
   const views={entry,signup,welcome};
   const game='/Game/index.html';
-  const previewTarget='/';
   const cookieName='rist_session';
   const signupDraftKey='rist.signup.draft';
   const authIntentKey='rist.auth.intent';
@@ -265,7 +263,6 @@
   document.addEventListener('keydown',e=>{if(!intro.hidden){e.preventDefault();void advanceIntro()}});
   $('signin').addEventListener('click',()=>begin('login'));
   $('signup-open').addEventListener('click',()=>{setView('signup');$('handle').focus()});
-  $('preview').addEventListener('click',()=>location.assign(previewTarget));
   $('signup-back').addEventListener('click',()=>setView('entry'));
   desktopBack.addEventListener('click',()=>setView('entry'));
   signup.addEventListener('submit',async e=>{
