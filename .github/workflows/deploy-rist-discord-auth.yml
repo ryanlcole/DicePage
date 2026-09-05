@@ -20,7 +20,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-discord-storage
   PRODUCTION_ORIGIN: https://relicgamemaster.com
-  PRODUCTION_GAME_URL: https://relicgamemaster.com/Game/index.html
+  PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html
   SESSION_HOURS: 8
 
 jobs:
@@ -77,7 +77,7 @@ jobs:
               "DiscordClientId=$DISCORD_CLIENT_ID" \
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
-              "FrontendUrl=$PRODUCTION_GAME_URL" \
+              "FrontendUrl=$PRODUCTION_PLAY_URL" \
               "SessionHours=$SESSION_HOURS"
 
       - name: Verify production return configuration
@@ -96,7 +96,7 @@ jobs:
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Parameters[?ParameterKey=='SessionHours'].ParameterValue | [0]" \
             --output text)
-          test "$FRONTEND_URL" = "$PRODUCTION_GAME_URL"
+          test "$FRONTEND_URL" = "$PRODUCTION_PLAY_URL"
           test "$FRONTEND_ORIGIN" = "$PRODUCTION_ORIGIN"
           test "$DEPLOYED_SESSION_HOURS" = "$SESSION_HOURS"
-          echo "Discord auth, guardian consent, and asset rating authority return to $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
+          echo "Discord auth returns through $FRONTEND_URL with ${DEPLOYED_SESSION_HOURS}h sessions"
