@@ -1,9 +1,9 @@
 (()=>{
  'use strict';
  const authReturn=()=>{const p=new URLSearchParams(location.search);return p.has('rist_handoff')||location.hash.includes('rist_session')};
- const hasSession=()=>!!sessionStorage.getItem('rist.session');
+ const storedToken=()=>sessionStorage.getItem('rist.session')||'';
  const gameStarted=()=>!!sessionStorage.getItem('rist.gameStart.current');
- let earlyAuthStarted=false,authPollTimer=0;
+ let earlyAuthStarted=false,authPollTimer=0,authConfigPromise=null,validationInFlight=null,validatedToken='';
  function app(){return document.getElementById('app')}
  function clearLegacyPreview(){
   sessionStorage.removeItem('rist-public-preview');
@@ -33,11 +33,51 @@
   }
  }
  function openTitle(authenticated=false,view){window.RistGameStartScreen?.open?.(authenticated?{authenticated:true}:{authenticated:false,view})}
+ function getAuthConfig(){
+  if(authConfigPromise)return authConfigPromise;
+  authConfigPromise=fetch('auth-config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null).finally(()=>{setTimeout(()=>{authConfigPromise=null},15000)});
+  return authConfigPromise;
+ }
+ function clearInvalidSession(){
+  validatedToken='';
+  window.ristAuth?.clearSession?.();
+  sessionStorage.removeItem('rist.session');
+  sessionStorage.removeItem('rist.lastActivity');
+  sessionStorage.removeItem('rist.gameStart.current');
+ }
+ async function validateStoredSession(force=false){
+  const token=storedToken();
+  if(!token)return false;
+  if(!force&&validatedToken===token)return true;
+  if(validationInFlight)return validationInFlight;
+  validationInFlight=(async()=>{
+   const cfg=await getAuthConfig();
+   const apiBase=String(cfg?.apiBaseUrl||'').replace(/\/$/,'');
+   if(!apiBase)return false;
+   try{
+    const response=await fetch(apiBase+'/me',{cache:'no-store',headers:{Authorization:'Bearer '+token}});
+    if(response.ok){validatedToken=token;return true}
+    if(response.status===401||response.status===403)clearInvalidSession();
+    return false;
+   }catch{return false}
+  })().finally(()=>{validationInFlight=null});
+  return validationInFlight;
+ }
  function finishAuthenticated(){
   clearInterval(authPollTimer);authPollTimer=0;earlyAuthStarted=false;
   clearLegacyPreview();
   setGameAccess(true);
+  window.ristAuth?.installIdleExpiry?.();
   if(gameStarted())window.RistGameStartScreen?.close?.();else openTitle(true);
+ }
+ async function validateAndFinish({force=false,fallback='entry'}={}){
+  setGameAccess(false);
+  openTitle(false,'authwait');
+  if(await validateStoredSession(force)){finishAuthenticated();return true}
+  setGameAccess(false);
+  if(!storedToken()&&gameStarted())sessionStorage.removeItem('rist.gameStart.current');
+  openTitle(false,fallback);
+  return false;
  }
  function beginEarlyAuth(force=false){
   if(!authReturn())return;
@@ -48,7 +88,6 @@
   openTitle(false,'authwait');
   const started=Date.now();
   const waitForAuth=()=>{
-   if(hasSession()){finishAuthenticated();return}
    const auth=window.ristAuth;
    if(!auth?.captureSession){
     if(Date.now()-started<8000)setTimeout(waitForAuth,25);else{earlyAuthStarted=false;setGameAccess(false);openTitle(false,'entry')}
@@ -59,53 +98,65 @@
     const original=auth.captureSession.bind(auth);
     let inFlight=null;
     auth.captureSession=apiBase=>{
-     if(hasSession())return Promise.resolve(sessionStorage.getItem('rist.session'));
      if(inFlight)return inFlight;
      inFlight=Promise.resolve(original(apiBase)).finally(()=>{inFlight=null});
      return inFlight;
     };
    }
-   fetch('auth-config.json',{cache:'no-store'})
-    .then(r=>r.ok?r.json():null)
+   getAuthConfig()
     .then(cfg=>cfg?.apiBaseUrl?auth.captureSession(cfg.apiBaseUrl):null)
-    .then(token=>{if(token||hasSession())finishAuthenticated();else{earlyAuthStarted=false;setGameAccess(false);openTitle(false,'entry')}})
-    .catch(()=>{earlyAuthStarted=false;if(hasSession())finishAuthenticated();else{setGameAccess(false);openTitle(false,'entry')}});
+    .then(async token=>{
+     earlyAuthStarted=false;
+     if(token||storedToken())await validateAndFinish({force:true,fallback:'entry'});
+     else{setGameAccess(false);openTitle(false,'entry')}
+    })
+    .catch(()=>{earlyAuthStarted=false;setGameAccess(false);openTitle(false,'entry')});
   };
   waitForAuth();
  }
- function reconcileAuth(){
+ async function reconcileAuth(){
   clearLegacyPreview();
-  if(hasSession()){
-   finishAuthenticated();
-   window.ristAuth?.installIdleExpiry?.();
-   return;
-  }
   setGameAccess(false);
   if(authReturn()){
    beginEarlyAuth(true);
    return;
   }
+  if(storedToken()){
+   await validateAndFinish({force:true,fallback:'entry'});
+   return;
+  }
   if(gameStarted())sessionStorage.removeItem('rist.gameStart.current');
   openTitle(false,'entry');
  }
- function start(){
+ async function start(){
   clearLegacyPreview();
-  setGameAccess(hasSession());
-  if(hasSession()){finishAuthenticated();return}
+  setGameAccess(false);
   if(authReturn()){
    openTitle(false,'authwait');beginEarlyAuth();
-   let attempts=0;clearInterval(authPollTimer);authPollTimer=setInterval(()=>{if(hasSession()){finishAuthenticated()}else if(++attempts>=120){clearInterval(authPollTimer);authPollTimer=0;earlyAuthStarted=false;setGameAccess(false);openTitle(false,'entry')}},100);
+   let attempts=0;clearInterval(authPollTimer);authPollTimer=setInterval(async()=>{
+    if(storedToken()){
+     clearInterval(authPollTimer);authPollTimer=0;
+     await validateAndFinish({force:true,fallback:'entry'});
+    }else if(++attempts>=120){
+     clearInterval(authPollTimer);authPollTimer=0;earlyAuthStarted=false;setGameAccess(false);openTitle(false,'entry');
+    }
+   },100);
    return;
   }
-  setGameAccess(false);
+  if(storedToken()){
+   await validateAndFinish({force:true,fallback:'entry'});
+   return;
+  }
   openTitle(false,'splash');
  }
  // Safari/iOS may suspend during Discord or app switching and later restore
- // from BFCache. Always re-check the bearer session before exposing the game.
+ // from BFCache. Revalidate with the server before exposing the game; the
+ // presence of a browser token alone is never sufficient authorization.
  addEventListener('pageshow',()=>{setTimeout(reconcileAuth,0);setTimeout(reconcileAuth,180)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(reconcileAuth,40)});
  addEventListener('focus',()=>setTimeout(reconcileAuth,40));
+ setGameAccess(false);
  beginEarlyAuth();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
- window.RistAuthGate={reconcile:reconcileAuth,hasSession};
+ window.RistAuthGate={reconcile:reconcileAuth,hasSession:()=>validatedToken!==''&&validatedToken===storedToken(),validate:validateStoredSession};
 })();
