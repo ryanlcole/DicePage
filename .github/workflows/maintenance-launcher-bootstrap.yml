@@ -1,0 +1,46 @@
+name: One-shot launcher bootstrap wiring
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/maintenance-launcher-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Wire launcher startup after world initialization
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('apps/rist-world/Components/WorldTable.razor')
+          text = path.read_text(encoding='utf-8')
+          old = '  await Session.InitializeAsync();\n\n  if(policy is not null)'
+          new = '  await Session.InitializeAsync();\n  await Session.ApplyLauncherStartupAsync();\n\n  if(policy is not null)'
+          assert old in text, 'WorldTable initialization shape changed unexpectedly'
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
+      - name: Commit launcher wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/rist-world/Components/WorldTable.razor
+          git diff --cached --check
+          git commit -m 'Apply launcher choices after world initialization'
+          git pull --rebase origin live-alpha-rist-blazor-world
+          dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
+          git push origin HEAD:live-alpha-rist-blazor-world
