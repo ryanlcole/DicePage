@@ -105,6 +105,8 @@
   const input=event.target instanceof Element?event.target.closest('[data-player-alias]'):null;if(!input)return;
   const value=String(input.value||'').trim().slice(0,64);input.value=value;localStorage.setItem(ALIAS_KEY,value);document.dispatchEvent(new CustomEvent('rist:player-alias-changed',{detail:{alias:value}}));announce('Player alias saved on this device.');
  },true);
+ document.addEventListener('rist:new-campaign',()=>setTimeout(()=>{q('.mmo-new-campaign-action')?.click();announce('New campaign ready.')},0));
+ document.addEventListener('rist:load-campaign',()=>setTimeout(()=>{q('.mmo-load-campaign-action')?.click();announce('Saved campaign loaded.')},0));
  document.addEventListener('rist:dice-sum-setting-changed',queue);
  document.addEventListener('rist:dom-change',queue);
  new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});
