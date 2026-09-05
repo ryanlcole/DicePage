@@ -80,6 +80,7 @@ jobs:
           grep -q 'if(isSignup){' site/relic-home/Play/index.html
           grep -q "if(intent==='login')sessionStorage.removeItem(signupDraftKey)" site/relic-home/Play/index.html
           grep -q "sessionStorage.setItem('rist.launch.intent',intent)" site/relic-home/Play/index.html
+          grep -q "if(handoff){history.replaceState(null,'',location.pathname);await completeHandoff(handoff);return}" site/relic-home/Play/index.html
           grep -q 'rist_session' site/relic-home/Play/index.html
           grep -q '/Game/index.html' site/relic-home/Play/index.html
 
