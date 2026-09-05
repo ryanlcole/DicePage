@@ -110,4 +110,5 @@
  new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hydrate,{once:true});else hydrate();
  window.RistControlIntegrity={refresh:hydrate};
+ Promise.resolve(window.RistPLC?.ensureGroup?.('shell')).finally(()=>setTimeout(queue,0));
 })();
