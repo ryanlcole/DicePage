@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sam deploy \
+          if ! sam deploy \
             --template-file infra/aws/rist-discord-storage.yml \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
@@ -78,7 +78,14 @@ jobs:
               "DiscordClientSecretArn=$DISCORD_SECRET_ARN" \
               "FrontendOrigin=$PRODUCTION_ORIGIN" \
               "FrontendUrl=$PRODUCTION_PLAY_URL" \
-              "SessionHours=$SESSION_HOURS"
+              "SessionHours=$SESSION_HOURS"; then
+            echo "Discord auth deployment failed. Recent failed CloudFormation events:"
+            aws cloudformation describe-stack-events \
+              --stack-name "$STACK_NAME" \
+              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
+              --output table || true
+            exit 1
+          fi
 
       - name: Verify production return configuration
         shell: bash
