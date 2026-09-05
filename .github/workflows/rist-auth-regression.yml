@@ -43,9 +43,17 @@ jobs:
 
           grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
           grep -q '<WorldTable />' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q '<LauncherStartupBridge />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Auth.InitializeAsync' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Sign In' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Sign Up' apps/rist-world/Components/AuthenticatedWorld.razor
+
+          test -f apps/rist-world/Components/LauncherStartupBridge.razor
+          grep -q 'Session.Changed += SessionChanged' apps/rist-world/Components/LauncherStartupBridge.razor
+          grep -q '!Session.IsLoggedIn' apps/rist-world/Components/LauncherStartupBridge.razor
+          grep -q 'Session.ApplyLauncherStartupAsync' apps/rist-world/Components/LauncherStartupBridge.razor
+          grep -q 'sessionStorage.removeItem", LauncherIntentKey' apps/rist-world/WorldSession.Launcher.cs
+          grep -q 'sessionStorage.removeItem", LauncherSettingsKey' apps/rist-world/WorldSession.Launcher.cs
 
           test -f apps/rist-world/wwwroot/auth-entry.js
           grep -q '/auth/login' apps/rist-world/wwwroot/auth-entry.js
