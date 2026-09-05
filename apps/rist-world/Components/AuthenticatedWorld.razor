@@ -118,17 +118,22 @@ else
 @code {
  bool _ready;
  bool _authenticated;
+ bool _authStarted;
  bool _showSignup;
  bool _agreementsAccepted;
  string _handle = "";
  string _plan = "player";
  string _formError = "";
 
- protected override async Task OnInitializedAsync()
+ protected override async Task OnAfterRenderAsync(bool firstRender)
  {
+  if (!firstRender || _authStarted) return;
+  _authStarted = true;
+
   var profile = await Auth.InitializeAsync();
   _authenticated = profile is not null;
   _ready = true;
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task SignInAsync()
