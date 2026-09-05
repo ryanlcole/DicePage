@@ -3,11 +3,35 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ const string CampaignCurrentKey="rist.campaign.current.v1";
  const string OceanResetVersion="2026-08-28-topology-v2";
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
+
+ async Task<string> ActiveCampaignCodeAsync()
+ {
+  var raw=await js.InvokeAsync<string?>("localStorage.getItem",CampaignCurrentKey);
+  if(string.IsNullOrWhiteSpace(raw))return "";
+  var safe=new string(raw.Where(c=>char.IsLetterOrDigit(c)||c is '-' or '_').Take(64).ToArray());
+  return safe;
+ }
+ async Task<string> LocalCampaignSaveKeyAsync()
+ {
+  var code=await ActiveCampaignCodeAsync();
+  return string.IsNullOrWhiteSpace(code)?SaveKey:$"{SaveKey}.{code}";
+ }
+ async Task<string> CampaignResetMarkerKeyAsync()
+ {
+  var code=await ActiveCampaignCodeAsync();
+  return string.IsNullOrWhiteSpace(code)?OceanResetMarkerKey:$"{OceanResetMarkerKey}.{code}";
+ }
+ async Task<string> PrivateCampaignCheckpointKeyAsync()
+ {
+  var code=await ActiveCampaignCodeAsync();
+  return string.IsNullOrWhiteSpace(code)?PrivateWorldCheckpointKey:$"maps/campaigns/{code}.ristmap";
+ }
 
  object SavePayload()
  {
@@ -40,7 +64,7 @@ public sealed partial class WorldSession
   };
  }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
+ public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",await LocalCampaignSaveKeyAsync(),ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
@@ -52,10 +76,12 @@ public sealed partial class WorldSession
   try
   {
    var json=snapshot??ExportMapJson();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
-   await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
+   var localKey=await LocalCampaignSaveKeyAsync();
+   var privateKey=await PrivateCampaignCheckpointKeyAsync();
+   await js.InvokeVoidAsync("localStorage.setItem",localKey,json);
+   await auth.UploadTextAsync(privateKey,json,"application/json");
    _lastPrivateSnapshot=json;
-   if(showSuccess)PrivateStorageStatus="Shaelvien progress synced to your private AWS storage.";
+   if(showSuccess)PrivateStorageStatus="Campaign state synced to your private AWS storage.";
   }
   catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
   if(showSuccess)Notify();
@@ -65,27 +91,30 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   try
   {
-   var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
+   var privateKey=await PrivateCampaignCheckpointKeyAsync();
+   var localKey=await LocalCampaignSaveKeyAsync();
+   var resetKey=await CampaignResetMarkerKeyAsync();
+   var saved=await auth.DownloadJsonAsync<SavedWorld>(privateKey);
    if(saved is null || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
    {
     ResetToCanonicalOrigin();
     await SavePrivateCheckpointAsync(showSuccess:false);
-    await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+    await js.InvokeVoidAsync("localStorage.setItem",resetKey,"1");
     PrivateStorageStatus=saved is null
-      ?"Private AWS storage initialized with the canonical origin."
-      :"Private Shaelvien world reset once to the canonical World/Plane/Tier origin.";
+      ?"Campaign storage initialized with the canonical origin."
+      :"Campaign state reset once to the canonical World/Plane/Tier origin.";
     Notify();
     return;
    }
 
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
-   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+   await js.InvokeVoidAsync("localStorage.setItem",localKey,json);
+   await js.InvokeVoidAsync("localStorage.setItem",resetKey,"1");
    _lastPrivateSnapshot=ExportMapJson();
-   PrivateStorageStatus="Shaelvien progress restored from your private AWS storage.";
+   PrivateStorageStatus="Campaign state restored from your private AWS storage.";
   }
-  catch(Exception ex){PrivateStorageStatus="Private restore failed; using local world: "+ex.Message;}
+  catch(Exception ex){PrivateStorageStatus="Private restore failed; using local campaign cache: "+ex.Message;}
   Notify();
  }
  public async Task AutoSavePrivateAsync()
@@ -99,20 +128,22 @@ public sealed partial class WorldSession
  public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
-  var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",OceanResetMarkerKey);
+  var localKey=await LocalCampaignSaveKeyAsync();
+  var resetKey=await CampaignResetMarkerKeyAsync();
+  var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",resetKey);
   if(resetApplied!="1")
   {
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
-   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+   await js.InvokeVoidAsync("localStorage.setItem",localKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",resetKey,"1");
    return true;
   }
 
-  var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
+  var json=await js.InvokeAsync<string?>("localStorage.getItem",localKey);
   if(string.IsNullOrWhiteSpace(json))
   {
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",localKey,ExportMapJson());
    return true;
   }
   LoadMapJson(json);return true;
