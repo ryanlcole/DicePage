@@ -78,7 +78,12 @@ jobs:
           grep -q "authIntentKey='rist.auth.intent'" site/relic-home/Play/index.html
           grep -q "const isSignup=authIntent==='signup';" site/relic-home/Play/index.html
           grep -q 'if(isSignup){' site/relic-home/Play/index.html
-          grep -q "if(intent==='login')sessionStorage.removeItem(signupDraftKey)" site/relic-home/Play/index.html
+          grep -q "if(intent==='login')" site/relic-home/Play/index.html
+          grep -q "localStorage.setItem(authIntentKey,intent)" site/relic-home/Play/index.html
+          grep -q "localStorage.setItem('rist.signup.alias',handle)" site/relic-home/Play/index.html
+          grep -q "localStorage.setItem('rist.signup.plan',plan)" site/relic-home/Play/index.html
+          grep -q "localStorage.setItem('rist.signup.termsAccepted','true')" site/relic-home/Play/index.html
+          grep -q "localStorage.removeItem('rist.signup.alias')" site/relic-home/Play/index.html
           grep -q "sessionStorage.setItem('rist.launch.intent',intent)" site/relic-home/Play/index.html
           grep -q "if(handoff){history.replaceState(null,'',location.pathname);await completeHandoff(handoff);return}" site/relic-home/Play/index.html
           grep -q 'rist_session' site/relic-home/Play/index.html
