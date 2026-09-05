@@ -1,5 +1,6 @@
 name: One-shot application warning maintenance
 
+# Rerun from the latest protected-frontend branch head.
 on:
   push:
     branches:
@@ -45,7 +46,7 @@ jobs:
           dotnet build apps/rist-world/RistWorld.csproj -c Release 2>&1 | tee /tmp/build.log
           ! grep -q 'CS0162' /tmp/build.log
           ! grep -q 'CS8601' /tmp/build.log
-      - name: Commit repairs
+      - name: Commit repairs safely
         shell: bash
         run: |
           set -euo pipefail
@@ -54,4 +55,8 @@ jobs:
           git add apps/rist-world/ExternalAiAccess.cs apps/rist-world/WorldSession.Navigation.cs
           git diff --cached --check
           git commit -m 'Remove RIST build warnings'
+          git pull --rebase origin live-alpha-rist-blazor-world
+          dotnet build apps/rist-world/RistWorld.csproj -c Release 2>&1 | tee /tmp/rebased-build.log
+          ! grep -q 'CS0162' /tmp/rebased-build.log
+          ! grep -q 'CS8601' /tmp/rebased-build.log
           git push origin HEAD:live-alpha-rist-blazor-world
