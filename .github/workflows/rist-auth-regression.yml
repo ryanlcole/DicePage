@@ -49,6 +49,9 @@ jobs:
 
           test -f apps/rist-world/wwwroot/auth-entry.js
           grep -q '/auth/login' apps/rist-world/wwwroot/auth-entry.js
+          grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
+          grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
+          grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
 
           test -f site/relic-home/Play/index.html
           grep -q 'Sign In' site/relic-home/Play/index.html
@@ -76,4 +79,4 @@ jobs:
             exit 1
           fi
 
-          echo 'RIST authentication gate and edge-delivery regression checks passed.'
+          echo 'RIST authentication gate, edge delivery, and logout cleanup regression checks passed.'
