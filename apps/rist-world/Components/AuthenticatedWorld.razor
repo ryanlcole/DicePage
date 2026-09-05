@@ -1,26 +1,27 @@
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
+@inject Microsoft.JSInterop.IJSRuntime JS
 
-@* Single-authority boundary: /Play owns account entry and profile creation.
-   /Game only validates an existing session and mounts the protected runtime. *@
+@* Single-authority boundary: /Play owns account entry, profile creation, and launch intent.
+   /Game validates either an existing account session or the explicit read-only preview intent. *@
 @if (!_ready)
 {
- <main class="rist-auth-shell" aria-busy="true">
+ <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
   <section class="rist-auth-card">
    <p class="rist-auth-kicker">SHAELVIEN</p>
    <h1>RIST MMO / Sandbox</h1>
-   <p>Checking your session…</p>
+   <p>Checking your launch…</p>
   </section>
  </main>
 }
-else if (_authenticated)
+else if (_canEnter)
 {
  <LauncherStartupBridge />
  <WorldTable />
 }
 else
 {
- <main class="rist-auth-shell" aria-busy="true">
+ <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
   <section class="rist-auth-card">
    <p class="rist-auth-kicker">SHAELVIEN</p>
    <h1>RIST MMO / Sandbox</h1>
@@ -53,11 +54,13 @@ else
  .rist-auth-kicker{margin:0;color:#d7be80;font-weight:900;letter-spacing:.18em}
  .rist-auth-card h1{margin:8px 0 22px;color:#d7be80;font-size:clamp(22px,5vw,34px)}
  .rist-auth-card p:last-child{margin:0;color:#cbd5da}
+ @media (prefers-reduced-motion:reduce){.rist-auth-card{scroll-behavior:auto}}
+ @media (prefers-contrast:more){.rist-auth-card{border-width:2px}}
 </style>
 
 @code {
  bool _ready;
- bool _authenticated;
+ bool _canEnter;
  bool _authStarted;
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -65,12 +68,21 @@ else
   if (!firstRender || _authStarted) return;
   _authStarted = true;
 
+  var launchIntent = await JS.InvokeAsync<string?>("sessionStorage.getItem", "rist.launch.intent");
+  if (string.Equals(launchIntent, "preview", StringComparison.Ordinal))
+  {
+   _canEnter = true;
+   _ready = true;
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
   var profile = await Auth.InitializeAsync();
-  _authenticated = profile is not null;
+  _canEnter = profile is not null;
   _ready = true;
   await InvokeAsync(StateHasChanged);
 
-  if (!_authenticated)
+  if (!_canEnter)
    Navigation.NavigateTo("/Play/", forceLoad: true);
  }
 }
