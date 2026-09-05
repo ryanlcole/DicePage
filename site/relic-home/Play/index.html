@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="color-scheme" content="dark">
+ <title>Shaelvien — RIST</title>
+ <style>
+  :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f3ead0;background:#030608}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#030608}
+  body{min-height:100dvh;overflow:hidden}
+  button,input,select{font:inherit}
+  .screen{position:fixed;inset:0;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));background:
+   radial-gradient(circle at 20% 28%,rgba(59,99,112,.28),transparent 34%),
+   radial-gradient(circle at 80% 72%,rgba(128,52,32,.26),transparent 36%),
+   linear-gradient(120deg,#071117 0 49.8%,#160b08 50.2% 100%)}
+  .screen::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 48.8%,rgba(238,201,115,.13) 50%,transparent 51.2%);pointer-events:none}
+  .panel{position:relative;width:min(92vw,560px);padding:30px 28px 26px;border:1px solid rgba(193,158,79,.64);border-radius:14px;background:rgba(3,8,11,.88);box-shadow:0 24px 70px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.04);text-align:center}
+  .brand{margin:0;color:#e3c97e;font-weight:950;letter-spacing:.2em;font-size:clamp(26px,7vw,54px);text-shadow:0 2px 18px #000}
+  .subtitle{margin:5px 0 24px;color:#b9c1c5;font-weight:800;letter-spacing:.12em;font-size:clamp(12px,2.7vw,16px)}
+  .prompt{margin:0 0 18px;color:#cfd8dc;line-height:1.5}
+  .actions{display:grid;gap:11px;margin-top:18px}
+  .actions button{min-height:50px;border:1px solid #9a7b3c;border-radius:8px;background:#152229;color:#f1dfaa;font-weight:900;letter-spacing:.02em;cursor:pointer;touch-action:manipulation}
+  .actions button.secondary{border-color:#516069;background:#0d151a;color:#d9e1e4}
+  .actions button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f0d07d;outline-offset:3px}
+  .signup{display:grid;gap:14px;text-align:left}
+  .signup label:not(.check){display:grid;gap:6px;color:#dac681;font-weight:800}
+  .signup input[type=text],.signup select{width:100%;min-height:46px;padding:10px 11px;border:1px solid #54646c;border-radius:7px;background:#071015;color:#f1f5f6}
+  .check{display:flex;gap:10px;align-items:flex-start;color:#d3dadd;line-height:1.4}.check input{margin-top:4px;transform:scale(1.15)}
+  .error{min-height:1.4em;margin:14px 0 0;color:#ffb6aa;font-weight:800}
+  .status{margin:10px 0 0;color:#9fb0b8;font-size:13px}
+  [hidden]{display:none!important}
+ </style>
+</head>
+<body>
+ <main class="screen" aria-label="Shaelvien sign in">
+  <section class="panel">
+   <h1 class="brand">SHAELVIEN</h1>
+   <p class="subtitle">RIST MMO / SANDBOX</p>
+
+   <div id="entry">
+    <p class="prompt">Sign in or create an account to continue.</p>
+    <div class="actions">
+     <button id="signin" type="button">Sign In</button>
+     <button id="signup-open" type="button" class="secondary">Sign Up</button>
+    </div>
+   </div>
+
+   <form id="signup" class="signup" hidden>
+    <label>Handle<input id="handle" type="text" maxlength="32" autocomplete="nickname" required></label>
+    <label>Plan<select id="plan"><option value="player">Roleplayer</option><option value="gm-player">GameMaster + Roleplayer</option></select></label>
+    <label class="check"><input id="agreements" type="checkbox"><span>I agree to the current account terms and community agreements.</span></label>
+    <div class="actions">
+     <button id="signup-back" type="button" class="secondary">Back</button>
+     <button type="submit">Continue…</button>
+    </div>
+   </form>
+
+   <p id="error" class="error" role="alert" aria-live="polite"></p>
+   <p id="status" class="status" aria-live="polite"></p>
+  </section>
+ </main>
+ <script>
+ (()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const entry=$('entry'),signup=$('signup'),error=$('error'),status=$('status');
+  let api='';
+  const game='/Game/index.html';
+  const cookieName='rist_session';
+  const setCookie=token=>{document.cookie=`${cookieName}=${encodeURIComponent(token)}; Path=/Game/; Max-Age=28800; Secure; SameSite=Lax`};
+  const clearCookie=()=>{document.cookie=`${cookieName}=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax`};
+  async function config(){
+   if(api)return api;
+   const r=await fetch('./auth-config.json',{cache:'no-store'});
+   if(!r.ok)throw new Error('Account service configuration is unavailable.');
+   const c=await r.json();api=(c.apiBaseUrl||'').replace(/\/$/,'');
+   if(!api)throw new Error('Account service configuration is incomplete.');
+   return api;
+  }
+  async function verify(token){
+   const base=await config();
+   const r=await fetch(base+'/me',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+   return r.ok;
+  }
+  async function completeHandoff(handoff){
+   status.textContent='Completing secure sign in…';
+   const base=await config();
+   const r=await fetch(base+'/auth/session?handoff='+encodeURIComponent(handoff),{cache:'no-store'});
+   if(!r.ok)throw new Error('The sign-in handoff expired. Please sign in again.');
+   const p=await r.json();
+   if(!p.sessionToken)throw new Error('The account service returned an invalid session.');
+   sessionStorage.setItem('rist.session',p.sessionToken);
+   sessionStorage.setItem('rist.lastActivity',String(Date.now()));
+   setCookie(p.sessionToken);
+   history.replaceState(null,'',location.pathname);
+   location.replace(game);
+  }
+  async function resume(){
+   const token=sessionStorage.getItem('rist.session');
+   if(!token)return false;
+   status.textContent='Checking your session…';
+   try{
+    if(await verify(token)){setCookie(token);location.replace(game);return true}
+   }catch{}
+   sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');clearCookie();status.textContent='';
+   return false;
+  }
+  async function begin(intent){
+   error.textContent='';
+   try{
+    const base=await config();
+    localStorage.setItem('rist.auth.intent',intent);
+    location.assign(base+'/auth/login');
+   }catch(e){error.textContent=e?.message||'Unable to start sign in.'}
+  }
+  $('signin').addEventListener('click',()=>begin('login'));
+  $('signup-open').addEventListener('click',()=>{entry.hidden=true;signup.hidden=false;error.textContent='';$('handle').focus()});
+  $('signup-back').addEventListener('click',()=>{signup.hidden=true;entry.hidden=false;error.textContent=''});
+  signup.addEventListener('submit',e=>{
+   e.preventDefault();
+   const handle=$('handle').value.trim();
+   if(handle.length<1||handle.length>32){error.textContent='Enter a handle from 1 to 32 characters.';return}
+   if(!$('agreements').checked){error.textContent='Accept the agreements before continuing.';return}
+   localStorage.setItem('rist.signup.alias',handle);
+   localStorage.setItem('rist.signup.plan',$('plan').value==='gm-player'?'gm-player':'player');
+   localStorage.setItem('rist.signup.termsAccepted','true');
+   begin('signup');
+  });
+  (async()=>{
+   try{
+    const q=new URLSearchParams(location.search),handoff=q.get('rist_handoff');
+    if(handoff){await completeHandoff(handoff);return}
+    await resume();
+   }catch(e){clearCookie();status.textContent='';error.textContent=e?.message||'Unable to complete sign in.'}
+  })();
+ })();
+ </script>
+</body>
+</html>
