@@ -57,32 +57,24 @@ jobs:
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
 
-      - name: Validate authentication JavaScript
-        run: node --check apps/rist-world/wwwroot/auth-entry.js
+      - name: Validate public Play launcher JavaScript
+        run: node --check site/relic-home/Play/launcher.js
 
-      - name: Validate public Play launcher script
+      - name: Verify launcher and Preview boundaries
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          html=Path('site/relic-home/Play/index.html').read_text(encoding='utf-8')
-          scripts=re.findall(r'<script>(.*?)</script>',html,re.S|re.I)
-          if not scripts:
-              raise SystemExit('No inline Play launcher script found')
-          Path('/tmp/rist-play-inline.js').write_text('\n'.join(scripts),encoding='utf-8')
-          PY
-          node --check /tmp/rist-play-inline.js
-
-      - name: Verify no anonymous preview surface
-        shell: bash
-        run: |
-          set -euo pipefail
-          if grep -Rni --exclude-dir=obj --exclude-dir=bin -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world site/relic-home/Play; then
-            echo 'Anonymous preview surface is forbidden.' >&2
-            exit 1
-          fi
+          test ! -e apps/rist-world/wwwroot/auth-entry.js
+          ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
+          grep -q "const previewGame='/Preview/index.html'" site/relic-home/Play/launcher.js
+          grep -q '>Preview<' site/relic-home/Play/index.html
+          grep -q 'StartsWith("/Preview/"' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'EnablePublicPreviewMode' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'PublicPreviewMode' apps/rist-world/WorldSession.Preview.cs
+          grep -q 'if(PublicPreviewMode)' apps/rist-world/WorldSession.Persistence.cs
+          grep -q 's3://${BUCKET}/Preview/' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'PathPattern: Game/index.html' infra/aws/rist-frontend.yml
+          echo 'Play, Preview, and protected Game boundaries are present.'
 
       - name: Compile first-party root Python
         shell: bash
