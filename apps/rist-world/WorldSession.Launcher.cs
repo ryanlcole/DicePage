@@ -31,6 +31,14 @@ public sealed partial class WorldSession
             return;
         }
 
+        var (role, domain) = ParseLauncherSettings(settingsJson);
+
+        // New/Load are one-shot commands. Consume both browser keys before any
+        // world mutation so a later exception or refresh cannot replay a partially
+        // applied New Campaign and unexpectedly reset the restored session again.
+        await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
+        await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
+
         if (isNew)
         {
             // Start a clean in-memory world without destroying the user's
@@ -38,7 +46,6 @@ public sealed partial class WorldSession
             ResetToCanonicalOrigin();
         }
 
-        var (role, domain) = ParseLauncherSettings(settingsJson);
         RestoreOperatingMode(string.Equals(domain, "RIST", StringComparison.OrdinalIgnoreCase) ? "sandbox" : "mmo");
         ApplyUserMode(string.Equals(role, "GameMaster", StringComparison.OrdinalIgnoreCase) ? "GameMaster" : "Player");
 
@@ -51,8 +58,6 @@ public sealed partial class WorldSession
             SaveMenuOpen = false;
         }
 
-        await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
-        await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
         Notify();
     }
 
