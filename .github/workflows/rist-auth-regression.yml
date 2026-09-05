@@ -36,23 +36,32 @@ jobs:
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
 
-      - name: Enforce launcher and game authority boundaries
+      - name: Enforce launcher, preview, and protected-game boundaries
         shell: bash
         run: |
-          set -euo pipefail
+          set -euxo pipefail
 
-          # /Game is a runtime gate, never a second account launcher.
+          # One application mount. /Game is never a second account launcher.
           grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
+          ! grep -q 'MountApplication' apps/rist-world/App.razor
           grep -q '<WorldTable />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q '<LauncherStartupBridge />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Auth.InitializeAsync' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Navigation.NavigateTo("/Play/", forceLoad: true)' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'rist.launch.intent' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q '"preview"' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q '>Sign In<' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q '>Sign Up<' apps/rist-world/Components/AuthenticatedWorld.razor
           ! test -e apps/rist-world/wwwroot/auth-entry.js
           ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
+
+          # Preview is a path boundary, never a query-string or sessionStorage auth bypass.
+          grep -q 'StartsWith("/Preview/"' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'EnablePublicPreviewMode' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'PublicPreviewMode' apps/rist-world/WorldSession.Preview.cs
+          grep -q 'if(PublicPreviewMode)' apps/rist-world/WorldSession.Persistence.cs
+          grep -q 'Public preview · changes are not saved' apps/rist-world/WorldSession.Persistence.cs
+          ! grep -q 'PUBLIC_PREVIEW' infra/aws/rist-frontend.yml
+          ! grep -q 'isPublicPreview' infra/aws/rist-frontend.yml
+          ! grep -q "params.get('preview')" infra/aws/rist-frontend.yml
 
           # Launcher handoff is one-shot and canonicalizes role/domain in WorldSession.
           test -f apps/rist-world/Components/LauncherStartupBridge.razor
@@ -62,14 +71,8 @@ jobs:
           grep -q 'isPreview' apps/rist-world/WorldSession.Launcher.cs
           grep -q 'Roleplayer", "RIST Sandbox' apps/rist-world/WorldSession.Launcher.cs
           grep -q 'IsSandboxDomain' apps/rist-world/WorldSession.Launcher.cs
-          grep -q 'RIST Sandbox' apps/rist-world/WorldSession.Launcher.cs
 
-          # Idle authenticated sessions return to the one public entry authority.
-          grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
-          grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
-          grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
-
-          # /Play owns sign-in, signup, settings, campaign choice and Preview.
+          # /Play owns account entry and explicit user navigation after auth.
           test -f site/relic-home/Play/index.html
           test -f site/relic-home/Play/launcher.js
           grep -q 'Press any key to continue' site/relic-home/Play/index.html
@@ -83,30 +86,44 @@ jobs:
           grep -q 'Roleplayer' site/relic-home/Play/index.html
           grep -q 'Shaelvien MMO' site/relic-home/Play/index.html
           grep -q 'RIST Sandbox' site/relic-home/Play/index.html
-          grep -q 'launcher.js' site/relic-home/Play/index.html
           grep -q "const game='/Game/index.html'" site/relic-home/Play/launcher.js
-          grep -q "const previewGame='/Game/index.html?preview=Geonaph'" site/relic-home/Play/launcher.js
-          grep -q "const defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'}" site/relic-home/Play/launcher.js
+          grep -q "const previewGame='/Preview/index.html'" site/relic-home/Play/launcher.js
           grep -q "role:'Roleplayer',domain:'RIST Sandbox',inviteCode:'Geonaph'" site/relic-home/Play/launcher.js
-          grep -q "sessionStorage.setItem('rist.launch.intent',preview?'preview':intent||'load')" site/relic-home/Play/launcher.js
-          grep -q 'location.assign(preview?previewGame:game)' site/relic-home/Play/launcher.js
+          grep -q "launch('preview')" site/relic-home/Play/launcher.js
+          grep -q "launch('new')" site/relic-home/Play/launcher.js
+          grep -q "launch('load')" site/relic-home/Play/launcher.js
           grep -q '/auth/session?handoff=' site/relic-home/Play/launcher.js
           grep -q 'rist_session' site/relic-home/Play/launcher.js
 
-          # Plain /Game remains account-protected. Only the canonical Geonaph
-          # preview query can bypass the edge session check; runtime remains read-only.
+          # Successful auth returns to launcher UI; it must not silently enter Game.
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('site/relic-home/Play/launcher.js').read_text()
+          handoff = text.split('async function completeHandoff',1)[1].split('async function resume',1)[0]
+          resume = text.split('async function resume',1)[1].split('async function begin',1)[0]
+          assert 'showAuthenticatedHome()' in handoff
+          assert 'location.assign(' not in handoff
+          assert 'await launch(' not in handoff
+          assert 'location.assign(' not in resume
+          assert 'await launch(' not in resume
+          PY
+
+          # Idle authenticated sessions return to the one public account authority.
+          grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
+          grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
+          grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
+
+          # /Game remains edge-authenticated; /Preview is separately published and public.
           grep -q 'PathPattern: Game/index.html' infra/aws/rist-frontend.yml
           grep -q 'EventType: viewer-request' infra/aws/rist-frontend.yml
-          grep -q "const PUBLIC_PREVIEW = 'Geonaph'" infra/aws/rist-frontend.yml
-          grep -q 'isPublicPreview(request)' infra/aws/rist-frontend.yml
-          grep -q "params.get('preview') === PUBLIC_PREVIEW" infra/aws/rist-frontend.yml
-          grep -q "if (isPublicPreview(request)) return request" infra/aws/rist-frontend.yml
           grep -q "if (!token) return redirect('login')" infra/aws/rist-frontend.yml
           grep -q 'GameEdgeAuthVersion' infra/aws/rist-frontend.yml
           grep -q '/Play/?reason=' infra/aws/rist-frontend.yml
           grep -q 'AuthApiBaseUrl' infra/aws/rist-frontend.yml
-          grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
-          grep -q 'refusing to publish an unprotected game' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 's3://${BUCKET}/Preview/' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q "'/Preview/\*'" .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'Public nonpersistent preview verified' .github/workflows/deploy-rist-frontend-aws.yml
           grep -q 'Anonymous Game/index.html correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
 
-          echo 'RIST launcher, preview, authentication and runtime authority checks passed.'
+          echo 'RIST launcher, Preview isolation, authentication, and runtime authority checks passed.'
