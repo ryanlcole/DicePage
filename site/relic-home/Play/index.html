@@ -130,6 +130,7 @@
   const cookieName='rist_session';
   const settingsKey='rist.launcher.settings';
   const signupDraftKey='rist.signup.draft';
+  const authIntentKey='rist.auth.intent';
   const defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'};
   let api='',authenticated=false,currentView='entry';
 
@@ -174,6 +175,7 @@
   }
   async function completeHandoff(handoff){
    intro.hidden=true;launcher.hidden=false;setView('entry');status.textContent='Completing secure sign in…';
+   const authIntent=sessionStorage.getItem(authIntentKey);
    const base=await config();
    const r=await fetch(base+'/auth/session?handoff='+encodeURIComponent(handoff),{cache:'no-store'});
    if(!r.ok)throw new Error('The sign-in handoff expired. Please sign in again.');
@@ -183,12 +185,16 @@
    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
    setCookie(p.sessionToken);authenticated=true;
    history.replaceState(null,'',location.pathname);
-   const draft=sessionStorage.getItem(signupDraftKey);
+   const draft=authIntent==='signup'?sessionStorage.getItem(signupDraftKey):null;
+   sessionStorage.removeItem(authIntentKey);
    if(draft){
     let handle='';try{handle=JSON.parse(draft)?.handle||''}catch{}
     $('welcome-copy').textContent=handle?`Welcome, ${handle}. Your account is ready.`:'Your account is ready.';
     setView('welcome');
-   }else setView('menu');
+   }else{
+    if(authIntent!=='signup')sessionStorage.removeItem(signupDraftKey);
+    setView('menu');
+   }
   }
   async function resume(){
    const token=sessionStorage.getItem('rist.session');
@@ -207,7 +213,8 @@
    error.textContent='';
    try{
     const base=await config();
-    sessionStorage.setItem('rist.auth.intent',intent);
+    if(intent==='login')sessionStorage.removeItem(signupDraftKey);
+    sessionStorage.setItem(authIntentKey,intent);
     location.assign(base+'/auth/login');
    }catch(e){error.textContent=e?.message||'Unable to start sign in.'}
   }
