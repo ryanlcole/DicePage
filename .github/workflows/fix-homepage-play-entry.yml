@@ -1,0 +1,61 @@
+name: Repair Homepage Play Entry
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/fix-homepage-play-entry.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+          fetch-depth: 0
+
+      - name: Route all public game CTAs through Play
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('site/relic-home/index.html')
+          text=p.read_text(encoding='utf-8')
+          before=text.count('href="/Game/index.html"')
+          if before < 1:
+              raise SystemExit('No legacy direct Game entry links found')
+          text=text.replace('href="/Game/index.html"','href="/Play/index.html"')
+          after=text.count('href="/Game/index.html"')
+          if after:
+              raise SystemExit(f'{after} direct Game links remain')
+          p.write_text(text,encoding='utf-8')
+          print(f'Rerouted {before} homepage game entry links through /Play/index.html')
+          PY
+
+      - name: Verify routing boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -o 'href="/Play/index.html"' site/relic-home/index.html | wc -l)" -ge 4
+          if grep -q 'href="/Game/index.html"' site/relic-home/index.html; then
+            echo 'Homepage still links directly into protected Game surface.' >&2
+            exit 1
+          fi
+          test -f site/relic-home/Play/index.html
+
+      - name: Commit repair and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/fix-homepage-play-entry.yml
+          git add site/relic-home/index.html
+          git config user.name 'ReLiC Homepage Repair'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Route homepage game entry through Play launcher'
+          git push origin HEAD:live-alpha-rist-blazor-world
