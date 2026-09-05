@@ -47,14 +47,20 @@ cat >/tmp/relic-cfn-exec-policy.json <<JSON
     {
       "Sid":"ReLiCLambda",
       "Effect":"Allow",
-      "Action":["lambda:CreateFunction","lambda:DeleteFunction","lambda:GetFunction","lambda:GetFunctionConfiguration","lambda:UpdateFunctionCode","lambda:UpdateFunctionConfiguration","lambda:AddPermission","lambda:RemovePermission","lambda:ListTags","lambda:TagResource","lambda:UntagResource","lambda:PublishVersion","lambda:CreateAlias","lambda:UpdateAlias","lambda:DeleteAlias","lambda:GetAlias"],
-      "Resource":["arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:rist-*","arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:relic-*"]
+      "Action":["lambda:CreateFunction","lambda:DeleteFunction","lambda:GetFunction","lambda:GetFunctionConfiguration","lambda:GetPolicy","lambda:ListVersionsByFunction","lambda:UpdateFunctionCode","lambda:UpdateFunctionConfiguration","lambda:AddPermission","lambda:RemovePermission","lambda:ListTags","lambda:TagResource","lambda:UntagResource","lambda:PublishVersion","lambda:CreateAlias","lambda:UpdateAlias","lambda:DeleteAlias","lambda:GetAlias","lambda:EnableReplication*","lambda:DisableReplication*"],
+      "Resource":["arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:rist-*","arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:rist-*:*","arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:relic-*","arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:relic-*:*"]
     },
     {
       "Sid":"ReLiCIamManagedRoles",
       "Effect":"Allow",
       "Action":["iam:CreateRole","iam:DeleteRole","iam:GetRole","iam:PutRolePolicy","iam:DeleteRolePolicy","iam:GetRolePolicy","iam:ListRolePolicies","iam:ListAttachedRolePolicies","iam:AttachRolePolicy","iam:DetachRolePolicy","iam:TagRole","iam:UntagRole","iam:PassRole"],
       "Resource":["arn:aws:iam::${ACCOUNT_ID}:role/rist-*","arn:aws:iam::${ACCOUNT_ID}:role/relic-*","arn:aws:iam::${ACCOUNT_ID}:role/ReLiC-*"]
+    },
+    {
+      "Sid":"ReLiCServiceLinkedRoles",
+      "Effect":"Allow",
+      "Action":["iam:CreateServiceLinkedRole","iam:GetServiceLinkedRoleDeletionStatus"],
+      "Resource":"*"
     },
     {
       "Sid":"ReLiCKms",
@@ -71,7 +77,7 @@ cat >/tmp/relic-cfn-exec-policy.json <<JSON
     {
       "Sid":"ReLiCCloudFrontWaf",
       "Effect":"Allow",
-      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:ListTagsForResource","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:ListTagsForResource","wafv2:TagResource","wafv2:UntagResource"],
+      "Action":["cloudfront:CreateDistribution","cloudfront:UpdateDistribution","cloudfront:DeleteDistribution","cloudfront:GetDistribution","cloudfront:GetDistributionConfig","cloudfront:ListDistributions","cloudfront:ListTagsForResource","cloudfront:TagResource","cloudfront:UntagResource","cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl","cloudfront:DeleteOriginAccessControl","cloudfront:GetOriginAccessControl","cloudfront:ListOriginAccessControls","cloudfront:CreateFunction","cloudfront:UpdateFunction","cloudfront:DeleteFunction","cloudfront:DescribeFunction","cloudfront:GetFunction","cloudfront:ListFunctions","cloudfront:PublishFunction","cloudfront:CreateResponseHeadersPolicy","cloudfront:UpdateResponseHeadersPolicy","cloudfront:DeleteResponseHeadersPolicy","cloudfront:GetResponseHeadersPolicy","cloudfront:ListResponseHeadersPolicies","wafv2:CreateWebACL","wafv2:UpdateWebACL","wafv2:DeleteWebACL","wafv2:GetWebACL","wafv2:AssociateWebACL","wafv2:DisassociateWebACL","wafv2:ListTagsForResource","wafv2:TagResource","wafv2:UntagResource"],
       "Resource":"*"
     },
     {
