@@ -1,0 +1,173 @@
+@inject DiscordAuthClient Auth
+@inject IJSRuntime JS
+
+@if (!_ready)
+{
+ <main class="rist-auth-shell" aria-busy="true">
+  <section class="rist-auth-card">
+   <p class="rist-auth-kicker">SHAELVIEN</p>
+   <h1>RIST MMO / Sandbox</h1>
+   <p>Checking your session…</p>
+  </section>
+ </main>
+}
+else if (_authenticated)
+{
+ <WorldTable />
+}
+else
+{
+ <main class="rist-auth-shell" aria-label="Shaelvien account access">
+  <section class="rist-auth-card">
+   <p class="rist-auth-kicker">SHAELVIEN</p>
+   <h1>RIST MMO / Sandbox</h1>
+
+   @if (!_showSignup)
+   {
+    <p class="rist-auth-prompt">Sign in or create an account to continue.</p>
+    <div class="rist-auth-actions">
+     <button type="button" @onclick="SignInAsync">Sign In</button>
+     <button type="button" @onclick="ShowSignup">Sign Up</button>
+    </div>
+   }
+   else
+   {
+    <div class="rist-signup-form">
+     <label>
+      <span>Handle</span>
+      <input maxlength="32" autocomplete="nickname" @bind="_handle" />
+     </label>
+     <label>
+      <span>Plan</span>
+      <select @bind="_plan">
+       <option value="player">Roleplayer</option>
+       <option value="gm-player">GameMaster + Roleplayer</option>
+      </select>
+     </label>
+     <label class="rist-agreement">
+      <input type="checkbox" @bind="_agreementsAccepted" />
+      <span>I agree to the current account terms and community agreements.</span>
+     </label>
+     @if (!string.IsNullOrWhiteSpace(_formError))
+     {
+      <p class="rist-auth-error" role="alert">@_formError</p>
+     }
+     <div class="rist-auth-actions">
+      <button type="button" class="secondary" @onclick="CancelSignup">Back</button>
+      <button type="button" @onclick="ContinueSignupAsync">Continue…</button>
+     </div>
+    </div>
+   }
+
+   @if (!string.IsNullOrWhiteSpace(Auth.LastError))
+   {
+    <p class="rist-auth-error" role="alert">@Auth.LastError</p>
+   }
+  </section>
+ </main>
+}
+
+<style>
+ .rist-auth-shell{
+  box-sizing:border-box;
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:#05090c;
+  color:#e7edf0;
+  font-family:system-ui,-apple-system,sans-serif;
+ }
+ .rist-auth-card{
+  box-sizing:border-box;
+  width:min(92vw,520px);
+  padding:28px;
+  border:1px solid #725d30;
+  border-radius:14px;
+  background:rgba(10,17,22,.94);
+  box-shadow:0 18px 50px rgba(0,0,0,.45);
+  text-align:center;
+ }
+ .rist-auth-kicker{margin:0;color:#d7be80;font-weight:900;letter-spacing:.18em}
+ .rist-auth-card h1{margin:8px 0 22px;color:#d7be80;font-size:clamp(22px,5vw,34px)}
+ .rist-auth-prompt{margin:0 0 20px;color:#cbd5da}
+ .rist-auth-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+ .rist-auth-actions button{
+  min-width:132px;
+  min-height:44px;
+  padding:9px 16px;
+  border:1px solid #9a7b3c;
+  border-radius:8px;
+  background:#172229;
+  color:#f2dfaa;
+  font:800 15px/1.2 system-ui,-apple-system,sans-serif;
+  cursor:pointer;
+ }
+ .rist-auth-actions button.secondary{border-color:#52626b;color:#d4dde1;background:#10171c}
+ .rist-signup-form{display:grid;gap:14px;text-align:left}
+ .rist-signup-form label:not(.rist-agreement){display:grid;gap:6px;font-weight:800;color:#d7be80}
+ .rist-signup-form input[type="text"],.rist-signup-form input:not([type]),.rist-signup-form select{
+  box-sizing:border-box;width:100%;min-height:44px;padding:9px 10px;border:1px solid #52626b;border-radius:7px;background:#071015;color:#eef2f4;font:600 16px system-ui,-apple-system,sans-serif
+ }
+ .rist-agreement{display:flex;gap:10px;align-items:flex-start;color:#cbd5da;line-height:1.35}
+ .rist-agreement input{margin-top:3px;transform:scale(1.15)}
+ .rist-auth-error{margin:16px 0 0;color:#ffb7ad;font-weight:700}
+</style>
+
+@code {
+ bool _ready;
+ bool _authenticated;
+ bool _showSignup;
+ bool _agreementsAccepted;
+ string _handle = "";
+ string _plan = "player";
+ string _formError = "";
+
+ protected override async Task OnInitializedAsync()
+ {
+  var profile = await Auth.InitializeAsync();
+  _authenticated = profile is not null;
+  _ready = true;
+ }
+
+ async Task SignInAsync()
+ {
+  _formError = "";
+  await JS.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "login");
+  await JS.InvokeVoidAsync("RistEntry.begin", "login");
+ }
+
+ void ShowSignup()
+ {
+  _formError = "";
+  _showSignup = true;
+ }
+
+ void CancelSignup()
+ {
+  _formError = "";
+  _showSignup = false;
+ }
+
+ async Task ContinueSignupAsync()
+ {
+  var handle = _handle.Trim();
+  if (handle.Length is < 1 or > 32)
+  {
+   _formError = "Enter a handle from 1 to 32 characters.";
+   return;
+  }
+  if (!_agreementsAccepted)
+  {
+   _formError = "Accept the agreements before continuing.";
+   return;
+  }
+
+  _formError = "";
+  await JS.InvokeVoidAsync("localStorage.setItem", "rist.auth.intent", "signup");
+  await JS.InvokeVoidAsync("localStorage.setItem", "rist.signup.alias", handle);
+  await JS.InvokeVoidAsync("localStorage.setItem", "rist.signup.plan", _plan == "gm-player" ? "gm-player" : "player");
+  await JS.InvokeVoidAsync("localStorage.setItem", "rist.signup.termsAccepted", "true");
+  await JS.InvokeVoidAsync("RistEntry.begin", "signup");
+ }
+}
