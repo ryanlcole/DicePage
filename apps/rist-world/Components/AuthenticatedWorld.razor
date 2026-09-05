@@ -1,9 +1,10 @@
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime JS
+@inject WorldSession Session
 
 @* Single-authority boundary: /Play owns account entry, profile creation, and launch intent.
-   /Game validates either an existing account session or the explicit read-only preview intent. *@
+   /Game requires an account session. /Preview is the isolated public demonstration runtime. *@
 @if (!_ready)
 {
  <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
@@ -68,13 +69,30 @@ else
   if (!firstRender || _authStarted) return;
   _authStarted = true;
 
+  var path = new Uri(Navigation.Uri).AbsolutePath;
+  var isPreviewPath = path.Equals("/Preview", StringComparison.OrdinalIgnoreCase)
+      || path.StartsWith("/Preview/", StringComparison.OrdinalIgnoreCase);
   var launchIntent = await JS.InvokeAsync<string?>("sessionStorage.getItem", "rist.launch.intent");
-  if (string.Equals(launchIntent, "preview", StringComparison.Ordinal))
+
+  if (isPreviewPath)
   {
+   Session.EnablePublicPreviewMode();
+   if (!string.Equals(launchIntent, "preview", StringComparison.OrdinalIgnoreCase))
+   {
+    await JS.InvokeVoidAsync("sessionStorage.setItem", "rist.launch.intent", "preview");
+    await JS.InvokeVoidAsync("sessionStorage.setItem", "rist.launch.settings", "{\"role\":\"Roleplayer\",\"domain\":\"RIST Sandbox\",\"inviteCode\":\"Geonaph\"}");
+   }
    _canEnter = true;
    _ready = true;
    await InvokeAsync(StateHasChanged);
    return;
+  }
+
+  // A forgeable browser flag can never bypass the protected /Game boundary.
+  if (string.Equals(launchIntent, "preview", StringComparison.OrdinalIgnoreCase))
+  {
+   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.intent");
+   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.settings");
   }
 
   var profile = await Auth.InitializeAsync();
