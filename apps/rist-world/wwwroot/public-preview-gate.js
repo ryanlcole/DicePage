@@ -12,8 +12,7 @@
     return r.json();
    });
    if(!cfg?.apiBaseUrl)throw new Error('Auth endpoint is not configured.');
-   const next=encodeURIComponent(location.href.split('#')[0]);
-   location.href=`${cfg.apiBaseUrl.replace(/\/$/,'')}/login?next=${next}&intent=${intent}`;
+   location.href=`${cfg.apiBaseUrl.replace(/\/$/,'')}/auth/login`;
   }catch(error){
    console.error('RIST authentication could not start.',error);
    window.dispatchEvent(new CustomEvent('rist-auth-error',{detail:{message:'Authentication could not be started. Please try again.'}}));
