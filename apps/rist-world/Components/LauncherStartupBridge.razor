@@ -1,6 +1,8 @@
 @implements IDisposable
 @inject WorldSession Session
 
+@* One-shot bridge: the first completed WorldSession initialization applies any
+   explicit launcher intent. WorldSession.Launcher safely ignores direct sessions. *@
 @code {
  bool _armed = true;
  bool _subscribed;
@@ -13,7 +15,7 @@
 
  void SessionChanged()
  {
-  if (!_armed || !Session.IsLoggedIn) return;
+  if (!_armed) return;
   _armed = false;
   _ = InvokeAsync(ApplyAsync);
  }
