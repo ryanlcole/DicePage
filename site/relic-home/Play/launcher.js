@@ -5,7 +5,7 @@
  const views={entry:$('entry'),signup:$('signup'),welcome:$('welcome'),home:$('home'),settings:$('settings')};
  const error=$('error'),status=$('status');
  const game='/Game/index.html';
- const previewGame='/Game/index.html?preview=Geonaph';
+ const previewGame='/Preview/index.html';
  const cookieName='rist_session';
  const signupDraftKey='rist.signup.draft';
  const authIntentKey='rist.auth.intent';
