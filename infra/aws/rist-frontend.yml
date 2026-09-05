@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: RIST production frontend hosting on private S3 + CloudFront + AWS WAF with authenticated Game delivery and bounded public preview
+Description: RIST production frontend hosting on private S3 + CloudFront + AWS WAF with authenticated Game delivery and isolated public Preview
 
 Parameters:
   DomainName:
@@ -110,7 +110,6 @@ Resources:
           const AUTH = '${AuthApiBaseUrl}'.replace(/\/$/, '');
           const verified = new Map();
           const TTL_MS = 60000;
-          const PUBLIC_PREVIEW = 'Geonaph';
 
           function redirect(reason) {
             return {
@@ -122,15 +121,6 @@ Resources:
                 'x-rist-auth': [{ key: 'X-RIST-Auth', value: 'required' }]
               }
             };
-          }
-
-          function isPublicPreview(request) {
-            try {
-              const params = new URLSearchParams(String(request.querystring || ''));
-              return params.get('preview') === PUBLIC_PREVIEW;
-            } catch {
-              return false;
-            }
           }
 
           function sessionCookie(request) {
@@ -178,13 +168,6 @@ Resources:
 
           exports.handler = async event => {
             const request = event.Records[0].cf.request;
-
-            // Preview is intentionally public, but only the canonical Geonaph
-            // launch URL bypasses account verification. The Blazor runtime still
-            // requires the matching one-shot preview intent and grants no logged-in
-            // or private-storage authority.
-            if (isPublicPreview(request)) return request;
-
             const token = sessionCookie(request);
             if (!token) return redirect('login');
 
@@ -206,7 +189,7 @@ Resources:
     Type: AWS::Lambda::Version
     Properties:
       FunctionName: !Ref GameEdgeAuthFunction
-      Description: !Sub RIST Game authentication and public-preview edge gate for ${AWS::StackName}
+      Description: !Sub RIST Game authentication edge gate for ${AWS::StackName}
 
   FrontendWebAcl:
     Type: AWS::WAFv2::WebACL
