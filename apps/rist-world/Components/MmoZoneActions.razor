@@ -8,7 +8,10 @@
  <button type="button" class="mmo-shaelvien-zone-action" @onclick="Session.ClaimShaelvienZone" tabindex="-1">Shaelvien zone</button>
  <button type="button" class="mmo-pin-delete-action" @onclick="Session.RemoveSelectedPin" tabindex="-1">Delete selected pin</button>
  <button type="button" class="mmo-new-campaign-action" @onclick="Session.BeginNewCampaign" tabindex="-1">New campaign</button>
- <button type="button" class="mmo-load-campaign-action" @onclick="Session.LoadAsync" tabindex="-1">Load campaign</button>
+ <button type="button" class="mmo-load-campaign-action" @onclick="Session.LoadAsync" tabindex="-1">Load local campaign</button>
+ <button type="button" class="mmo-save-local-campaign-action" @onclick="Session.SaveAsync" tabindex="-1">Save local campaign</button>
+ <button type="button" class="mmo-load-hosted-campaign-action" @onclick="Session.LoadPrivateCheckpointAsync" tabindex="-1">Load hosted campaign</button>
+ <button type="button" class="mmo-save-hosted-campaign-action" @onclick="Session.SaveRistAsync" tabindex="-1">Save hosted campaign</button>
 </div>
 
 @code{
