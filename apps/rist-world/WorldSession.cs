@@ -156,7 +156,11 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
         RegisterNaejaMapTiles();
         if(!await TryLoadSavedMapAsync())BuildNaejaMapTilemap();
         await LoadCardsAsync();
-        var profile=await auth.InitializeAsync();
+        // Authentication is resolved once by AuthenticatedWorld before the world mounts.
+        // Preview intentionally arrives here with no authenticated profile. Re-reading
+        // the account service here created a second startup/network authority and could
+        // race launcher state, so WorldSession only consumes the resolved auth state.
+        var profile=auth.Profile;
         IsLoggedIn=profile is not null;
         DiscordDisplayName=profile?.DisplayName??"";
         if(!IsLoggedIn)Role="PC";
