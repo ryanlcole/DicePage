@@ -1,0 +1,110 @@
+name: Repository Health
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Reject generated and stale tracked artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bad=$(git ls-files | grep -E '(^|/)(\.venv($|[./-])|__pycache__($|/)|[^/]*\.old($|\.)|[^/]*_old\.py$|bin/|obj/|build/|dist/|.*\.(obj|pyd|exp|lib|log)$)' || true)
+          if [ -n "$bad" ]; then
+            echo 'Generated/stale files are tracked but forbidden:' >&2
+            printf '%s\n' "$bad" >&2
+            exit 1
+          fi
+
+      - name: Reject root-level vendored Python packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=(
+            flask flask-*.dist-info
+            jinja2 jinja2-*.dist-info
+            itsdangerous itsdangerous-*.dist-info
+            markupsafe markupsafe-*.dist-info
+            werkzeug werkzeug-*.dist-info
+            blinker blinker-*.dist-info
+            click click-*.dist-info
+            colorama colorama-*.dist-info
+          )
+          for pattern in "${forbidden[@]}"; do
+            if git ls-files "$pattern" | grep -q .; then
+              echo "Vendored dependency is tracked at repository root: $pattern" >&2
+              git ls-files "$pattern" >&2
+              exit 1
+            fi
+          done
+
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
+
+      - name: Validate authentication JavaScript
+        run: node --check apps/rist-world/wwwroot/auth-entry.js
+
+      - name: Validate public Play launcher script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('site/relic-home/Play/index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script>(.*?)</script>',html,re.S|re.I)
+          if not scripts:
+              raise SystemExit('No inline Play launcher script found')
+          Path('/tmp/rist-play-inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/rist-play-inline.js
+
+      - name: Verify no anonymous preview surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Rni --exclude-dir=obj --exclude-dir=bin -E 'PUBLIC PREVIEW|data-entry="preview"|rist-public-preview|public-preview-gate' apps/rist-world site/relic-home/Play; then
+            echo 'Anonymous preview surface is forbidden.' >&2
+            exit 1
+          fi
+
+      - name: Compile first-party root Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find . -maxdepth 1 -type f -name '*.py' -print | sort)
+          if [ "${#files[@]}" -gt 0 ]; then
+            python -m py_compile "${files[@]}"
+          fi
+
+      - name: Validate root JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          for path in sorted(Path('.').glob('*.json')):
+              with path.open(encoding='utf-8') as f:
+                  json.load(f)
+              print('valid json:', path)
+          PY
+
+      - name: Repository health passed
+        run: echo 'Repository authority is clean and buildable.'
