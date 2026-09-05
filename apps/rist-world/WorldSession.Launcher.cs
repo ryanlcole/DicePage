@@ -8,51 +8,43 @@ public sealed partial class WorldSession
     private const string LauncherSettingsKey = "rist.launch.settings";
 
     /// <summary>
-    /// Applies the authenticated launcher's one-shot startup choice after the
-    /// normal session/world initialization has completed. A plain Play handoff
-    /// always enters Shaelvien MMO as a Roleplayer. World/campaign creation is
-    /// intentionally handled inside the game rather than by authentication.
+    /// Applies the launcher's one-shot startup choice after the normal world
+    /// initialization has completed. /Play owns account/profile flow and launch
+    /// intent; /Game owns world state. Direct game sessions remain untouched.
     /// </summary>
     public async Task ApplyLauncherStartupAsync()
     {
         var intent = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherIntentKey);
         var settingsJson = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherSettingsKey);
-        var isPlay = string.Equals(intent, "play", StringComparison.OrdinalIgnoreCase);
         var isNew = string.Equals(intent, "new", StringComparison.OrdinalIgnoreCase);
         var isLoad = string.Equals(intent, "load", StringComparison.OrdinalIgnoreCase);
+        var isPreview = string.Equals(intent, "preview", StringComparison.OrdinalIgnoreCase);
 
-        // This method also runs during ordinary restored/direct game sessions.
-        // Launcher defaults must never overwrite an already-restored world unless
-        // the launcher explicitly handed off a supported one-shot intent.
-        if (!isPlay && !isNew && !isLoad)
+        if (!isNew && !isLoad && !isPreview)
         {
             if (!string.IsNullOrWhiteSpace(settingsJson))
                 await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
             return;
         }
 
-        var (role, domain) = isPlay
-            ? ("Roleplayer", "Shaelvien MMO")
+        var (role, domain) = isPreview
+            ? ("Roleplayer", "RIST Sandbox")
             : ParseLauncherSettings(settingsJson);
 
-        // Consume browser handoff keys before mutating world state so refreshes or
-        // later initialization cannot replay a partially applied startup command.
+        // Consume handoff keys first so refreshes cannot replay a partially
+        // applied command.
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
 
         if (isNew)
-        {
-            // Legacy compatibility only. New world/campaign creation now belongs
-            // inside the authenticated game rather than the login launcher.
             ResetToCanonicalOrigin();
-        }
 
-        RestoreOperatingMode(string.Equals(domain, "RIST", StringComparison.OrdinalIgnoreCase) ? "sandbox" : "mmo");
+        RestoreOperatingMode(IsSandboxDomain(domain) ? "sandbox" : "mmo");
         ApplyUserMode(string.Equals(role, "GameMaster", StringComparison.OrdinalIgnoreCase) ? "GameMaster" : "Player");
 
-        // Legacy compatibility only. Existing old launcher links can still expose
-        // the current load controls without making Load Campaign part of sign-in.
-        if (isLoad)
+        // Preview is deliberately read-only because unauthenticated sessions
+        // never gain IsLoggedIn/private-storage authority.
+        if (isLoad && IsLoggedIn)
         {
             LoadMenuOpen = true;
             SaveMenuOpen = false;
@@ -60,6 +52,11 @@ public sealed partial class WorldSession
 
         Notify();
     }
+
+    private static bool IsSandboxDomain(string? domain) =>
+        string.Equals(domain, "RIST", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(domain, "RIST Sandbox", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(domain, "Sandbox", StringComparison.OrdinalIgnoreCase);
 
     private static (string Role, string Domain) ParseLauncherSettings(string? json)
     {
@@ -74,7 +71,7 @@ public sealed partial class WorldSession
             var domain = root.TryGetProperty("domain", out var domainNode) ? domainNode.GetString() : null;
             return (
                 string.Equals(role, "GameMaster", StringComparison.OrdinalIgnoreCase) ? "GameMaster" : "Roleplayer",
-                string.Equals(domain, "RIST", StringComparison.OrdinalIgnoreCase) ? "RIST" : "Shaelvien MMO"
+                IsSandboxDomain(domain) ? "RIST Sandbox" : "Shaelvien MMO"
             );
         }
         catch (JsonException)
