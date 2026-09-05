@@ -39,7 +39,7 @@ jobs:
       - name: Enforce single-authority authenticated world entry
         shell: bash
         run: |
-          set -euo pipefail
+          set -euxo pipefail
 
           # /Game is a protected runtime, not a second account launcher.
           grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
