@@ -29,19 +29,12 @@
   .actions button{min-height:52px;border:1px solid #9a7b3c;border-radius:8px;background:#152229;color:#f1dfaa;font-weight:900;letter-spacing:.02em;cursor:pointer;touch-action:manipulation}
   .actions button.secondary{border-color:#516069;background:#0d151a;color:#d9e1e4}
   .actions button:disabled{opacity:.45;cursor:default}
-  .actions button:focus-visible,input:focus-visible,select:focus-visible,.continue-prompt:focus-visible,.choice:focus-visible{outline:3px solid #f0d07d;outline-offset:3px}
-  .signup,.settings{display:grid;gap:14px;text-align:left}
-  .signup label:not(.check),.settings fieldset{display:grid;gap:8px;color:#dac681;font-weight:800}
+  .actions button:focus-visible,input:focus-visible,select:focus-visible,.continue-prompt:focus-visible{outline:3px solid #f0d07d;outline-offset:3px}
+  .signup{display:grid;gap:14px;text-align:left}
+  .signup label:not(.check){display:grid;gap:8px;color:#dac681;font-weight:800}
   .signup input[type=text],.signup select{width:100%;min-height:46px;padding:10px 11px;border:1px solid #54646c;border-radius:7px;background:#071015;color:#f1f5f6}
   .check{display:flex;gap:10px;align-items:flex-start;color:#d3dadd;line-height:1.4}.check input{margin-top:4px;transform:scale(1.15)}
-  fieldset{margin:0;padding:14px;border:1px solid #44545c;border-radius:8px}
-  legend{padding:0 6px;color:#e3c97e}
-  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-  .choice{position:relative;display:grid;place-items:center;min-height:50px;padding:9px;border:1px solid #53636a;border-radius:8px;background:#0d151a;color:#dbe2e5;text-align:center;cursor:pointer}
-  .choice input{position:absolute;opacity:0;pointer-events:none}
-  .choice:has(input:checked){border-color:#c39a47;background:#1b292f;color:#f1dfaa;box-shadow:inset 0 0 0 1px rgba(227,201,126,.2)}
-  .welcome-title,.menu-title{margin:0 0 8px;color:#e3c97e;font-size:clamp(22px,5vw,32px)}
-  .menu-meta{margin:0;color:#9fb0b8;font-size:13px}
+  .welcome-title{margin:0 0 8px;color:#e3c97e;font-size:clamp(22px,5vw,32px)}
   .error{min-height:1.4em;margin:14px 0 0;color:#ffb6aa;font-weight:800}
   .status{margin:10px 0 0;color:#9fb0b8;font-size:13px}
   .desktop-back{display:none;position:absolute;z-index:2;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));min-width:46px;min-height:46px;border:1px solid rgba(227,201,126,.45);border-radius:50%;background:rgba(3,8,11,.7);color:#f1dfaa;font-size:24px;cursor:pointer}
@@ -64,16 +57,17 @@
    <p class="subtitle">RIST MMO / SANDBOX</p>
 
    <div id="entry" hidden>
-    <p class="prompt">Sign in or create an account to continue.</p>
+    <p class="prompt">Sign in or create an account to enter Shaelvien.</p>
     <div class="actions">
      <button id="signin" type="button">Sign In</button>
      <button id="signup-open" type="button" class="secondary">Sign Up</button>
+     <button id="preview" type="button" class="secondary">Preview</button>
     </div>
    </div>
 
    <form id="signup" class="signup" hidden>
     <label>Handle<input id="handle" type="text" maxlength="32" autocomplete="nickname" required></label>
-    <label>Plan<select id="plan" required><option value="" selected disabled>Choose Plan…</option><option value="player">Roleplayer</option><option value="gm-player">GameMaster + Roleplayer</option></select></label>
+    <label>Plan<select id="plan" required><option value="" selected disabled>Choose Plan…</option><option value="player">Roleplayer — Free</option><option value="gm-player">GameMaster + Roleplayer — Free</option></select></label>
     <label class="check"><input id="agreements" type="checkbox"><span>I agree to the current account terms and community agreements.</span></label>
     <div class="actions">
      <button id="signup-back" type="button" class="secondary">Back</button>
@@ -84,36 +78,8 @@
    <div id="welcome" hidden>
     <h2 class="welcome-title">Welcome to Shaelvien</h2>
     <p id="welcome-copy" class="prompt">Your account is ready.</p>
-    <div class="actions"><button id="welcome-continue" type="button">Continue</button></div>
+    <div class="actions"><button id="welcome-continue" type="button">Enter Shaelvien</button></div>
    </div>
-
-   <div id="menu" hidden>
-    <h2 class="menu-title">Start</h2>
-    <p id="menu-meta" class="menu-meta"></p>
-    <div class="actions">
-     <button id="new-campaign" type="button">New Campaign</button>
-     <button id="load-campaign" type="button">Load Campaign</button>
-     <button id="settings-open" type="button" class="secondary">Settings</button>
-    </div>
-   </div>
-
-   <form id="settings" class="settings" hidden>
-    <fieldset>
-     <legend>Role</legend>
-     <div class="choice-grid">
-      <label class="choice"><input type="radio" name="role" value="GameMaster">GameMaster</label>
-      <label class="choice"><input type="radio" name="role" value="Roleplayer">Roleplayer</label>
-     </div>
-    </fieldset>
-    <fieldset>
-     <legend>Domain</legend>
-     <div class="choice-grid">
-      <label class="choice"><input type="radio" name="domain" value="Shaelvien MMO">Shaelvien MMO</label>
-      <label class="choice"><input type="radio" name="domain" value="RIST">RIST</label>
-     </div>
-    </fieldset>
-    <div class="actions"><button id="settings-back" type="button">Done</button></div>
-   </form>
 
    <p id="error" class="error" role="alert" aria-live="polite"></p>
    <p id="status" class="status" aria-live="polite"></p>
@@ -123,43 +89,38 @@
  (()=>{
   'use strict';
   const $=id=>document.getElementById(id);
-  const intro=$('intro'),launcher=$('launcher'),entry=$('entry'),signup=$('signup'),welcome=$('welcome'),menu=$('menu'),settings=$('settings');
+  const intro=$('intro'),launcher=$('launcher'),entry=$('entry'),signup=$('signup'),welcome=$('welcome');
   const error=$('error'),status=$('status'),desktopBack=$('desktop-back');
-  const views={entry,signup,welcome,menu,settings};
+  const views={entry,signup,welcome};
   const game='/Game/index.html';
+  const previewTarget='/';
   const cookieName='rist_session';
-  const settingsKey='rist.launcher.settings';
   const signupDraftKey='rist.signup.draft';
   const authIntentKey='rist.auth.intent';
   const profileKey='account/profile.json';
-  const defaultSettings={role:'Roleplayer',domain:'Shaelvien MMO'};
-  let api='',authenticated=false,profileReady=false,currentView='entry';
+  const playSettings={role:'Roleplayer',domain:'Shaelvien MMO'};
+  let api='',authenticated=false,profileReady=false,currentView='entry',launching=false;
 
   const setCookie=token=>{document.cookie=`${cookieName}=${encodeURIComponent(token)}; Path=/Game/; Max-Age=28800; Secure; SameSite=Lax`};
   const clearCookie=()=>{document.cookie=`${cookieName}=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax`};
-  const readSettings=()=>{
-   try{
-    const value=JSON.parse(localStorage.getItem(settingsKey)||'null');
-    return {
-     role:value?.role==='GameMaster'?'GameMaster':'Roleplayer',
-     domain:value?.domain==='RIST'?'RIST':'Shaelvien MMO'
-    };
-   }catch{return {...defaultSettings}}
-  };
-  const writeSettings=value=>localStorage.setItem(settingsKey,JSON.stringify(value));
-  const updateMenuMeta=()=>{const s=readSettings();$('menu-meta').textContent=`${s.domain} · ${s.role}`};
   const setView=name=>{
    currentView=name;
    Object.entries(views).forEach(([key,node])=>node.hidden=key!==name);
-   desktopBack.classList.toggle('visible',name==='signup'||name==='settings');
+   desktopBack.classList.toggle('visible',name==='signup');
    error.textContent='';status.textContent='';
-   if(name==='menu')updateMenuMeta();
   };
   const showLauncher=name=>{intro.hidden=true;launcher.hidden=false;setView(name)};
-  const advanceIntro=()=>{
+
+  async function advanceIntro(){
    if(intro.hidden)return;
-   showLauncher(authenticated?(profileReady?'menu':'signup'):'entry');
-  };
+   if(authenticated&&profileReady){
+    showLauncher('entry');
+    status.textContent='Entering Shaelvien…';
+    await launch();
+    return;
+   }
+   showLauncher(authenticated?'signup':'entry');
+  }
 
   async function config(){
    if(api)return api;
@@ -212,6 +173,30 @@
    profileReady=true;
    return created;
   }
+  async function launch(){
+   if(launching)return;
+   if(!authenticated){setView('entry');return}
+   const token=sessionStorage.getItem('rist.session');
+   if(!token){authenticated=false;profileReady=false;setView('entry');return}
+   launching=true;
+   try{
+    status.textContent='Entering Shaelvien…';
+    profileReady=!!(await loadProfile(token));
+    if(!profileReady){
+     launching=false;
+     setView('signup');
+     error.textContent='Complete your RIST profile before entering Shaelvien.';
+     return;
+    }
+    sessionStorage.setItem('rist.launch.intent','play');
+    sessionStorage.setItem('rist.launch.settings',JSON.stringify(playSettings));
+    sessionStorage.setItem('rist.lastActivity',String(Date.now()));
+    location.assign(game);
+   }catch(e){
+    launching=false;
+    error.textContent=e?.message||'Shaelvien could not be started.';
+   }
+  }
   async function completeHandoff(handoff){
    intro.hidden=true;launcher.hidden=false;setView('entry');status.textContent='Completing secure sign in…';
    const authIntent=sessionStorage.getItem(authIntentKey);
@@ -226,6 +211,7 @@
    const isSignup=authIntent==='signup';
    const rawDraft=isSignup?sessionStorage.getItem(signupDraftKey):null;
    sessionStorage.removeItem(authIntentKey);
+   localStorage.removeItem(authIntentKey);
    if(isSignup){
     let draft=null;
     if(rawDraft){try{draft=JSON.parse(rawDraft)}catch{}}
@@ -233,12 +219,13 @@
     const handle=draft?.handle||'';
     $('welcome-copy').textContent=handle?`Welcome, ${handle}. Your account is ready.`:'Your account is ready.';
     setView('welcome');
-   }else{
-    sessionStorage.removeItem(signupDraftKey);
-    profileReady=!!(await loadProfile(p.sessionToken));
-    if(profileReady)setView('menu');
-    else{setView('signup');error.textContent='Complete your RIST profile before starting or loading a campaign.'}
+    return;
    }
+   sessionStorage.removeItem(signupDraftKey);
+   profileReady=!!(await loadProfile(p.sessionToken));
+   if(profileReady){await launch();return}
+   setView('signup');
+   error.textContent='Complete your RIST profile before entering Shaelvien.';
   }
   async function resume(){
    const token=sessionStorage.getItem('rist.session');
@@ -247,7 +234,10 @@
     if(await verify(token)){
      setCookie(token);authenticated=true;
      profileReady=!!(await loadProfile(token));
-     if(intro.hidden&&currentView==='entry')setView(profileReady?'menu':'signup');
+     if(intro.hidden&&currentView==='entry'){
+      if(profileReady)await launch();
+      else setView('signup');
+     }
      return true;
     }
    }catch{}
@@ -270,36 +260,14 @@
     location.assign(base+'/auth/login');
    }catch(e){error.textContent=e?.message||'Unable to start sign in.'}
   }
-  function openSettings(){
-   const saved=readSettings();
-   settings.querySelector(`input[name="role"][value="${saved.role}"]`).checked=true;
-   settings.querySelector(`input[name="domain"][value="${saved.domain}"]`).checked=true;
-   setView('settings');
-  }
-  function saveSettings(){
-   const role=settings.querySelector('input[name="role"]:checked')?.value||defaultSettings.role;
-   const domain=settings.querySelector('input[name="domain"]:checked')?.value||defaultSettings.domain;
-   writeSettings({role,domain});setView('menu');
-  }
-  async function launch(intent){
-   if(!authenticated){setView('entry');return}
-   const token=sessionStorage.getItem('rist.session');
-   if(!token){authenticated=false;profileReady=false;setView('entry');return}
-   try{profileReady=!!(await loadProfile(token))}catch(e){error.textContent=e?.message||'Your RIST profile could not be checked.';return}
-   if(!profileReady){setView('signup');error.textContent='Complete your RIST profile before starting or loading a campaign.';return}
-   const selected=readSettings();
-   sessionStorage.setItem('rist.launch.intent',intent);
-   sessionStorage.setItem('rist.launch.settings',JSON.stringify(selected));
-   sessionStorage.setItem('rist.lastActivity',String(Date.now()));
-   location.assign(game);
-  }
 
-  $('continue').addEventListener('click',advanceIntro);
-  document.addEventListener('keydown',e=>{if(!intro.hidden){e.preventDefault();advanceIntro()}});
+  $('continue').addEventListener('click',()=>{void advanceIntro()});
+  document.addEventListener('keydown',e=>{if(!intro.hidden){e.preventDefault();void advanceIntro()}});
   $('signin').addEventListener('click',()=>begin('login'));
   $('signup-open').addEventListener('click',()=>{setView('signup');$('handle').focus()});
-  $('signup-back').addEventListener('click',()=>setView(authenticated&&profileReady?'menu':'entry'));
-  desktopBack.addEventListener('click',()=>currentView==='settings'?setView('menu'):setView(authenticated&&profileReady?'menu':'entry'));
+  $('preview').addEventListener('click',()=>location.assign(previewTarget));
+  $('signup-back').addEventListener('click',()=>setView('entry'));
+  desktopBack.addEventListener('click',()=>setView('entry'));
   signup.addEventListener('submit',async e=>{
    e.preventDefault();
    const handle=$('handle').value.trim();
@@ -329,15 +297,9 @@
    }
    begin('signup');
   });
-  $('welcome-continue').addEventListener('click',()=>{sessionStorage.removeItem(signupDraftKey);setView('menu')});
-  $('new-campaign').addEventListener('click',()=>launch('new'));
-  $('load-campaign').addEventListener('click',()=>launch('load'));
-  $('settings-open').addEventListener('click',openSettings);
-  $('settings-back').addEventListener('click',saveSettings);
-  settings.addEventListener('change',()=>{
-   const role=settings.querySelector('input[name="role"]:checked')?.value||defaultSettings.role;
-   const domain=settings.querySelector('input[name="domain"]:checked')?.value||defaultSettings.domain;
-   writeSettings({role,domain});
+  $('welcome-continue').addEventListener('click',()=>{
+   sessionStorage.removeItem(signupDraftKey);
+   void launch();
   });
 
   (async()=>{
