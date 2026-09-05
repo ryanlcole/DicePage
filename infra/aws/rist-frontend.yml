@@ -49,11 +49,28 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  FrontendUriRewrite:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub rist-uri-rewrite-${AWS::StackName}
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Resolve directory-style frontend URLs to their index documents
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          if (request.uri.length === 0 || request.uri.charAt(request.uri.length - 1) === '/') {
+            request.uri += 'index.html';
+          }
+          return request;
+        }
+
   SecurityHeaders:
     Type: AWS::CloudFront::ResponseHeadersPolicy
     Properties:
       ResponseHeadersPolicyConfig:
-        Name: !Sub rist-security-${AWS::StackName}
+        Name: !Sub rist-security-${AWS::StackName
         SecurityHeadersConfig:
           ContentTypeOptions:
             Override: true
@@ -161,6 +178,9 @@ Resources:
           CachedMethods: [GET, HEAD, OPTIONS]
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           ResponseHeadersPolicyId: !Ref SecurityHeaders
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt FrontendUriRewrite.FunctionARN
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
