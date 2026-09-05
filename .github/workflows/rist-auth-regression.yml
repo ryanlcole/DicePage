@@ -53,6 +53,14 @@ jobs:
           ! test -e apps/rist-world/wwwroot/auth-entry.js
           ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
 
+          # Authentication is resolved once at the runtime gate. WorldSession consumes
+          # that result and the visible runtime account command routes directly to Play.
+          grep -q 'var profile=auth.Profile' apps/rist-world/WorldSession.cs
+          ! grep -q 'auth.InitializeAsync' apps/rist-world/WorldSession.cs
+          grep -q '@inject NavigationManager Navigation' apps/rist-world/Components/WorldTable.razor
+          grep -q 'Navigation.NavigateTo("/Play/", forceLoad:true)' apps/rist-world/Components/WorldTable.razor
+          ! grep -q "document.querySelector('#header-slider .door-button')" apps/rist-world/Components/WorldTable.razor
+
           # Preview is a path boundary, never a query-string or sessionStorage auth bypass.
           grep -q 'StartsWith("/Preview/"' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'EnablePublicPreviewMode' apps/rist-world/Components/AuthenticatedWorld.razor
