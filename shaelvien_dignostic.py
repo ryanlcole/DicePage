@@ -1,25 +1,53 @@
 # shaelvien_daemon.py
 from __future__ import annotations
-import json, os, sys, time, traceback, socket, mimetypes
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from urllib.parse import urlparse
-import psutil, logging
-from logging.handlers import RotatingFileHandler
-import glyph_core, world_core
 
-HOST,PORT="127.0.0.1",8787
-def resource_path(p): base=getattr(sys,"_MEIPASS",None); 
-if base and os.path.exists(base): return os.path.join(base,p)
-return os.path.join(os.path.dirname(os.path.abspath(__file__)),p)
-BASE=os.path.dirname(os.path.abspath(__file__))
-LOGS=os.path.normpath(resource_path("logs")); os.makedirs(LOGS,exist_ok=True)
-LOG=os.path.join(LOGS,"daemon.log")
-logger=logging.getLogger("shaelvien_daemon"); logger.setLevel(logging.WARNING)
-h=RotatingFileHandler(LOG,maxBytes=1_000_000,backupCount=3,encoding="utf-8")
-h.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")); logger.addHandler(h)
-def log_success(m): logger.warning("SUCCESS: %s",m)
-def log_warn(m): logger.warning(m)
-def log_error(m): logger.error(m)
+import json
+import logging
+import os
+import sys
+import time
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+from logging.handlers import RotatingFileHandler
+from urllib.parse import urlparse
+
+import psutil
+
+import glyph_core
+import world_core
+
+HOST, PORT = "127.0.0.1", 8787
+
+
+def resource_path(path: str) -> str:
+    base = getattr(sys, "_MEIPASS", None)
+    if base and os.path.exists(base):
+        return os.path.join(base, path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+LOGS = os.path.normpath(resource_path("logs"))
+os.makedirs(LOGS, exist_ok=True)
+LOG = os.path.join(LOGS, "daemon.log")
+
+logger = logging.getLogger("shaelvien_daemon")
+logger.setLevel(logging.WARNING)
+handler = RotatingFileHandler(LOG, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+logger.addHandler(handler)
+
+
+def log_success(message: str) -> None:
+    logger.warning("SUCCESS: %s", message)
+
+
+def log_warn(message: str) -> None:
+    logger.warning(message)
+
+
+def log_error(message: str) -> None:
+    logger.error(message)
+
 
 # ---------- INLINE HUD (patched with /control fetch) ----------
 _HUD_INLINE_HTML = r"""<!doctype html><html><head><meta charset='utf-8'>
@@ -65,48 +93,97 @@ stat.textContent=new Date().toLocaleTimeString();requestAnimationFrame(draw);}
 setInterval(tick,1000);requestAnimationFrame(draw);})();
 </script></body></html>"""
 
-def get_state(): 
+
+def get_state() -> dict:
     try:
-        cpu=psutil.cpu_percent(interval=None); mem=psutil.virtual_memory()
-        return {"cpu":cpu,"mem":{"percent":mem.percent},"ts":int(time.time()*1000)}
-    except: return {"cpu":0,"mem":{"percent":0},"ts":int(time.time()*1000)}
+        cpu = psutil.cpu_percent(interval=None)
+        mem = psutil.virtual_memory()
+        return {"cpu": cpu, "mem": {"percent": mem.percent}, "ts": int(time.time() * 1000)}
+    except Exception as exc:
+        log_error(f"state read failed: {exc}")
+        return {"cpu": 0, "mem": {"percent": 0}, "ts": int(time.time() * 1000)}
+
 
 class H(SimpleHTTPRequestHandler):
-    def translate_path(self,p): 
-        p=p.split("?",1)[0]; 
-        if p.startswith("/assets/"): return os.path.join(BASE,p[8:])
-        return os.path.join(BASE,p.lstrip("/"))
-    def log_message(self,*a): pass
-    def do_GET(self):
-        try:
-            p=urlparse(self.path).path
-            if p in ("/","/index.html"): self._html("<meta http-equiv='refresh' content='0;url=/hud'>"); return
-            if p=="/hud": glyph_core.write_hud_heartbeat(); self._html(_HUD_INLINE_HTML); return
-            if p=="/state": self._json(get_state()); return
-            if p=="/map": self._json(glyph_core.build_graph({"daemon_alive":1})); return
-            if p=="/world": self._json(world_core.build_world({"daemon_alive":1})); return
-            if p=="/control": self._json({"settings":glyph_core.load_settings()}); return
-            self._json({"err":"404"} ,404)
-        except Exception as e: log_error(str(e)); self._json({"err":"internal"},500)
-    def do_POST(self):
-        try:
-            p=urlparse(self.path).path; ln=int(self.headers.get("Content-Length","0") or 0)
-            raw=self.rfile.read(ln) if ln else b"{}"; data=json.loads(raw.decode("utf-8"))
-            if p=="/control": glyph_core.save_settings(data); self._json({"ok":True,"settings":glyph_core.load_settings()}); return
-            self._json({"err":"404"},404)
-        except Exception as e: log_error(str(e)); self._json({"err":"internal"},500)
-    def _json(self,o,c=200): b=json.dumps(o).encode(); self.send_response(c)
-        ;self.send_header("Content-Type","application/json"); self.send_header("Content-Length",str(len(b)))
-        ;self.end_headers(); self.wfile.write(b)
-    def _html(self,h): b=h.encode(); self.send_response(200)
-        ;self.send_header("Content-Type","text/html"); self.send_header("Content-Length",str(len(b)))
-        ;self.end_headers(); self.wfile.write(b)
+    def translate_path(self, path: str) -> str:
+        clean = path.split("?", 1)[0]
+        if clean.startswith("/assets/"):
+            return os.path.join(BASE, clean[8:])
+        return os.path.join(BASE, clean.lstrip("/"))
 
-def run():
-    s=HTTPServer((HOST,PORT),H); log_success(f"Daemon @ http://{HOST}:{PORT}")
-    try: s.serve_forever(0.2)
-    except KeyboardInterrupt: pass
-    finally: s.server_close()
+    def log_message(self, *_args) -> None:
+        pass
 
-if __name__=="__main__":
-    print("Starting Shaelvien Daemon..."); run()
+    def do_GET(self) -> None:
+        try:
+            path = urlparse(self.path).path
+            if path in ("/", "/index.html"):
+                self._html("<meta http-equiv='refresh' content='0;url=/hud'>")
+                return
+            if path == "/hud":
+                glyph_core.write_hud_heartbeat()
+                self._html(_HUD_INLINE_HTML)
+                return
+            if path == "/state":
+                self._json(get_state())
+                return
+            if path == "/map":
+                self._json(glyph_core.build_graph({"daemon_alive": 1}))
+                return
+            if path == "/world":
+                self._json(world_core.build_world({"daemon_alive": 1}))
+                return
+            if path == "/control":
+                self._json({"settings": glyph_core.load_settings()})
+                return
+            self._json({"err": "404"}, 404)
+        except Exception as exc:
+            log_error(str(exc))
+            self._json({"err": "internal"}, 500)
+
+    def do_POST(self) -> None:
+        try:
+            path = urlparse(self.path).path
+            length = int(self.headers.get("Content-Length", "0") or 0)
+            raw = self.rfile.read(length) if length else b"{}"
+            data = json.loads(raw.decode("utf-8"))
+            if path == "/control":
+                glyph_core.save_settings(data)
+                self._json({"ok": True, "settings": glyph_core.load_settings()})
+                return
+            self._json({"err": "404"}, 404)
+        except Exception as exc:
+            log_error(str(exc))
+            self._json({"err": "internal"}, 500)
+
+    def _json(self, payload: object, code: int = 200) -> None:
+        body = json.dumps(payload).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _html(self, html: str) -> None:
+        body = html.encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+def run() -> None:
+    server = HTTPServer((HOST, PORT), H)
+    log_success(f"Daemon @ http://{HOST}:{PORT}")
+    try:
+        server.serve_forever(0.2)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    print("Starting Shaelvien Daemon...")
+    run()
