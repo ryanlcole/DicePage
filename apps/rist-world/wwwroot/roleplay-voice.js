@@ -41,7 +41,7 @@
  const readJson=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key)||'')||fallback}catch{return fallback}};
  const writeJson=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}};
  const emit=(state,detail={})=>document.dispatchEvent(new CustomEvent('rist:roleplay-voice-status',{detail:{state,...detail}}));
- function catalog(){return[{id:'',engine:'browser',name:'System default',category:'Robotic'},...KOKORO_PRESETS.map(v=>({...v}))]}
+ function catalog(){return[{id:'',name:'System default',category:'Robotic'},...KOKORO_PRESETS.map(v=>({id:v.id,name:v.name,category:v.category}))]}
  function refreshVoices(){browserVoices=synth?.getVoices?.()||[];browserVoicesLoaded=true;return browserVoices}
  function ensureBrowserVoices(){return browserVoicesLoaded?browserVoices:refreshVoices()}
  function browserId(v){return `browser:${v.voiceURI||v.name}`}
@@ -64,6 +64,12 @@
  function setDefault(voiceId){const id=String(voiceId||'');if(id&&!getEntry(id,false))return false;try{localStorage.setItem(DEFAULT_KEY,id)}catch{}return true}
  function setEnabled(value){try{localStorage.setItem(ENABLED_KEY,value?'true':'false')}catch{}if(!value)stopAudio()}
  function describe(id){const v=getEntry(id??defaultId(),false);return v?{id:v.id,name:v.name,lang:v.lang||'',voiceURI:v.voiceURI||v.id,engine:v.engine,category:v.category,providerVoiceId:v.providerVoiceId||''}:null}
+ document.addEventListener('change',event=>{
+  const select=event.target.closest?.('.rist-game-start select[name="defaultVoice"]');
+  if(!select)return;
+  event.stopPropagation();
+  setDefault(select.value);
+ },true);
  window.RistRoleplayVoice={
   categories:[...CATEGORY_ORDER],speak,preview,cancel:stopAudio,refresh:refreshVoices,
   getCatalog:catalog,getVoices:catalog,getDefault:()=>describe(defaultId()),getDefaultId:defaultId,
