@@ -335,23 +335,47 @@ jobs:
           print(match.group(1))
           PY
           )
-          STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/${RUNTIME_SRC}")
-          test "$STATUS" = "200"
-          test "$(stat -c%s /tmp/anonymous-runtime.js)" -gt 1000
-          if grep -Eiq '<!doctype html|<html' /tmp/anonymous-runtime.js; then
-            echo "Published Blazor runtime request returned HTML instead of JavaScript: ${RUNTIME_SRC}" >&2
-            exit 1
-          fi
-          grep -Eiq '^content-type: (application|text)/(javascript|x-javascript)' /tmp/anonymous-runtime.headers || {
-            echo "Published Blazor runtime has an unexpected Content-Type: ${RUNTIME_SRC}" >&2
+          # CloudFront can briefly serve the SPA fallback after an invalidation even
+          # though the new object is already present in S3. Retry the payload check,
+          # not merely the HTTP request: that fallback is also a successful HTTP 200.
+          RUNTIME_READY=false
+          for attempt in $(seq 1 18); do
+            STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/${RUNTIME_SRC}")
+            if [ "$STATUS" = "200" ] \
+              && [ "$(stat -c%s /tmp/anonymous-runtime.js)" -gt 1000 ] \
+              && ! grep -Eiq '<!doctype html|<html' /tmp/anonymous-runtime.js \
+              && grep -Eiq '^content-type: (application|text)/(javascript|x-javascript)' /tmp/anonymous-runtime.headers; then
+              RUNTIME_READY=true
+              break
+            fi
+            echo "Waiting for CloudFront runtime convergence (${attempt}/18): ${RUNTIME_SRC}"
+            sleep 10
+          done
+          if [ "$RUNTIME_READY" != "true" ]; then
+            echo "Published Blazor runtime did not converge to JavaScript: ${RUNTIME_SRC}" >&2
             cat /tmp/anonymous-runtime.headers >&2
             exit 1
-          }
+          fi
 
           aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/rist-index.html --only-show-errors
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
           grep -q 'rist-plc.js' /tmp/rist-index.html
           grep -Fq "$RUNTIME_SRC" /tmp/rist-index.html
+
+          MAP_SURFACE_READY=false
+          for attempt in $(seq 1 18); do
+            STATUS=$(curl --silent --show-error --output /tmp/map-surface-authority.css --write-out '%{http_code}' "${URL}Preview/css/map-surface-authority.css?v=20260906-map-grid-repair-1")
+            if [ "$STATUS" = "200" ] \
+              && grep -Fq -- '--rist-map-grid-column: 5%' /tmp/map-surface-authority.css \
+              && grep -Fq -- '--rist-map-grid-row: 7.6923076923%' /tmp/map-surface-authority.css; then
+              MAP_SURFACE_READY=true
+              break
+            fi
+            echo "Waiting for CloudFront map surface convergence (${attempt}/18)"
+            sleep 10
+          done
+          test "$MAP_SURFACE_READY" = "true"
+          echo "Live 20x13 map build surface verified"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
           grep -q 'apiBaseUrl' /tmp/translation-config.json
