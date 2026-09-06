@@ -12,7 +12,28 @@
   }
  </nav>
  <section class="dock-content" aria-label="@ActiveLabel">
-  <WorldFooter />
+  @if(_active=="map-tools")
+  {
+   <section class="map-tools-panel" aria-label="Map tools and coordinates">
+    <header><img src="@Icon("map_tools")" alt="" aria-hidden="true" /><div><strong>Map Tools</strong><small>@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</small></div></header>
+    <div class="map-tools-readouts" aria-live="polite">
+     <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
+     <div><span>Pan X</span><strong>@_mapView[0].ToString("0.###")</strong></div>
+     <div><span>Pan Y</span><strong>@_mapView[1].ToString("0.###")</strong></div>
+     <div><span>Zoom</span><strong>@_mapView[2].ToString("0.##")×</strong></div>
+     <div><span>Grid</span><strong>@Session.GridStyle</strong></div>
+    </div>
+    <div class="map-tools-actions">
+     <button type="button" @onclick="RefreshMapView">Refresh</button>
+     <button type="button" @onclick="OpenLibrary">Asset Library</button>
+    </div>
+    <p class="map-tools-help">Touch: drag to pan and pinch to zoom. Mouse: drag or use the wheel. Keyboard: arrows/WASD, +, − and 0.</p>
+   </section>
+  }
+  else
+  {
+   <WorldFooter />
+  }
  </section>
 </div>
 
@@ -22,6 +43,7 @@
   ("profile","User Profile","user_profile"),("chat","Chat","chat"),("dice","Dice","dice"),("map-tools","Map Tools","map_tools"),("cast","Cast","cast"),("cards","Cards","cards"),("tokens","Tokens","tokens"),("minis","Minis","minis"),("rolling-stock","Rolling Stock","rolling_stock"),("pawns","Pawns/Meeples","pawns_meeples"),("tiles","Tiles","tiles"),("terrain","Terrains","terrain"),("bits","Bits","bits"),("logs","Logs","logs"),("custom","Custom1","settings"),("library","Library","library")
  ];
  string _active="chat";
+ double[] _mapView=[0,0,1];
  string ActiveLabel=>Modules.First(x=>x.Key==_active).Label;
  static string Icon(string key)=>$"{AssetRoot}{key}.png";
 
@@ -33,6 +55,7 @@
    case "profile": Session.OpenAccountViewer(); break;
    case "chat": break;
    case "dice": await JS.InvokeVoidAsync("eval","document.querySelector('.dice-tray-toggle')?.click()"); break;
+   case "map-tools": await RefreshMapView(); break;
    case "cards": if(!Session.CardBrowserOpen)Session.ToggleCardBrowser(); break;
    case "tokens": OpenAsset("pin"); break;
    case "minis": OpenAsset("mini"); break;
@@ -41,10 +64,17 @@
    case "tiles": OpenAsset("tile"); break;
    case "terrain": OpenAsset("terrain"); break;
    case "bits": OpenAsset("bit"); break;
-   case "library": if(!Session.TileBrowserOpen)Session.ToggleTileBrowser(); break;
+   case "library": OpenLibrary(); break;
   }
  }
 
+ async Task RefreshMapView()
+ {
+  try{_mapView=await JS.InvokeAsync<double[]>("ristMapInput.read");}
+  catch(JSException){_mapView=[0,0,1];}
+ }
+
+ void OpenLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
  void OpenAsset(string kind)
  {
   Session.PieceKind=kind;
