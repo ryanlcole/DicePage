@@ -295,6 +295,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          is_html_document() {
+            python - "$1" <<'PY'
+          from pathlib import Path
+          import re, sys
+          data = Path(sys.argv[1]).read_bytes()[:1024]
+          data = data.lstrip(b'\xef\xbb\xbf\x00\t\r\n ')
+          raise SystemExit(0 if re.match(br'(?is)<!doctype\s+html\b|<html\b', data) else 1)
+          PY
+          }
+
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
@@ -343,7 +354,7 @@ jobs:
             STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/${RUNTIME_SRC}")
             if [ "$STATUS" = "200" ] \
               && [ "$(stat -c%s /tmp/anonymous-runtime.js)" -gt 1000 ] \
-              && ! grep -Eiq '<!doctype html|<html' /tmp/anonymous-runtime.js \
+              && ! is_html_document /tmp/anonymous-runtime.js \
               && grep -Eiq '^content-type: (application|text)/(javascript|x-javascript)' /tmp/anonymous-runtime.headers; then
               RUNTIME_READY=true
               break
