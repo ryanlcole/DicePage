@@ -2,26 +2,32 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
-<section class="world-context-strip" aria-label="World context">
- <button type="button" class="world-context-menu @(_contextMenuOpen?"active":"")" aria-pressed="@_contextMenuOpen" @onclick="ToggleContextMenu"><strong>Menu</strong></button>
- <div class="world-context-track" aria-label="World context slider">
-  <button type="button" class="world-context-action" data-context="stars" onclick="window.RistWorldContext?.edit?.('stars')"><strong>Stars:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="sky" onclick="window.RistWorldContext?.edit?.('sky')"><strong>Sky:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="cal" onclick="window.RistWorldContext?.edit?.('cal')"><strong>Cal:</strong> <span>EDIT</span></button>
-  <button type="button" class="world-context-action" data-context="ugc" onclick="window.RistWorldContext?.edit?.('ugc')"><strong>UGC:</strong> <span>EDIT</span></button>
-  <span class="world-context-readout world-context-date"><strong>Date:</strong> <time>--</time></span>
-  <button type="button" class="world-context-readout world-context-utc" data-context="utc" onclick="window.RistWorldContext?.openClock?.()"><strong>UTC:</strong> <time>--:--:--</time></button>
+<section class="world-ticker" aria-label="World and real-time context">
+ <div class="world-ticker-track">
+  <span class="ticker-item" data-context="stars"><strong>Stars</strong><b>-</b></span>
+  <span class="ticker-item" data-context="sky"><strong>Sky</strong><b>-</b></span>
+  <span class="ticker-item" data-context="game-time"><strong>Game Time</strong><b>-</b></span>
+  <span class="ticker-item" data-context="game-calendar"><strong>Game Calendar</strong><b>-</b></span>
+  <span class="ticker-item world-context-utc" data-context="utc"><strong>UTC</strong><time>-</time></span>
+  <span class="ticker-item world-context-date" data-context="date"><strong>Date</strong><time>-</time></span>
  </div>
- <button type="button" class="world-context-login" @onclick="ContextLoginClicked"><strong>@(Session.IsLoggedIn?"Log Out":"Login")</strong></button>
 </section>
 
-<div class="rist release-world @(Session.IsLoggedIn?"auth-ready":"auth-visitor") public-assets-@Session.PublicAssetType">
+<div class="rist release-world @(Session.IsLoggedIn?"auth-ready":"auth-visitor")">
  <span id="active-character-token-source" hidden data-front-token="@Session.CharacterFrontTokenDataUrl" data-character="@Session.CharacterName"></span>
  <main class="release-world-shell" aria-label="RIST world table">
-  <section class="release-region release-menu-region" aria-label="Main menu"><WorldHeader /></section>
-  <section class="release-region release-public-region" aria-label="Public assets"><PublicCardRail /></section>
-  <section class="release-region release-map-region map-viewer-region" aria-label="Recursive world map and menu viewer">
-   <WorldMap />
+  <section class="release-region release-map-region map-viewer-region" aria-label="Recursive world viewer">
+   <div class="viewer-frame">
+    <header class="viewer-frame-top" aria-label="Viewer identity">
+     <span class="viewer-mode" data-world-mode="mmo">MMO</span>
+     <strong class="viewer-world-name">@(string.IsNullOrWhiteSpace(Session.MapAlias)?"World":Session.MapAlias)</strong>
+     <span class="viewer-role">@(Session.Role=="GM"?"GameMaster":"Roleplayer")</span>
+    </header>
+    <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span>30</span><span>20</span><span>10</span><span>0</span></aside>
+    <div class="viewer-map"><WorldMap /></div>
+    <aside class="viewer-ruler viewer-ruler-z" aria-label="Z axis"><span>3</span><span>2</span><span>1</span><span>0</span></aside>
+    <footer class="viewer-ruler viewer-ruler-x" aria-label="X axis"><span>0</span><span>10</span><span>20</span><span>30</span></footer>
+   </div>
    <div class="map-viewer-overlays" aria-live="polite">
     <CardLibraryViewerNav />
     <AccountAccessViewer />
@@ -32,14 +38,12 @@
     <RistWelcomeTutorial />
    </div>
   </section>
-  <section class="release-region release-private-region" aria-label="Private assets"><HandRail /></section>
-  <section class="release-region release-footer-region" aria-label="Character dice and chat"><WorldFooter /></section>
+  <section class="release-region release-footer-region" aria-label="Game tools and chat"><WorldDock /></section>
  </main>
 </div>
 
 @code{
  readonly CancellationTokenSource _autosaveCts=new();
- bool _contextMenuOpen;
 
  protected override async Task OnInitializedAsync()
  {
@@ -64,9 +68,6 @@
   await Session.LoadPrivateCheckpointAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
  }
-
- void ToggleContextMenu()=>_contextMenuOpen=!_contextMenuOpen;
- async Task ContextLoginClicked()=>await JS.InvokeVoidAsync("eval","document.querySelector('#header-slider .door-button')?.click()");
 
  async Task AutosaveLoopAsync(CancellationToken token)
  {
