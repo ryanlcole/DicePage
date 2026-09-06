@@ -1,0 +1,1 @@
+(()=>{'use strict';/* Compatibility stub. The responsive Blazor shell is the sole viewer authority. */window.ristViewerController=Object.freeze({version:'responsive-shell-2026-09-06'});})();
