@@ -31,8 +31,16 @@
   localStorage.setItem(settingsKey,JSON.stringify(next));
   return next;
  };
- const setCookie=token=>{document.cookie=`${cookieName}=${encodeURIComponent(token)}; Path=/Game/; Max-Age=28800; Secure; SameSite=Lax`};
- const clearCookie=()=>{document.cookie=`${cookieName}=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax`};
+ const setCookie=token=>{
+  // Keep the edge-auth cookie available across the launcher -> /Game navigation.
+  // The bearer token is already held in same-origin sessionStorage; widening the
+  // cookie path avoids browser-specific loss when moving from /Play to /Game.
+  document.cookie=`${cookieName}=${encodeURIComponent(token)}; Path=/; Max-Age=28800; Secure; SameSite=Lax`;
+ };
+ const clearCookie=()=>{
+  document.cookie=`${cookieName}=; Path=/; Max-Age=0; Secure; SameSite=Lax`;
+  document.cookie=`${cookieName}=; Path=/Game/; Max-Age=0; Secure; SameSite=Lax`;
+ };
  const clearMessages=()=>{error.textContent='';status.textContent=''};
  const focusView=name=>requestAnimationFrame(()=>{
   const node=views[name];
@@ -124,6 +132,20 @@
   if(!preview&&!profileReady){setView('signup');return}
   launching=true;
   try{
+   const token=sessionStorage.getItem('rist.session');
+   if(!preview){
+    if(!token||!(await verify(token))){
+     authenticated=false;
+     profileReady=false;
+     clearCookie();
+     launching=false;
+     error.textContent='Your session expired. Sign in again.';
+     setView('entry');
+     return;
+    }
+    // Refresh the edge-auth cookie immediately before entering the protected game.
+    setCookie(token);
+   }
    const settings=preview?{role:'Roleplayer',domain:'RIST Sandbox',inviteCode:'Geonaph'}:readSettings();
    sessionStorage.setItem('rist.launch.intent',preview?'preview':intent||'load');
    sessionStorage.setItem('rist.launch.settings',JSON.stringify(settings));
