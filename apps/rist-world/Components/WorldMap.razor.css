@@ -14,6 +14,6 @@
 .base.ocean-world>img:first-of-type{display:none!important}
 .status,.map-status,.coordinate-readout,.map-coordinate-readout{display:none!important}
 .desktop-map-zoom{position:absolute!important;right:8px!important;bottom:8px!important;top:auto!important;left:auto!important;z-index:55!important;display:flex!important;gap:5px!important}
-.desktop-map-zoom button{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:0!important;border-radius:9px!important}
-@media(pointer:coarse){.desktop-map-zoom button{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}}
-@media(orientation:landscape) and (max-height:700px){.desktop-map-zoom{right:6px!important;bottom:6px!important}.desktop-map-zoom button{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}}
+.desktop-map-zoom button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:0!important;border-radius:8px!important}
+@media(pointer:coarse){.desktop-map-zoom{display:none!important}}
+@media(orientation:landscape) and (max-height:700px) and (pointer:fine){.desktop-map-zoom{right:6px!important;bottom:6px!important}.desktop-map-zoom button{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}}
