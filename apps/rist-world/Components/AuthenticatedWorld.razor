@@ -1,10 +1,8 @@
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
-@inject Microsoft.JSInterop.IJSRuntime JS
-@inject WorldSession Session
 
-@* Single-authority boundary: /Play owns account entry and profile creation.
-   /Game requires an account session. /Preview now returns to the public site. *@
+@* Single-authority boundary: /Play owns Discord account entry and the terms gate.
+   /Game requires an authenticated account session. There is no Preview runtime. *@
 @if (!_ready)
 {
  <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
@@ -48,25 +46,6 @@ else
  {
   if (!firstRender || _authStarted) return;
   _authStarted = true;
-
-  var path = new Uri(Navigation.Uri).AbsolutePath;
-  var isPreviewPath = path.Equals("/Preview", StringComparison.OrdinalIgnoreCase)
-      || path.StartsWith("/Preview/", StringComparison.OrdinalIgnoreCase);
-  var launchIntent = await JS.InvokeAsync<string?>("sessionStorage.getItem", "rist.launch.intent");
-
-  if (isPreviewPath)
-  {
-   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.intent");
-   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.settings");
-   Navigation.NavigateTo("/", forceLoad: true);
-   return;
-  }
-
-  if (string.Equals(launchIntent, "preview", StringComparison.OrdinalIgnoreCase))
-  {
-   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.intent");
-   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.settings");
-  }
 
   var profile = await Auth.InitializeAsync();
   _canEnter = profile is not null;
