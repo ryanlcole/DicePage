@@ -1,8 +1,10 @@
+@using System.Text.Json
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
 
-@* Single-authority boundary: /Play owns Discord account entry and the terms gate.
-   /Game requires an authenticated account session. There is no Preview runtime. *@
+@* /Play performs Discord authentication only. /Game opens immediately after auth.
+   Terms are enforced here as an in-game blocking popup for accounts that have
+   not accepted them yet. There is no Preview runtime. *@
 @if (!_ready)
 {
  <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
@@ -17,6 +19,18 @@ else if (_canEnter)
 {
  <LauncherStartupBridge />
  <WorldTable />
+ @if (_termsRequired)
+ {
+  <section class="rist-terms-gate" role="dialog" aria-modal="true" aria-label="Terms agreement">
+   <form class="rist-terms-card" @onsubmit="AcceptTermsAsync">
+    <h1>Before You Play</h1>
+    <p>You are already inside Shaelvien. Agree to the Terms and Privacy Policy to continue interacting with the game.</p>
+    <label><input type="checkbox" @bind="_termsChecked" /> <span>I agree to the Terms and Privacy Policy.</span></label>
+    @if (!string.IsNullOrWhiteSpace(_termsError)) { <p class="rist-terms-error">@_termsError</p> }
+    <button type="submit" disabled="@_savingTerms">@(_savingTerms ? "Saving…" : "Agree & Continue")</button>
+   </form>
+  </section>
+ }
 }
 else
 {
@@ -24,7 +38,7 @@ else
   <section class="rist-auth-card">
    <p class="rist-auth-kicker">SHAELVIEN</p>
    <h1>RIST MMO / Sandbox</h1>
-   <p>Returning to account entry…</p>
+   <p>Returning to Discord entry…</p>
   </section>
  </main>
 }
@@ -33,14 +47,21 @@ else
  .rist-auth-shell{box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}
  .rist-auth-card{box-sizing:border-box;width:min(92vw,520px);padding:28px;border:1px solid #725d30;border-radius:14px;background:rgba(10,17,22,.94);box-shadow:0 18px 50px rgba(0,0,0,.45);text-align:center}
  .rist-auth-kicker{margin:0;color:#d7be80;font-weight:900;letter-spacing:.18em}.rist-auth-card h1{margin:8px 0 22px;color:#d7be80;font-size:clamp(22px,5vw,34px)}.rist-auth-card p:last-child{margin:0;color:#cbd5da}
+ .rist-terms-gate{position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:20px;background:rgba(3,7,12,.78);backdrop-filter:blur(5px)}
+ .rist-terms-card{box-sizing:border-box;width:min(92vw,520px);padding:24px;border:1px solid #8d7440;border-radius:14px;background:#081016;color:#eee6d2;box-shadow:0 18px 55px #000b;font-family:system-ui,-apple-system,sans-serif}
+ .rist-terms-card h1{margin:0 0 8px;color:#e5c878}.rist-terms-card p{color:#b8b09e;line-height:1.45}.rist-terms-card label{display:flex;align-items:flex-start;gap:10px;margin:18px 0;color:#d7c58f;font-weight:800}.rist-terms-card input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}.rist-terms-card button{width:100%;min-height:48px;margin-top:8px;border:1px solid #a68a4b;border-radius:8px;background:#17242b;color:#ffe9ad;font-weight:900}.rist-terms-card button:disabled{opacity:.65}.rist-terms-error{color:#ffb3a6!important;font-weight:700}
  @@media (prefers-reduced-motion:reduce){.rist-auth-card{scroll-behavior:auto}}
- @@media (prefers-contrast:more){.rist-auth-card{border-width:2px}}
+ @@media (prefers-contrast:more){.rist-auth-card,.rist-terms-card{border-width:2px}}
 </style>
 
 @code {
  bool _ready;
  bool _canEnter;
  bool _authStarted;
+ bool _termsRequired;
+ bool _termsChecked;
+ bool _savingTerms;
+ string _termsError = "";
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
@@ -49,10 +70,47 @@ else
 
   var profile = await Auth.InitializeAsync();
   _canEnter = profile is not null;
+  _termsRequired = _canEnter && Auth.Account is not null && Auth.Account.TermsAcceptedAtUtc == DateTimeOffset.MinValue;
   _ready = true;
   await InvokeAsync(StateHasChanged);
 
   if (!_canEnter)
    Navigation.NavigateTo("/Play/index.html", forceLoad: true);
+ }
+
+ async Task AcceptTermsAsync()
+ {
+  _termsError = "";
+  if (!_termsChecked)
+  {
+   _termsError = "You must agree before continuing.";
+   return;
+  }
+  if (Auth.Account is null)
+  {
+   _termsError = "Your account is not ready yet. Please reload and try again.";
+   return;
+  }
+
+  _savingTerms = true;
+  try
+  {
+   var updated = Auth.Account with
+   {
+    TermsAcceptedAtUtc = DateTimeOffset.UtcNow,
+    TermsVersion = "2026-08-30"
+   };
+   await Auth.UploadTextAsync("account/profile.json", JsonSerializer.Serialize(updated), "application/json");
+   _termsRequired = false;
+  }
+  catch
+  {
+   _termsError = "Your agreement could not be saved. Please try again.";
+  }
+  finally
+  {
+   _savingTerms = false;
+   await InvokeAsync(StateHasChanged);
+  }
  }
 }
