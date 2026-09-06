@@ -4,12 +4,12 @@
 
 <section class="world-ticker" aria-label="World and real-time context">
  <div class="world-ticker-track">
-  <span class="ticker-item" data-context="stars"><strong>Stars</strong><b>-</b></span>
-  <span class="ticker-item" data-context="sky"><strong>Sky</strong><b>-</b></span>
-  <span class="ticker-item" data-context="game-time"><strong>Game Time</strong><b>-</b></span>
-  <span class="ticker-item" data-context="game-calendar"><strong>Game Calendar</strong><b>-</b></span>
-  <span class="ticker-item world-context-utc" data-context="utc"><strong>UTC</strong><time>-</time></span>
-  <span class="ticker-item world-context-date" data-context="date"><strong>Date</strong><time>-</time></span>
+  <span class="ticker-item" data-context="stars"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/stars.png" alt="" aria-hidden="true" /><strong>Stars</strong><b>-</b></span>
+  <span class="ticker-item" data-context="sky"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/sky.png" alt="" aria-hidden="true" /><strong>Sky</strong><b>-</b></span>
+  <span class="ticker-item" data-context="game-time"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/game_time.png" alt="" aria-hidden="true" /><strong>Game Time</strong><b>-</b></span>
+  <span class="ticker-item" data-context="game-calendar"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/calendar.png" alt="" aria-hidden="true" /><strong>Game Calendar</strong><b>-</b></span>
+  <span class="ticker-item world-context-utc" data-context="utc"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/utc.png" alt="" aria-hidden="true" /><strong>UTC</strong><time>-</time></span>
+  <span class="ticker-item world-context-date" data-context="date"><img src="https://assets.relicgamemaster.com/ui/shaelvien/icons/date.png" alt="" aria-hidden="true" /><strong>Date</strong><time>-</time></span>
  </div>
 </section>
 
@@ -24,8 +24,8 @@
      <span class="viewer-role">@(Session.Role=="GM"?"GameMaster":"Roleplayer")</span>
     </header>
     <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span>29</span><span>20</span><span>10</span><span>0</span></aside>
-    <div class="viewer-map"><WorldMap /></div>
-    <aside class="viewer-ruler viewer-ruler-z" aria-label="Z axis"><span>3</span><span>2</span><span>1</span><span>0</span></aside>
+    <div class="viewer-map"><WorldMap /><img class="viewer-compass" src="https://assets.relicgamemaster.com/ui/shaelvien/icons/compass.png" alt="" aria-hidden="true" /></div>
+    <aside class="viewer-ruler viewer-ruler-z" aria-label="Z axis"><span>29</span><span>20</span><span>10</span><span>0</span></aside>
     <footer class="viewer-ruler viewer-ruler-x" aria-label="X axis"><span>0</span><span>10</span><span>20</span><span>29</span></footer>
    </div>
    <div class="map-viewer-overlays" aria-live="polite">
@@ -43,41 +43,22 @@
 
 @code{
  readonly CancellationTokenSource _autosaveCts=new();
-
  protected override async Task OnInitializedAsync()
  {
   Session.Changed+=SessionChanged;
   IJSObjectReference? policy=null;
-  try
-  {
-   policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");
-   await policy.InvokeVoidAsync("restorePersistentSession");
-  }
+  try{policy=await JS.InvokeAsync<IJSObjectReference>("import","./session-policy.js");await policy.InvokeVoidAsync("restorePersistentSession");}
   catch(JSException){}
-
   await Session.InitializeAsync();
-
-  if(policy is not null)
-  {
-   try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}
-   catch(JSException){}
-   await policy.DisposeAsync();
-  }
-
+  if(policy is not null){try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}catch(JSException){}await policy.DisposeAsync();}
   await Session.LoadPrivateCheckpointAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
  }
-
  async Task AutosaveLoopAsync(CancellationToken token)
  {
-  try
-  {
-   using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));
-   while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();
-  }
+  try{using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();}
   catch(OperationCanceledException){}
  }
-
  void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
  public void Dispose(){_autosaveCts.Cancel();_autosaveCts.Dispose();Session.Changed-=SessionChanged;}
 }
