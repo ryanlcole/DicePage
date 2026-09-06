@@ -12,7 +12,8 @@
 .world-stage>.tile-cell>.tile-image-crop>img{display:block!important;min-width:100%!important;min-height:100%!important;border:0!important;outline:0!important;vertical-align:top!important}
 .world-stage>.tile-cell,.world-stage>.piece,.world-stage>.map-zone-label,.world-stage>.pin-label-callout,.world-stage>.rolled-die{z-index:2!important}
 .base.ocean-world>img:first-of-type{display:none!important}
-.status,.map-status,.coordinate-readout,.map-coordinate-readout{display:none!important}
+.status,.map-status,.coordinate-readout,.map-coordinate-readout,.map-coordinates,.coordinates,.coords,.viewport-coordinates{display:none!important}
+.map::before,.map::after{content:none!important;display:none!important}
 .desktop-map-zoom{position:absolute!important;right:8px!important;bottom:8px!important;top:auto!important;left:auto!important;z-index:55!important;display:flex!important;gap:5px!important}
 .desktop-map-zoom button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:0!important;border-radius:8px!important}
 @media(pointer:coarse){.desktop-map-zoom{display:none!important}}
