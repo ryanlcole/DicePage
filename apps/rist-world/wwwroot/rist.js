@@ -71,6 +71,9 @@ window.ristWorld={
   const el=document.elementFromPoint(x,y);if(el?.setPointerCapture)el.setPointerCapture(pointerId);
  },
  point:(el,x,y)=>{const r=el.getBoundingClientRect();return[(x-r.left)/r.width,(y-r.top)/r.height]},
+ boundedWorldPoint:(el,x,y)=>{const r=el.getBoundingClientRect();return[(x-r.left)/r.width,(y-r.top)/r.height]},
+ boundedDropPoint:(el,x,y)=>{const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return[0,0,0];return[1,(x-r.left)/r.width,(y-r.top)/r.height]},
+ boundedTileDropPoint:(el,x,y,columns,rows)=>{const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return[0,0,0];const cols=Math.max(1,Number(columns)||30),gridRows=Math.max(1,Number(rows)||30);const sx=(Math.floor(Math.max(0,Math.min(.999999,(x-r.left)/r.width))*cols)+.5)/cols;const sy=(Math.floor(Math.max(0,Math.min(.999999,(y-r.top)/r.height))*gridRows)+.5)/gridRows;return[1,sx,sy]},
  worldPoint:(el,x,y,panX,panY,zoom)=>{
   const r=el.getBoundingClientRect();const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];
@@ -82,7 +85,7 @@ window.ristWorld={
   return [r.width*((sx-.5)+nextZ*(.5-wx)),r.height*((sy-.5)+nextZ*(.5-wy))];
  },
  isTyping:()=>{const el=document.activeElement,tag=el?.tagName?.toLowerCase();return tag==='input'||tag==='textarea'||tag==='select'||!!el?.isContentEditable;},
- railPinDrop:(x,y)=>{const el=document.querySelector(".map");if(!el)return [0,0,0];const panX=Number(el.dataset.panX)||0,panY=Number(el.dataset.panY)||0,zoom=Number(el.dataset.zoom)||1;const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width,sy=(y-r.top)/r.height,z=Math.max(zoom,.01);return [1,((sx-.5)/z)+.5-panX/(r.width*z),((sy-.5)/z)+.5-panY/(r.height*z)];},
+ railPinDrop:(x,y)=>{const el=document.querySelector('.world-bounds');if(!el)return[0,0,0];const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;return inside?[1,(x-r.left)/r.width,(y-r.top)/r.height]:[0,0,0];},
  dropPoint:(el,x,y,panX,panY,zoom)=>{
   const r=el.getBoundingClientRect();const inside=x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;if(!inside)return [0,0,0];const sx=(x-r.left)/r.width;const sy=(y-r.top)/r.height;const z=Math.max(Number(zoom)||1,.01);
   return [1,((sx-.5)/z)+.5-(Number(panX)||0)/(r.width*z),((sy-.5)/z)+.5-(Number(panY)||0)/(r.height*z)];

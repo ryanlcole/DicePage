@@ -45,7 +45,7 @@
   tick.classList.toggle('zero',Math.abs(value)<zeroTolerance);
  }
  function decorateMap(map){
-  const stage=map.querySelector('.world-stage');
+  const stage=map.querySelector('.world-bounds')||map.querySelector('.world-stage');
   const shell=map.closest('.map-shell');
   if(!stage||!shell)return;
   /* Coordinates belong to the permanent shell frame, never inside the map. */
@@ -55,7 +55,7 @@
   const mapRect=map.getBoundingClientRect();
   const stageRect=stage.getBoundingClientRect();
   if(mapRect.width<2||mapRect.height<2||stageRect.width<2||stageRect.height<2)return;
-  const scale=parseScale(map),cols=20,rows=13;
+  const scale=parseScale(map),cols=30,rows=30;
   const halfX=cols*scale.distance/2,halfY=rows*scale.distance/2;
   const xAt=x=>Math.max(-halfX,Math.min(halfX,(((x-stageRect.left)/stageRect.width)-.5)*cols*scale.distance));
   const yAt=y=>Math.max(-halfY,Math.min(halfY,(.5-((y-stageRect.top)/stageRect.height))*rows*scale.distance));

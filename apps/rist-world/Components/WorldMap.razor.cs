@@ -11,6 +11,7 @@ public partial class WorldMap:IDisposable
  [Inject] public IJSRuntime JS{get;set;}=default!;
  readonly MapGestureState G=new();
  ElementReference MapElement;
+  ElementReference WorldBoundsElement;
  AtlasTile? AtlasDragging;
  StagedAsset? TrayDragging;
  PieceItem? PieceDragging;
@@ -91,10 +92,10 @@ public partial class WorldMap:IDisposable
  }
  string DragPreviewStyle=>$"left:{DragClientX:0.#}px;top:{DragClientY:0.#}px";
 
- async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
- async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
- async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.tileDropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom,WorldSession.GridColumns,WorldSession.GridRows);
- async Task DropHeaderPin(DragEventArgs e){if(!Session.HeaderPinDragging)return;var p=await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
+ async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.boundedWorldPoint",WorldBoundsElement,e.ClientX,e.ClientY);
+ async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.boundedDropPoint",WorldBoundsElement,e.ClientX,e.ClientY);
+ async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.boundedTileDropPoint",WorldBoundsElement,e.ClientX,e.ClientY,WorldSession.GridColumns,WorldSession.GridRows);
+ async Task DropHeaderPin(DragEventArgs e){if(!Session.HeaderPinDragging)return;var p=await JS.InvokeAsync<double[]>("ristWorld.boundedDropPoint",WorldBoundsElement,e.ClientX,e.ClientY);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
 
  async Task StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
  async Task BeginAtlasDrag(AtlasTile tile,PointerEventArgs e){AtlasDragging=tile;TrayDragging=null;PieceDragging=null;TileDragging=null;await StartDrag(e);}

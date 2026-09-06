@@ -2,9 +2,9 @@ using System.Text.Json;
 namespace RistWorld;
 public sealed partial class WorldSession
 {
- const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
- const string OceanResetVersion="2026-08-28-topology-v2";
- const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
+ const string PrivateWorldCheckpointKey="maps/Shaelvien-current-30x30-v1.ristmap";
+ const string OceanResetVersion="2026-09-06-30x30-ocean-v1";
+ const string OceanResetMarkerKey="rist.world.reset.2026-09-06-30x30-ocean-v1";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
@@ -16,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=5,
+   Version=6,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,

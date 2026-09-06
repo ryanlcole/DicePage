@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js, DiscordAuthClient auth)
 {
-    private const string SaveKey = "rist.world.blazor.v6";
+    private const string SaveKey = "rist.world.blazor.v7";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -73,10 +73,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public bool HeaderPinDragging { get; private set; }
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; private set; } = "mi";
-    public const int GridColumns = 20;
-    public const int GridRows = 13;
+    public const int GridColumns = 30;
+    public const int GridRows = 30;
     public int GridDiameter { get; set; } = 48;
-    public double GridDistance { get; set; } = 5;
+    public double GridDistance { get; set; } = 1;
     public double GridCalibrationZoom { get; set; } = 1;
     public double ViewZoom { get; set; } = 1;
     public double GridCellWidthPercent => 100.0 / GridColumns;

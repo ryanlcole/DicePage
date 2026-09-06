@@ -75,13 +75,16 @@ jobs:
           test -s "build/rist/wwwroot/${RUNTIME_SRC}"
           echo "Published Blazor runtime entrypoint: ${RUNTIME_SRC}"
           test -s build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq 'css/map-surface-authority.css?v=20260906-map-grid-repair-1' build/rist/wwwroot/index.html
-          grep -Fq '.world-stage > .grid.square' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq -- '--rist-map-grid-column: 5%' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq -- '--rist-map-grid-row: 7.6923076923%' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq 'css/map-surface-authority.css?v=20260906-world-30x30-1' build/rist/wwwroot/index.html
+          grep -Fq '.world-bounds > .grid.square' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq -- '--rist-map-grid-column: 3.3333333333%' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq -- '--rist-map-grid-row: 3.3333333333%' build/rist/wwwroot/css/map-surface-authority.css
           grep -Fq '.map:has(.grid.square)::before' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq '.world-stage>.grid.square' build/rist/wwwroot/viewer-controller.js
-          echo "Published 20x13 map build surface verified"
+          grep -Fq '.world-bounds>.grid.square' build/rist/wwwroot/viewer-controller.js
+          grep -Fq 'boundedTileDropPoint' build/rist/wwwroot/rist.js
+          grep -Fq 'root-menu-panel[aria-label="Choose grid"]' build/rist/wwwroot/bottom-assets-maptools.js
+          grep -Fq 'orientation: landscape' build/rist/wwwroot/css/map-surface-authority.css
+          echo "Published bounded 30x30 map build surface verified"
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -375,10 +378,10 @@ jobs:
 
           MAP_SURFACE_READY=false
           for attempt in $(seq 1 18); do
-            STATUS=$(curl --silent --show-error --output /tmp/map-surface-authority.css --write-out '%{http_code}' "${URL}Preview/css/map-surface-authority.css?v=20260906-map-grid-repair-1")
+            STATUS=$(curl --silent --show-error --output /tmp/map-surface-authority.css --write-out '%{http_code}' "${URL}Preview/css/map-surface-authority.css?v=20260906-world-30x30-1")
             if [ "$STATUS" = "200" ] \
-              && grep -Fq -- '--rist-map-grid-column: 5%' /tmp/map-surface-authority.css \
-              && grep -Fq -- '--rist-map-grid-row: 7.6923076923%' /tmp/map-surface-authority.css; then
+              && grep -Fq -- '--rist-map-grid-column: 3.3333333333%' /tmp/map-surface-authority.css \
+              && grep -Fq -- '--rist-map-grid-row: 3.3333333333%' /tmp/map-surface-authority.css; then
               MAP_SURFACE_READY=true
               break
             fi
@@ -386,7 +389,7 @@ jobs:
             sleep 10
           done
           test "$MAP_SURFACE_READY" = "true"
-          echo "Live 20x13 map build surface verified"
+          echo "Live bounded 30x30 map build surface verified"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
           grep -q 'apiBaseUrl' /tmp/translation-config.json
