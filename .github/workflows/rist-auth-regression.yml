@@ -36,102 +36,51 @@ jobs:
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
 
-      - name: Enforce launcher, preview, and protected-game boundaries
+      - name: Enforce single launcher and protected Game boundary
         shell: bash
         run: |
           set -euxo pipefail
 
-          # One application mount. /Game is never a second account launcher.
+          # The Blazor app has one mount and one runtime gate.
           grep -q '<RistWorld.Components.AuthenticatedWorld />' apps/rist-world/App.razor
           ! grep -q 'MountApplication' apps/rist-world/App.razor
           grep -q '<WorldTable />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q '<LauncherStartupBridge />' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'Auth.InitializeAsync' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'Navigation.NavigateTo("/Play/", forceLoad: true)' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'NavigateTo("/Play/index.html"' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q '>Sign In<' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q '>Sign Up<' apps/rist-world/Components/AuthenticatedWorld.razor
           ! test -e apps/rist-world/wwwroot/auth-entry.js
           ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
 
-          # Authentication is resolved once at the runtime gate. WorldSession consumes
-          # that result and the visible runtime account command routes directly to Play.
-          grep -q 'var profile=auth.Profile' apps/rist-world/WorldSession.cs
-          ! grep -q 'auth.InitializeAsync' apps/rist-world/WorldSession.cs
-          grep -q '@inject NavigationManager Navigation' apps/rist-world/Components/WorldTable.razor
-          grep -q 'Navigation.NavigateTo("/Play/", forceLoad:true)' apps/rist-world/Components/WorldTable.razor
-          ! grep -q "document.querySelector('#header-slider .door-button')" apps/rist-world/Components/WorldTable.razor
-
-          # Preview is a path boundary, never a query-string or sessionStorage auth bypass.
-          grep -q 'StartsWith("/Preview/"' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'EnablePublicPreviewMode' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'PublicPreviewMode' apps/rist-world/WorldSession.Preview.cs
-          grep -q 'if(PublicPreviewMode)' apps/rist-world/WorldSession.Persistence.cs
-          grep -q 'Public preview · changes are not saved' apps/rist-world/WorldSession.Persistence.cs
-          ! grep -q 'PUBLIC_PREVIEW' infra/aws/rist-frontend.yml
-          ! grep -q 'isPublicPreview' infra/aws/rist-frontend.yml
-          ! grep -q "params.get('preview')" infra/aws/rist-frontend.yml
-
-          # Launcher handoff is one-shot and canonicalizes role/domain in WorldSession.
-          test -f apps/rist-world/Components/LauncherStartupBridge.razor
-          grep -q 'Session.ApplyLauncherStartupAsync' apps/rist-world/Components/LauncherStartupBridge.razor
-          grep -q 'sessionStorage.removeItem", LauncherIntentKey' apps/rist-world/WorldSession.Launcher.cs
-          grep -q 'sessionStorage.removeItem", LauncherSettingsKey' apps/rist-world/WorldSession.Launcher.cs
-          grep -q 'isPreview' apps/rist-world/WorldSession.Launcher.cs
-          grep -q 'Roleplayer", "RIST Sandbox' apps/rist-world/WorldSession.Launcher.cs
-          grep -q 'IsSandboxDomain' apps/rist-world/WorldSession.Launcher.cs
-
-          # /Play owns account entry and explicit user navigation after auth.
+          # /Play is the only public account entry surface.
           test -f site/relic-home/Play/index.html
-          test -f site/relic-home/Play/launcher.js
-          grep -q 'Press any key to continue' site/relic-home/Play/index.html
-          grep -q '>Sign In<' site/relic-home/Play/index.html
-          grep -q '>Sign Up<' site/relic-home/Play/index.html
-          grep -q '>Preview<' site/relic-home/Play/index.html
-          grep -q '>New Campaign<' site/relic-home/Play/index.html
-          grep -q '>Load Campaign<' site/relic-home/Play/index.html
-          grep -q '>Settings<' site/relic-home/Play/index.html
-          grep -q 'GameMaster' site/relic-home/Play/index.html
-          grep -q 'Roleplayer' site/relic-home/Play/index.html
-          grep -q 'Shaelvien MMO' site/relic-home/Play/index.html
-          grep -q 'RIST Sandbox' site/relic-home/Play/index.html
-          grep -q "const game='/Game/index.html'" site/relic-home/Play/launcher.js
-          grep -q "const previewGame='/Preview/index.html'" site/relic-home/Play/launcher.js
-          grep -q "role:'Roleplayer',domain:'RIST Sandbox',inviteCode:'Geonaph'" site/relic-home/Play/launcher.js
-          grep -q "launch('preview')" site/relic-home/Play/launcher.js
-          grep -q "launch('new')" site/relic-home/Play/launcher.js
-          grep -q "launch('load')" site/relic-home/Play/launcher.js
-          grep -q '/auth/session?handoff=' site/relic-home/Play/launcher.js
-          grep -q 'rist_session' site/relic-home/Play/launcher.js
+          test ! -e site/relic-home/Play/launcher.js
+          grep -q '>Continue with Discord<' site/relic-home/Play/index.html
+          grep -q "location.replace('/Game/index.html')" site/relic-home/Play/index.html
+          grep -q '/auth/session?handoff=' site/relic-home/Play/index.html
+          grep -q 'rist_session' site/relic-home/Play/index.html
+          ! grep -q '>Sign In<' site/relic-home/Play/index.html
+          ! grep -q '>Sign Up<' site/relic-home/Play/index.html
+          ! grep -q '>Preview<' site/relic-home/Play/index.html
 
-          # Successful auth returns to launcher UI; it must not silently enter Game.
-          python - <<'PY'
-          from pathlib import Path
-          text = Path('site/relic-home/Play/launcher.js').read_text()
-          handoff = text.split('async function completeHandoff',1)[1].split('async function resume',1)[0]
-          resume = text.split('async function resume',1)[1].split('async function begin',1)[0]
-          assert 'showAuthenticatedHome()' in handoff
-          assert 'location.assign(' not in handoff
-          assert 'await launch(' not in handoff
-          assert 'location.assign(' not in resume
-          assert 'await launch(' not in resume
-          PY
+          # Preview code may remain as inert compatibility code, but no public Preview runtime is published.
+          grep -q 'There is no Preview runtime' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'Preview has been retired' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'aws s3 rm "s3://${BUCKET}/Preview/"' .github/workflows/deploy-rist-frontend-aws.yml
 
-          # Idle authenticated sessions return to the one public account authority.
-          grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
-          grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
-          grep -q "location.replace('/Play/?reason=idle')" apps/rist-world/wwwroot/rist.js
-
-          # /Game remains edge-authenticated; /Preview is separately published and public.
+          # /Game stays edge-authenticated and redirects anonymous users to Play.
           grep -q 'PathPattern: Game/index.html' infra/aws/rist-frontend.yml
           grep -q 'EventType: viewer-request' infra/aws/rist-frontend.yml
           grep -q "if (!token) return redirect('login')" infra/aws/rist-frontend.yml
           grep -q 'GameEdgeAuthVersion' infra/aws/rist-frontend.yml
-          grep -q '/Play/?reason=' infra/aws/rist-frontend.yml
+          grep -q '/Play/index.html?reason=' infra/aws/rist-frontend.yml
           grep -q 'AuthApiBaseUrl' infra/aws/rist-frontend.yml
-          grep -q 's3://${BUCKET}/Preview/' .github/workflows/deploy-rist-frontend-aws.yml
-          grep -q "'/Preview/\*'" .github/workflows/deploy-rist-frontend-aws.yml
-          grep -q 'Public nonpersistent preview verified' .github/workflows/deploy-rist-frontend-aws.yml
-          grep -q 'Anonymous Game/index.html correctly blocked at the edge' .github/workflows/deploy-rist-frontend-aws.yml
           grep -q 'PRODUCTION_PLAY_URL: https://relicgamemaster.com/Play/index.html' .github/workflows/deploy-rist-discord-auth.yml
 
-          echo 'RIST launcher, Preview isolation, authentication, and runtime authority checks passed.'
+          # Session expiry returns to the same public authority.
+          grep -q 'clearEdgeCookie' apps/rist-world/wwwroot/rist.js
+          grep -q 'Max-Age=0' apps/rist-world/wwwroot/rist.js
+          grep -q "location.replace('/Play/" apps/rist-world/wwwroot/rist.js
+
+          echo 'RIST single launcher, authentication, and protected runtime authority checks passed.'
