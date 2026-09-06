@@ -200,7 +200,7 @@ jobs:
             echo "Translation endpoint injected."
           fi
 
-      - name: Publish launcher, public preview, and protected game to private S3 origin
+      - name: Publish launcher and protected game to private S3 origin
         shell: bash
         run: |
           set -euo pipefail
@@ -216,13 +216,9 @@ jobs:
           aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
           aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/Game/translation-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
 
-          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Preview/" \
-            --delete \
-            --exclude 'Launcher/*' \
-            --exclude 'assets/shaelvien/*' \
-            --cache-control 'public,max-age=3600' \
-            --only-show-errors
-          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Preview/index.html" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'text/html; charset=utf-8' --only-show-errors
+          # Preview has been retired. Delete any old Preview payload so stale links
+          # cannot continue to expose a public copy of the game.
+          aws s3 rm "s3://${BUCKET}/Preview/" --recursive --only-show-errors || true
           aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
 
           aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" --delete --cache-control 'no-cache,no-store,must-revalidate' --only-show-errors
@@ -269,16 +265,11 @@ jobs:
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
           grep -q 'Shaelvien — RIST MMO / Sandbox' /tmp/play.html
-          grep -q '>Login<' /tmp/play.html
-          grep -q '>Sign Up<' /tmp/play.html
-          if grep -q 'read-only public preview' /tmp/play.html; then
-            echo "Obsolete secondary entry screen is still present in Play/index.html." >&2
+          grep -q '>Continue with Discord<' /tmp/play.html
+          if grep -Eq '>Preview<|>Login<|>Sign Up<|read-only public preview' /tmp/play.html; then
+            echo "Obsolete account-entry controls are still present in Play/index.html." >&2
             exit 1
           fi
-
-          PREVIEW_STATUS=$(curl --silent --show-error --output /tmp/preview.html --write-out '%{http_code}' "${URL}Preview/index.html")
-          test "$PREVIEW_STATUS" = "200"
-          grep -q 'ReLiCGameMaster RIST WORLD' /tmp/preview.html
 
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
           test "$STATUS" = "302"
@@ -326,8 +317,8 @@ jobs:
           grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "Shaelvien title screen verified at ${URL}Play/index.html"
-          echo "Public nonpersistent preview verified at ${URL}Preview/index.html"
+          echo "Single Discord title screen verified at ${URL}Play/index.html"
+          echo "Retired Preview payload removed from private S3 origin"
           echo "Anonymous Game/index.html correctly redirects to the title screen"
           echo "Blazor framework payload verified at ${URL}Game/${RUNTIME_SRC}"
           echo "Protected RIST payload verified directly in private S3 origin"
