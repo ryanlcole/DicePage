@@ -8,9 +8,8 @@ public sealed partial class WorldSession
     private const string LauncherSettingsKey = "rist.launch.settings";
 
     /// <summary>
-    /// Applies the launcher's one-shot startup choice after the normal world
-    /// initialization has completed. /Play owns account/profile flow and launch
-    /// intent; /Game owns world state. Direct game sessions remain untouched.
+    /// Applies the one-shot startup choice after normal world initialization.
+    /// /Play owns Discord account entry and the terms gate; /Game owns world state.
     /// </summary>
     public async Task ApplyLauncherStartupAsync()
     {
@@ -18,21 +17,18 @@ public sealed partial class WorldSession
         var settingsJson = await js.InvokeAsync<string?>("sessionStorage.getItem", LauncherSettingsKey);
         var isNew = string.Equals(intent, "new", StringComparison.OrdinalIgnoreCase);
         var isLoad = string.Equals(intent, "load", StringComparison.OrdinalIgnoreCase);
-        var isPreview = string.Equals(intent, "preview", StringComparison.OrdinalIgnoreCase);
 
-        if (!isNew && !isLoad && !isPreview)
+        if (!isNew && !isLoad)
         {
             if (!string.IsNullOrWhiteSpace(settingsJson))
                 await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
+            if (!string.IsNullOrWhiteSpace(intent))
+                await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
             return;
         }
 
-        var (role, domain) = isPreview
-            ? ("Roleplayer", "RIST Sandbox")
-            : ParseLauncherSettings(settingsJson);
+        var (role, domain) = ParseLauncherSettings(settingsJson);
 
-        // Consume handoff keys first so refreshes cannot replay a partially
-        // applied command.
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherIntentKey);
         await js.InvokeVoidAsync("sessionStorage.removeItem", LauncherSettingsKey);
 
@@ -42,8 +38,6 @@ public sealed partial class WorldSession
         RestoreOperatingMode(IsSandboxDomain(domain) ? "sandbox" : "mmo");
         ApplyUserMode(string.Equals(role, "GameMaster", StringComparison.OrdinalIgnoreCase) ? "GameMaster" : "Player");
 
-        // Preview is deliberately read-only because unauthenticated sessions
-        // never gain IsLoggedIn/private-storage authority.
         if (isLoad && IsLoggedIn)
         {
             LoadMenuOpen = true;
