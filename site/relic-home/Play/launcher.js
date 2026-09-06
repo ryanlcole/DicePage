@@ -86,6 +86,19 @@
   $('alias').value=fallback;
   requestAnimationFrame(()=>$('alias').focus({preventScroll:true}));
  }
+ function returnExistingSignupToLogin(){
+  clearCookie();
+  sessionStorage.removeItem('rist.session');
+  sessionStorage.removeItem('rist.lastActivity');
+  sessionStorage.removeItem(authIntentKey);
+  localStorage.removeItem(authIntentKey);
+  sessionToken='';
+  authProfile=null;
+  entry.hidden=false;
+  profileWrap.hidden=true;
+  setStatus('You already have a RIST account. Please Log In.');
+  requestAnimationFrame(()=>$('login')?.focus({preventScroll:true}));
+ }
  async function begin(intent){
   try{
    setStatus(intent==='signup'?'Opening secure sign up…':'Opening secure login…');
@@ -110,7 +123,7 @@
   if(!(await verify()))throw new Error('Your authenticated session could not be verified.');
   const existing=await loadProfile();
   if(intent==='signup'){
-   if(existing){enterGame(false);return;}
+   if(existing){returnExistingSignupToLogin();return;}
    openProfile();
    return;
   }
