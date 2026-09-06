@@ -1,0 +1,51 @@
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div class="world-dock">
+ <nav class="module-rail" aria-label="Game sections">
+  @foreach(var module in Modules)
+  {
+   <button type="button" class="module-button @(_active==module.Key?"active":"")" @onclick="()=>OpenModule(module.Key)" aria-pressed="@(_active==module.Key)">
+    <span>@module.Label</span>
+   </button>
+  }
+ </nav>
+ <section class="dock-content" aria-label="@ActiveLabel">
+  <WorldFooter />
+ </section>
+</div>
+
+@code{
+ static readonly (string Key,string Label)[] Modules=[
+  ("profile","User Profile"),("chat","Chat"),("dice","Dice"),("map-tools","Map Tools"),("cast","Cast"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns/Meeples"),("tiles","Tiles"),("terrain","Terrains"),("sprites","Sprites"),("bits","Bits"),("logs","Logs"),("custom","Custom1"),("library","Library"),("add","+")
+ ];
+ string _active="chat";
+ string ActiveLabel=>Modules.First(x=>x.Key==_active).Label;
+
+ async Task OpenModule(string key)
+ {
+  _active=key;
+  switch(key)
+  {
+   case "profile": Session.OpenAccountViewer(); break;
+   case "chat": break;
+   case "dice": await JS.InvokeVoidAsync("eval","document.querySelector('.dice-tray-toggle')?.click()"); break;
+   case "cards": if(!Session.CardBrowserOpen)Session.ToggleCardBrowser(); break;
+   case "tokens": OpenAsset("pin"); break;
+   case "minis": OpenAsset("mini"); break;
+   case "rolling-stock": OpenAsset("rolling-stock"); break;
+   case "pawns": OpenAsset("pawn"); break;
+   case "tiles": OpenAsset("tile"); break;
+   case "terrain": OpenAsset("terrain"); break;
+   case "bits": OpenAsset("bit"); break;
+   case "library": if(!Session.TileBrowserOpen)Session.ToggleTileBrowser(); break;
+  }
+ }
+
+ void OpenAsset(string kind)
+ {
+  Session.PieceKind=kind;
+  if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();
+  Session.Notify();
+ }
+}
