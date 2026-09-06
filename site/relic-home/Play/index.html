@@ -4,112 +4,52 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
  <meta name="color-scheme" content="dark">
- <title>Shaelvien — RIST</title>
+ <meta name="theme-color" content="#05070d">
+ <title>Shaelvien — RIST MMO / Sandbox</title>
  <style>
-  :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f3ead0;background:#030608}
+  :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#05070d}
   *{box-sizing:border-box}
-  html,body{margin:0;min-height:100%;background:#030608}
+  html,body{margin:0;width:100%;height:100%;background:#05070d}
   body{min-height:100dvh;overflow:hidden}
   button,input,select{font:inherit}
-  button,select,input{touch-action:manipulation}
-  .screen{position:fixed;inset:0;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));background:radial-gradient(circle at 18% 26%,rgba(66,112,128,.3),transparent 33%),radial-gradient(circle at 82% 72%,rgba(145,61,34,.28),transparent 35%),linear-gradient(120deg,#071117 0 49.8%,#160b08 50.2% 100%)}
-  .screen::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 48.8%,rgba(238,201,115,.15) 50%,transparent 51.2%);pointer-events:none}
-  .screen::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.66) 100%);pointer-events:none}
-  .panel{position:relative;z-index:1;width:min(92vw,580px);max-height:min(88dvh,760px);overflow:auto;padding:30px 28px 26px;border:1px solid rgba(193,158,79,.64);border-radius:14px;background:rgba(3,8,11,.9);box-shadow:0 24px 70px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.04);text-align:center;scrollbar-gutter:stable}
-  .panel.title-panel{background:rgba(3,8,11,.36);border-color:rgba(227,201,126,.36);backdrop-filter:blur(3px)}
-  .brand{margin:0;color:#e3c97e;font-weight:950;letter-spacing:.2em;font-size:clamp(28px,8vw,58px);text-shadow:0 2px 18px #000}
-  .subtitle{margin:5px 0 24px;color:#c7d0d3;font-weight:800;letter-spacing:.12em;font-size:clamp(12px,2.7vw,16px)}
-  .prompt{margin:0 0 18px;color:#d7dfe1;line-height:1.5}
-  .continue-prompt{display:inline-block;margin-top:32px;min-height:48px;padding:12px 18px;border:0;background:transparent;color:#f1dfaa;font-weight:900;letter-spacing:.08em;cursor:pointer;animation:pulse 1.8s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:.56}50%{opacity:1}}
-  .actions{display:grid;gap:11px;margin-top:18px}
-  .actions.two{grid-template-columns:1fr 1fr}
-  .actions button{min-height:52px;padding:10px 14px;border:1px solid #9a7b3c;border-radius:8px;background:#152229;color:#f1dfaa;font-weight:900;letter-spacing:.02em;cursor:pointer}
-  .actions button.secondary{border-color:#516069;background:#0d151a;color:#d9e1e4}
-  .actions button:disabled{opacity:.45;cursor:default}
-  button:focus-visible,input:focus-visible,select:focus-visible,.continue-prompt:focus-visible{outline:3px solid #f0d07d;outline-offset:3px}
-  .form{display:grid;gap:14px;text-align:left}
-  .form label:not(.check){display:grid;gap:8px;color:#dac681;font-weight:800}
-  .form input[type=text],.form select{width:100%;min-height:48px;padding:10px 11px;border:1px solid #667982;border-radius:7px;background:#071015;color:#f1f5f6}
-  .check{display:flex;gap:12px;align-items:flex-start;color:#d3dadd;line-height:1.45}.check input{width:22px;height:22px;margin:1px 0 0;flex:0 0 auto}
-  .welcome-title,.menu-title{margin:0 0 8px;color:#e3c97e;font-size:clamp(22px,5vw,32px)}
-  .setting-summary{margin:14px 0 0;padding:12px;border:1px solid #394950;border-radius:8px;background:#071015;color:#cbd5da;line-height:1.45;text-align:left}
-  .error{min-height:1.4em;margin:14px 0 0;color:#ffb6aa;font-weight:800}
-  .status{margin:10px 0 0;color:#b0c0c7;font-size:13px}
-  .desktop-back{display:none;position:absolute;z-index:2;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));min-width:48px;min-height:48px;border:1px solid rgba(227,201,126,.45);border-radius:50%;background:rgba(3,8,11,.78);color:#f1dfaa;font-size:24px;cursor:pointer}
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-  @media (hover:hover) and (pointer:fine){.desktop-back.visible{display:block}}
-  @media (max-width:520px){.panel{width:min(94vw,580px);padding:24px 18px}.actions.two{grid-template-columns:1fr}}
-  @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.continue-prompt{animation:none}}
-  @media (prefers-contrast:more){.panel,.actions button,.form input,.form select{border-width:2px}.status{color:#d6e1e5}}
+  .screen{position:fixed;inset:0;display:grid;place-items:end center;padding:max(22px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(34px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));background-image:linear-gradient(to bottom,rgba(1,3,9,.04) 0%,rgba(1,3,9,.08) 48%,rgba(1,3,9,.72) 100%),url('./shaelvien-start.webp'),radial-gradient(circle at 18% 30%,#151333 0,#080914 45%,#1b1008 100%);background-position:center;background-repeat:no-repeat;background-size:cover}
+  .entry{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:clamp(28px,8vw,84px);width:100%;padding:10px 0 2px;text-align:center;text-shadow:0 2px 10px #000,0 0 24px #000}
+  .entry button{appearance:none;border:0;background:transparent;color:#f4e6bf;font-weight:900;font-size:clamp(20px,4vw,30px);letter-spacing:.06em;padding:14px 8px;cursor:pointer;touch-action:manipulation}
+  .entry button:hover,.entry button:focus-visible{color:#fff3c9;text-decoration:underline;text-underline-offset:7px}
+  .entry button:focus-visible,.profile button:focus-visible,.profile input:focus-visible,.profile select:focus-visible{outline:3px solid #f0d07d;outline-offset:4px}
+  .status{position:fixed;left:50%;bottom:max(96px,calc(env(safe-area-inset-bottom) + 84px));transform:translateX(-50%);z-index:3;width:min(92vw,620px);margin:0;text-align:center;color:#f0e7d0;font-size:14px;font-weight:700;text-shadow:0 2px 8px #000}
+  .profile-wrap{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(2,5,10,.74);backdrop-filter:blur(5px)}
+  .profile{width:min(92vw,520px);max-height:90dvh;overflow:auto;padding:24px;border:1px solid rgba(225,199,127,.72);border-radius:14px;background:rgba(7,12,18,.95);box-shadow:0 24px 70px #000b;color:#eee6d2}
+  .profile h1{margin:0 0 6px;color:#e4ca83;font-size:26px}.profile p{margin:0 0 18px;color:#b9b1a0;line-height:1.45}.profile label{display:grid;gap:7px;margin:13px 0;color:#d8c78f;font-weight:800}.profile input,.profile select{width:100%;min-height:48px;padding:10px 11px;border:1px solid #65727a;border-radius:8px;background:#091219;color:#f5f5f5}.terms{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:10px!important;color:#d5d7d8!important;font-weight:600!important;line-height:1.4}.terms input{width:22px;height:22px;min-height:0;flex:0 0 auto;margin:1px 0 0}.profile button{width:100%;min-height:50px;margin-top:12px;border:1px solid #9d8148;border-radius:8px;background:#17242c;color:#f0ddaa;font-weight:900;cursor:pointer}.profile button:disabled{opacity:.5;cursor:default}.profile small{display:block;margin-top:12px;color:#968d7b;line-height:1.4}.error{color:#ffb8ad!important;font-weight:800}
   [hidden]{display:none!important}
+  @media (orientation:portrait){.screen{background-position:center center}.entry{gap:34px}.entry button{font-size:22px}}
+  @media (min-width:1200px){.screen{background-size:cover}}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  @media (prefers-contrast:more){.entry button,.profile{border-width:2px}.entry button{text-shadow:0 2px 4px #000}}
  </style>
 </head>
 <body>
  <main class="screen" aria-label="Shaelvien startup">
-  <button id="desktop-back" class="desktop-back" type="button" aria-label="Go back">←</button>
-
-  <section id="intro" class="panel title-panel">
-   <h1 class="brand">SHAELVIEN</h1>
-   <p class="subtitle">RIST MMO / SANDBOX</p>
-   <button id="continue" class="continue-prompt" type="button">Press any key to continue…</button>
-  </section>
-
-  <section id="launcher" class="panel" hidden aria-live="polite">
-   <h1 class="brand">SHAELVIEN</h1>
-   <p class="subtitle">RIST MMO / SANDBOX</p>
-
-   <div id="entry" hidden>
-    <p class="prompt">Sign in, create an account, or preview the public sandbox.</p>
-    <div class="actions">
-     <button id="signin" type="button">Sign In</button>
-     <button id="signup-open" type="button" class="secondary">Sign Up</button>
-     <button id="preview" type="button" class="secondary">Preview</button>
-    </div>
-   </div>
-
-   <form id="signup" class="form" hidden>
-    <label>Handle<input id="handle" type="text" maxlength="32" autocomplete="nickname" required></label>
-    <label>Plan<select id="plan" required><option value="" selected disabled>Choose Plan…</option><option value="player">Roleplayer — Free</option><option value="gm-player">GameMaster + Roleplayer — Free</option></select></label>
-    <label class="check"><input id="agreements" type="checkbox"><span>I agree to the current account terms and community agreements.</span></label>
-    <div class="actions two">
-     <button id="signup-back" type="button" class="secondary">Back</button>
-     <button type="submit">Continue…</button>
-    </div>
-   </form>
-
-   <div id="welcome" hidden>
-    <h2 class="welcome-title">Welcome to Shaelvien</h2>
-    <p id="welcome-copy" class="prompt">Your account is ready.</p>
-    <div class="actions"><button id="welcome-continue" type="button">Continue</button></div>
-   </div>
-
-   <div id="home" hidden>
-    <h2 class="menu-title">Campaign</h2>
-    <p class="prompt">Choose where you want to continue.</p>
-    <div class="actions">
-     <button id="new-campaign" type="button">New Campaign</button>
-     <button id="load-campaign" type="button">Load Campaign</button>
-     <button id="settings-open" type="button" class="secondary">Settings</button>
-    </div>
-    <div id="setting-summary" class="setting-summary"></div>
-   </div>
-
-   <form id="settings" class="form" hidden>
-    <h2 class="menu-title">Settings</h2>
-    <label>Role<select id="role"><option value="Roleplayer">Roleplayer</option><option value="GameMaster">GameMaster</option></select></label>
-    <label>Domain<select id="domain"><option value="Shaelvien MMO">Shaelvien MMO</option><option value="RIST Sandbox">RIST Sandbox</option></select></label>
-    <p class="prompt">These choices set the game frame and are remembered on this device.</p>
-    <div class="actions two">
-     <button id="settings-back" type="button" class="secondary">Cancel</button>
-     <button type="submit">Save Settings</button>
-    </div>
-   </form>
-
-   <p id="error" class="error" role="alert" aria-live="assertive"></p>
-   <p id="status" class="status" role="status" aria-live="polite"></p>
-  </section>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+  <nav id="entry" class="entry" aria-label="Account access">
+   <button id="login" type="button">Login</button>
+   <button id="signup" type="button">Sign Up</button>
+  </nav>
  </main>
- <script src="./launcher.js?v=20260905-rebuild-1" defer></script>
+
+ <section id="profile-wrap" class="profile-wrap" hidden aria-label="Finish profile">
+  <form id="profile" class="profile">
+   <h1>Finish your profile</h1>
+   <p>You are signed in. Set the account details you want to use, then enter Shaelvien.</p>
+   <label>Player alias<input id="alias" type="text" maxlength="32" autocomplete="nickname" required></label>
+   <label>Plan<select id="plan" required><option value="player">Roleplayer — Free</option><option value="gm-player">GameMaster + Roleplayer — Free</option></select></label>
+   <label class="terms"><input id="terms" type="checkbox"><span>I agree to the current Terms and Privacy Policy.</span></label>
+   <button id="profile-save" type="submit">Save Profile &amp; Enter Game</button>
+   <p id="profile-error" class="error" role="alert" aria-live="assertive"></p>
+   <small>Discord is used to authenticate the account. Your RIST profile is stored separately in your private ReLiC account storage.</small>
+  </form>
+ </section>
+
+ <script src="./launcher.js?v=20260906-direct-auth-1" defer></script>
 </body>
 </html>
