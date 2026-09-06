@@ -1,0 +1,43 @@
+@implements IDisposable
+@inject WorldSession Session
+
+@* One-shot bridge: the first completed WorldSession initialization applies any
+   explicit launcher intent. WorldSession.Launcher safely ignores direct sessions. *@
+@code {
+ bool _armed = true;
+ bool _subscribed;
+
+ protected override void OnInitialized()
+ {
+  Session.Changed += SessionChanged;
+  _subscribed = true;
+ }
+
+ void SessionChanged()
+ {
+  if (!_armed) return;
+  _armed = false;
+  _ = InvokeAsync(ApplyAsync);
+ }
+
+ async Task ApplyAsync()
+ {
+  try
+  {
+   await Session.ApplyLauncherStartupAsync();
+  }
+  finally
+  {
+   Unsubscribe();
+  }
+ }
+
+ void Unsubscribe()
+ {
+  if (!_subscribed) return;
+  Session.Changed -= SessionChanged;
+  _subscribed = false;
+ }
+
+ public void Dispose() => Unsubscribe();
+}
