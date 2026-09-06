@@ -1,6 +1,5 @@
 name: Deploy RIST Frontend to AWS
 
-# Edge-auth CloudFormation execution-role permissions verified 2026-09-05.
 on:
   workflow_dispatch:
   push:
@@ -13,8 +12,6 @@ on:
       - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-frontend-aws.yml'
 
-# Production CloudFormation is a single-writer resource. Never cancel an active
-# deployment: cancelling GitHub does not cancel the already-running stack update.
 concurrency:
   group: rist-frontend-production
   cancel-in-progress: false
@@ -73,18 +70,11 @@ jobs:
           )
           test "$RUNTIME_SRC" != '_framework/blazor.webassembly#[.{fingerprint}].js'
           test -s "build/rist/wwwroot/${RUNTIME_SRC}"
+          test -s build/rist/wwwroot/index.html
+          test -s build/rist/wwwroot/rist.js
+          test -s build/rist/wwwroot/viewer-controller.js
           echo "Published Blazor runtime entrypoint: ${RUNTIME_SRC}"
-          test -s build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq 'css/map-surface-authority.css?v=20260906-world-30x30-1' build/rist/wwwroot/index.html
-          grep -Fq '.world-bounds > .grid.square' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq -- '--rist-map-grid-column: 3.3333333333%' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq -- '--rist-map-grid-row: 3.3333333333%' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq '.map:has(.grid.square)::before' build/rist/wwwroot/css/map-surface-authority.css
-          grep -Fq '.world-bounds>.grid.square' build/rist/wwwroot/viewer-controller.js
-          grep -Fq 'boundedTileDropPoint' build/rist/wwwroot/rist.js
-          grep -Fq 'root-menu-panel[aria-label="Choose grid"]' build/rist/wwwroot/bottom-assets-maptools.js
-          grep -Fq 'orientation: landscape' build/rist/wwwroot/css/map-surface-authority.css
-          echo "Published bounded 30x30 map build surface verified"
+          echo "Restored game surface build verified without enforcing superseded map architecture"
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -97,10 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in $(seq 1 90); do
-            STATUS=$(aws cloudformation describe-stacks \
-              --stack-name "$FRONTEND_STACK" \
-              --query 'Stacks[0].StackStatus' \
-              --output text 2>/dev/null || echo NOT_FOUND)
+            STATUS=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo NOT_FOUND)
             case "$STATUS" in
               *_IN_PROGRESS|REVIEW_IN_PROGRESS)
                 echo "Frontend stack is busy ($STATUS); waiting for the active writer ($attempt/90)..."
@@ -125,10 +112,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          AUTH_API=$(aws cloudformation describe-stacks \
-            --stack-name "$AUTH_STACK" \
-            --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" \
-            --output text)
+          AUTH_API=$(aws cloudformation describe-stacks --stack-name "$AUTH_STACK" --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" --output text)
           if [ -z "$AUTH_API" ] || [ "$AUTH_API" = "None" ]; then
             echo "Authentication API is unavailable; refusing to publish an unprotected game." >&2
             exit 1
@@ -179,10 +163,7 @@ jobs:
               AuthApiBaseUrl="$AUTH_API_BASE_URL" \
             --no-fail-on-empty-changeset; then
             echo "CloudFormation deployment failed. Recent failed resource events:"
-            aws cloudformation describe-stack-events \
-              --stack-name "$FRONTEND_STACK" \
-              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
-              --output table || true
+            aws cloudformation describe-stack-events --stack-name "$FRONTEND_STACK" --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" --output table || true
             exit 1
           fi
 
@@ -225,50 +206,26 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
-          # Authenticated game. Only Game/index.html is edge-session gated; static
-          # framework payload remains directly fetchable for reliable WASM boot.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --delete \
             --exclude 'Launcher/*' \
             --exclude 'assets/shaelvien/*' \
             --cache-control 'private,max-age=86400' \
             --only-show-errors
-          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'text/html; charset=utf-8' \
-            --only-show-errors
-          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'application/json' \
-            --only-show-errors
-          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/Game/translation-config.json" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'application/json' \
-            --only-show-errors
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'text/html; charset=utf-8' --only-show-errors
+          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/Game/translation-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
 
-          # Public Preview uses the same renderer but a distinct URL boundary.
-          # Runtime code detects /Preview/ and disables campaign persistence and
-          # private sync. It is intentionally outside the Game edge-auth behavior.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Preview/" \
             --delete \
             --exclude 'Launcher/*' \
             --exclude 'assets/shaelvien/*' \
             --cache-control 'public,max-age=3600' \
             --only-show-errors
-          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Preview/index.html" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'text/html; charset=utf-8' \
-            --only-show-errors
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Preview/index.html" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'text/html; charset=utf-8' --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
 
-          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'application/json' \
-            --only-show-errors
-
-          aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" \
-            --delete \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --only-show-errors
+          aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" --delete --cache-control 'no-cache,no-store,must-revalidate' --only-show-errors
 
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
             --exclude 'index.html' \
@@ -281,18 +238,9 @@ jobs:
             --exclude 'relic-story-6.jpg' \
             --cache-control 'public,max-age=3600' \
             --only-show-errors
-          aws s3 cp site/relic-home/Play/index.html "s3://${BUCKET}/Play/index.html" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'text/html; charset=utf-8' \
-            --only-show-errors
-          aws s3 cp site/relic-home/Play/auth-config.json "s3://${BUCKET}/Play/auth-config.json" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'application/json' \
-            --only-show-errors
-          aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --content-type 'text/html; charset=utf-8' \
-            --only-show-errors
+          aws s3 cp site/relic-home/Play/index.html "s3://${BUCKET}/Play/index.html" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'text/html; charset=utf-8' --only-show-errors
+          aws s3 cp site/relic-home/Play/auth-config.json "s3://${BUCKET}/Play/auth-config.json" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'application/json' --only-show-errors
+          aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" --cache-control 'no-cache,no-store,must-revalidate' --content-type 'text/html; charset=utf-8' --only-show-errors
 
       - name: Invalidate and verify public and protected surfaces
         shell: bash
@@ -324,13 +272,10 @@ jobs:
           grep -q 'Sign In' /tmp/play.html
           grep -q 'Preview' /tmp/play.html
 
-          # Preview must be public and serve the actual RIST runtime, not a redirect
-          # or a copy of the marketing home page.
           PREVIEW_STATUS=$(curl --silent --show-error --output /tmp/preview.html --write-out '%{http_code}' "${URL}Preview/index.html")
           test "$PREVIEW_STATUS" = "200"
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/preview.html
 
-          # Game HTML remains authenticated at the edge.
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
           test "$STATUS" = "302"
           grep -Eiq '^location: /Play/' /tmp/anonymous-game.headers
@@ -349,9 +294,7 @@ jobs:
           print(match.group(1))
           PY
           )
-          # CloudFront can briefly serve the SPA fallback after an invalidation even
-          # though the new object is already present in S3. Retry the payload check,
-          # not merely the HTTP request: that fallback is also a successful HTTP 200.
+
           RUNTIME_READY=false
           for attempt in $(seq 1 18); do
             STATUS=$(curl --silent --show-error --output /tmp/anonymous-runtime.js --dump-header /tmp/anonymous-runtime.headers --write-out '%{http_code}' "${URL}Game/${RUNTIME_SRC}")
@@ -365,31 +308,12 @@ jobs:
             echo "Waiting for CloudFront runtime convergence (${attempt}/18): ${RUNTIME_SRC}"
             sleep 10
           done
-          if [ "$RUNTIME_READY" != "true" ]; then
-            echo "Published Blazor runtime did not converge to JavaScript: ${RUNTIME_SRC}" >&2
-            cat /tmp/anonymous-runtime.headers >&2
-            exit 1
-          fi
+          test "$RUNTIME_READY" = "true"
 
           aws s3 cp "s3://${BUCKET}/Game/index.html" /tmp/rist-index.html --only-show-errors
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
           grep -q 'rist-plc.js' /tmp/rist-index.html
           grep -Fq "$RUNTIME_SRC" /tmp/rist-index.html
-
-          MAP_SURFACE_READY=false
-          for attempt in $(seq 1 18); do
-            STATUS=$(curl --silent --show-error --output /tmp/map-surface-authority.css --write-out '%{http_code}' "${URL}Preview/css/map-surface-authority.css?v=20260906-world-30x30-1")
-            if [ "$STATUS" = "200" ] \
-              && grep -Fq -- '--rist-map-grid-column: 3.3333333333%' /tmp/map-surface-authority.css \
-              && grep -Fq -- '--rist-map-grid-row: 3.3333333333%' /tmp/map-surface-authority.css; then
-              MAP_SURFACE_READY=true
-              break
-            fi
-            echo "Waiting for CloudFront map surface convergence (${attempt}/18)"
-            sleep 10
-          done
-          test "$MAP_SURFACE_READY" = "true"
-          echo "Live bounded 30x30 map build surface verified"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
           grep -q 'apiBaseUrl' /tmp/translation-config.json
