@@ -29,7 +29,7 @@
 
     <section class="rist-user-account-card worldfold-card">
      <h3>WorldFolds</h3>
-     <div class="account-pair"><span>Current coordinates</span><strong>@Session.WorldCoordinateLabel</strong></div>
+     <div class="account-pair"><span>Current coordinates</span><strong>@WorldFoldCoordinateLabel</strong></div>
      <div class="account-pair private-code-row"><span>Private code</span><strong>@(_showCode ? _privateProfile.WorldFoldPrivateCode : MaskCode(_privateProfile.WorldFoldPrivateCode))</strong></div>
      <button type="button" class="account-small-button" @onclick="()=>_showCode=!_showCode">@(_showCode?"Hide code":"Reveal code")</button>
      <small class="account-help">The WorldFold code is private account metadata. It is not a login credential.</small>
@@ -87,6 +87,9 @@
  string RoleLabel=>Session.Role=="GM"?"GameMaster":"RolePlayer";
  string DomainLabel=>Session.IsMmoMode?"MMO":"SandBox";
  string DomainClass=>Session.IsMmoMode?"mmo":"sandbox";
+ string WorldFoldCoordinateLabel=>Session.IsMmoMode
+  ? (Auth.IsOwnerDiscordAccount ? "0,0,0" : (string.IsNullOrWhiteSpace(_privateProfile.MmoWorldFoldCoordinates)?"Not assigned":_privateProfile.MmoWorldFoldCoordinates))
+  : (string.IsNullOrWhiteSpace(_privateProfile.SandboxWorldFoldCoordinates)?"Not assigned":_privateProfile.SandboxWorldFoldCoordinates);
  string PlanLabel=>Auth.Account?.Plan switch{"gm-player"=>"GM + Player","player"=>"Player",null=>"—",var value=>value};
 
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
@@ -114,11 +117,18 @@
   {
    var saved=await Auth.DownloadJsonAsync<UserAccountPrivateProfile>(PrivateProfileKey);
    if(saved is not null)_privateProfile=saved;
+   var changed=false;
+   if(Auth.IsOwnerDiscordAccount&&!string.Equals(_privateProfile.MmoWorldFoldCoordinates,"0,0,0",StringComparison.Ordinal))
+   {
+    _privateProfile.MmoWorldFoldCoordinates="0,0,0";
+    changed=true;
+   }
    if(string.IsNullOrWhiteSpace(_privateProfile.WorldFoldPrivateCode))
    {
     _privateProfile.WorldFoldPrivateCode=Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-    await SavePrivateProfileAsync(false);
+    changed=true;
    }
+   if(changed)await SavePrivateProfileAsync(false);
   }
   catch{_saveStatus="Private account details could not be loaded.";}
   await InvokeAsync(StateHasChanged);
@@ -142,6 +152,8 @@
  sealed class UserAccountPrivateProfile
  {
   public string WorldFoldPrivateCode{get;set;}="";
+  public string MmoWorldFoldCoordinates{get;set;}="";
+  public string SandboxWorldFoldCoordinates{get;set;}="";
   public string CustomPlayerNotes{get;set;}="";
  }
 }
