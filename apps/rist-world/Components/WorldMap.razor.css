@@ -1,9 +1,10 @@
 /* Canonical Shaelvien viewer map. New worlds are a fixed 30 x 30 logical scene. */
-.map-shell{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
-.map{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;container-type:size!important;--rist-grid-cell:calc(100cqw / 30)}
+.table-workspace{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important}
+.map-shell{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important}
+.map{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;container-type:size!important;--rist-grid-cell:calc(100cqw / 30);background:transparent!important}
 .world-stage{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;transform-origin:0 0!important;overflow:hidden!important;background:transparent!important}
 .world-stage>.base,.world-stage>.grid{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important}
-.base.ocean-world{z-index:0!important;background-color:transparent!important;background-image:none!important}
+.base.ocean-world{z-index:0!important;background:transparent!important;background-image:none!important}
 .base.ocean-world::after{display:none!important}
 .world-stage>.grid{z-index:1!important;pointer-events:none!important;background:none!important}
 .world-stage>.grid.square,.world-stage>.grid.hex,.world-stage>.grid.none{background:none!important}
@@ -12,8 +13,7 @@
 .world-stage>.tile-cell>.tile-image-crop>img{display:block!important;min-width:100%!important;min-height:100%!important;border:0!important;outline:0!important;vertical-align:top!important}
 .world-stage>.tile-cell,.world-stage>.piece,.world-stage>.map-zone-label,.world-stage>.pin-label-callout,.world-stage>.rolled-die{z-index:2!important}
 .base.ocean-world>img:first-of-type{display:none!important}
-.status,.map-status,.coordinate-readout,.map-coordinate-readout,.map-coordinates,.coordinates,.coords,.viewport-coordinates{display:none!important}
-.map::before,.map::after{content:none!important;display:none!important}
+.status,.map-status,.coordinate-readout,.map-coordinate-readout{display:none!important}
 .desktop-map-zoom{position:absolute!important;right:8px!important;bottom:8px!important;top:auto!important;left:auto!important;z-index:55!important;display:flex!important;gap:5px!important}
 .desktop-map-zoom button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:0!important;border-radius:8px!important}
 @media(pointer:coarse){.desktop-map-zoom{display:none!important}}
