@@ -127,7 +127,6 @@
     <div class="recursive-region-actions" role="toolbar" aria-label="Local region selection" @onpointerdown:stopPropagation="true"><strong>@Session.RecursiveRegionSelectionCount tile@(Session.RecursiveRegionSelectionCount==1?"":"s") selected</strong><button @onclick="Session.CommitRecursiveRegion" disabled="@(!Session.HasRecursiveRegionSelection)">Commit to @Session.NextRecursiveLayer</button><button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button></div>
    }
    <div class="world-stage" style="transform:@StageTransform" aria-label="@Session.MapIdentityLabel world map">
-    <div class="world-bounds" @ref="WorldBoundsElement" aria-label="30 by 30 water world bounds">
     <div class="base ocean-world" aria-label="@Session.MapIdentityLabel ocean base"></div>
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
@@ -152,7 +151,6 @@
       <div class="piece @p.Kind" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">@p.Kind</div>
      }
     }
-    </div>
    </div>
    <div class="status">@Session.MapIdentityLabel • @StatusText • @Session.WorldCoordinateLabel • drag • pinch • @($"{G.Zoom:0.0}x")</div>
   </div>

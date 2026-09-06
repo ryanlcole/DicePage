@@ -1,9 +1,9 @@
 /*
  * Canonical empty RIST world cube.
  *
- * A new cube is a bounded 30 x 30 field of one-mile water cells. Ocean 071
- * is rendered as the implicit terrain layer rather than creating 900 DOM
- * nodes or saved placement records. Space outside that field remains null.
+ * A new cube is 100 x 100 logical one-mile cells. Ocean 071 is rendered as
+ * the implicit terrain layer rather than creating 10,000 DOM nodes or saved
+ * placement records. Authored terrain remains sparse and sits above it.
  */
 
 /* The map section owns one continuous canvas. Coordinate/status rulers overlay that
@@ -37,6 +37,11 @@
     margin: 0 !important;
     overflow: hidden !important;
     container-type: size !important;
+
+    /* WORLD is 100 miles wide and every WORLD column is exactly one mile.
+       Using the map width (not the smaller viewport axis) keeps Ocean 071 and
+       the square grid locked to the same 100-column coordinate system. */
+    --rist-grid-cell: 1cqw;
 }
 
 .world-stage {
@@ -53,24 +58,8 @@
     overflow: hidden !important;
 }
 
-.world-bounds {
-    box-sizing: border-box !important;
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    width: var(--rist-world-size, min(100cqw, 100cqh)) !important;
-    height: var(--rist-world-size, min(100cqw, 100cqh)) !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    transform: translate(-50%, -50%) !important;
-    overflow: hidden !important;
-    isolation: isolate !important;
-    background: transparent !important;
-    --rist-grid-cell: 3.3333333333%;
-}
-
-.world-stage > .world-bounds > .base,
-.world-stage > .world-bounds > .grid {
+.world-stage > .base,
+.world-stage > .grid {
     box-sizing: border-box !important;
     position: absolute !important;
     inset: 0 !important;
@@ -80,8 +69,10 @@
     min-height: 100% !important;
 }
 
-/* WorldMap.razor renders the Ocean 071 base inside .world-bounds.
-   Exactly 30 tile repeats fill the square world; outside remains null. */
+/* WorldMap.razor renders <div class="base ocean-world">.
+   Ocean 071 is the canonical one-mile WORLD terrain tile. The tile repeat and
+   square-grid repeat use the exact same cell variable, so the water starts
+   aligned to the one-mile grid rather than drifting between cells. */
 .base.ocean-world {
     z-index: 0 !important;
     background-color: #0a3040 !important;
@@ -92,7 +83,9 @@
     image-rendering: auto !important;
 }
 
-/* Break up the obvious wallpaper effect without changing the one-mile tile geometry. */
+/* Break up the obvious wallpaper effect without changing the one-mile tile
+   geometry. This is a low-contrast, large-scale water-light variation above
+   Ocean 071; it adds depth while keeping Ocean 071 itself as the terrain. */
 .base.ocean-world::after {
     content: "" !important;
     position: absolute !important;
@@ -106,31 +99,34 @@
     mix-blend-mode: soft-light !important;
 }
 
-.world-stage > .world-bounds > .grid {
+.world-stage > .grid {
     z-index: 1 !important;
     pointer-events: none !important;
     background-position: 0 0 !important;
 }
 
-/* Square mode shares the exact 30 by 30 Ocean 071 repeat. */
-.world-stage > .world-bounds > .grid.square {
+/* Square mode shares the exact Ocean 071 repeat. One repeat = one mile. */
+.world-stage > .grid.square {
     background-image:
         linear-gradient(to right, rgba(217, 199, 145, .42) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(217, 199, 145, .42) 1px, transparent 1px) !important;
     background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
 }
 
-.world-stage > .world-bounds > .grid.hex {
+/* Hex mode is owned only by the hex grid rules; square rules never bleed into it. */
+.world-stage > .grid.hex {
     background-size: auto !important;
 }
 
-.world-stage > .world-bounds > .grid.none {
+/* None means no visual grid at all. */
+.world-stage > .grid.none {
     background-image: none !important;
     background: none !important;
 }
 
-/* Authored tiles must meet edge-to-edge. */
-.world-stage > .world-bounds > .tile-cell {
+/* Authored tiles must meet edge-to-edge. Never let borders, inline-image
+   baselines, padding, or rounding reveal white seams around a placed tile. */
+.world-stage > .tile-cell {
     box-sizing: border-box !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -141,7 +137,7 @@
     background: transparent !important;
 }
 
-.world-stage > .world-bounds > .tile-cell > .tile-image-crop {
+.world-stage > .tile-cell > .tile-image-crop {
     position: absolute !important;
     inset: -0.35px !important;
     display: block !important;
@@ -153,7 +149,7 @@
     line-height: 0 !important;
 }
 
-.world-stage > .world-bounds > .tile-cell > .tile-image-crop > img {
+.world-stage > .tile-cell > .tile-image-crop > img {
     display: block !important;
     min-width: 100% !important;
     min-height: 100% !important;
@@ -162,47 +158,16 @@
     vertical-align: top !important;
 }
 
-.world-stage > .world-bounds > .tile-cell,
-.world-stage > .world-bounds > .piece,
-.world-stage > .world-bounds > .map-zone-label,
-.world-stage > .world-bounds > .pin-label-callout,
-.world-stage > .world-bounds > .rolled-die {
-    position: absolute !important;
+/* Authored terrain, pieces, pins, labels and dice remain above base/grid. */
+.world-stage > .tile-cell,
+.world-stage > .piece,
+.world-stage > .map-zone-label,
+.world-stage > .pin-label-callout,
+.world-stage > .rolled-die {
     z-index: 2 !important;
 }
 
 /* Legacy fallback art must never cover the canonical Ocean 071 cube. */
 .base.ocean-world > img:first-of-type {
     display: none !important;
-}
-
-/*
- * VIEWER GRID — independent of the authored world transform.
- * This rule intentionally lives in the component stylesheet so the scoped
- * WorldMap rules cannot suppress it. The world may pan/zoom beneath it while
- * the viewer retains ten square cells along its shorter side.
- */
-.map:has(.world-bounds > .grid.square)::before {
-    content: "" !important;
-    box-sizing: border-box !important;
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 2147483000 !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: none !important;
-    background-color: transparent !important;
-    background-image:
-        linear-gradient(to right, rgba(242, 220, 151, .82) 1.5px, transparent 1.5px),
-        linear-gradient(to bottom, rgba(242, 220, 151, .82) 1.5px, transparent 1.5px) !important;
-    background-size: min(10cqw, 10cqh) min(10cqw, 10cqh) !important;
-    background-position: 0 0 !important;
-    background-repeat: repeat !important;
-}
-
-.map:has(.world-bounds > .grid.none)::before {
-    content: none !important;
-    display: none !important;
-    background: none !important;
 }
