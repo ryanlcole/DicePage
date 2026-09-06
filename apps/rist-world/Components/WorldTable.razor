@@ -20,19 +20,18 @@
    <div class="viewer-frame">
     <header class="viewer-frame-top" aria-label="Viewer identity">
      <span class="viewer-mode" data-world-mode="mmo">MMO</span>
-     <strong class="viewer-world-name">@(string.IsNullOrWhiteSpace(Session.MapAlias)?"World":Session.MapAlias)</strong>
+     <strong class="viewer-world-name">@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</strong>
      <span class="viewer-role">@(Session.Role=="GM"?"GameMaster":"Roleplayer")</span>
     </header>
-    <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span>30</span><span>20</span><span>10</span><span>0</span></aside>
+    <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span>29</span><span>20</span><span>10</span><span>0</span></aside>
     <div class="viewer-map"><WorldMap /></div>
     <aside class="viewer-ruler viewer-ruler-z" aria-label="Z axis"><span>3</span><span>2</span><span>1</span><span>0</span></aside>
-    <footer class="viewer-ruler viewer-ruler-x" aria-label="X axis"><span>0</span><span>10</span><span>20</span><span>30</span></footer>
+    <footer class="viewer-ruler viewer-ruler-x" aria-label="X axis"><span>0</span><span>10</span><span>20</span><span>29</span></footer>
    </div>
    <div class="map-viewer-overlays" aria-live="polite">
     <CardLibraryViewerNav />
     <AccountAccessViewer />
     <AssetLibrary />
-    <RecursionCockpit />
     <CharacterMixer />
     <MmoZoneActions />
     <RistWelcomeTutorial />
