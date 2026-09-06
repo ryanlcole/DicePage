@@ -11,11 +11,11 @@ Parameters:
     Description: Secrets Manager ARN containing the Discord client secret
   FrontendOrigin:
     Type: String
-    Default: https://ryanlcole.github.io
+    Default: https://relicgamemaster.com
     Description: Browser origin only; do not include a path or trailing slash
   FrontendUrl:
     Type: String
-    Default: https://ryanlcole.github.io/DicePage/app/
+    Default: https://relicgamemaster.com/Play/index.html
   SessionHours:
     Type: Number
     Default: 12
