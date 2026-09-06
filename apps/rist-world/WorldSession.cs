@@ -5,7 +5,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession(HttpClient http, IJSRuntime js, DiscordAuthClient auth)
 {
-    private const string SaveKey = "rist.world.blazor.v7";
+    private const string SaveKey = "rist.world.blazor.v6";
     public event Action? Changed;
     public List<AtlasTile> AtlasTiles { get; } = [];
     public List<CardItem> Cards { get; } = [];
@@ -73,10 +73,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public bool HeaderPinDragging { get; private set; }
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; private set; } = "mi";
-    public const int GridColumns = 30;
-    public const int GridRows = 30;
+    public const int GridColumns = 20;
+    public const int GridRows = 13;
     public int GridDiameter { get; set; } = 48;
-    public double GridDistance { get; set; } = 1;
+    public double GridDistance { get; set; } = 5;
     public double GridCalibrationZoom { get; set; } = 1;
     public double ViewZoom { get; set; } = 1;
     public double GridCellWidthPercent => 100.0 / GridColumns;
@@ -156,11 +156,7 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
         RegisterNaejaMapTiles();
         if(!await TryLoadSavedMapAsync())BuildNaejaMapTilemap();
         await LoadCardsAsync();
-        // Authentication is resolved once by AuthenticatedWorld before the world mounts.
-        // Preview intentionally arrives here with no authenticated profile. Re-reading
-        // the account service here created a second startup/network authority and could
-        // race launcher state, so WorldSession only consumes the resolved auth state.
-        var profile=auth.Profile;
+        var profile=await auth.InitializeAsync();
         IsLoggedIn=profile is not null;
         DiscordDisplayName=profile?.DisplayName??"";
         if(!IsLoggedIn)Role="PC";

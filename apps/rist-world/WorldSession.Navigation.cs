@@ -1,7 +1,7 @@
 namespace RistWorld;
 public sealed partial class WorldSession
 {
- public static string[] TableLayers => RecursionTiers;
+ public static readonly string[] TableLayers = RecursionTiers;
  public string Layer { get; private set; } = "WORLD";
  public bool EncounterActive { get; private set; }
  public string? RecurseTarget { get; private set; }

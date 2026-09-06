@@ -1,7 +1,6 @@
 @implements IDisposable
 @inject WorldSession Session
 @inject IJSRuntime JS
-@inject NavigationManager Navigation
 
 <style>
  /* Canonical vertical rhythm.
@@ -55,8 +54,8 @@
  }
  .world-context-menu.active{border-color:#b6964e!important;background:#172229!important}
  .world-context-login{justify-self:end!important}
- /* Account entry belongs to /Play. The legacy header door is hidden while the
-    context-row command below owns Login / Log Out inside the runtime. */
+ /* Login now lives at the right edge of the Stars row. Keep the original
+    Blazor button alive only as the account command source. */
  #header-slider .release-root-track>.door-button{display:none!important}
 
  .rist.release-world{
@@ -121,185 +120,204 @@
   flex:0 0 auto!important;
  }
 
- /* Public/Private = Menu row n + Slider row 2n. */
+ /* Public assets = menu n + slider 2n. */
  .rist.release-world .release-public-region,
- .rist.release-world .release-private-region{
+ .rist.release-world .release-public-region>.public-assets-rail{
+  box-sizing:border-box!important;
+  width:100%!important;
   height:var(--rist-assets-h)!important;
   min-height:var(--rist-assets-h)!important;
   max-height:var(--rist-assets-h)!important;
  }
- .rist.release-world .release-public-region>.hand-card-slider,
- .rist.release-world .release-private-region>.hand-card-slider{
-  box-sizing:border-box!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  max-height:100%!important;
+ .rist.release-world .release-public-region>.public-assets-rail{
   display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:var(--rist-assets-menu-h) var(--rist-assets-slider-h)!important;
-  gap:0!important;
-  overflow:hidden!important;
  }
- .rist.release-world .release-public-region .hand-title-row,
- .rist.release-world .release-private-region .hand-title-row{
+ .rist.release-world .release-public-region .asset-rail-header{
   box-sizing:border-box!important;
-  height:var(--rist-assets-menu-h)!important;
-  min-height:var(--rist-assets-menu-h)!important;
-  max-height:var(--rist-assets-menu-h)!important;
- }
- .rist.release-world .release-public-region .hand-card-scroll,
- .rist.release-world .release-private-region .hand-card-scroll{
-  box-sizing:border-box!important;
-  height:var(--rist-assets-slider-h)!important;
-  min-height:var(--rist-assets-slider-h)!important;
-  max-height:var(--rist-assets-slider-h)!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
- }
-
- /* Map = p, the only flexible row. Its inner frame remains one n. */
- .rist.release-world .release-map-region{
-  position:relative!important;
-  height:100%!important;
-  min-height:0!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-map-region>.map-shell{
-  box-sizing:border-box!important;
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  max-height:none!important;
-  margin:0!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-map-region .map-top-frame,
- .rist.release-world .release-map-region .map-bottom-frame{
-  height:var(--rist-map-frame-h)!important;
-  min-height:var(--rist-map-frame-h)!important;
-  max-height:var(--rist-map-frame-h)!important;
- }
-
- /* Footer = Roleplay 2n + Chat Menu n + Chat Compose n + 14px legal. */
- .rist.release-world .release-footer-region{
-  box-sizing:border-box!important;
-  height:var(--rist-footer-h)!important;
-  min-height:var(--rist-footer-h)!important;
-  max-height:var(--rist-footer-h)!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-footer-region>.world-footer{
-  box-sizing:border-box!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  display:grid!important;
-  grid-template-rows:var(--rist-roleplay-h) var(--rist-chat-menu-h) var(--rist-chat-compose-h) var(--rist-legal-h)!important;
-  gap:0!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-footer-region .roleplay-strip{
+  grid-column:1!important;
   grid-row:1!important;
-  height:var(--rist-roleplay-h)!important;
-  min-height:var(--rist-roleplay-h)!important;
-  max-height:var(--rist-roleplay-h)!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-footer-region .chat-menu-strip{
-  grid-row:2!important;
-  height:var(--rist-chat-menu-h)!important;
-  min-height:var(--rist-chat-menu-h)!important;
-  max-height:var(--rist-chat-menu-h)!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-footer-region .chat-compose-strip{
-  grid-row:3!important;
-  height:var(--rist-chat-compose-h)!important;
-  min-height:var(--rist-chat-compose-h)!important;
-  max-height:var(--rist-chat-compose-h)!important;
-  overflow:hidden!important;
- }
- .rist.release-world .release-footer-region .legal-strip{
-  grid-row:4!important;
-  height:var(--rist-legal-h)!important;
-  min-height:var(--rist-legal-h)!important;
-  max-height:var(--rist-legal-h)!important;
-  overflow:hidden!important;
- }
-
- /* Keep overlays inside p/map rather than letting any menu become a new page row. */
- .rist.release-world .map-viewer-overlays{
-  box-sizing:border-box!important;
-  position:absolute!important;
-  inset:0!important;
-  z-index:60!important;
-  pointer-events:none!important;
-  overflow:hidden!important;
- }
- .rist.release-world .map-viewer-overlays>*{pointer-events:auto!important}
- .rist.release-world .map-viewer-overlays>.map-asset-viewer,
- .rist.release-world .map-viewer-overlays>.card-library-viewer,
- .rist.release-world .map-viewer-overlays>.account-viewer,
- .rist.release-world .map-viewer-overlays>.recursion-cockpit,
- .rist.release-world .map-viewer-overlays>.character-mixer,
- .rist.release-world .map-viewer-overlays>.mmo-zone-actions,
- .rist.release-world .map-viewer-overlays>.rist-welcome-tutorial{
-  box-sizing:border-box!important;
-  position:absolute!important;
-  inset:0!important;
   width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  margin:0!important;
-  overflow:auto!important;
- }
-
- /* Footer inner controls may be older than the n-system. Force the visible
-    strips to own their row height without changing their functional scripts. */
- .rist.release-world .release-footer-region .chat-slider,
- .rist.release-world .release-footer-region .dice-slider,
- .rist.release-world .release-footer-region .roleplay-chat,
- .rist.release-world .release-footer-region .world-chat{
-  box-sizing:border-box!important;
-  max-height:100%!important;
- }
-
- /* Bottom-catalog panels must live inside their assigned 3n rail. */
- .rist.release-world .bottom-assets-shell{
-  box-sizing:border-box!important;
-  height:100%!important;
-  min-height:0!important;
-  max-height:100%!important;
-  overflow:hidden!important;
- }
- .rist.release-world .bottom-assets-shell .bottom-assets-menu{
-  box-sizing:border-box!important;
   height:var(--rist-assets-menu-h)!important;
   min-height:var(--rist-assets-menu-h)!important;
   max-height:var(--rist-assets-menu-h)!important;
  }
- .rist.release-world .bottom-assets-shell .bottom-assets-rail{
+ .rist.release-world .release-public-region .public-assets-strip{
   box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
   height:var(--rist-assets-slider-h)!important;
   min-height:var(--rist-assets-slider-h)!important;
   max-height:var(--rist-assets-slider-h)!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
  }
 
- /* The older legal/footer authority positioned this strip as though it lived
-    inside a two-row footer. In the canonical grid it is its own 14px row. */
- .rist.release-world .release-footer-region #accessibility-consent-strip{
+ /* Private assets = menu n + slider 2n. */
+ .rist.release-world .release-private-region,
+ .rist.release-world .release-private-region>.private-assets-rail{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:var(--rist-assets-h)!important;
+  min-height:var(--rist-assets-h)!important;
+  max-height:var(--rist-assets-h)!important;
+ }
+ .rist.release-world .release-private-region>.private-assets-rail{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-assets-menu-h) var(--rist-assets-slider-h)!important;
+ }
+ .rist.release-world .release-private-region .asset-rail-header{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:var(--rist-assets-menu-h)!important;
+  min-height:var(--rist-assets-menu-h)!important;
+  max-height:var(--rist-assets-menu-h)!important;
+ }
+ .rist.release-world .release-private-region .private-assets-strip{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
+  height:var(--rist-assets-slider-h)!important;
+  min-height:var(--rist-assets-slider-h)!important;
+  max-height:var(--rist-assets-slider-h)!important;
+ }
+
+ /* Map is the p row: it owns every pixel left after fixed rows. */
+ .rist.release-world .release-map-region{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world .release-map-region>.table-workspace{
+  box-sizing:border-box!important;
+  position:relative!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world .release-map-region>.table-workspace>.staging-tray.pallet{display:none!important}
+ .rist.release-world .release-map-region>.table-workspace>.map-shell{
   box-sizing:border-box!important;
   position:relative!important;
   inset:auto!important;
-  left:auto!important;
-  right:auto!important;
-  bottom:auto!important;
-  grid-row:4!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-map-frame-h) minmax(0,1fr) var(--rist-map-frame-h)!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  background:#071015!important;
+ }
+ .rist.release-world .release-map-region>.table-workspace>.map-shell>.map{
+  box-sizing:border-box!important;
+  position:relative!important;
+  inset:auto!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world .release-map-region>.table-workspace:has(>.encounter-control-rail){grid-template-rows:auto minmax(0,1fr)!important}
+ .rist.release-world .release-map-region>.table-workspace:has(>.encounter-control-rail)>.map-shell{grid-row:2!important}
+
+ /* Footer = roleplay 2n / chat menu 1n / chat 1n / copyright. */
+ .rist.release-world .release-footer-region,
+ .rist.release-world .release-footer-region>.release-footer-stack{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:var(--rist-footer-h)!important;
+  min-height:var(--rist-footer-h)!important;
+  max-height:var(--rist-footer-h)!important;
+  margin:0!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world .release-footer-region>.release-footer-stack{
+  position:relative!important;
+  inset:auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-roleplay-h) calc(var(--rist-chat-menu-h) + var(--rist-chat-compose-h)) var(--rist-legal-h)!important;
+ }
+ .rist.release-world .release-footer-stack>.inline-chat-output{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:var(--rist-roleplay-h)!important;
+  min-height:var(--rist-roleplay-h)!important;
+  max-height:var(--rist-roleplay-h)!important;
+  padding:8px 12px!important;
+  overflow:hidden!important;
+ }
+ .rist.release-world .release-footer-stack>.footer-dock,
+ .rist.release-world .release-footer-stack .home-inline-chat{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
+  height:calc(var(--rist-chat-menu-h) + var(--rist-chat-compose-h))!important;
+  min-height:calc(var(--rist-chat-menu-h) + var(--rist-chat-compose-h))!important;
+  max-height:calc(var(--rist-chat-menu-h) + var(--rist-chat-compose-h))!important;
+ }
+ .rist.release-world .release-footer-stack .home-inline-chat{
+  position:relative!important;
+  inset:auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:var(--rist-chat-menu-h) var(--rist-chat-compose-h)!important;
+ }
+ .rist.release-world .release-footer-stack .chat-mode-rail{
+  box-sizing:border-box!important;
+  grid-row:1!important;
+  width:100%!important;
+  height:var(--rist-chat-menu-h)!important;
+  min-height:var(--rist-chat-menu-h)!important;
+  max-height:var(--rist-chat-menu-h)!important;
+ }
+ .rist.release-world .release-footer-stack .chat-compose-rail{
+  box-sizing:border-box!important;
+  grid-row:2!important;
+  width:100%!important;
+  height:var(--rist-chat-compose-h)!important;
+  min-height:var(--rist-chat-compose-h)!important;
+  max-height:var(--rist-chat-compose-h)!important;
+ }
+ .rist.release-world .release-footer-stack>.site-copyright-notice{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:3!important;
   width:100%!important;
   height:var(--rist-legal-h)!important;
   min-height:var(--rist-legal-h)!important;
@@ -375,9 +393,7 @@
  void ToggleContextMenu()=>_contextMenuOpen=!_contextMenuOpen;
  async Task ContextLoginClicked()
  {
-  if(Session.IsLoggedIn)
-   await Session.ToggleLoginAsync();
-  Navigation.NavigateTo("/Play/", forceLoad:true);
+  await JS.InvokeVoidAsync("eval","document.querySelector('#header-slider .door-button')?.click()");
  }
 
  async Task AutosaveLoopAsync(CancellationToken token)

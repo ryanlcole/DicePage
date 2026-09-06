@@ -157,17 +157,16 @@ def normalize_imported_images():
     for source in sorted(source_root.rglob('*')):
         if not source.is_file() or source.suffix.lower() not in IMPORT_FORMATS:
             continue
+        if source.stat().st_size < 256:
+            continue
+
         relative = source.relative_to(source_root)
         try:
-            with Image.open(source) as opened:
-                opened.verify()
             with Image.open(source) as opened:
                 normalized, transparent = _remove_edge_background(opened)
                 digest = _image_digest(normalized)
         except Exception as exc:
-            print(f'asset-normalize-reject source={source} error={type(exc).__name__}: {exc}')
-            if prune_legacy and source.suffix.lower() in LEGACY_IMPORT_FORMATS:
-                source.unlink(missing_ok=True)
+            print(f'asset-normalize-skip source={source} error={type(exc).__name__}: {exc}')
             continue
 
         source_web = 'assets/chat-imports/2026-08-30/' + relative.as_posix()

@@ -2,9 +2,9 @@ using System.Text.Json;
 namespace RistWorld;
 public sealed partial class WorldSession
 {
- const string PrivateWorldCheckpointKey="maps/Shaelvien-current-30x30-v1.ristmap";
- const string OceanResetVersion="2026-09-06-30x30-ocean-v1";
- const string OceanResetMarkerKey="rist.world.reset.2026-09-06-30x30-ocean-v1";
+ const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ const string OceanResetVersion="2026-08-28-topology-v2";
+ const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
@@ -16,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=6,
+   Version=5,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,
@@ -40,25 +40,15 @@ public sealed partial class WorldSession
   };
  }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync()
- {
-  if(PublicPreviewMode){PrivateStorageStatus="Public preview · changes are not saved.";Notify();return;}
-  await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
- }
- public async Task SaveAndToggleExportAsync()
- {
-  if(PublicPreviewMode){PrivateStorageStatus="Public preview · saving is disabled.";Notify();return;}
-  await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();
- }
+ public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
+ public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
-  if(PublicPreviewMode){PrivateStorageStatus="Public preview · private sync is disabled.";Notify();return;}
   if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
   await SavePrivateCheckpointAsync(showSuccess:true);
  }
  async Task SavePrivateCheckpointAsync(bool showSuccess,string? snapshot=null)
  {
-  if(PublicPreviewMode)return;
   try
   {
    var json=snapshot??ExportMapJson();
@@ -72,7 +62,6 @@ public sealed partial class WorldSession
  }
  public async Task LoadPrivateCheckpointAsync()
  {
-  if(PublicPreviewMode)return;
   if(!IsLoggedIn)return;
   try
   {
@@ -101,38 +90,15 @@ public sealed partial class WorldSession
  }
  public async Task AutoSavePrivateAsync()
  {
-  if(PublicPreviewMode)return;
   if(!IsLoggedIn)return;
   var json=ExportMapJson();
   if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
   await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
  }
- public async Task DownloadMapAsync()
- {
-  if(PublicPreviewMode){PrivateStorageStatus="Public preview · export is disabled.";Notify();return;}
-  var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");
- }
- public async Task ShareMapAsync()
- {
-  if(PublicPreviewMode){PrivateStorageStatus="Public preview · sharing is disabled.";Notify();return;}
-  var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");
- }
+ public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
-  // Preview always starts from the canonical public origin. It must never reveal
-  // or overwrite a campaign cached in this browser for the signed-in game.
-  if(PublicPreviewMode)
-  {
-   ResetToCanonicalOrigin();
-   PrivateStorageStatus="Public preview · changes are not saved.";
-   return true;
-  }
-
-  // Remove synthetic references created by the retired Naeja bootstrap before
-  // any current map is restored. This keeps stale/missing artwork out of the
-  // runtime atlas without risking old saved-map data.
-  AtlasTiles.RemoveAll(x=>x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase));
-
   var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",OceanResetMarkerKey);
   if(resetApplied!="1")
   {
@@ -174,7 +140,6 @@ public sealed partial class WorldSession
 
  public void LoadMapJson(string json)
  {
-  if(PublicPreviewMode)return;
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);GridStyle=save.GridStyle;
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};

@@ -1,0 +1,83 @@
+/* Shared portrait/card artwork interaction pass.
+   Drawing stays stationary under the pointer; deliberate view movement uses the pad. */
+.portrait-editor-controls .portrait-crop{
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:1!important;
+  margin:0 auto 14px!important;
+}
+.portrait-adjustments{
+  box-sizing:border-box!important;
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:9px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:10px 10px 2px!important;
+  border-top:1px solid #c9aa6a66!important;
+  background:#fffaf0e8!important;
+}
+.portrait-adjustments label{
+  box-sizing:border-box!important;
+  min-height:34px!important;
+  display:grid!important;
+  grid-template-columns:76px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+.portrait-adjustments input[type="range"]{
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+}
+.rist-art-nav-pad{
+  position:fixed;
+  right:max(12px,env(safe-area-inset-right));
+  bottom:max(18px,calc(env(safe-area-inset-bottom) + 12px));
+  z-index:2147482790;
+  width:126px;
+  height:126px;
+  display:grid;
+  grid-template-columns:repeat(3,42px);
+  grid-template-rows:repeat(3,42px);
+  grid-template-areas:". up ." "left center right" ". down .";
+  border:1px solid #9c7738;
+  border-radius:24px;
+  background:#0d151ddd;
+  box-shadow:0 8px 24px #000a,inset 0 0 0 1px #d6b66f33;
+  backdrop-filter:blur(4px);
+  overflow:hidden;
+  touch-action:manipulation;
+}
+.rist-art-nav-pad button{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border:0!important;
+  border-radius:11px!important;
+  background:#18242ed9!important;
+  color:#f5d993!important;
+  font:800 16px/1 system-ui!important;
+}
+.rist-art-nav-pad [data-pan="up"]{grid-area:up}.rist-art-nav-pad [data-pan="left"]{grid-area:left}.rist-art-nav-pad [data-pan="center"]{grid-area:center}.rist-art-nav-pad [data-pan="right"]{grid-area:right}.rist-art-nav-pad [data-pan="down"]{grid-area:down}
+.rist-art-nav-pad button:active{background:#334653!important;box-shadow:inset 0 0 0 2px #d4ae5d!important}
+@media(max-width:650px){
+  .portrait-editor-controls .portrait-crop{width:min(58dvw,220px,30dvh)!important;margin-bottom:10px!important}
+  .portrait-adjustments{padding:8px 6px 2px!important;gap:7px!important}
+  .portrait-adjustments label{grid-template-columns:68px minmax(0,1fr)!important;gap:8px!important;min-height:32px!important}
+  .rist-art-nav-pad{width:108px;height:108px;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(3,36px);border-radius:20px}
+  .rist-art-nav-pad button{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;font-size:14px!important}
+}

@@ -1,0 +1,21 @@
+/* Recursive Shaelvien cockpit frame. Layer selection is zoom-driven; no separate viewpoint UI. */
+.rist{position:relative;isolation:isolate}
+.rist::before,.rist::after{content:"";position:absolute;z-index:2;pointer-events:none;inset:2px;border:1px solid #6f5d34aa;clip-path:polygon(3% 0,97% 0,100% 6%,100% 94%,97% 100%,3% 100%,0 94%,0 6%)}
+.rist::after{inset:8px;border-color:#3d6a6e66;clip-path:polygon(5% 0,95% 0,100% 8%,100% 92%,95% 100%,5% 100%,0 92%,0 8%)}
+.topbar,.public-card-drop,.hand-rail,.footer,.home-inline-chat{position:relative}
+.topbar::after,.hand-rail::after,.footer::after{content:"";position:absolute;pointer-events:none;inset:2px;border:1px solid #79969a33;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%)}
+.map-shell{position:relative;perspective:1100px}
+.map-shell::after{content:"";position:absolute;z-index:24;pointer-events:none;inset:2px;border:1px solid #b79a5459;clip-path:polygon(18px 0,calc(100% - 18px) 0,100% 18px,100% calc(100% - 18px),calc(100% - 18px) 100%,18px 100%,0 calc(100% - 18px),0 18px);box-shadow:inset 0 0 24px #07111866}
+.recursion-cockpit{display:none!important}
+.world-stage{transform-style:preserve-3d!important;transform-origin:50% 50%!important;will-change:transform}
+.world-stage>.base,.world-stage>.grid,.world-stage>.tile-cell,.world-stage>.piece,.world-stage>.map-zone-label{transform-style:preserve-3d}
+.tile-cell[data-native-layer]{opacity:var(--rist-layer-opacity,1);transition:opacity .18s ease,filter .18s ease;filter:saturate(calc(.72 + var(--rist-layer-opacity,1)*.28)) brightness(calc(.82 + var(--rist-layer-opacity,1)*.18));box-shadow:0 calc((1 - var(--rist-layer-opacity,1))*4px) calc((1 - var(--rist-layer-opacity,1))*10px) #0005}
+.tile-cell[data-native-layer="WORLD"]{z-index:3}.tile-cell[data-native-layer="REGION"]{z-index:5}.tile-cell[data-native-layer="LOCAL"]{z-index:7}.tile-cell[data-native-layer="SITE"]{z-index:9}.tile-cell[data-native-layer="ROOM"]{z-index:11}.tile-cell[data-native-layer="ENCOUNTER"]{z-index:13}.tile-cell[data-native-layer="OBJECT"]{z-index:15}.tile-cell[data-native-layer="CONTAINER"]{z-index:17}.tile-cell[data-native-layer="CONTENTS"]{z-index:19}.tile-cell[data-native-layer="WEATHER"]{z-index:21;pointer-events:none}
+.piece[data-native-layer]{opacity:var(--rist-layer-opacity,1);transition:opacity .18s ease,filter .18s ease;filter:drop-shadow(0 3px 4px #0008)}
+[data-recursion-ahead]{opacity:.08!important;pointer-events:none!important}
+[data-recursion-deep]{filter:saturate(.55) brightness(.72)!important}
+[data-recursion-hidden]{display:none!important}
+.tile-cell[data-weather-blocker="true"]{z-index:22!important}
+.map[data-recursion-layer="REGION"] .base{opacity:.52}.map[data-recursion-layer="LOCAL"] .base{opacity:.30}.map[data-recursion-layer="SITE"] .base,.map[data-recursion-layer="ROOM"] .base,.map[data-recursion-layer="ENCOUNTER"] .base,.map[data-recursion-layer="OBJECT"] .base,.map[data-recursion-layer="CONTAINER"] .base,.map[data-recursion-layer="CONTENTS"] .base,.map[data-recursion-layer="WEATHER"] .base{opacity:.16}
+.map[data-recursion-layer="REGION"] .grid{opacity:.88}.map[data-recursion-layer="LOCAL"] .grid{opacity:.94}
+@media(orientation:landscape){.map-shell{perspective:1400px}}

@@ -1,0 +1,86 @@
+/*
+ * RIST button artwork contract.
+ *
+ * Ordinary button artwork is centered horizontally and vertically. The image
+ * is scaled from the available button/section height; its width is then the
+ * natural width produced by that proportional scale. No fixed square, crop,
+ * stretch, or arbitrary width cap is applied.
+ *
+ * Intentional tile crop windows and sprite-sheet renderers are excluded and
+ * retain their own rendering math.
+ */
+
+/* Any ordinary button whose artwork is a direct image uses the image's scaled
+   width instead of forcing the artwork into a square/fixed-width box. */
+.rist button:has(> img),
+.rist button:has(> .token-preview > img),
+.rist button:has(> .mmo-toggle-art > img),
+.rist .public-asset-card:has(> img),
+.rist .compact-hand-card:has(> img),
+.rist .standard-hand-card:has(> img) {
+  box-sizing:border-box!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  aspect-ratio:auto!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+
+/* Direct image artwork: height is the sizing authority; width follows the
+   intrinsic aspect ratio of the scaled image. */
+.rist button > img,
+.rist button > .token-preview > img,
+.rist button > .mmo-toggle-art > img,
+.rist .public-asset-card > img,
+.rist .compact-hand-card > img,
+.rist .standard-hand-card > img {
+  display:block!important;
+  width:auto!important;
+  height:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  margin:auto!important;
+  justify-self:center!important;
+  align-self:center!important;
+  flex:none!important;
+}
+
+/* Asset rails fit their controls to the section height. The resulting button
+   width is allowed to follow the proportionally scaled artwork. */
+.rist .public-assets-items .public-asset-card:has(> img),
+.rist .private-assets-items .compact-hand-card:has(> img),
+.rist .private-assets-items .standard-hand-card:has(> img) {
+  flex:0 0 auto!important;
+  height:calc(100% - 6px)!important;
+  max-height:calc(100% - 6px)!important;
+  padding:3px!important;
+}
+
+/* Image wrappers used by miniature/token buttons obey the same centering and
+   height-first sizing contract instead of becoming a square wrapper. */
+.rist button > .token-preview,
+.rist button > .mmo-toggle-art {
+  display:grid!important;
+  place-items:center!important;
+  width:auto!important;
+  height:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  margin:auto!important;
+}
+
+/* Deliberate crop/sprite systems keep their own rendering math. */
+.rist .tile-image-crop > img,
+.rist .die-sprite,
+.rist .mixer-sprite,
+.rist .sprite-sheet,
+.rist [class*="sprite-"] {
+  object-position:initial;
+}

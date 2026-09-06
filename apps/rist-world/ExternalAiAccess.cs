@@ -7,7 +7,7 @@ namespace RistWorld;
 /// </summary>
 public static class ExternalAiRelease
 {
-    public static readonly bool OwnerReleased = false;
+    public const bool OwnerReleased = false;
 }
 
 public enum CanonStatementKind

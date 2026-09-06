@@ -1,0 +1,400 @@
+/* =========================================================
+   RIST UNIVERSAL HORIZONTAL RAIL BEHAVIOR
+   Mobile shelves swipe. Desktop may retain arrow controls.
+   ========================================================= */
+
+.card-path-bar {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    min-height: 34px;
+    padding: 3px 7px;
+
+    overflow: hidden;
+
+    border-bottom: 1px solid #40371f;
+    background: #111920;
+}
+
+.card-path-back {
+    box-sizing: border-box;
+    flex: 0 0 28px;
+
+    width: 28px;
+    height: 28px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+
+    border: 1px solid #725d30;
+    border-radius: 6px;
+
+    background: #17212a;
+    color: #f1d68f;
+
+    font-size: 20px;
+    line-height: 1;
+}
+
+.card-path-scroll {
+    box-sizing: border-box;
+
+    flex: 1 1 auto;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+
+    touch-action: pan-x;
+
+    white-space: nowrap;
+
+    scrollbar-width: none;
+}
+
+.card-path-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.card-path-segment {
+    box-sizing: border-box;
+
+    flex: 0 0 auto;
+
+    min-width: 0;
+    height: 26px;
+
+    padding: 3px 7px;
+
+    border: 0;
+    border-radius: 4px;
+
+    background: transparent;
+    color: #d9bd78;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.card-path-segment:active {
+    background: #24313b;
+    color: #fff0c6;
+}
+
+.card-path-divider {
+    flex: 0 0 auto;
+
+    color: #80662f;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+
+/* ---------------------------------------------------------
+   UNIVERSAL SWIPE SHELVES
+   --------------------------------------------------------- */
+
+.player-hand-strip,
+.token-choice-strip,
+.card-drawer-row,
+.tile-browser-grid,
+.staging-tray,
+.spellbook-card-strip,
+.public-card-strip,
+.header-circular-set,
+.dice-footer > .circular-set,
+.exact-sheet-toolbar {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+
+    scrollbar-width: none;
+}
+
+.player-hand-strip::-webkit-scrollbar,
+.token-choice-strip::-webkit-scrollbar,
+.card-drawer-row::-webkit-scrollbar,
+.tile-browser-grid::-webkit-scrollbar,
+.staging-tray::-webkit-scrollbar,
+.spellbook-card-strip::-webkit-scrollbar,
+.public-card-strip::-webkit-scrollbar,
+.header-circular-set::-webkit-scrollbar,
+.dice-footer > .circular-set::-webkit-scrollbar,
+.exact-sheet-toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   Every shelf becomes direct-touch horizontal navigation.
+   --------------------------------------------------------- */
+
+@media (max-width: 800px) {
+
+    /*
+       Arrow buttons are desktop affordances.
+       Touch users swipe the shelf directly.
+    */
+    .rail-scroll-arrow {
+        display: none !important;
+    }
+
+    /*
+       Prevent rail children from shrinking to force-fit.
+       The shelf moves instead of the objects.
+    */
+    .player-hand-strip > *,
+    .token-choice-strip > *,
+    .card-drawer-row > *,
+    .tile-browser-grid > *,
+    .staging-tray > *,
+    .spellbook-card-strip > *,
+    .public-card-strip > *,
+    .header-circular-set > *,
+    .dice-footer > .circular-set > * {
+        flex-shrink: 0;
+    }
+
+    .player-hand-strip,
+    .token-choice-strip,
+    .card-drawer-row,
+    .tile-browser-grid,
+    .staging-tray,
+    .spellbook-card-strip,
+    .public-card-strip,
+    .header-circular-set,
+    .dice-footer > .circular-set {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+
+    /*
+       Card browser navigation always occupies one small row.
+    */
+    .card-path-bar {
+        height: 32px;
+        min-height: 32px;
+
+        padding: 2px 6px;
+    }
+
+    .card-path-back {
+        flex-basis: 26px;
+
+        width: 26px;
+        height: 26px;
+
+        font-size: 18px;
+    }
+
+    .card-path-scroll {
+        flex-wrap: nowrap !important;
+    }
+
+    .card-path-segment {
+        height: 24px;
+
+        padding: 2px 6px;
+
+        font-size: 10px;
+    }
+
+    /*
+       Give the actual cards as much vertical room as possible.
+    */
+    .card-library-results {
+        min-height: 0 !important;
+
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+
+        display: flex !important;
+        align-items: flex-start !important;
+
+        gap: 7px !important;
+
+        padding: 7px !important;
+
+        scroll-padding-inline: 7px;
+
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: none;
+    }
+
+    .card-library-results::-webkit-scrollbar {
+        display: none;
+    }
+
+    .card-library-results > .library-playing-card {
+        flex: 0 0 94px !important;
+
+        width: 94px !important;
+        min-width: 94px !important;
+    }
+
+    /*
+       Character card drop area is also a horizontal shelf.
+    */
+    .character-spellbook-drop {
+        overflow: hidden !important;
+    }
+
+    .spellbook-card-strip {
+        display: flex !important;
+
+        gap: 6px;
+
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   SMALL PHONE
+   Preserve touch targets; reclaim unnecessary chrome instead.
+   --------------------------------------------------------- */
+
+@media (max-width: 430px) {
+
+    .card-path-bar {
+        height: 30px;
+        min-height: 30px;
+    }
+
+    .card-path-back {
+        width: 24px;
+        height: 24px;
+        flex-basis: 24px;
+    }
+
+    .card-path-segment {
+        height: 22px;
+
+        font-size: 9px;
+    }
+
+    .card-library-results > .library-playing-card {
+        flex-basis: 88px !important;
+
+        width: 88px !important;
+        min-width: 88px !important;
+    }
+}
+/* Mobile Card Library uses the permanent Hand rail below it.
+   Remove the redundant internal character-card drop box. */
+@media (max-width: 800px) {
+
+    .card-library-workspace {
+        display: block !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .character-spellbook-drop {
+        display: none !important;
+    }
+
+    .card-library-results {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+    }
+}/* Mobile Card Library uses the permanent Hand rail below it.
+   Remove the redundant internal character-card drop box. */
+@media (max-width: 800px) {
+
+    .card-library-workspace {
+        display: block !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .character-spellbook-drop {
+        display: none !important;
+    }
+
+    .card-library-results {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+    }
+}/* =========================================================
+   HEADER TRUE HORIZONTAL SCROLL
+   The header has a nested finite-set that must remain wider
+   than the viewport or Safari only gives elastic overscroll.
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    #header-slider {
+        display: block !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+
+        overflow-x: scroll !important;
+        overflow-y: hidden !important;
+
+        -webkit-overflow-scrolling: touch !important;
+
+        overscroll-behavior-x: auto !important;
+        touch-action: pan-x !important;
+
+        scroll-snap-type: none !important;
+
+        white-space: nowrap !important;
+    }
+
+    #header-slider > .finite-set.header-circular-set {
+        display: inline-flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+
+        box-sizing: border-box !important;
+
+        width: max-content !important;
+        min-width: max-content !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding-left: 7px !important;
+        padding-right: 7px !important;
+
+        overflow: visible !important;
+
+        white-space: nowrap !important;
+    }
+
+    #header-slider > .finite-set.header-circular-set > * {
+        flex: 0 0 auto !important;
+    }
+
+    #header-slider > .rail-scroll-arrow {
+        display: none !important;
+    }
+}
+
