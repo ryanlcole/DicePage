@@ -1,6 +1,0 @@
-/* Mobile cleanup after the authenticated-entry freeze.
-   Keep the map/frame behavior; suppress stale diagnostic overlays that can leak
-   into the viewport while the frame scripts initialize. */
-.release-map-region .map>.status{display:none!important}
-.release-map-region .map-shell>.rist-coordinate-frame{display:none!important}
-.world-context-track{overscroll-behavior-x:contain!important}
