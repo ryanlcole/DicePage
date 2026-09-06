@@ -57,24 +57,21 @@ jobs:
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
 
-      - name: Validate public Play launcher JavaScript
-        run: node --check site/relic-home/Play/launcher.js
-
-      - name: Verify launcher and Preview boundaries
+      - name: Verify launcher and protected Game boundaries
         shell: bash
         run: |
           set -euo pipefail
           test ! -e apps/rist-world/wwwroot/auth-entry.js
           ! grep -q 'auth-entry.js' apps/rist-world/wwwroot/index.html
-          grep -q "const previewGame='/Preview/index.html'" site/relic-home/Play/launcher.js
-          grep -q '>Preview<' site/relic-home/Play/index.html
-          grep -q 'StartsWith("/Preview/"' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'EnablePublicPreviewMode' apps/rist-world/Components/AuthenticatedWorld.razor
+          test ! -e site/relic-home/Play/launcher.js
+          grep -q '>Continue with Discord<' site/relic-home/Play/index.html
+          grep -q "location.replace('/Game/index.html')" site/relic-home/Play/index.html
+          grep -q 'There is no Preview runtime' apps/rist-world/Components/AuthenticatedWorld.razor
+          grep -q 'NavigateTo("/Play/index.html"' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'PublicPreviewMode' apps/rist-world/WorldSession.Preview.cs
-          grep -q 'if(PublicPreviewMode)' apps/rist-world/WorldSession.Persistence.cs
-          grep -q 's3://${BUCKET}/Preview/' .github/workflows/deploy-rist-frontend-aws.yml
+          grep -q 'Preview has been retired' .github/workflows/deploy-rist-frontend-aws.yml
           grep -q 'PathPattern: Game/index.html' infra/aws/rist-frontend.yml
-          echo 'Play, Preview, and protected Game boundaries are present.'
+          echo 'Single Discord launcher and protected Game boundary are present.'
 
       - name: Compile first-party root Python
         shell: bash
