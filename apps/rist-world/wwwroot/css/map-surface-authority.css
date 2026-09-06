@@ -108,7 +108,7 @@
  * along the viewer's shorter side in portrait, landscape, and resized views.
  * The selector still owns visibility: Square shows it, None removes it.
  */
-.rist.release-world .release-map-region .map:has(.world-bounds > .grid.square)::before {
+.rist.release-world .release-map-region .map:has(.grid.square)::before {
     content: "" !important;
     box-sizing: border-box !important;
     position: absolute !important;
@@ -125,7 +125,7 @@
     background-repeat: repeat !important;
 }
 
-.rist.release-world .release-map-region .map:has(.world-bounds > .grid.none)::before {
+.rist.release-world .release-map-region .map:has(.grid.none)::before {
     content: none !important;
     display: none !important;
     background: none !important;
