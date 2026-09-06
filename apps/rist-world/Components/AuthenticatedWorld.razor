@@ -3,8 +3,8 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
 @inject WorldSession Session
 
-@* Single-authority boundary: /Play owns account entry, profile creation, and launch intent.
-   /Game requires an account session. /Preview is the isolated public demonstration runtime. *@
+@* Single-authority boundary: /Play owns account entry and profile creation.
+   /Game requires an account session. /Preview now returns to the public site. *@
 @if (!_ready)
 {
  <main class="rist-auth-shell" aria-busy="true" aria-live="polite">
@@ -56,15 +56,9 @@ else
 
   if (isPreviewPath)
   {
-   Session.EnablePublicPreviewMode();
-   if (!string.Equals(launchIntent, "preview", StringComparison.OrdinalIgnoreCase))
-   {
-    await JS.InvokeVoidAsync("sessionStorage.setItem", "rist.launch.intent", "preview");
-    await JS.InvokeVoidAsync("sessionStorage.setItem", "rist.launch.settings", "{\"role\":\"Roleplayer\",\"domain\":\"RIST Sandbox\",\"inviteCode\":\"Geonaph\"}");
-   }
-   _canEnter = true;
-   _ready = true;
-   await InvokeAsync(StateHasChanged);
+   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.intent");
+   await JS.InvokeVoidAsync("sessionStorage.removeItem", "rist.launch.settings");
+   Navigation.NavigateTo("/", forceLoad: true);
    return;
   }
 
