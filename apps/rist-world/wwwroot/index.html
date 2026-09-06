@@ -8,30 +8,15 @@
  <title>ReLiCGameMaster RIST WORLD</title>
  <script type="importmap"></script>
  <link rel="preload" id="webassembly">
- <link rel="stylesheet" href="css/rist.css?v=20260903-frame-state-1">
- <link rel="stylesheet" href="css/footer-density-authority.css?v=20260831-private-friends-1">
- <link rel="stylesheet" href="css/row-density-authority.css?v=20260831-map-rail-1">
- <link rel="stylesheet" href="css/landscape-layout-authority.css?v=20260901-map-container-1">
- <link rel="stylesheet" href="css/asset-scope-authority.css?v=20260901-shared-rail-2">
- <link rel="stylesheet" href="css/ui-cleanup-authority.css?v=20260901-map-frame-controls-1">
- <link rel="stylesheet" href="css/map-frame-controls-authority.css?v=20260903-frame-state-1">
- <link rel="stylesheet" href="css/control-deck-authority.css?v=20260901-control-deck-contracts-1">
- <link rel="stylesheet" href="css/viewport-stack-authority.css?v=20260901-menu-panels-2">
- <link rel="stylesheet" href="css/interaction-authority.css?v=20260902-themed-chat-dice-1">
- <link rel="stylesheet" href="css/near-final-authority.css?v=20260902-near-final-1">
- <link rel="stylesheet" href="css/deck-interaction-fixes.css?v=20260902-dice-identity-1">
- <link rel="stylesheet" href="css/cast-deck.css?v=20260902-anchor-d5-side-1">
- <link rel="stylesheet" href="css/dice-combined-authority.css?v=20260902-dice-identity-1">
- <link rel="stylesheet" href="css/profile-image.css?v=20260902-private-profile-3">
- <link rel="stylesheet" href="css/chat-profile-authority.css?v=20260902-game-dialogue-profile-1">
- <link rel="stylesheet" href="css/bottom-assets-maptools.css?v=20260903-native-asset-scroll-1">
- <link rel="stylesheet" href="css/full-hit-target-authority.css?v=20260903-full-control-hit-1">
- <link rel="stylesheet" href="css/touch-feedback.css?v=20260903-touch-feedback-1">
- <link rel="stylesheet" href="css/rail-accessibility.css?v=20260903-conditional-arrows-1">
- <link rel="stylesheet" href="css/menu-utility-relocation.css?v=20260903-menu-utilities-1">
- <link rel="stylesheet" href="css/map-frame-edit-authority.css?v=20260903-frame-state-1">
- <link rel="stylesheet" href="css/chat-composer-authority.css?v=20260903-chat-composer-2">
- <link rel="stylesheet" href="css/live-visual-cleanup.css?v=20260906-auth-in-1">
+ <link rel="stylesheet" href="css/game.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="RistWorld.styles.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/cast-deck.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/dice-combined-authority.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/profile-image.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/chat-profile-authority.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/bottom-assets-maptools.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/touch-feedback.css?v=20260906-clean-game-1">
+ <link rel="stylesheet" href="css/rail-accessibility.css?v=20260906-clean-game-1">
 </head>
 <body>
  <div id="rist-boot-probe" style="position:fixed;inset:0;z-index:2147483647;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center;pointer-events:none"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div>
@@ -51,36 +36,25 @@
   })();
   if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>{for(const registration of registrations)registration.unregister().catch(()=>{})}).catch(()=>{})}
  </script>
- <script src="rist.js?v=20260831-cache-clear-1"></script>
- <script src="tileset-cutter.js?v=20260831-cache-clear-1"></script>
- <script src="slider-controller.js?v=20260901-repeat-menu-1"></script>
- <script src="dice-privacy.js?v=20260831-cache-clear-1"></script>
- <script src="ooc-chat.js?v=20260831-cache-clear-1"></script>
- <script src="chat-scripts-ui.js?v=20260831-private-friends-1"></script>
- <script src="ui-language.js?v=20260831-cache-clear-1"></script>
- <script src="start-menu.js?v=20260831-cache-clear-1"></script>
- <script src="viewer-controller.js?v=20260902-stable-deck-1"></script>
- <script src="map-visibility-recovery.js?v=20260903-visible-map-1"></script>
- <script src="near-final-authority.js?v=20260902-near-final-1"></script>
- <script src="deck-interaction-fixes.js?v=20260902-dice-identity-1"></script>
- <script src="dice-combined-authority.js?v=20260902-dice-identity-1"></script>
- <script src="profile-image.js?v=20260902-private-profile-3"></script>
- <script src="chat-output-sync.js?v=20260902-game-dialogue-profile-3"></script>
- <script src="cast-deck.js?v=20260902-anchor-cast-1"></script>
- <script src="asset-scope.js?v=20260901-shared-rail-1"></script>
- <script src="map-frame-status.js?v=20260903-frame-state-1"></script>
- <script src="bottom-assets-maptools.js?v=20260902-canonical-catalog-1"></script>
- <script src="bottom-assets-folder-browser.js?v=20260903-main-thread-fix-1"></script>
- <script src="bottom-assets-pointer-bridge.js?v=20260902-bottom-assets-pointer-1"></script>
- <script src="touch-feedback.js?v=20260903-touch-feedback-1"></script>
- <script src="rail-accessibility.js?v=20260903-repeat-rail-1"></script>
- <script src="terrain-swipe-fix.js?v=20260903-direct-swipe-1"></script>
- <script src="menu-utility-relocation.js?v=20260903-menu-utilities-1"></script>
- <script src="map-frame-edit-authority.js?v=20260903-frame-state-1"></script>
- <script src="map-title-mode-toggle.js?v=20260903-frame-state-1"></script>
- <script src="chat-composer-authority.js?v=20260903-chat-composer-2"></script>
- <script src="game-stable-controls.js?v=20260905-freeze-1"></script>
+ <script src="rist.js?v=20260906-clean-game-1"></script>
+ <script src="tileset-cutter.js?v=20260906-clean-game-1"></script>
+ <script src="slider-controller.js?v=20260906-clean-game-1"></script>
+ <script src="dice-privacy.js?v=20260906-clean-game-1"></script>
+ <script src="ooc-chat.js?v=20260906-clean-game-1"></script>
+ <script src="chat-scripts-ui.js?v=20260906-clean-game-1"></script>
+ <script src="ui-language.js?v=20260906-clean-game-1"></script>
+ <script src="start-menu.js?v=20260906-clean-game-1"></script>
+ <script src="viewer-controller.js?v=20260906-clean-game-1"></script>
+ <script src="profile-image.js?v=20260906-clean-game-1"></script>
+ <script src="chat-output-sync.js?v=20260906-clean-game-1"></script>
+ <script src="cast-deck.js?v=20260906-clean-game-1"></script>
+ <script src="asset-scope.js?v=20260906-clean-game-1"></script>
+ <script src="map-frame-status.js?v=20260906-clean-game-1"></script>
+ <script src="bottom-assets-maptools.js?v=20260906-clean-game-1"></script>
+ <script src="bottom-assets-folder-browser.js?v=20260906-clean-game-1"></script>
+ <script src="touch-feedback.js?v=20260906-clean-game-1"></script>
+ <script src="rail-accessibility.js?v=20260906-clean-game-1"></script>
  <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
- <script src="rist-plc.js?v=20260903-frame-state-1"></script>
+ <script src="rist-plc.js?v=20260906-clean-game-1"></script>
 </body>
 </html>
