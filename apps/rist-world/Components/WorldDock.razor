@@ -6,6 +6,7 @@
   @foreach(var module in Modules)
   {
    <button type="button" class="module-button @(_active==module.Key?"active":"")" @onclick="()=>OpenModule(module.Key)" aria-pressed="@(_active==module.Key)">
+    <img class="module-icon" src="@Icon(module.Icon)" alt="" aria-hidden="true" />
     <span>@module.Label</span>
    </button>
   }
@@ -16,11 +17,13 @@
 </div>
 
 @code{
- static readonly (string Key,string Label)[] Modules=[
-  ("profile","User Profile"),("chat","Chat"),("dice","Dice"),("map-tools","Map Tools"),("cast","Cast"),("cards","Cards"),("tokens","Tokens"),("minis","Minis"),("rolling-stock","Rolling Stock"),("pawns","Pawns/Meeples"),("tiles","Tiles"),("terrain","Terrains"),("sprites","Sprites"),("bits","Bits"),("logs","Logs"),("custom","Custom1"),("library","Library"),("add","+")
+ const string AssetRoot="https://assets.relicgamemaster.com/ui/shaelvien/icons/";
+ static readonly (string Key,string Label,string Icon)[] Modules=[
+  ("profile","User Profile","user_profile"),("chat","Chat","chat"),("dice","Dice","dice"),("map-tools","Map Tools","map_tools"),("cast","Cast","cast"),("cards","Cards","cards"),("tokens","Tokens","tokens"),("minis","Minis","minis"),("rolling-stock","Rolling Stock","rolling_stock"),("pawns","Pawns/Meeples","pawns_meeples"),("tiles","Tiles","tiles"),("terrain","Terrains","terrain"),("bits","Bits","bits"),("logs","Logs","logs"),("custom","Custom1","settings"),("library","Library","library")
  ];
  string _active="chat";
  string ActiveLabel=>Modules.First(x=>x.Key==_active).Label;
+ static string Icon(string key)=>$"{AssetRoot}{key}.png";
 
  async Task OpenModule(string key)
  {
