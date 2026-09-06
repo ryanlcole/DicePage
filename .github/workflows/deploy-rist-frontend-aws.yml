@@ -268,9 +268,13 @@ jobs:
           grep -q 'ReLiCGameMaster' /tmp/relic-home.html
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
-          grep -q 'SHAELVIEN' /tmp/play.html
-          grep -q 'Sign In' /tmp/play.html
-          grep -q 'Preview' /tmp/play.html
+          grep -q 'Shaelvien — RIST MMO / Sandbox' /tmp/play.html
+          grep -q '>Login<' /tmp/play.html
+          grep -q '>Sign Up<' /tmp/play.html
+          if grep -q 'read-only public preview' /tmp/play.html; then
+            echo "Obsolete secondary entry screen is still present in Play/index.html." >&2
+            exit 1
+          fi
 
           PREVIEW_STATUS=$(curl --silent --show-error --output /tmp/preview.html --write-out '%{http_code}' "${URL}Preview/index.html")
           test "$PREVIEW_STATUS" = "200"
@@ -278,7 +282,7 @@ jobs:
 
           STATUS=$(curl --silent --show-error --output /tmp/anonymous-game.html --dump-header /tmp/anonymous-game.headers --write-out '%{http_code}' "${URL}Game/index.html")
           test "$STATUS" = "302"
-          grep -Eiq '^location: /Play/' /tmp/anonymous-game.headers
+          grep -Eiq '^location: /Play/index\.html\?reason=' /tmp/anonymous-game.headers
           if grep -q 'ReLiCGameMaster RIST WORLD' /tmp/anonymous-game.html; then
             echo "Anonymous request received protected game HTML." >&2
             exit 1
@@ -322,8 +326,8 @@ jobs:
           grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
 
           echo "ReLiCGameMaster home verified at $URL"
-          echo "Public account launcher verified at ${URL}Play/index.html"
+          echo "Shaelvien title screen verified at ${URL}Play/index.html"
           echo "Public nonpersistent preview verified at ${URL}Preview/index.html"
-          echo "Anonymous Game/index.html correctly blocked at the edge"
+          echo "Anonymous Game/index.html correctly redirects to the title screen"
           echo "Blazor framework payload verified at ${URL}Game/${RUNTIME_SRC}"
           echo "Protected RIST payload verified directly in private S3 origin"
