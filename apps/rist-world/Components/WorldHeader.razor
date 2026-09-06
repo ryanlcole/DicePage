@@ -3,41 +3,12 @@
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
 
-<style>
-/* Match the main header controls to the compact context row above: content-width, 22px high. */
-#header-slider .release-root-track{--rail-gap:4px!important;--rail-item-h:22px!important;align-items:center!important;padding-block:0!important;gap:4px!important}
-#header-slider .release-root-track>.root-menu-button{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;height:22px!important;min-height:22px!important;max-height:22px!important;padding:0 9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;border-radius:7px!important;color:#d7be80!important;font:800 10px/20px system-ui,-apple-system,sans-serif!important;letter-spacing:.02em!important}
-#header-slider .release-root-track>.root-menu-button>strong{font:inherit!important;color:inherit!important;white-space:nowrap!important}
-
-/* Assets is text-only in the compact rail; do not reserve hidden artwork width before the word. */
-#header-slider .root-menu-art.icon-assets{display:none!important;width:0!important;min-width:0!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important}
-#header-slider .root-menu-art.icon-assets::before,#header-slider .root-menu-art.icon-assets::after{content:none!important}
-#header-slider .release-root-track>.root-menu-button:has(.root-menu-art.icon-assets){width:auto!important;min-width:0!important;padding:0 9px!important;gap:0!important}
-
-#header-slider .release-root-track>.root-menu-button>small{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
-@@media (hover:hover) and (pointer:fine){
- #header-slider .release-root-track>.root-menu-button:hover>small,#header-slider .release-root-track>.root-menu-button:focus-visible>small{left:50%!important;bottom:3px!important;width:max-content!important;max-width:calc(100vw - 12px)!important;height:auto!important;margin:0!important;padding:3px 6px!important;overflow:visible!important;clip:auto!important;clip-path:none!important;transform:translateX(-50%)!important;white-space:nowrap!important;border:1px solid #725d30!important;border-radius:5px!important;background:#071015ee!important;color:#e8d49a!important;font:800 9px/1.15 system-ui!important;letter-spacing:.03em!important;text-align:center!important;pointer-events:none!important;z-index:50!important}
-}
-#header-slider .root-menu-panel,#header-slider .release-action-menu{padding-top:54px!important}
-#header-slider .assets-root-panel{padding-top:12px!important}
-/* One close control only. Suppress legacy/generated close decorations from older panel CSS. */
-#header-slider .root-menu-panel::before,#header-slider .root-menu-panel::after,#header-slider .release-action-menu::before,#header-slider .release-action-menu::after{content:none!important;display:none!important}
-#header-slider .root-panel-close{position:absolute!important;top:8px!important;right:8px!important;z-index:999!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center!important;border:1px solid #a57c2f!important;border-radius:10px!important;background:#111b22!important;color:#f1d68f!important;font:900 30px/1 system-ui,-apple-system,sans-serif!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important}
-#header-slider .root-panel-close::before,#header-slider .root-panel-close::after{content:none!important;display:none!important}
-#header-slider .root-panel-close:active{background:#20313a!important;border-color:#d2aa51!important;transform:scale(.97)}
-
-/* The Assets rail owns open/close. Once inside an asset browser, the former
-   close control is a Back control that returns to the asset category page. */
-.map-viewer-overlays .map-asset-close,.map-viewer-overlays .card-library-nav-close{font-size:0!important}
-.map-viewer-overlays .map-asset-close::after,.map-viewer-overlays .card-library-nav-close::after{content:"←"!important;display:block!important;font:900 22px/1 system-ui,-apple-system,sans-serif!important;color:#f1d68f!important}
-</style>
-
 <header id="header-slider" class="release-root-rail desktop-arrow-slider" aria-label="Main menu">
  <button type="button" class="rail-scroll-arrow rail-scroll-prev" onclick="ristWorld.scrollRail('#header-slider',-1)" aria-label="Scroll main menu left">‹</button>
  <div class="header-circular-set release-root-track">
   <button class="root-menu-button door-button @AccountRootClass" @onclick="DoorClicked" aria-expanded="@AccountRootOpen" aria-label="@(Session.IsLoggedIn?"Log out":"Login")"><strong>@(Session.IsLoggedIn?"Log Out":"Login")</strong></button>
   <button type="button" class="root-menu-button @ModeRootClass" @onclick="ToggleModeRoot" aria-expanded="@ModeRootOpen" aria-label="Table mode"><strong>Mode</strong></button>
-  <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@(AssetsRootOpen||Session.CardBrowserOpen||Session.TileBrowserOpen)" aria-label="Assets"><span class="root-menu-art icon-assets" aria-hidden="true"></span><strong>Assets</strong></button>
+  <button type="button" class="root-menu-button @AssetsRootClass" @onclick="ToggleAssetsRoot" aria-expanded="@(AssetsRootOpen||Session.CardBrowserOpen||Session.TileBrowserOpen)" aria-label="Assets"><strong>Assets</strong></button>
   <button type="button" class="root-menu-button @RoleRootClass" @onclick="ToggleRoleRoot" aria-expanded="@RoleRootOpen" aria-label="Role"><strong>@RoleLabel</strong></button>
   <button type="button" class="root-menu-button @GridRootClass" @onclick="ToggleGridRoot" aria-expanded="@GridRootOpen" aria-label="Grid"><strong>@GridLabel</strong></button>
   <button type="button" class="root-menu-button @ScaleRootClass" @onclick="ToggleScaleRoot" aria-expanded="@ScaleRootOpen" aria-label="Scale"><strong>Scale</strong></button>
@@ -51,7 +22,7 @@
 
  @if(AccountRootOpen){<section class="root-menu-panel compact-root-panel" aria-label="Account access"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close account menu">×</button><strong>Account</strong><div class="root-choice-grid two-choice"><button @onclick="OpenSignup">Sign Up</button><button @onclick="SignInAsync">Sign In</button></div></section>}
  @if(ModeRootOpen){<section class="root-menu-panel" aria-label="Choose table mode"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close table mode">×</button><strong>Table Mode</strong><div class="root-choice-grid">@foreach(var mode in Modes){<button class="@(Session.TableMode==mode.Key?"selected":"")" @onclick="()=>SelectMode(mode.Key)">@mode.Label</button>}</div></section>}
- @if(AssetsRootOpen){<section class="root-menu-panel assets-root-panel" aria-label="Choose asset type"><strong>Assets</strong><div class="root-choice-grid">@foreach(var kind in AssetKinds){<button class="@AssetChoiceClass(kind.Key)" @onclick="()=>SelectAsset(kind.Key)">@kind.Label</button>}</div></section>}
+ @if(AssetsRootOpen){<section class="root-menu-panel assets-root-panel" aria-label="Choose asset type"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close asset menu">×</button><strong>Assets</strong><div class="root-choice-grid">@foreach(var kind in AssetKinds){<button class="@AssetChoiceClass(kind.Key)" @onclick="()=>SelectAsset(kind.Key)">@kind.Label</button>}</div></section>}
  @if(RoleRootOpen){<section class="root-menu-panel compact-root-panel" aria-label="Choose role"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close role menu">×</button><strong>Role</strong><div class="root-choice-grid two-choice">@if(Session.CanManageCurrentMap){<button class="@GmChoiceClass" @onclick="SelectGm">GameMaster</button>}<button class="@PcChoiceClass" @onclick="SelectPc">RolePlayer</button></div></section>}
  @if(GridRootOpen){<section class="root-menu-panel compact-root-panel" aria-label="Choose grid"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close grid menu">×</button><strong>Grid</strong><div class="root-choice-grid"><button class="@SquareChoiceClass" @onclick="SelectSquare" disabled="@Session.EncounterActive">Square</button><button class="@HexChoiceClass" @onclick="SelectHex" disabled="@Session.EncounterActive">Hex</button><button class="@NoGridChoiceClass" @onclick="SelectNoGrid" disabled="@Session.EncounterActive">None</button></div></section>}
  @if(ScaleRootOpen){<section class="root-menu-panel scale-root-panel" aria-label="Set map scale"><button type="button" class="root-panel-close" @onclick="CloseAllPanels" aria-label="Close scale menu">×</button><strong>Scale</strong><label><span>Distance</span><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" /></label><div class="root-choice-grid unit-grid">@foreach(var unit in Units){<button class="@(Session.DistanceUnit==unit?"selected":"")" @onclick="()=>SelectUnit(unit)" disabled="@Session.EncounterActive">@unit</button>}</div><output>@(Session.EncounterActive ? "5 ft/hex" : $"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output></section>}
@@ -76,12 +47,14 @@
  string GmChoiceClass=>Session.Role=="GM"?"selected":string.Empty; string PcChoiceClass=>Session.Role=="PC"?"selected":string.Empty;
  string SquareChoiceClass=>Session.GridStyle=="square"?"selected":string.Empty; string HexChoiceClass=>Session.GridStyle=="hex"?"selected":string.Empty; string NoGridChoiceClass=>Session.GridStyle=="none"?"selected":string.Empty;
  string AssetChoiceClass(string key)=>_assetRootSelection==key?"selected":string.Empty;
+
  protected override void OnInitialized()
  {
   Session.Changed+=SessionChanged;
   _tileBrowserWasOpen=Session.TileBrowserOpen;
   _cardBrowserWasOpen=Session.CardBrowserOpen;
  }
+
  void SessionChanged()
  {
   var tileClosed=_tileBrowserWasOpen&&!Session.TileBrowserOpen;
@@ -91,13 +64,10 @@
   if(!_suppressAssetReturn&&(tileClosed||cardClosed))_openRoot="assets";
   _ = InvokeAsync(StateHasChanged);
  }
+
  public void Dispose()=>Session.Changed-=SessionChanged;
  void ToggleRoot(string key)=>_openRoot=_openRoot==key?string.Empty:key;
- async Task CloseAllPanels(){
-  _openRoot=string.Empty;
-  if(Session.SaveMenuOpen)await Session.SaveAndToggleExportAsync();
-  if(Session.LoadMenuOpen)Session.ToggleLoadMenu();
- }
+ async Task CloseAllPanels(){_openRoot=string.Empty;if(Session.SaveMenuOpen)await Session.SaveAndToggleExportAsync();if(Session.LoadMenuOpen)Session.ToggleLoadMenu();}
  void ToggleModeRoot()=>ToggleRoot("mode");
  void ToggleAssetsRoot()
  {
