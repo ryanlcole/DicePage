@@ -29,10 +29,11 @@
 
     <section class="rist-user-account-card worldfold-card">
      <h3>WorldFolds</h3>
+     <div class="account-pair"><span>Zone ID</span><strong>@ZoneIdLabel</strong></div>
      <div class="account-pair"><span>Current coordinates</span><strong>@WorldFoldCoordinateLabel</strong></div>
      <div class="account-pair private-code-row"><span>Private code</span><strong>@(_showCode ? _privateProfile.WorldFoldPrivateCode : MaskCode(_privateProfile.WorldFoldPrivateCode))</strong></div>
      <button type="button" class="account-small-button" @onclick="()=>_showCode=!_showCode">@(_showCode?"Hide code":"Reveal code")</button>
-     <small class="account-help">The WorldFold code is private account metadata. It is not a login credential.</small>
+     <small class="account-help">Zone ID is assigned by the system and cannot be edited. The WorldFold code is private account metadata, not a login credential.</small>
     </section>
 
     <section class="rist-user-account-card profile-card">
@@ -78,6 +79,7 @@
 
 @code{
  const string PrivateProfileKey="account/user-panel.json";
+ const string OwnerMmoZoneId="MMO-00000001";
  bool _open;
  bool _loaded;
  bool _showCode;
@@ -90,6 +92,9 @@
  string WorldFoldCoordinateLabel=>Session.IsMmoMode
   ? (Auth.IsOwnerDiscordAccount ? "0,0,0" : (string.IsNullOrWhiteSpace(_privateProfile.MmoWorldFoldCoordinates)?"Not assigned":_privateProfile.MmoWorldFoldCoordinates))
   : (string.IsNullOrWhiteSpace(_privateProfile.SandboxWorldFoldCoordinates)?"Not assigned":_privateProfile.SandboxWorldFoldCoordinates);
+ string ZoneIdLabel=>Session.IsMmoMode
+  ? (Auth.IsOwnerDiscordAccount ? OwnerMmoZoneId : (string.IsNullOrWhiteSpace(_privateProfile.MmoZoneId)?"Not assigned":_privateProfile.MmoZoneId))
+  : (string.IsNullOrWhiteSpace(_privateProfile.SandboxZoneId)?"Not assigned":_privateProfile.SandboxZoneId);
  string PlanLabel=>Auth.Account?.Plan switch{"gm-player"=>"GM + Player","player"=>"Player",null=>"—",var value=>value};
 
  protected override void OnInitialized()=>Session.Changed+=SessionChanged;
@@ -123,6 +128,11 @@
     _privateProfile.MmoWorldFoldCoordinates="0,0,0";
     changed=true;
    }
+   if(Auth.IsOwnerDiscordAccount&&!string.Equals(_privateProfile.MmoZoneId,OwnerMmoZoneId,StringComparison.Ordinal))
+   {
+    _privateProfile.MmoZoneId=OwnerMmoZoneId;
+    changed=true;
+   }
    if(string.IsNullOrWhiteSpace(_privateProfile.WorldFoldPrivateCode))
    {
     _privateProfile.WorldFoldPrivateCode=Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
@@ -154,6 +164,8 @@
   public string WorldFoldPrivateCode{get;set;}="";
   public string MmoWorldFoldCoordinates{get;set;}="";
   public string SandboxWorldFoldCoordinates{get;set;}="";
+  public string MmoZoneId{get;set;}="";
+  public string SandboxZoneId{get;set;}="";
   public string CustomPlayerNotes{get;set;}="";
  }
 }
