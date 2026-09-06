@@ -21,11 +21,24 @@
   rolls.forEach(el=>{const value=rolledValue(el);if(el.classList.contains('die-d10-inverse'))multipliers.push(value===0?10:value);else base+=value});
   return multipliers.reduce((total,m)=>total*m,base);
  }
+ function ensureTotalDisplay(root){
+  const actions=q('.rist-deck-row.row3 .rist-deck-actions',root);if(!actions)return null;
+  let display=q('.rist-sum-display',actions);
+  if(display)return display;
+  const button=qa('button',actions).find(b=>/^SUM\b/i.test((b.textContent||'').trim()));
+  if(!button)return null;
+  display=document.createElement('div');
+  display.className='rist-sum-display';
+  display.setAttribute('role','status');
+  display.setAttribute('aria-live','polite');
+  display.setAttribute('aria-label','Dice total');
+  button.replaceWith(display);
+  return display;
+ }
  function paintTotal(root){
-  const actions=q('.rist-deck-row.row3 .rist-deck-actions',root);if(!actions)return;
-  const sum=qa('button',actions).find(b=>/^SUM\b/i.test((b.textContent||'').trim()));if(!sum)return;
-  sum.textContent=`SUM ${correctedTotal()}`;
-  sum.title='xd10 multiplies the sum of all other dice; 0 = ×10';
+  const display=ensureTotalDisplay(root);if(!display)return;
+  display.textContent=`SUM ${correctedTotal()}`;
+  display.title='Total of rolled dice. xd10 multiplies the sum of all other dice; 0 = ×10';
  }
  function patch(){
   const root=q('.rist.release-world');if(!root?.classList.contains('deck-dice'))return;
