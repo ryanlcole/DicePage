@@ -1,9 +1,11 @@
 /*
  * Canonical RIST WORLD build surface.
  *
- * The authored world is exactly 30 by 30 square cells. Ocean 071 fills those
- * 900 cells without materializing 900 placement records. The surrounding
- * viewer is null space and is not a drop target.
+ * Two independent coordinate layers are intentional:
+ * 1) The authored world is exactly 30 by 30 one-mile cells. Ocean 071 fills
+ *    those 900 cells; surrounding world space remains null.
+ * 2) The viewer grid is a fixed screen-space overlay. Its square cell size is
+ *    one tenth of the viewer's shorter side, so pan/zoom never scales it.
  */
 .rist.release-world .release-map-region .map {
     container-type: size !important;
@@ -53,6 +55,7 @@
     background-repeat: repeat !important;
     background-position: 0 0 !important;
     background-size: var(--rist-map-grid-column) var(--rist-map-grid-row) !important;
+    image-rendering: auto !important;
 }
 
 .rist.release-world .release-map-region .world-bounds > .grid {
@@ -65,6 +68,7 @@
     background-position: 0 0 !important;
 }
 
+/* The 30x30 authoring grid belongs to the world and transforms with it. */
 .rist.release-world .release-map-region .world-bounds > .grid.square {
     background-image:
         linear-gradient(to right, rgba(217, 199, 145, .58) 1px, transparent 1px),
@@ -95,11 +99,36 @@
     z-index: 2 !important;
 }
 
-/* Retire the old viewport-sized pseudo-grid. */
-.rist.release-world .release-map-region .map:has(.grid.square)::before {
+/*
+ * VIEWER GRID AUTHORITY
+ * ---------------------
+ * This overlay is intentionally attached to .map rather than .world-stage.
+ * Therefore StageTransform can pan/zoom the 30x30 world without moving or
+ * resizing the viewer grid. min(10cqw, 10cqh) gives exactly ten square cells
+ * along the viewer's shorter side in portrait, landscape, and resized views.
+ * The selector still owns visibility: Square shows it, None removes it.
+ */
+.rist.release-world .release-map-region .map:has(.world-bounds > .grid.square)::before {
+    content: "" !important;
+    box-sizing: border-box !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 20 !important;
+    display: block !important;
+    pointer-events: none !important;
+    background-color: transparent !important;
+    background-image:
+        linear-gradient(to right, rgba(217, 199, 145, .72) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(217, 199, 145, .72) 1px, transparent 1px) !important;
+    background-size: min(10cqw, 10cqh) min(10cqw, 10cqh) !important;
+    background-position: 0 0 !important;
+    background-repeat: repeat !important;
+}
+
+.rist.release-world .release-map-region .map:has(.world-bounds > .grid.none)::before {
     content: none !important;
     display: none !important;
-    background-image: none !important;
+    background: none !important;
 }
 
 /* Phone/tablet landscape: map on the left, the control selector and deck on the right. */
