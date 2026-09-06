@@ -74,6 +74,14 @@ jobs:
           test "$RUNTIME_SRC" != '_framework/blazor.webassembly#[.{fingerprint}].js'
           test -s "build/rist/wwwroot/${RUNTIME_SRC}"
           echo "Published Blazor runtime entrypoint: ${RUNTIME_SRC}"
+          test -s build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq 'css/map-surface-authority.css?v=20260906-map-grid-repair-1' build/rist/wwwroot/index.html
+          grep -Fq '.world-stage > .grid.square' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq -- '--rist-map-grid-column: 5%' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq -- '--rist-map-grid-row: 7.6923076923%' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq '.map:has(.grid.square)::before' build/rist/wwwroot/css/map-surface-authority.css
+          grep -Fq '.world-stage>.grid.square' build/rist/wwwroot/viewer-controller.js
+          echo "Published 20x13 map build surface verified"
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4

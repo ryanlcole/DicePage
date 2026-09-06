@@ -1,0 +1,63 @@
+/*
+ * Canonical RIST map build surface.
+ *
+ * WorldSession and tileDropPoint share a 20-column by 13-row placement model.
+ * Keep the rendered grid on that same geometry so every visible cell is a
+ * real build target.
+ */
+.rist.release-world .release-map-region .world-stage {
+    --rist-map-grid-column: 5%;
+    --rist-map-grid-row: 7.6923076923%;
+}
+
+.rist.release-world .release-map-region .world-stage > .base.ocean-world,
+.rist.release-world .release-map-region .world-stage > .grid {
+    box-sizing: border-box !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+}
+
+.rist.release-world .release-map-region .world-stage > .base.ocean-world {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 0 !important;
+    background-color: #0a3040 !important;
+    background-image: url("https://assets.relicgamemaster.com/tilesets/world/terrain/ocean/ocean-071/tile-01-01.jpg") !important;
+    background-repeat: repeat !important;
+    background-position: 0 0 !important;
+    background-size: var(--rist-map-grid-column) var(--rist-map-grid-row) !important;
+}
+
+.rist.release-world .release-map-region .world-stage > .grid {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    background-color: transparent !important;
+    background-position: 0 0 !important;
+}
+
+.rist.release-world .release-map-region .world-stage > .grid.square {
+    background-image:
+        linear-gradient(to right, rgba(217, 199, 145, .54) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(217, 199, 145, .54) 1px, transparent 1px) !important;
+    background-size: var(--rist-map-grid-column) var(--rist-map-grid-row) !important;
+}
+
+.rist.release-world .release-map-region .world-stage > .grid.none {
+    display: none !important;
+    background: none !important;
+}
+
+/* The previous pseudo-grid used an unrelated viewport-derived cell size. */
+.rist.release-world .release-map-region .map:has(.grid.square)::before {
+    content: none !important;
+    display: none !important;
+    background-image: none !important;
+}
