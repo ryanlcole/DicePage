@@ -116,7 +116,7 @@ Resources:
               status: '302',
               statusDescription: 'Found',
               headers: {
-                location: [{ key: 'Location', value: '/Play/?reason=' + encodeURIComponent(reason || 'login') }],
+                location: [{ key: 'Location', value: '/Play/index.html?reason=' + encodeURIComponent(reason || 'login') }],
                 'cache-control': [{ key: 'Cache-Control', value: 'no-store, max-age=0' }],
                 'x-rist-auth': [{ key: 'X-RIST-Auth', value: 'required' }]
               }
