@@ -188,6 +188,13 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
+          # S3 REST origins do not resolve directory indexes. Publish the same
+          # storefront document at both keys so the public /store/ URL is real
+          # content instead of falling through CloudFront's SPA error response.
+          aws s3 cp site/relic-home/store/index.html "s3://${BUCKET}/store/" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
           aws s3 cp site/relic-home/store/index.html "s3://${BUCKET}/store/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
