@@ -11,28 +11,101 @@
    </button>
   }
  </nav>
+
  <section class="dock-content" aria-label="@ActiveLabel">
-  @if(_active=="map-tools")
+  @switch(_active)
   {
-   <section class="map-tools-panel" aria-label="Map tools and coordinates">
-    <header><img src="@Icon("map_tools")" alt="" aria-hidden="true" /><div><strong>Map Tools</strong><small>@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</small></div></header>
-    <div class="map-tools-readouts" aria-live="polite">
-     <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
-     <div><span>Pan X</span><strong>@_mapView[0].ToString("0.###")</strong></div>
-     <div><span>Pan Y</span><strong>@_mapView[1].ToString("0.###")</strong></div>
-     <div><span>Zoom</span><strong>@_mapView[2].ToString("0.##")×</strong></div>
-     <div><span>Grid</span><strong>@Session.GridStyle</strong></div>
-    </div>
-    <div class="map-tools-actions">
-     <button type="button" @onclick="RefreshMapView">Refresh</button>
-     <button type="button" @onclick="OpenLibrary">Asset Library</button>
-    </div>
-    <p class="map-tools-help">Touch: drag to pan and pinch to zoom. Mouse: drag or use the wheel. Keyboard: arrows/WASD, +, − and 0.</p>
-   </section>
-  }
-  else
-  {
-   <WorldFooter />
+   case "profile":
+    <section class="restored-panel" aria-label="User profile tools">
+     <header><img src="@Icon("user_profile")" alt="" /><strong>User Profile</strong></header>
+     <div class="restored-actions">
+      <button @onclick="Session.OpenAccountViewer">Account</button>
+      <button @onclick="Session.OpenMixer">Character Sheet</button>
+      <button @onclick="OpenSettings">Settings</button>
+      @if(Session.IsLoggedIn){<button @onclick="Session.ToggleLoginAsync">Log Out</button>}
+      else{<button @onclick="Session.BeginAccountLoginAsync">Sign In</button>}
+     </div>
+    </section>
+    break;
+
+   case "chat":
+    <WorldFooter />
+    break;
+
+   case "dice":
+    <WorldFooter />
+    break;
+
+   case "map-tools":
+    <section class="map-tools-panel" aria-label="Map tools and coordinates">
+     <header><img src="@Icon("map_tools")" alt="" aria-hidden="true" /><div><strong>Map Tools</strong><small>@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</small></div></header>
+     <div class="map-tools-readouts" aria-live="polite">
+      <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
+      <div><span>Pan X</span><strong>@_mapView[0].ToString("0.###")</strong></div>
+      <div><span>Pan Y</span><strong>@_mapView[1].ToString("0.###")</strong></div>
+      <div><span>Zoom</span><strong>@_mapView[2].ToString("0.##")×</strong></div>
+      <div><span>Map grid</span><strong>@Session.GridStyle</strong></div>
+     </div>
+     <div class="map-tools-actions">
+      <button type="button" @onclick="CenterMap">Center Ocean</button>
+      <button type="button" @onclick="RefreshMapView">Refresh</button>
+      <button type="button" @onclick="OpenLibrary">Asset Library</button>
+      <button type="button" @onclick="SaveMap">Save / Export</button>
+      <button type="button" @onclick="LoadMap">Load</button>
+      <button type="button" @onclick="OpenRecursion">Recursive View</button>
+     </div>
+     <p class="map-tools-help">Viewer grid is independent of the map. Touch: drag gently to pan and pinch to zoom. Mouse: drag/wheel. Keyboard: arrows/WASD, +, − and 0.</p>
+    </section>
+    break;
+
+   case "cast":
+    <section class="restored-component-panel" aria-label="Cast and spell deck"><PrivateSpellDeck /></section>
+    break;
+
+   case "cards":
+    <section class="restored-component-panel" aria-label="Cards">
+     <div class="restored-toolbar"><button @onclick="OpenCards">Card Library</button></div>
+     <PublicCardRail />
+    </section>
+    break;
+
+   case "logs":
+    <section class="restored-panel" aria-label="Logs">
+     <header><img src="@Icon("logs")" alt="" /><strong>Logs</strong></header>
+     <div class="restored-actions">
+      <button @onclick="OpenRoleplayLog">Roleplay Log</button>
+      <button @onclick="OpenRollLog">Roll History</button>
+     </div>
+     <WorldFooter />
+    </section>
+    break;
+
+   case "custom":
+    <section class="restored-panel" aria-label="Custom controls">
+     <header><img src="@Icon("settings")" alt="" /><strong>Custom1</strong></header>
+     <div class="restored-actions">
+      <button @onclick="OpenSettings">Settings</button>
+      <button @onclick="Session.OpenMixer">Character</button>
+      <button @onclick="OpenLibrary">Assets</button>
+      <button @onclick="SaveMap">Save / Export</button>
+      <button @onclick="LoadMap">Load</button>
+     </div>
+    </section>
+    break;
+
+   case "library":
+    <section class="restored-component-panel" aria-label="Asset library">
+     <div class="restored-toolbar"><button @onclick="OpenLibrary">Open Asset Library</button></div>
+     <HandRail />
+    </section>
+    break;
+
+   default:
+    <section class="restored-component-panel" aria-label="@ActiveLabel assets">
+     <div class="restored-toolbar"><button @onclick="()=>OpenAsset(ActiveAssetKind)">Open @ActiveLabel</button></div>
+     <HandRail />
+    </section>
+    break;
   }
  </section>
 </div>
@@ -45,6 +118,7 @@
  string _active="chat";
  double[] _mapView=[0,0,1];
  string ActiveLabel=>Modules.First(x=>x.Key==_active).Label;
+ string ActiveAssetKind=>_active switch{"tokens"=>"pin","minis"=>"mini","rolling-stock"=>"rolling-stock","pawns"=>"pawn","tiles"=>"tile","terrain"=>"terrain","bits"=>"bit",_=>"tile"};
  static string Icon(string key)=>$"{AssetRoot}{key}.png";
 
  async Task OpenModule(string key)
@@ -54,9 +128,9 @@
   {
    case "profile": Session.OpenAccountViewer(); break;
    case "chat": break;
-   case "dice": await JS.InvokeVoidAsync("eval","document.querySelector('.dice-tray-toggle')?.click()"); break;
+   case "dice": await OpenDiceTray(); break;
    case "map-tools": await RefreshMapView(); break;
-   case "cards": if(!Session.CardBrowserOpen)Session.ToggleCardBrowser(); break;
+   case "cards": OpenCards(); break;
    case "tokens": OpenAsset("pin"); break;
    case "minis": OpenAsset("mini"); break;
    case "rolling-stock": OpenAsset("rolling-stock"); break;
@@ -68,17 +142,20 @@
   }
  }
 
- async Task RefreshMapView()
+ async Task OpenDiceTray()
  {
-  try{_mapView=await JS.InvokeAsync<double[]>("ristMapInput.read");}
-  catch(JSException){_mapView=[0,0,1];}
+  await InvokeAsync(StateHasChanged);
+  try{await JS.InvokeVoidAsync("eval","setTimeout(()=>document.querySelector('.dock-content .dice-tray-toggle')?.click(),0)");}catch(JSException){}
  }
-
+ async Task RefreshMapView(){try{_mapView=await JS.InvokeAsync<double[]>("ristMapInput.read");}catch(JSException){_mapView=[0,0,1];}}
+ async Task CenterMap(){try{await JS.InvokeVoidAsync("eval","document.querySelector('.viewer-world-name')?.click()");await RefreshMapView();}catch(JSException){}}
+ async Task OpenRoleplayLog(){_active="chat";await InvokeAsync(StateHasChanged);try{await JS.InvokeVoidAsync("eval","setTimeout(()=>document.querySelector('.dock-content .chat-history-toggle')?.click(),0)");}catch(JSException){}}
+ async Task OpenRollLog(){_active="dice";await InvokeAsync(StateHasChanged);try{await JS.InvokeVoidAsync("eval","setTimeout(()=>{document.querySelector('.dock-content .dice-tray-toggle')?.click();document.querySelector('.dock-content .roll-history-toggle')?.click()},0)");}catch(JSException){}}
+ async Task OpenSettings(){try{await JS.InvokeVoidAsync("eval","window.RistStartMenu?.open?.()");}catch(JSException){}}
+ async Task OpenRecursion(){try{await JS.InvokeVoidAsync("eval","document.querySelector('[data-recursion-open],.recursion-cockpit-toggle')?.click()");}catch(JSException){}}
+ async Task SaveMap(){await Session.SaveAndToggleExportAsync();}
+ void LoadMap(){Session.ToggleLoadMenu();}
+ void OpenCards(){if(!Session.CardBrowserOpen)Session.ToggleCardBrowser();}
  void OpenLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
- void OpenAsset(string kind)
- {
-  Session.PieceKind=kind;
-  if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();
-  Session.Notify();
- }
+ void OpenAsset(string kind){Session.PieceKind=kind;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();Session.Notify();}
 }
