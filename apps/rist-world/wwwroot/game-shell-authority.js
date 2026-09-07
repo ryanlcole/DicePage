@@ -19,21 +19,7 @@
  function isLocked(){const b=document.querySelector('.map-lock-button');if(!b)return true;const title=(b.getAttribute('title')||'').toLowerCase();return title.includes('unlock')||b.getAttribute('aria-pressed')==='false'}
  const setAttr=(el,name,value)=>{if(el&&el.getAttribute(name)!==String(value))el.setAttribute(name,String(value))};
  const setText=(el,value)=>{if(el&&el.textContent!==value)el.textContent=value};
- function ensureProfile(){
-  let b=document.querySelector('.rist-game-profile-launcher');
-  if(!loggedIn()){b?.remove();return}
-  if(!b){
-   b=document.createElement('button');b.type='button';b.className='rist-game-profile-launcher';b.setAttribute('aria-label','Open Shaelvien start menu');
-   b.addEventListener('click',()=>window.RistGameStartScreen?.open?.({authenticated:true,fromGame:true,view:'home'}));document.body.appendChild(b);
-  }
-  const src=profileImage();
-  if(src){
-   let img=b.querySelector('img');if(!img){b.replaceChildren();img=document.createElement('img');img.alt='';b.appendChild(img)}
-   if(img.getAttribute('src')!==src)img.src=src;
-  }else if(!b.querySelector('.rist-profile-fallback')){
-   b.replaceChildren();const span=document.createElement('span');span.className='rist-profile-fallback';span.textContent='●';span.setAttribute('aria-hidden','true');b.appendChild(span);
-  }
- }
+ function ensureProfile(){document.querySelector('.rist-game-profile-launcher')?.remove()}
  function ensureLock(){
   const shell=document.querySelector('.release-map-region .map-shell');let b=document.querySelector('.rist-gm-layer-lock');const gm=actualRole()==='GameMaster';
   if(!shell||!gm){b?.remove();return}
