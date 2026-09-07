@@ -23,7 +23,6 @@
   qa('.rist-dice-image-loop > .rist-dice-proxy').forEach(proxy=>{
    if(dieKey(proxy)!==key)return;
    const mirror=proxy.querySelector('select');if(mirror)mirror.value=normalized;
-   const valueNode=proxy.querySelector('.rist-d5-step-value');if(valueNode)valueNode.textContent=`${key==='d5-bonus'?'+':'-'}${normalized}`;
   });
  }
  function ensureTripleLoop(loop,count){
@@ -35,30 +34,27 @@
  function cycleWidth(loop){return loop?.scrollWidth?loop.scrollWidth/3:0}
  function normalizeInfinite(row,loop){const cycle=cycleWidth(loop);if(!cycle)return row.scrollLeft;let x=row.scrollLeft;if(x<cycle*.35){x+=cycle;row.scrollLeft=x}else if(x>cycle*1.65){x-=cycle;row.scrollLeft=x}return x}
  function setBothDiceScroll(source,target,sourceLoop,targetLoop){if(diceSyncLock)return;diceSyncLock=true;const x=normalizeInfinite(source,sourceLoop);target.scrollLeft=x;normalizeInfinite(target,targetLoop);requestAnimationFrame(()=>{diceSyncLock=false})}
- function ensureD5Stepper(proxy,key){
-  if(!proxy||!['d5-bonus','d5-penalty'].includes(key)||proxy.querySelector('.rist-d5-stepper'))return;
-  const select=proxy.querySelector('select');const die=proxy.querySelector('.die-button');if(!select||!die)return;
+ function simplifyD5(proxy,key){
+  if(!proxy||!['d5-bonus','d5-penalty'].includes(key))return;
   proxy.classList.add('d5-control',key==='d5-bonus'?'bonus-d5':'penalty-d5');
-  const stepper=document.createElement('div');stepper.className='rist-d5-stepper';
-  const minus=document.createElement('button');minus.type='button';minus.className='rist-d5-step-minus';minus.textContent='−';
-  const value=document.createElement('span');value.className='rist-d5-step-value';value.textContent=`${key==='d5-bonus'?'+':'-'}${select.value||1}`;
-  const plus=document.createElement('button');plus.type='button';plus.className='rist-d5-step-plus';plus.textContent='+';
-  const adjust=delta=>{const current=Number(select.value)||1;syncD5(key,Math.max(1,Math.min(5,current+delta)))};
-  minus.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();adjust(-1)});
-  plus.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();adjust(1)});
-  stepper.append(minus,value,plus);proxy.appendChild(stepper);
+  proxy.querySelector('.rist-d5-stepper')?.remove();
+  const select=proxy.querySelector('select');
+  if(select&&select.dataset.ristD5Sync!=='1'){
+   select.dataset.ristD5Sync='1';
+   select.addEventListener('change',()=>syncD5(key,select.value));
+  }
  }
  function patchDice(){
   const root=q('.rist.release-world');if(!root?.classList.contains('deck-dice'))return;
   const shell=q(':scope > .release-world-shell',root);const row1=q(':scope > .rist-deck-row.row1',shell);const row2=q(':scope > .rist-deck-row.row2',shell);const head=q('.rist-dice-header-loop',row1);const art=q('.rist-dice-image-loop',row2);if(!row1||!row2||!head||!art)return;
   const count=liveDiceSources().length;if(!count)return;
   ensureTripleLoop(head,count);ensureTripleLoop(art,count);head.classList.remove('rist-dice-synced');art.classList.remove('rist-dice-synced');
-  qa('.rist-dice-proxy',art).forEach(proxy=>ensureD5Stepper(proxy,dieKey(proxy)));
+  qa('.rist-dice-proxy',art).forEach(proxy=>simplifyD5(proxy,dieKey(proxy)));
   if(row1.dataset.diceLinked!=='1'){
    row1.dataset.diceLinked='1';row2.dataset.diceLinked='1';
    row1.addEventListener('scroll',()=>setBothDiceScroll(row1,row2,head,art),{passive:true});row2.addEventListener('scroll',()=>setBothDiceScroll(row2,row1,art,head),{passive:true});
    row1.addEventListener('click',event=>{const button=event.target.closest('.rist-dice-header-loop > button');if(!button)return;event.preventDefault();event.stopImmediatePropagation();rollDie(Number(button.dataset.loopIndex||0))},true);
-   row2.addEventListener('click',event=>{if(event.target.closest('.rist-d5-stepper,select'))return;const proxy=event.target.closest('.rist-dice-image-loop > .rist-dice-proxy');if(!proxy)return;event.preventDefault();event.stopImmediatePropagation();const key=dieKey(proxy);if(key)rollDieKey(key);else rollDie(Number(proxy.dataset.loopIndex||0))},true);
+   row2.addEventListener('click',event=>{if(event.target.closest('select'))return;const proxy=event.target.closest('.rist-dice-image-loop > .rist-dice-proxy');if(!proxy)return;event.preventDefault();event.stopImmediatePropagation();const key=dieKey(proxy);if(key)rollDieKey(key);else rollDie(Number(proxy.dataset.loopIndex||0))},true);
    requestAnimationFrame(()=>{const cycle=cycleWidth(head);if(cycle){row1.scrollLeft=cycle;row2.scrollLeft=cycle}});
   }
  }
