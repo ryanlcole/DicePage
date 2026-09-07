@@ -5,11 +5,9 @@ public sealed partial class WorldSession
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
  const string OceanResetVersion="2026-08-28-topology-v2";
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
- const int CurrentMapVersion=6;
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
- bool _loadedMapNeedsResave;
 
  object SavePayload()
  {
@@ -18,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=CurrentMapVersion,
+   Version=5,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,
@@ -82,15 +80,9 @@ public sealed partial class WorldSession
 
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
-   var restoredJson=_loadedMapNeedsResave?ExportMapJson():json;
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,restoredJson);
+   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
    await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
-   if(_loadedMapNeedsResave)
-   {
-    await auth.UploadTextAsync(PrivateWorldCheckpointKey,restoredJson,"application/json");
-    _loadedMapNeedsResave=false;
-   }
-   _lastPrivateSnapshot=restoredJson;
+   _lastPrivateSnapshot=ExportMapJson();
    PrivateStorageStatus="Shaelvien progress restored from your private AWS storage.";
   }
   catch(Exception ex){PrivateStorageStatus="Private restore failed; using local world: "+ex.Message;}
@@ -123,13 +115,7 @@ public sealed partial class WorldSession
    await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
    return true;
   }
-  LoadMapJson(json);
-  if(_loadedMapNeedsResave)
-  {
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
-   _loadedMapNeedsResave=false;
-  }
-  return true;
+  LoadMapJson(json);return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
 
@@ -160,10 +146,8 @@ public sealed partial class WorldSession
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
-  var legacyMap=save.Version<CurrentMapVersion;
-  var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin" && !(legacyMap&&x.Kind=="pin")).ToList();
+  var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
   ImportSpatialContent(save.Tiles??[],pieces);
-  _loadedMapNeedsResave=legacyMap;
   MapLocked=true;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
