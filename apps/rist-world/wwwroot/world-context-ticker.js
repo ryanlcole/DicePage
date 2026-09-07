@@ -17,26 +17,43 @@
   node.replaceWith(span);
   return span;
  }
- function makeHeaderStartOnly(){
+ function makeHeaderTickerOnly(){
   const strip=document.querySelector('.world-context-strip');
   if(!strip)return;
-  textOnly(strip.querySelector('.world-context-menu'));
+  strip.querySelector('.world-context-menu')?.remove();
+  strip.querySelector('.world-context-login')?.remove();
   strip.querySelectorAll('.world-context-action,.world-context-utc').forEach(textOnly);
   const track=strip.querySelector('.world-context-track');
-  if(track){track.setAttribute('aria-label','Open Start Menu');track.setAttribute('role','button');track.tabIndex=0}
+  if(track){
+   track.setAttribute('aria-label','Toggle Start Menu');
+   track.setAttribute('role','button');
+   track.tabIndex=0;
+   if(!track.querySelector('[data-start-menu-label]')){
+    const label=document.createElement('span');
+    label.className='world-context-readout world-context-start-menu';
+    label.dataset.startMenuLabel='1';
+    label.innerHTML='<strong>Start Menu</strong>';
+    track.appendChild(label);
+   }
+  }
+  strip.style.gridTemplateColumns='minmax(0,1fr)';
+  strip.style.position='relative';
+  strip.style.zIndex='2147480000';
   strip.setAttribute('data-start-menu-authority','1');
   removeLegacyPopouts();
  }
- function openStart(event){
+ function toggleStart(event){
   const strip=event.target instanceof Element?event.target.closest('.world-context-strip'):null;
   if(!strip)return;
-  if(event.target instanceof Element&&event.target.closest('.world-context-login'))return;
   if(event.type==='keydown'&&event.key!=='Enter'&&event.key!==' ')return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation?.();
-  window.RistStartMenu?.open?.();
+  const overlay=document.querySelector('.rist-start-overlay');
+  const open=overlay&&!overlay.hidden;
+  if(open)window.RistStartMenu?.close?.();
+  else window.RistStartMenu?.open?.();
  }
  function tick(){
-  makeHeaderStartOnly();
+  makeHeaderTickerOnly();
   const now=new Date();
   const date=document.querySelector('.world-context-date time');
   const utc=document.querySelector('.world-context-utc time');
@@ -45,9 +62,9 @@
  }
  function start(){
   tick();if(!timer)timer=setInterval(tick,1000);
-  document.addEventListener('click',openStart,true);
-  document.addEventListener('keydown',openStart,true);
-  if(!observer){observer=new MutationObserver(()=>{makeHeaderStartOnly();removeLegacyPopouts()});observer.observe(document.body,{childList:true,subtree:true})}
+  document.addEventListener('click',toggleStart,true);
+  document.addEventListener('keydown',toggleStart,true);
+  if(!observer){observer=new MutationObserver(()=>{makeHeaderTickerOnly();removeLegacyPopouts()});observer.observe(document.body,{childList:true,subtree:true})}
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
  document.addEventListener('rist:game-start',tick);
