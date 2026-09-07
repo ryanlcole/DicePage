@@ -43,6 +43,8 @@
 
      <div class="map-tools-readouts" aria-live="polite">
       <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
+      <div><span>Pan X</span><strong>@Session.ViewPanX.ToString("0.##")</strong></div>
+      <div><span>Pan Y</span><strong>@Session.ViewPanY.ToString("0.##")</strong></div>
       <div><span>Zoom</span><strong>@Session.ViewZoom.ToString("0.##")×</strong></div>
       <div><span>Tier</span><strong>@Session.ViewportTier</strong></div>
       <div><span>Map grid</span><strong>@Session.GridStyle</strong></div>
