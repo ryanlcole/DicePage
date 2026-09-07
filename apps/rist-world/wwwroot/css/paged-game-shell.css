@@ -7,7 +7,14 @@ html,body,#app{width:100%;height:100%;min-height:100%;overflow:hidden!important}
 .rist.release-world>.release-world-shell{position:relative!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
 /* Home center is only the viewer. Center the complete map/frame as one unit. */
 .rist.release-world .release-map-region{display:flex!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;margin:0!important;padding:0!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
-.rist.release-world .release-map-region>.map-shell,.rist.release-world .release-map-region .map-shell{margin:auto!important;align-self:center!important;justify-self:center!important}
+/* The old in-map pallet/initiative rail must not consume viewer height on Home. */
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace>.staging-tray{display:none!important}
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;overflow:hidden!important}
+/* Fit the entire frame inside the viewer so the bottom X rail is never clipped. */
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace>.map-shell{box-sizing:border-box!important;position:relative!important;inset:auto!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;margin:auto!important;padding:0!important;overflow:hidden!important;align-self:center!important;justify-self:center!important}
+html body #app>.rist.release-world>.release-world-shell>.release-map-region>.table-workspace>.map-shell>.map{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;margin:0!important}
+/* Keep the coordinate overlay, including the bottom X axis, inside the same frame box. */
+html body #app .release-map-region .map-shell>.rist-coordinate-frame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;overflow:hidden!important}
 /* Remove all old center/bottom tool surfaces from Home. They return later as replacement sliders. */
 .rist.release-world .release-menu-region,.rist.release-world .release-footer-region{display:none!important}
 /* Public hand remains in the header for now. */
