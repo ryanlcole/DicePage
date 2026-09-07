@@ -1,20 +1,174 @@
-/* Canonical Shaelvien viewer map. New worlds are a fixed 30 x 30 logical scene. */
-.table-workspace{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important}
-.map-shell{box-sizing:border-box!important;position:relative!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important}
-.map{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;container-type:size!important;--rist-grid-cell:calc(100cqw / 30);background:transparent!important}
-.world-stage{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;transform-origin:0 0!important;overflow:hidden!important;background:transparent!important}
-.world-stage>.base,.world-stage>.grid{box-sizing:border-box!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important}
-.base.ocean-world{z-index:0!important;background:transparent!important;background-image:none!important}
+/* Recursive Shaelvien map authority.
+   World: 300 x 300 logical collision cells.
+   Viewer: 8 x 8 cells at the canonical 1x camera.
+   Origin ocean: centered 30 x 30 cells (135..164 on both axes).
+   The viewer grid is owned by WorldTable, never by the map. */
+
+.table-workspace{
+  box-sizing:border-box!important;
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#000!important;
+}
+
+.map-shell{
+  box-sizing:border-box!important;
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#000!important;
+}
+
+.map{
+  box-sizing:border-box!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  container-type:size!important;
+  background:#000!important;
+  touch-action:none;
+}
+
+/* 300 / 8 = 37.5 viewer widths.  The stage is offset so world cell 150
+   begins centered in the 8-cell viewer at pan=0, zoom=1. */
+.world-stage{
+  box-sizing:border-box!important;
+  position:absolute!important;
+  left:-1825%!important;
+  top:-1825%!important;
+  width:3750%!important;
+  height:3750%!important;
+  min-width:3750%!important;
+  min-height:3750%!important;
+  transform-origin:50% 50%!important;
+  overflow:hidden!important;
+  background:#000!important;
+}
+
+/* The map itself has no grid. */
+.world-stage>.grid,
+.world-stage>.grid.square,
+.world-stage>.grid.hex,
+.world-stage>.grid.none{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:none!important;
+  border:0!important;
+}
+
+/* Canonical 30x30 ocean origin: 30/300 = 10%; origin = 135/300 = 45%. */
+.base.ocean-world{
+  box-sizing:border-box!important;
+  display:block!important;
+  position:absolute!important;
+  left:45%!important;
+  top:45%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:10%!important;
+  height:10%!important;
+  min-width:0!important;
+  min-height:0!important;
+  z-index:0!important;
+  overflow:hidden!important;
+  background-color:#06354b!important;
+  background-image:url('https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/shaelvien/ocean_071.png')!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+  box-shadow:0 0 0 1px rgba(55,166,219,.18)!important;
+}
 .base.ocean-world::after{display:none!important}
-.world-stage>.grid{z-index:1!important;pointer-events:none!important;background:none!important}
-.world-stage>.grid.square,.world-stage>.grid.hex,.world-stage>.grid.none{background:none!important}
-.world-stage>.tile-cell{box-sizing:border-box!important;padding:0!important;margin:0!important;border:0!important;outline:0!important;gap:0!important;overflow:hidden!important;background:transparent!important}
-.world-stage>.tile-cell>.tile-image-crop{position:absolute!important;inset:-.35px!important;display:block!important;width:calc(100% + .7px)!important;height:calc(100% + .7px)!important;overflow:hidden!important;border:0!important;outline:0!important;line-height:0!important}
-.world-stage>.tile-cell>.tile-image-crop>img{display:block!important;min-width:100%!important;min-height:100%!important;border:0!important;outline:0!important;vertical-align:top!important}
-.world-stage>.tile-cell,.world-stage>.piece,.world-stage>.map-zone-label,.world-stage>.pin-label-callout,.world-stage>.rolled-die{z-index:2!important}
 .base.ocean-world>img:first-of-type{display:none!important}
+
+/* One placed terrain tile is one 300x300 world cell. */
+.world-stage>.tile-cell{
+  box-sizing:border-box!important;
+  width:calc(100% / 300)!important;
+  height:calc(100% / 300)!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  outline:0!important;
+  gap:0!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  z-index:2!important;
+}
+.world-stage>.tile-cell>.tile-image-crop{
+  position:absolute!important;
+  inset:-.35px!important;
+  display:block!important;
+  width:calc(100% + .7px)!important;
+  height:calc(100% + .7px)!important;
+  overflow:hidden!important;
+  border:0!important;
+  outline:0!important;
+  line-height:0!important;
+}
+.world-stage>.tile-cell>.tile-image-crop>img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:100%!important;
+  min-height:100%!important;
+  object-fit:cover!important;
+  border:0!important;
+  outline:0!important;
+  vertical-align:top!important;
+}
+
+.world-stage>.piece,
+.world-stage>.map-zone-label,
+.world-stage>.pin-label-callout,
+.world-stage>.rolled-die{z-index:3!important}
+
 .status,.map-status,.coordinate-readout,.map-coordinate-readout{display:none!important}
-.desktop-map-zoom{position:absolute!important;right:8px!important;bottom:8px!important;top:auto!important;left:auto!important;z-index:55!important;display:flex!important;gap:5px!important}
-.desktop-map-zoom button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:0!important;border-radius:8px!important}
+
+/* Mouse/keyboard systems retain explicit zoom.  Touch systems use pinch. */
+.desktop-map-zoom{
+  position:absolute!important;
+  right:8px!important;
+  bottom:8px!important;
+  top:auto!important;
+  left:auto!important;
+  z-index:55!important;
+  display:flex!important;
+  gap:5px!important;
+}
+.desktop-map-zoom button{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  border-radius:8px!important;
+}
 @media(pointer:coarse){.desktop-map-zoom{display:none!important}}
-@media(orientation:landscape) and (max-height:700px) and (pointer:fine){.desktop-map-zoom{right:6px!important;bottom:6px!important}.desktop-map-zoom button{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}}
+@media(orientation:landscape) and (max-height:700px) and (pointer:fine){
+  .desktop-map-zoom{right:6px!important;bottom:6px!important}
+  .desktop-map-zoom button{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}
+}
