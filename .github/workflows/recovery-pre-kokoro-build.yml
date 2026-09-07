@@ -1,0 +1,16 @@
+name: Recovery Pre-Kokoro Build
+on:
+  push:
+    branches:
+      - restore-pre-kokoro-functionality-2026-09-06
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release --nologo
