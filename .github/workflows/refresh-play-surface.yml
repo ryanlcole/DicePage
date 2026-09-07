@@ -52,8 +52,9 @@ jobs:
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
           grep -q 'shaelvien-dragon-creation-startup-screen.png' /tmp/play.html
-          grep -q 'Press any key to continue' /tmp/play.html
-          grep -q '>Sign In<' /tmp/play.html
-          grep -q '>Sign Up<' /tmp/play.html
-          grep -q '>Preview<' /tmp/play.html
-          echo "Shaelvien Play surface refreshed and verified at ${URL}Play/index.html"
+          grep -q 'Continue with Discord' /tmp/play.html
+          if grep -q '>Sign In<' /tmp/play.html || grep -q '>Sign Up<' /tmp/play.html || grep -q '>Preview<' /tmp/play.html; then
+            echo 'Unexpected legacy multi-option launcher detected.' >&2
+            exit 1
+          fi
+          echo "Frozen Shaelvien Discord launcher verified at ${URL}Play/index.html"
