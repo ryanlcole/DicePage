@@ -9,7 +9,7 @@ window.ristAuth={
    const last=Number(sessionStorage.getItem('rist.lastActivity'))||Date.now();
    const remaining=window.ristAuth.idleMs-(Date.now()-last);
    clearTimeout(window.ristAuth.idleTimer);
-   if(remaining<=0){window.ristAuth.clearSession();location.reload();return;}
+   if(remaining<=0){window.ristAuth.clearSession();location.replace('/Play/index.html?reason=session');return;}
    window.ristAuth.idleTimer=setTimeout(expire,remaining);
   };
   const activity=()=>{
@@ -50,10 +50,14 @@ window.ristAuth={
   if(token)window.ristAuth.installIdleExpiry();
   return token;
  },
+ clearEdgeCookie:()=>{
+  document.cookie='rist_session=; Path=/; Max-Age=0; SameSite=Lax; Secure';
+ },
  clearSession:()=>{
   clearTimeout(window.ristAuth.idleTimer);
   sessionStorage.removeItem('rist.session');
   sessionStorage.removeItem('rist.lastActivity');
+  window.ristAuth.clearEdgeCookie();
  },
  navigate:url=>location.assign(url)
 };
