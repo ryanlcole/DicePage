@@ -1,6 +1,6 @@
 (()=>{
  'use strict';
- let timer=0,observer=null;
+ let timer=0,observer=null,marqueeFrame=0,lastMarqueeTime=0;
  const pad=value=>String(value).padStart(2,'0');
  const legacyPopouts=[
   '.world-context-dialog','.world-context-popover','.world-context-popup',
@@ -28,6 +28,17 @@
    track.setAttribute('aria-label','Toggle Start Menu');
    track.setAttribute('role','button');
    track.tabIndex=0;
+   track.style.display='flex';
+   track.style.alignItems='center';
+   track.style.gap='8px';
+   track.style.width='100%';
+   track.style.minWidth='0';
+   track.style.overflowX='auto';
+   track.style.overflowY='hidden';
+   track.style.whiteSpace='nowrap';
+   track.style.scrollBehavior='auto';
+   track.style.scrollbarWidth='none';
+   track.style.webkitOverflowScrolling='touch';
    if(!track.querySelector('[data-start-menu-label]')){
     const label=document.createElement('span');
     label.className='world-context-readout world-context-start-menu';
@@ -39,6 +50,7 @@
   strip.style.gridTemplateColumns='minmax(0,1fr)';
   strip.style.position='relative';
   strip.style.zIndex='2147480000';
+  strip.style.overflow='hidden';
   strip.setAttribute('data-start-menu-authority','1');
   removeLegacyPopouts();
  }
@@ -60,13 +72,26 @@
   if(date){const value=`${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;if(date.textContent!==value)date.textContent=value;}
   if(utc){const value=`${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;if(utc.textContent!==value)utc.textContent=value;}
  }
+ function marquee(now){
+  const track=document.querySelector('.world-context-track');
+  if(track&&!document.hidden&&track.scrollWidth>track.clientWidth){
+   if(lastMarqueeTime){
+    const delta=Math.min(50,now-lastMarqueeTime);
+    track.scrollLeft+=delta*0.035;
+    if(track.scrollLeft>=track.scrollWidth-track.clientWidth-1)track.scrollLeft=0;
+   }
+  }else if(track&&track.scrollLeft!==0){track.scrollLeft=0;}
+  lastMarqueeTime=now;
+  marqueeFrame=requestAnimationFrame(marquee);
+ }
  function start(){
   tick();if(!timer)timer=setInterval(tick,1000);
   document.addEventListener('click',toggleStart,true);
   document.addEventListener('keydown',toggleStart,true);
   if(!observer){observer=new MutationObserver(()=>{makeHeaderTickerOnly();removeLegacyPopouts()});observer.observe(document.body,{childList:true,subtree:true})}
+  if(!marqueeFrame)marqueeFrame=requestAnimationFrame(marquee);
  }
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastMarqueeTime=0;tick()}});
  document.addEventListener('rist:game-start',tick);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.RistWorldContext={edit:()=>{},openClock:()=>{},close:()=>{removeLegacyPopouts()}};
