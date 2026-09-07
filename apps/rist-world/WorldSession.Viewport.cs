@@ -2,19 +2,21 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    public event Action? MapViewResetRequested;
+
+    public double ViewPanX { get; private set; }
+    public double ViewPanY { get; private set; }
+
     public void RequestMapViewReset()
     {
-        _ = ResetMapViewportAsync();
+        MapViewResetRequested?.Invoke();
     }
 
-    async Task ResetMapViewportAsync()
+    public void PublishMapView(double panX, double panY, double zoom, bool notify = true)
     {
-        try
-        {
-            await js.InvokeVoidAsync("eval", "(()=>{const map=document.querySelector('.viewer-map .map');if(!map)return;map.focus({preventScroll:true});map.dispatchEvent(new KeyboardEvent('keydown',{key:'0',bubbles:true}));})()");
-        }
-        catch (JSException)
-        {
-        }
+        ViewPanX = panX;
+        ViewPanY = panY;
+        ViewZoom = zoom;
+        if (notify) Notify();
     }
 }
