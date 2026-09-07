@@ -84,12 +84,24 @@
 @if(Session.OpenCard is not null){<div class="card-modal" @onclick="Session.CloseCard"><article class="card-panel" @onclick:stopPropagation="true"><h2>@Session.OpenCard.Name</h2><p><strong>@Session.OpenCard.Type</strong></p><p>@Session.OpenCard.Text</p><button @onclick="Session.CloseCard">Close</button></article></div>}
 
 @code{
+ [Parameter] public string Mode {get;set;}="chat";
  static readonly string[] HumanLanguages=["English","Spanish","French","German","Italian","Portuguese","Polish","Dutch","Swedish","Norwegian","Danish","Finnish","Russian","Ukrainian","Arabic","Hebrew","Hindi","Bengali","Urdu","Mandarin Chinese","Cantonese","Japanese","Korean","Vietnamese","Thai","Indonesian","Malay","Filipino","Swahili","Turkish","Greek","Czech","Romanian","Hungarian"];
  readonly List<(string Speaker,string Text,string Language,string HumanLanguage)> _history=[];
  bool _chatHistoryOpen;
  bool _rollHistoryOpen;
  bool _diceTrayOpen;
+ string _appliedMode="";
  string ChatPrompt=>$"Roleplay · {Session.ActiveRoleplayLanguage}";
+ protected override void OnParametersSet()
+ {
+  if(string.Equals(_appliedMode,Mode,StringComparison.Ordinal))return;
+  _appliedMode=Mode;
+  _chatHistoryOpen=false;
+  _rollHistoryOpen=false;
+  _diceTrayOpen=Mode is "dice" or "roll-log";
+  if(Mode=="chat-log")_chatHistoryOpen=true;
+  if(Mode=="roll-log")_rollHistoryOpen=true;
+ }
  void ToggleDiceTray()=>_diceTrayOpen=!_diceTrayOpen;
  void SendInlineChat(){var text=Session.ChatDraft?.Trim()??string.Empty;if(text.Length==0)return;_history.Add((Session.DialogueSpeaker,text,Session.ActiveRoleplayLanguage,Session.PrimaryHumanLanguage));Session.SendChat();}
  void PrimaryLanguageChanged(ChangeEventArgs e)=>Session.SetPrimaryHumanLanguage(e.Value?.ToString()??"English");
