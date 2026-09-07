@@ -3,18 +3,28 @@
  const interactive='button,[href],input,select,textarea,[role="button"],[tabindex]:not([tabindex="-1"])';
  let ticker=null,lastButtons=[];
  const menuOpen=()=>{const el=document.querySelector('.rist-start-overlay');return !!el&&!el.hidden};
- function ensureChrome(){
-  if(ticker)return;
-  ticker=document.querySelector('.rist-bottom-ticker');
+ function buildBottomTicker(){
+  const message='© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien and RIST · ReLiCGameMaster.com · Contact';
   if(!ticker){
-   ticker=document.createElement('div');
-   ticker.className='rist-bottom-ticker';
-   ticker.setAttribute('aria-label','Copyright and contact');
-   ticker.textContent='© 2026 Ryan L. Cole / ReLiCGameMaster · Shaelvien and RIST · ReLiCGameMaster.com · Contact';
-   document.body.appendChild(ticker);
+   ticker=document.querySelector('.rist-bottom-ticker');
+   if(!ticker){ticker=document.createElement('div');ticker.className='rist-bottom-ticker';document.body.appendChild(ticker)}
   }
-  document.querySelector('.rist-page-controls')?.remove();
+  ticker.setAttribute('aria-label','Copyright and contact');
+  if(!ticker.querySelector('.rist-bottom-ticker-track')){
+   ticker.textContent='';
+   const track=document.createElement('div');
+   track.className='rist-bottom-ticker-track';
+   for(let i=0;i<3;i++){
+    const item=document.createElement('span');
+    item.className='rist-bottom-ticker-item';
+    item.textContent=message;
+    if(i>0)item.setAttribute('aria-hidden','true');
+    track.appendChild(item);
+   }
+   ticker.appendChild(track);
+  }
  }
+ function ensureChrome(){buildBottomTicker();document.querySelector('.rist-page-controls')?.remove()}
  function openStart(){window.RistStartMenu?.open?.()}
  function keydown(e){
   if(e.key!=='Escape')return;
@@ -25,9 +35,7 @@
  }
  function selectAsTouch(){
   const focused=document.activeElement;
-  const target=focused&&focused!==document.body&&focused.matches?.(interactive)
-   ?focused
-   :document.elementFromPoint(innerWidth/2,innerHeight/2)?.closest?.(interactive);
+  const target=focused&&focused!==document.body&&focused.matches?.(interactive)?focused:document.elementFromPoint(innerWidth/2,innerHeight/2)?.closest?.(interactive);
   if(!target)return;
   try{target.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',isPrimary:true,clientX:innerWidth/2,clientY:innerHeight/2}));}catch{}
   target.click?.();
