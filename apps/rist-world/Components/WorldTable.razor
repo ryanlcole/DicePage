@@ -26,7 +26,11 @@
      <span class="viewer-role">@(Session.Role=="GM"?"GameMaster":"Roleplayer")</span>
     </header>
     <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span class="axis-label">Y</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></aside>
-    <div class="viewer-map"><WorldMap /><img class="viewer-compass" src="https://d2d6rnm6fnsp89.cloudfront.net/ui/shaelvien/icons/compass.png" alt="" aria-hidden="true" /></div>
+    <div class="viewer-map">
+     <WorldMap />
+     <div class="viewer-grid-overlay" aria-hidden="true"></div>
+     <img class="viewer-compass" src="https://d2d6rnm6fnsp89.cloudfront.net/ui/shaelvien/icons/compass.png" alt="" aria-hidden="true" />
+    </div>
     <aside class="viewer-ruler viewer-ruler-z" aria-label="Z axis"><span class="axis-label">Z</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></aside>
     <footer class="viewer-ruler viewer-ruler-x" aria-label="X axis">
      <span class="axis-label">X</span>
