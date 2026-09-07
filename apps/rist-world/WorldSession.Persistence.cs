@@ -3,8 +3,8 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
  const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
- const string OceanResetVersion="2026-08-28-topology-v2";
- const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
+ const string OceanResetVersion="2026-09-06-blank-recursive-v1";
+ const string OceanResetMarkerKey="rist.world.reset.2026-09-06-blank-recursive-v1";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
@@ -72,8 +72,8 @@ public sealed partial class WorldSession
     await SavePrivateCheckpointAsync(showSuccess:false);
     await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
     PrivateStorageStatus=saved is null
-      ?"Private AWS storage initialized with the canonical origin."
-      :"Private Shaelvien world reset once to the canonical World/Plane/Tier origin.";
+      ?"Private AWS storage initialized with a blank recursive map."
+      :"Private Shaelvien map reset once to the blank recursive origin.";
     Notify();
     return;
    }
@@ -124,7 +124,7 @@ public sealed partial class WorldSession
   EncounterActive=false;
   RestoreOperatingMode("mmo");
   Layer="WORLD";
-  GridStyle="square";
+  GridStyle="none";
   DistanceUnit="mi";
   GridDiameter=48;
   GridDistance=1;
@@ -133,7 +133,7 @@ public sealed partial class WorldSession
   Pieces=[];
   PlacedTiles=[];
   ResetTopologyToCanonicalOrigin();
-  MapLocked=true;
+  MapLocked=false;
   CloseHeaderMenus();
   Notify();
  }
@@ -148,7 +148,7 @@ public sealed partial class WorldSession
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
   ImportSpatialContent(save.Tiles??[],pieces);
-  MapLocked=true;CloseHeaderMenus();Notify();
+  MapLocked=false;CloseHeaderMenus();Notify();
  }
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
  public void CloseCard(){OpenCard=null;Notify();}
