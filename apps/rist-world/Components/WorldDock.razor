@@ -1,5 +1,5 @@
+@using Microsoft.AspNetCore.Components.Forms
 @inject WorldSession Session
-@inject IJSRuntime JS
 
 <div class="world-dock">
  <nav class="module-rail" aria-label="Game sections">
@@ -16,95 +16,95 @@
   @switch(_active)
   {
    case "profile":
-    <section class="restored-panel" aria-label="User profile tools">
-     <header><img src="@Icon("user_profile")" alt="" /><strong>User Profile</strong></header>
-     <div class="restored-actions">
+    <section class="dock-panel profile-panel" aria-label="User profile">
+     <PanelHeader IconKey="user_profile" Title="User Profile" Subtitle="Account, role and character" />
+     <div class="action-grid">
       <button @onclick="Session.OpenAccountViewer">Account</button>
       <button @onclick="Session.OpenMixer">Character Sheet</button>
-      <button @onclick="OpenSettings">Settings</button>
       @if(Session.IsLoggedIn){<button @onclick="Session.ToggleLoginAsync">Log Out</button>}
       else{<button @onclick="Session.BeginAccountLoginAsync">Sign In</button>}
      </div>
+     <fieldset class="choice-block"><legend>Role</legend><div class="choice-row"><button class="@(Session.Role=="PC"?"selected":"")" @onclick="()=>Session.SetRole("PC")">Roleplayer</button>@if(Session.CanManageCurrentMap){<button class="@(Session.Role=="GM"?"selected":"")" @onclick="()=>Session.SetRole("GM")">GameMaster</button>}</div></fieldset>
+     @if(!string.IsNullOrWhiteSpace(Session.DiscordDisplayName)){<p class="status-line">Signed in as <strong>@Session.DiscordDisplayName</strong></p>}
     </section>
     break;
 
    case "chat":
-    <WorldFooter />
+    <WorldFooter Mode="chat" />
     break;
 
    case "dice":
-    <WorldFooter />
+    <WorldFooter Mode="dice" />
     break;
 
    case "map-tools":
-    <section class="map-tools-panel" aria-label="Map tools and coordinates">
-     <header><img src="@Icon("map_tools")" alt="" aria-hidden="true" /><div><strong>Map Tools</strong><small>@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</small></div></header>
+    <section class="dock-panel map-tools-panel" aria-label="Map tools">
+     <PanelHeader IconKey="map_tools" Title="Map Tools" Subtitle="@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)" />
+
      <div class="map-tools-readouts" aria-live="polite">
       <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
-      <div><span>Pan X</span><strong>@_mapView[0].ToString("0.###")</strong></div>
-      <div><span>Pan Y</span><strong>@_mapView[1].ToString("0.###")</strong></div>
-      <div><span>Zoom</span><strong>@_mapView[2].ToString("0.##")×</strong></div>
+      <div><span>Zoom</span><strong>@Session.ViewZoom.ToString("0.##")×</strong></div>
+      <div><span>Tier</span><strong>@Session.ViewportTier</strong></div>
       <div><span>Map grid</span><strong>@Session.GridStyle</strong></div>
      </div>
-     <div class="map-tools-actions">
-      <button type="button" @onclick="CenterMap">Center Ocean</button>
-      <button type="button" @onclick="RefreshMapView">Refresh</button>
-      <button type="button" @onclick="OpenLibrary">Asset Library</button>
-      <button type="button" @onclick="SaveMap">Save / Export</button>
-      <button type="button" @onclick="LoadMap">Load</button>
-      <button type="button" @onclick="OpenRecursion">Recursive View</button>
+
+     <fieldset class="choice-block"><legend>Table Mode</legend><div class="choice-row wrap">@foreach(var mode in TableModes){<button class="@(Session.TableMode==mode.Key?"selected":"")" @onclick="()=>Session.SetTableMode(mode.Key)">@mode.Label</button>}</div></fieldset>
+     <fieldset class="choice-block"><legend>Map Grid</legend><div class="choice-row"><button class="@(Session.GridStyle=="square"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("square")">Square</button><button class="@(Session.GridStyle=="hex"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("hex")">Hex</button><button class="@(Session.GridStyle=="none"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("none")">None</button></div></fieldset>
+     <fieldset class="choice-block"><legend>Scale</legend><div class="scale-row"><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" aria-label="Grid distance" /><div class="choice-row compact">@foreach(var unit in Units){<button class="@(Session.DistanceUnit==unit?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>Session.SetDistanceUnit(unit)">@unit</button>}</div></div><output>@(Session.EncounterActive?"5 ft/hex":$"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output></fieldset>
+     <fieldset class="choice-block"><legend>Recursive Tier</legend><div class="choice-row wrap">@foreach(var tier in WorldSession.RecursionTiers){<button class="@(Session.ViewportTier==tier?"selected":"")" @onclick="()=>Session.SetViewportTier(tier)">@TierShort(tier)</button>}</div></fieldset>
+
+     <div class="action-grid map-actions">
+      <button @onclick="CenterMap">Center Ocean</button>
+      <button @onclick="OpenLibrary">Asset Library</button>
+      <button @onclick="()=>_saveOpen=!_saveOpen">Save / Export</button>
+      <button @onclick="()=>_loadOpen=!_loadOpen">Load</button>
      </div>
-     <p class="map-tools-help">Viewer grid is independent of the map. Touch: drag gently to pan and pinch to zoom. Mouse: drag/wheel. Keyboard: arrows/WASD, +, − and 0.</p>
+
+     @if(_saveOpen)
+     {
+      <section class="inline-menu" aria-label="Save and export">
+       <strong>Save / Export</strong>
+       <button @onclick="Session.DownloadMapAsync">Download RIST map</button>
+       @if(Session.IsLoggedIn){<button @onclick="Session.SaveRistAsync">Save to private AWS storage</button>}
+       <button @onclick="Session.ShareMapAsync">Export to Files / Drive / Share</button>
+       @if(!string.IsNullOrWhiteSpace(Session.PrivateStorageStatus)){<output>@Session.PrivateStorageStatus</output>}
+      </section>
+     }
+     @if(_loadOpen)
+     {
+      <section class="inline-menu" aria-label="Load map">
+       <strong>Load</strong>
+       <label class="file-load">Load map file<InputFile OnChange="LoadMapFile" accept=".ristmap,.json,application/json" /></label>
+       <button @onclick="Session.LoadAsync">Load browser save</button>
+       @if(Session.IsLoggedIn){<button @onclick="OpenLibrary">Custom assets</button><button @onclick="Session.OpenMixer">Characters</button>}
+      </section>
+     }
+     <p class="map-tools-help">The 10×10 black viewer grid is independent of the 300×300 map. Touch pans and pinches the world beneath it. Mouse uses drag/wheel; keyboard uses arrows or WASD, +, − and 0.</p>
     </section>
     break;
 
    case "cast":
-    <section class="restored-component-panel" aria-label="Cast and spell deck"><PrivateSpellDeck /></section>
+    <section class="dock-panel component-panel"><PanelHeader IconKey="cast" Title="Cast" Subtitle="Spells and abilities" /><PrivateSpellDeck /></section>
     break;
 
    case "cards":
-    <section class="restored-component-panel" aria-label="Cards">
-     <div class="restored-toolbar"><button @onclick="OpenCards">Card Library</button></div>
-     <PublicCardRail />
-    </section>
+    <section class="dock-panel component-panel"><PanelHeader IconKey="cards" Title="Cards" Subtitle="Public and library cards" /><div class="action-grid"><button @onclick="OpenCards">Card Library</button></div><PublicCardRail /></section>
     break;
 
    case "logs":
-    <section class="restored-panel" aria-label="Logs">
-     <header><img src="@Icon("logs")" alt="" /><strong>Logs</strong></header>
-     <div class="restored-actions">
-      <button @onclick="OpenRoleplayLog">Roleplay Log</button>
-      <button @onclick="OpenRollLog">Roll History</button>
-     </div>
-     <WorldFooter />
-    </section>
+    <section class="dock-panel logs-panel"><PanelHeader IconKey="logs" Title="Logs" Subtitle="Roleplay and rolls" /><div class="choice-row"><button class="@(_logMode=="chat-log"?"selected":"")" @onclick="()=>_logMode="chat-log"">Roleplay</button><button class="@(_logMode=="roll-log"?"selected":"")" @onclick="()=>_logMode="roll-log"">Rolls</button></div><WorldFooter Mode="@_logMode" /></section>
     break;
 
    case "custom":
-    <section class="restored-panel" aria-label="Custom controls">
-     <header><img src="@Icon("settings")" alt="" /><strong>Custom1</strong></header>
-     <div class="restored-actions">
-      <button @onclick="OpenSettings">Settings</button>
-      <button @onclick="Session.OpenMixer">Character</button>
-      <button @onclick="OpenLibrary">Assets</button>
-      <button @onclick="SaveMap">Save / Export</button>
-      <button @onclick="LoadMap">Load</button>
-     </div>
-    </section>
+    <section class="dock-panel component-panel"><PanelHeader IconKey="settings" Title="Custom1" Subtitle="Language and custom controls" /><LanguagePanel /><div class="action-grid"><button @onclick="Session.OpenMixer">Character</button><button @onclick="OpenLibrary">Assets</button><button @onclick="()=>_active="map-tools"">Map Settings</button></div></section>
     break;
 
    case "library":
-    <section class="restored-component-panel" aria-label="Asset library">
-     <div class="restored-toolbar"><button @onclick="OpenLibrary">Open Asset Library</button></div>
-     <HandRail />
-    </section>
+    <section class="dock-panel component-panel"><PanelHeader IconKey="library" Title="Library" Subtitle="Private and shared assets" /><div class="action-grid"><button @onclick="OpenLibrary">Asset Library</button></div><HandRail /></section>
     break;
 
    default:
-    <section class="restored-component-panel" aria-label="@ActiveLabel assets">
-     <div class="restored-toolbar"><button @onclick="()=>OpenAsset(ActiveAssetKind)">Open @ActiveLabel</button></div>
-     <HandRail />
-    </section>
+    <section class="dock-panel component-panel" aria-label="@ActiveLabel assets"><PanelHeader IconKey="@ActiveIcon" Title="@ActiveLabel" Subtitle="Place and manage assets" /><div class="action-grid"><button @onclick="()=>OpenAsset(ActiveAssetKind)">Open @ActiveLabel</button></div><HandRail /></section>
     break;
   }
  </section>
@@ -115,47 +115,34 @@
  static readonly (string Key,string Label,string Icon)[] Modules=[
   ("profile","User Profile","user_profile"),("chat","Chat","chat"),("dice","Dice","dice"),("map-tools","Map Tools","map_tools"),("cast","Cast","cast"),("cards","Cards","cards"),("tokens","Tokens","tokens"),("minis","Minis","minis"),("rolling-stock","Rolling Stock","rolling_stock"),("pawns","Pawns/Meeples","pawns_meeples"),("tiles","Tiles","tiles"),("terrain","Terrains","terrain"),("bits","Bits","bits"),("logs","Logs","logs"),("custom","Custom1","settings"),("library","Library","library")
  ];
+ static readonly (string Key,string Label)[] TableModes=[("worldbuilder","Worldbuilder"),("forge","Forge"),("test","Test"),("encounter","Encounter"),("play","Let's Roll!")];
+ static readonly string[] Units=["mi","km","m","yd","ft"];
  string _active="chat";
- double[] _mapView=[0,0,1];
+ string _logMode="chat-log";
+ bool _saveOpen;
+ bool _loadOpen;
  string ActiveLabel=>Modules.First(x=>x.Key==_active).Label;
+ string ActiveIcon=>Modules.First(x=>x.Key==_active).Icon;
  string ActiveAssetKind=>_active switch{"tokens"=>"pin","minis"=>"mini","rolling-stock"=>"rolling-stock","pawns"=>"pawn","tiles"=>"tile","terrain"=>"terrain","bits"=>"bit",_=>"tile"};
  static string Icon(string key)=>$"{AssetRoot}{key}.png";
 
- async Task OpenModule(string key)
+ void OpenModule(string key)
  {
   _active=key;
-  switch(key)
-  {
-   case "profile": Session.OpenAccountViewer(); break;
-   case "chat": break;
-   case "dice": await OpenDiceTray(); break;
-   case "map-tools": await RefreshMapView(); break;
-   case "cards": OpenCards(); break;
-   case "tokens": OpenAsset("pin"); break;
-   case "minis": OpenAsset("mini"); break;
-   case "rolling-stock": OpenAsset("rolling-stock"); break;
-   case "pawns": OpenAsset("pawn"); break;
-   case "tiles": OpenAsset("tile"); break;
-   case "terrain": OpenAsset("terrain"); break;
-   case "bits": OpenAsset("bit"); break;
-   case "library": OpenLibrary(); break;
-  }
+  _saveOpen=false;
+  _loadOpen=false;
+  if(key is "tokens" or "minis" or "rolling-stock" or "pawns" or "tiles" or "terrain" or "bits")Session.PieceKind=ActiveAssetKind;
  }
-
- async Task OpenDiceTray()
- {
-  await InvokeAsync(StateHasChanged);
-  try{await JS.InvokeVoidAsync("eval","setTimeout(()=>document.querySelector('.dock-content .dice-tray-toggle')?.click(),0)");}catch(JSException){}
- }
- async Task RefreshMapView(){try{_mapView=await JS.InvokeAsync<double[]>("ristMapInput.read");}catch(JSException){_mapView=[0,0,1];}}
- async Task CenterMap(){try{await JS.InvokeVoidAsync("eval","document.querySelector('.viewer-world-name')?.click()");await RefreshMapView();}catch(JSException){}}
- async Task OpenRoleplayLog(){_active="chat";await InvokeAsync(StateHasChanged);try{await JS.InvokeVoidAsync("eval","setTimeout(()=>document.querySelector('.dock-content .chat-history-toggle')?.click(),0)");}catch(JSException){}}
- async Task OpenRollLog(){_active="dice";await InvokeAsync(StateHasChanged);try{await JS.InvokeVoidAsync("eval","setTimeout(()=>{document.querySelector('.dock-content .dice-tray-toggle')?.click();document.querySelector('.dock-content .roll-history-toggle')?.click()},0)");}catch(JSException){}}
- async Task OpenSettings(){try{await JS.InvokeVoidAsync("eval","window.RistStartMenu?.open?.()");}catch(JSException){}}
- async Task OpenRecursion(){try{await JS.InvokeVoidAsync("eval","document.querySelector('[data-recursion-open],.recursion-cockpit-toggle')?.click()");}catch(JSException){}}
- async Task SaveMap(){await Session.SaveAndToggleExportAsync();}
- void LoadMap(){Session.ToggleLoadMenu();}
+ void SetGrid(string value){if(Session.EncounterActive)return;Session.GridStyle=value;Session.Notify();}
+ void CenterMap(){Session.RequestMapViewReset();}
  void OpenCards(){if(!Session.CardBrowserOpen)Session.ToggleCardBrowser();}
  void OpenLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
  void OpenAsset(string kind){Session.PieceKind=kind;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();Session.Notify();}
+ async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
+ static string TierShort(string tier)=>tier switch{"WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","SITE"=>"S","ROOM"=>"RM","ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT",_=>"?"};
+
+ RenderFragment PanelHeader(string IconKey,string Title,string Subtitle)=>builder=>
+ {
+  var seq=0;builder.OpenElement(seq++,"header");builder.AddAttribute(seq++,"class","dock-panel-header");builder.OpenElement(seq++,"img");builder.AddAttribute(seq++,"src",Icon(IconKey));builder.AddAttribute(seq++,"alt","");builder.AddAttribute(seq++,"aria-hidden","true");builder.CloseElement();builder.OpenElement(seq++,"div");builder.OpenElement(seq++,"strong");builder.AddContent(seq++,Title);builder.CloseElement();builder.OpenElement(seq++,"small");builder.AddContent(seq++,Subtitle);builder.CloseElement();builder.CloseElement();builder.CloseElement();
+ };
 }
