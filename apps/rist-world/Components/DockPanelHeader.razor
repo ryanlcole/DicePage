@@ -1,0 +1,12 @@
+<header class="dock-panel-header">
+ <img src="@IconUrl" alt="" aria-hidden="true" />
+ <div><strong>@Title</strong><small>@Subtitle</small></div>
+</header>
+
+@code{
+ const string AssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/ui/shaelvien/icons/";
+ [Parameter] public string IconKey {get;set;}="settings";
+ [Parameter] public string Title {get;set;}="";
+ [Parameter] public string Subtitle {get;set;}="";
+ string IconUrl=>$"{AssetRoot}{IconKey}.png";
+}
