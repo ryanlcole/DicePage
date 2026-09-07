@@ -2,6 +2,14 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
+<style>
+ .viewer-world-name::after{content:"\A8 × 8  |  Blank Scene"!important}
+ .viewer-map{background:#03080b!important}
+ .viewer-map::before{display:none!important;background:none!important}
+ .viewer-map::after{content:""!important;display:block!important;position:absolute!important;inset:0!important;z-index:30!important;pointer-events:none!important;background-image:linear-gradient(to right,rgba(122,185,220,.72) 1px,transparent 1px),linear-gradient(to bottom,rgba(122,185,220,.72) 1px,transparent 1px)!important;background-size:12.5% 100%,100% 12.5%!important;background-position:0 0!important;opacity:.82!important}
+ .viewer-map .base,.viewer-map .grid{background:none!important;background-image:none!important}
+</style>
+
 <section class="world-ticker" aria-label="World and real-time context">
  <div class="world-ticker-track">
   <span class="ticker-item" data-context="stars"><img src="https://d2d6rnm6fnsp89.cloudfront.net/ui/shaelvien/icons/stars.png" alt="" aria-hidden="true" /><strong>Stars</strong><b>-</b></span>
