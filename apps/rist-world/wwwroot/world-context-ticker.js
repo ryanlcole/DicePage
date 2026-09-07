@@ -8,6 +8,13 @@
   event?.stopImmediatePropagation?.();
   window.RistStartMenu?.open?.();
  }
+ function makeTickerChildrenPresentationOnly(track){
+  track.querySelectorAll('.world-context-action,.world-context-utc').forEach(el=>{
+   el.setAttribute('tabindex','-1');
+   el.setAttribute('aria-hidden','true');
+   el.style.pointerEvents='none';
+  });
+ }
  function ensureStartMenuLabel(){
   const track=document.querySelector('.world-context-track');
   if(!track)return;
@@ -29,6 +36,7 @@
    label.setAttribute('aria-hidden','true');
    utc.insertAdjacentElement('afterend',label);
   }
+  makeTickerChildrenPresentationOnly(track);
  }
  function tick(){
   const now=new Date();
