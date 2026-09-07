@@ -1,57 +1,48 @@
-/* App-style RIST shell: the Home Screen is the map only.
-   Fixed ticker/public hand remain above it; fixed asset hand/legal ticker remain below it. */
+/* App-style RIST home geometry.
+   Header = 20%, viewer/map = 60%, footer = 20%. The map fills 100% of the viewer. */
 :root{
+ --rist-home-header:20dvh;
+ --rist-home-viewer:60dvh;
+ --rist-home-footer:20dvh;
  --rist-fixed-ticker:42px;
- --rist-fixed-public:126px;
- --rist-fixed-assets:126px;
  --rist-fixed-legal:16px;
- --rist-fixed-pager:0px;
 }
 html,body,#app{width:100%;height:100%;min-height:100%;overflow:hidden!important}
+/* HEADER: exactly 20% of the game viewport. Ticker at top; public hand fills the remainder. */
 .world-context-strip{
  position:fixed!important;left:0!important;right:0!important;top:0!important;z-index:9000!important;
  height:var(--rist-fixed-ticker)!important;min-height:var(--rist-fixed-ticker)!important;max-height:var(--rist-fixed-ticker)!important;
  background:#071015!important;border-bottom:1px solid #725d30!important;
 }
 .rist.release-world{
- position:fixed!important;left:0!important;right:0!important;top:calc(var(--rist-fixed-ticker) + var(--rist-fixed-public))!important;
- bottom:calc(var(--rist-fixed-assets) + var(--rist-fixed-legal))!important;
- width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+ position:fixed!important;left:0!important;right:0!important;top:var(--rist-home-header)!important;bottom:var(--rist-home-footer)!important;
+ width:100%!important;height:var(--rist-home-viewer)!important;min-height:var(--rist-home-viewer)!important;max-height:var(--rist-home-viewer)!important;
  overflow:hidden!important;background:#071015!important;
 }
-.rist.release-world>.release-world-shell{
- width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;
- display:block!important;overflow:hidden!important;
-}
-/* Home Screen authority: only the map occupies the app content surface. */
+.rist.release-world>.release-world-shell{position:relative!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;display:block!important;overflow:hidden!important}
+/* VIEWER: 60%. MAP: 100% of that viewer, with no intentional spacer above/below it. */
 .rist.release-world .release-map-region{
- display:block!important;position:absolute!important;inset:0!important;
- width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;
- margin:0!important;overflow:hidden!important;
+ display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:100%!important;margin:0!important;padding:0!important;overflow:hidden!important;
 }
-/* These are no longer pages. Their functions will be surfaced later through replacement sliders. */
-.rist.release-world .release-menu-region,
-.rist.release-world .release-footer-region{display:none!important}
-/* Public hand remains permanently attached beneath the ticker header. */
+.rist.release-world .release-map-region>.map-shell,.rist.release-world .release-map-region .map-shell{height:100%!important;min-height:100%!important;max-height:100%!important;margin:0!important}
+/* Home center contains only the map. Other functions will return through replacement footer sliders. */
+.rist.release-world .release-menu-region,.rist.release-world .release-footer-region{display:none!important}
+/* Public hand is the lower portion of the 20% header. */
 .rist.release-world .release-public-region{
- position:fixed!important;left:0!important;right:0!important;top:var(--rist-fixed-ticker)!important;z-index:8900!important;
- display:block!important;width:100%!important;height:var(--rist-fixed-public)!important;min-height:var(--rist-fixed-public)!important;max-height:var(--rist-fixed-public)!important;
+ position:fixed!important;left:0!important;right:0!important;top:var(--rist-fixed-ticker)!important;z-index:8900!important;display:block!important;
+ width:100%!important;height:calc(var(--rist-home-header) - var(--rist-fixed-ticker))!important;min-height:0!important;max-height:calc(var(--rist-home-header) - var(--rist-fixed-ticker))!important;
  background:#071015!important;border-bottom:1px solid #725d30!important;overflow:hidden!important;
 }
 .rist.release-world .release-public-region>.public-assets-rail{height:100%!important;min-height:100%!important;max-height:100%!important}
-/* Private hand / placement slider remains permanently attached to the footer. */
+/* FOOTER: exactly 20%. Private placement hand above the small legal ticker. */
 .rist.release-world .release-private-region{
- position:fixed!important;left:0!important;right:0!important;bottom:var(--rist-fixed-legal)!important;z-index:8800!important;
- display:block!important;width:100%!important;height:var(--rist-fixed-assets)!important;min-height:var(--rist-fixed-assets)!important;max-height:var(--rist-fixed-assets)!important;
+ position:fixed!important;left:0!important;right:0!important;bottom:var(--rist-fixed-legal)!important;z-index:8800!important;display:block!important;
+ width:100%!important;height:calc(var(--rist-home-footer) - var(--rist-fixed-legal))!important;min-height:0!important;max-height:calc(var(--rist-home-footer) - var(--rist-fixed-legal))!important;
  background:#071015!important;border-top:1px solid #725d30!important;overflow:hidden!important;
 }
 .rist.release-world .release-private-region>.private-assets-rail{height:100%!important;min-height:100%!important;max-height:100%!important}
 .rist-bottom-ticker{
- position:fixed;left:0;right:0;bottom:0;z-index:9200;height:var(--rist-fixed-legal);min-height:var(--rist-fixed-legal);
- display:flex;align-items:center;justify-content:center;gap:10px;padding:0 8px;overflow:hidden;white-space:nowrap;
- border-top:1px solid #4d4023;background:#05090c;color:#9f957f;font:600 7px/var(--rist-fixed-legal) system-ui,-apple-system,sans-serif;
+ position:fixed;left:0;right:0;bottom:0;z-index:9200;height:var(--rist-fixed-legal);min-height:var(--rist-fixed-legal);display:flex;align-items:center;justify-content:center;gap:10px;padding:0 8px;overflow:hidden;white-space:nowrap;border-top:1px solid #4d4023;background:#05090c;color:#9f957f;font:600 7px/var(--rist-fixed-legal) system-ui,-apple-system,sans-serif;
 }
-/* Page navigation is obsolete in the app-style home surface. */
 .rist-page-controls{display:none!important}
-/* The old legal line is replaced by the fixed compact ticker. */
 .rist .release-footer-stack .site-copyright-notice{display:none!important}
