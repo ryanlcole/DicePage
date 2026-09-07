@@ -17,7 +17,7 @@
   {
    case "profile":
     <section class="dock-panel profile-panel" aria-label="User profile">
-     <PanelHeader IconKey="user_profile" Title="User Profile" Subtitle="Account, role and character" />
+     <DockPanelHeader IconKey="user_profile" Title="User Profile" Subtitle="Account, role and character" />
      <div class="action-grid">
       <button @onclick="Session.OpenAccountViewer">Account</button>
       <button @onclick="Session.OpenMixer">Character Sheet</button>
@@ -39,7 +39,7 @@
 
    case "map-tools":
     <section class="dock-panel map-tools-panel" aria-label="Map tools">
-     <PanelHeader IconKey="map_tools" Title="Map Tools" Subtitle="@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)" />
+     <DockPanelHeader IconKey="map_tools" Title="Map Tools" Subtitle="@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)" />
 
      <div class="map-tools-readouts" aria-live="polite">
       <div><span>World code</span><strong>@Session.WorldCoordinateLabel</strong></div>
@@ -84,27 +84,27 @@
     break;
 
    case "cast":
-    <section class="dock-panel component-panel"><PanelHeader IconKey="cast" Title="Cast" Subtitle="Spells and abilities" /><PrivateSpellDeck /></section>
+    <section class="dock-panel component-panel"><DockPanelHeader IconKey="cast" Title="Cast" Subtitle="Spells and abilities" /><PrivateSpellDeck /></section>
     break;
 
    case "cards":
-    <section class="dock-panel component-panel"><PanelHeader IconKey="cards" Title="Cards" Subtitle="Public and library cards" /><div class="action-grid"><button @onclick="OpenCards">Card Library</button></div><PublicCardRail /></section>
+    <section class="dock-panel component-panel"><DockPanelHeader IconKey="cards" Title="Cards" Subtitle="Public and library cards" /><div class="action-grid"><button @onclick="OpenCards">Card Library</button></div><PublicCardRail /></section>
     break;
 
    case "logs":
-    <section class="dock-panel logs-panel"><PanelHeader IconKey="logs" Title="Logs" Subtitle="Roleplay and rolls" /><div class="choice-row"><button class="@(_logMode=="chat-log"?"selected":"")" @onclick="()=>_logMode="chat-log"">Roleplay</button><button class="@(_logMode=="roll-log"?"selected":"")" @onclick="()=>_logMode="roll-log"">Rolls</button></div><WorldFooter Mode="@_logMode" /></section>
+    <section class="dock-panel logs-panel"><DockPanelHeader IconKey="logs" Title="Logs" Subtitle="Roleplay and rolls" /><div class="choice-row"><button class="@(_logMode=="chat-log"?"selected":"")" @onclick="()=>_logMode="chat-log"">Roleplay</button><button class="@(_logMode=="roll-log"?"selected":"")" @onclick="()=>_logMode="roll-log"">Rolls</button></div><WorldFooter Mode="@_logMode" /></section>
     break;
 
    case "custom":
-    <section class="dock-panel component-panel"><PanelHeader IconKey="settings" Title="Custom1" Subtitle="Language and custom controls" /><LanguagePanel /><div class="action-grid"><button @onclick="Session.OpenMixer">Character</button><button @onclick="OpenLibrary">Assets</button><button @onclick="()=>_active="map-tools"">Map Settings</button></div></section>
+    <section class="dock-panel component-panel"><DockPanelHeader IconKey="settings" Title="Custom1" Subtitle="Language and custom controls" /><LanguagePanel /><div class="action-grid"><button @onclick="Session.OpenMixer">Character</button><button @onclick="OpenLibrary">Assets</button><button @onclick="()=>_active="map-tools"">Map Settings</button></div></section>
     break;
 
    case "library":
-    <section class="dock-panel component-panel"><PanelHeader IconKey="library" Title="Library" Subtitle="Private and shared assets" /><div class="action-grid"><button @onclick="OpenLibrary">Asset Library</button></div><HandRail /></section>
+    <section class="dock-panel component-panel"><DockPanelHeader IconKey="library" Title="Library" Subtitle="Private and shared assets" /><div class="action-grid"><button @onclick="OpenLibrary">Asset Library</button></div><HandRail /></section>
     break;
 
    default:
-    <section class="dock-panel component-panel" aria-label="@ActiveLabel assets"><PanelHeader IconKey="@ActiveIcon" Title="@ActiveLabel" Subtitle="Place and manage assets" /><div class="action-grid"><button @onclick="()=>OpenAsset(ActiveAssetKind)">Open @ActiveLabel</button></div><HandRail /></section>
+    <section class="dock-panel component-panel" aria-label="@ActiveLabel assets"><DockPanelHeader IconKey="@ActiveIcon" Title="@ActiveLabel" Subtitle="Place and manage assets" /><div class="action-grid"><button @onclick="()=>OpenAsset(ActiveAssetKind)">Open @ActiveLabel</button></div><HandRail /></section>
     break;
   }
  </section>
@@ -140,9 +140,4 @@
  void OpenAsset(string kind){Session.PieceKind=kind;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();Session.Notify();}
  async Task LoadMapFile(InputFileChangeEventArgs e){using var stream=e.File.OpenReadStream(20*1024*1024);using var reader=new StreamReader(stream);Session.LoadMapJson(await reader.ReadToEndAsync());}
  static string TierShort(string tier)=>tier switch{"WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","SITE"=>"S","ROOM"=>"RM","ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT",_=>"?"};
-
- RenderFragment PanelHeader(string IconKey,string Title,string Subtitle)=>builder=>
- {
-  var seq=0;builder.OpenElement(seq++,"header");builder.AddAttribute(seq++,"class","dock-panel-header");builder.OpenElement(seq++,"img");builder.AddAttribute(seq++,"src",Icon(IconKey));builder.AddAttribute(seq++,"alt","");builder.AddAttribute(seq++,"aria-hidden","true");builder.CloseElement();builder.OpenElement(seq++,"div");builder.OpenElement(seq++,"strong");builder.AddContent(seq++,Title);builder.CloseElement();builder.OpenElement(seq++,"small");builder.AddContent(seq++,Subtitle);builder.CloseElement();builder.CloseElement();builder.CloseElement();
- };
 }
