@@ -43,7 +43,7 @@ public partial class WorldMap:IDisposable
  IEnumerable<string> BrowserFolders=>DirectoryTiles.Select(x=>x.Folder).Distinct(StringComparer.OrdinalIgnoreCase).Order();
  IEnumerable<AtlasTile> BrowserTiles=>string.IsNullOrWhiteSpace(BrowserFolder)?Enumerable.Empty<AtlasTile>():DirectoryTiles.Where(x=>x.Folder.Equals(BrowserFolder,StringComparison.OrdinalIgnoreCase));
 
- protected override void OnInitialized(){Session.ViewZoom=G.Zoom;Session.Changed+=Refresh;}
+ protected override void OnInitialized(){ResetViewToOriginOcean(notify:false);Session.Changed+=Refresh;}
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||FilterStateLoaded)return;FilterStateLoaded=true;
@@ -56,6 +56,17 @@ public partial class WorldMap:IDisposable
   StateHasChanged();
  }
  void Refresh()=>InvokeAsync(StateHasChanged);
+ void ResetViewToOriginOcean(bool notify=true)
+ {
+  G.PanX=0;
+  G.PanY=0;
+  G.Zoom=1;
+  G.Pointers.Clear();
+  G.LastDistance=0;
+  G.Moved=false;
+  Session.ViewZoom=1;
+  if(notify)Session.Notify();
+ }
  string StageTransform=>$"translate({G.PanX:0.##}px,{G.PanY:0.##}px) scale({G.Zoom:0.###})";
  string StatusText=>Session.EncounterActive?"ENCOUNTER • 5 ft/hex":Session.GridStyle=="none"?$"{Session.Layer} • grid off":$"{Session.Layer} • {WorldSession.GridColumns}×{WorldSession.GridRows} • {Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq";
  static string Pct(double v)=>$"{v*100:0.###}%";
@@ -221,7 +232,7 @@ public partial class WorldMap:IDisposable
    case "arrowdown":case "s":G.PanY-=step;break;
    case "+":case "=":await ZoomAt(null,null,G.Zoom*1.2);return;
    case "-":case "_":await ZoomAt(null,null,G.Zoom/1.2);return;
-   case "0":G.PanX=0;G.PanY=0;G.Zoom=1;Session.ViewZoom=1;Session.Notify();return;
+   case "0":ResetViewToOriginOcean();return;
    default:return;
   }
   Session.Notify();
