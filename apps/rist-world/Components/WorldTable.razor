@@ -64,14 +64,7 @@
   await Session.LoadPrivateCheckpointAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
  }
- async Task CenterMap()
- {
-  try
-  {
-   await JS.InvokeVoidAsync("eval","(()=>{const map=document.querySelector('.viewer-map .map');if(!map)return;map.focus({preventScroll:true});map.dispatchEvent(new KeyboardEvent('keydown',{key:'0',bubbles:true}));})()");
-  }
-  catch(JSException){}
- }
+ void CenterMap()=>Session.RequestMapViewReset();
  async Task AutosaveLoopAsync(CancellationToken token)
  {
   try{using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));while(await timer.WaitForNextTickAsync(token))await Session.AutoSavePrivateAsync();}
