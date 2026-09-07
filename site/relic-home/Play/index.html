@@ -12,13 +12,13 @@
 .screen{position:fixed;inset:0;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center center/cover no-repeat;display:flex;align-items:flex-end;justify-content:center;padding:max(28px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
 .screen:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.02) 0%,rgba(0,0,0,.04) 62%,rgba(0,0,0,.72) 100%);pointer-events:none}
 .entry{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:min(92vw,620px);min-height:96px;padding-bottom:clamp(18px,5vh,60px);text-align:center}
-.auth-link,.status{color:#ffe9ad;font:900 clamp(28px,6vw,46px)/1.08 system-ui,-apple-system,sans-serif;letter-spacing:.02em;text-shadow:0 2px 12px #000,0 1px 1px #000}
-.auth-link{appearance:none;border:0;background:transparent;cursor:pointer;padding:14px 18px;touch-action:manipulation}
+.auth-link,.status{color:#ffe9ad;font-weight:900;line-height:1.08;font-family:system-ui,-apple-system,sans-serif;letter-spacing:.02em;text-shadow:0 2px 12px #000,0 1px 1px #000}
+.auth-link{appearance:none;border:0;background:transparent;cursor:pointer;padding:14px 18px;touch-action:manipulation;font-size:clamp(28px,6vw,46px)}
 .auth-link:focus-visible{outline:3px solid #ffe9ad;outline-offset:4px;border-radius:8px}.auth-link:active{transform:scale(.97)}
-.status{margin:0;padding:14px 18px;pointer-events:none}
+.status{margin:0;padding:14px 18px;pointer-events:none;font-size:calc(clamp(28px,6vw,46px) - 4px)}
 [hidden]{display:none!important}
-@media (orientation:landscape) and (max-height:540px){.screen{background-position:center 46%;padding-bottom:max(20px,env(safe-area-inset-bottom))}.entry{padding-bottom:4px}.auth-link,.status{font-size:clamp(24px,4vw,38px)}}
-@media (max-width:420px){.auth-link,.status{font-size:30px}}
+@media (orientation:landscape) and (max-height:540px){.screen{background-position:center 46%;padding-bottom:max(20px,env(safe-area-inset-bottom))}.entry{padding-bottom:4px}.auth-link{font-size:clamp(24px,4vw,38px)}.status{font-size:calc(clamp(24px,4vw,38px) - 4px)}}
+@media (max-width:420px){.auth-link{font-size:30px}.status{font-size:26px}}
 </style>
 </head>
 <body>
