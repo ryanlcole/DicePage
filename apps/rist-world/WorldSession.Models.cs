@@ -153,7 +153,6 @@ public sealed class MixerChannel(string name,int current,int max)
 
 public sealed class SavedWorld
 {
-    public int Version { get; set; }
     public string Reset { get; set; } = "";
     public string OperatingMode { get; set; } = "mmo";
     public string Role { get; set; } = "GM";
