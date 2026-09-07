@@ -20,7 +20,9 @@
    <div class="viewer-frame">
     <header class="viewer-frame-top" aria-label="Viewer identity">
      <span class="viewer-mode" data-world-mode="mmo">MMO</span>
-     <strong class="viewer-world-name">@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)</strong>
+     <button type="button" class="viewer-world-name" @onclick="CenterMap" title="Return map to center" aria-label="@(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias). Return map to center." style="appearance:none;-webkit-appearance:none;border:0;padding:0;margin:0;background:transparent;color:inherit;font:inherit;cursor:pointer;width:100%;min-width:0;">
+      @(string.IsNullOrWhiteSpace(Session.MapAlias)?"Geonaph":Session.MapAlias)
+     </button>
      <span class="viewer-role">@(Session.Role=="GM"?"GameMaster":"Roleplayer")</span>
     </header>
     <aside class="viewer-ruler viewer-ruler-y" aria-label="Y axis"><span class="axis-label">Y</span><span>29</span><span>25</span><span>20</span><span>15</span><span>10</span><span>5</span><span>0</span></aside>
@@ -56,6 +58,14 @@
   if(policy is not null){try{await policy.InvokeVoidAsync("applyEightHourSessionPolicy");}catch(JSException){}await policy.DisposeAsync();}
   await Session.LoadPrivateCheckpointAsync();
   _=AutosaveLoopAsync(_autosaveCts.Token);
+ }
+ async Task CenterMap()
+ {
+  try
+  {
+   await JS.InvokeVoidAsync("eval","(()=>{const map=document.querySelector('.viewer-map .map');if(!map)return;map.focus({preventScroll:true});map.dispatchEvent(new KeyboardEvent('keydown',{key:'0',bubbles:true}));})()");
+  }
+  catch(JSException){}
  }
  async Task AutosaveLoopAsync(CancellationToken token)
  {
