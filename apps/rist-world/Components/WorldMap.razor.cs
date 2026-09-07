@@ -43,7 +43,12 @@ public partial class WorldMap:IDisposable
  IEnumerable<string> BrowserFolders=>DirectoryTiles.Select(x=>x.Folder).Distinct(StringComparer.OrdinalIgnoreCase).Order();
  IEnumerable<AtlasTile> BrowserTiles=>string.IsNullOrWhiteSpace(BrowserFolder)?Enumerable.Empty<AtlasTile>():DirectoryTiles.Where(x=>x.Folder.Equals(BrowserFolder,StringComparison.OrdinalIgnoreCase));
 
- protected override void OnInitialized(){ResetViewToOriginOcean(notify:false);Session.Changed+=Refresh;}
+ protected override void OnInitialized()
+ {
+  Session.Changed+=Refresh;
+  Session.MapViewResetRequested+=HandleMapViewReset;
+  ResetViewToOriginOcean(notify:false);
+ }
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||FilterStateLoaded)return;FilterStateLoaded=true;
@@ -56,6 +61,7 @@ public partial class WorldMap:IDisposable
   StateHasChanged();
  }
  void Refresh()=>InvokeAsync(StateHasChanged);
+ void HandleMapViewReset()=>ResetViewToOriginOcean();
  void ResetViewToOriginOcean(bool notify=true)
  {
   G.PanX=0;
@@ -64,9 +70,9 @@ public partial class WorldMap:IDisposable
   G.Pointers.Clear();
   G.LastDistance=0;
   G.Moved=false;
-  Session.ViewZoom=1;
-  if(notify)Session.Notify();
+  Session.PublishMapView(0,0,1,notify);
  }
+ void PublishView(bool notify=false)=>Session.PublishMapView(G.PanX,G.PanY,G.Zoom,notify);
  string StageTransform=>$"translate({G.PanX:0.##}px,{G.PanY:0.##}px) scale({G.Zoom:0.###})";
  string StatusText=>Session.EncounterActive?"ENCOUNTER • 5 ft/hex":Session.GridStyle=="none"?$"{Session.Layer} • grid off":$"{Session.Layer} • {WorldSession.GridColumns}×{WorldSession.GridRows} • {Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq";
  static string Pct(double v)=>$"{v*100:0.###}%";
@@ -202,7 +208,8 @@ public partial class WorldMap:IDisposable
   if(Math.Abs(next-G.Zoom)<.0001)return;
   var pan=await JS.InvokeAsync<double[]>("ristWorld.zoomPan",MapElement,clientX,clientY,G.PanX,G.PanY,G.Zoom,next);
   if(pan.Length>=2){G.PanX=pan[0];G.PanY=pan[1];}
-  G.Zoom=next;Session.ViewZoom=G.Zoom;Session.Notify();
+  G.Zoom=next;
+  PublishView(notify:true);
  }
  async Task ZoomIn()=>await ZoomAt(null,null,G.Zoom*1.2);
  async Task ZoomOut()=>await ZoomAt(null,null,G.Zoom/1.2);
@@ -235,7 +242,7 @@ public partial class WorldMap:IDisposable
    case "0":ResetViewToOriginOcean();return;
    default:return;
   }
-  Session.Notify();
+  PublishView(notify:true);
  }
 
  async Task Down(PointerEventArgs e)
@@ -259,7 +266,7 @@ public partial class WorldMap:IDisposable
   var touch=string.Equals(e.PointerType,"touch",StringComparison.OrdinalIgnoreCase);
   var sensitivity=touch?.32:1.0;
   var deadZone=touch?2.5:1.0;
-  if(Math.Abs(dx)+Math.Abs(dy)>deadZone){G.PanX+=dx*sensitivity;G.PanY+=dy*sensitivity;G.Moved=true;}
+  if(Math.Abs(dx)+Math.Abs(dy)>deadZone){G.PanX+=dx*sensitivity;G.PanY+=dy*sensitivity;G.Moved=true;PublishView();}
   G.LastX=e.ClientX;G.LastY=e.ClientY;
  }
  void Pinch()
@@ -270,7 +277,8 @@ public partial class WorldMap:IDisposable
    var raw=d/G.LastDistance;
    var softened=Math.Pow(Math.Max(raw,.01),.42);
    G.Zoom=Math.Clamp(G.Zoom*softened,.5,5);
-   Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;
+   G.Moved=true;
+   PublishView();
   }
   G.LastDistance=d;
  }
@@ -286,11 +294,12 @@ public partial class WorldMap:IDisposable
   if(Dragging){await DragEnd(e);return;}
   var wasTracked=G.Pointers.ContainsKey(e.PointerId);var wasMoved=G.Moved;
   G.Pointers.Remove(e.PointerId);G.LastDistance=0;
+  if(wasTracked&&wasMoved&&G.Pointers.Count==0)PublishView(notify:true);
   if(wasTracked&&!wasMoved&&G.Pointers.Count==0){var p=await WorldPoint(e);Session.MapTap(p[0],p[1]);}
  }
- void Cancel(PointerEventArgs e){CancelTileHold();G.Pointers.Remove(e.PointerId);G.LastDistance=0;}
+ void Cancel(PointerEventArgs e){CancelTileHold();G.Pointers.Remove(e.PointerId);G.LastDistance=0;if(G.Pointers.Count==0)PublishView(notify:true);}
  void PinTap(PieceItem p)=>Session.PinTap(p);
- public void Dispose(){CancelTileHold();Session.Changed-=Refresh;}
+ public void Dispose(){CancelTileHold();Session.Changed-=Refresh;Session.MapViewResetRequested-=HandleMapViewReset;}
 }
 public sealed record SavedTileFilter(string Layer,string Directory,string Folder)
 {
