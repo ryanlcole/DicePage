@@ -24,7 +24,7 @@
       @if(Session.IsLoggedIn){<button @onclick="Session.ToggleLoginAsync">Log Out</button>}
       else{<button @onclick="Session.BeginAccountLoginAsync">Sign In</button>}
      </div>
-     <fieldset class="choice-block"><legend>Role</legend><div class="choice-row"><button class="@(Session.Role=="PC"?"selected":"")" @onclick="()=>Session.SetRole("PC")">Roleplayer</button>@if(Session.CanManageCurrentMap){<button class="@(Session.Role=="GM"?"selected":"")" @onclick="()=>Session.SetRole("GM")">GameMaster</button>}</div></fieldset>
+     <fieldset class="choice-block"><legend>Role</legend><div class="choice-row"><button class="@(Session.Role=="PC"?"selected":"")" @onclick="SelectRoleplayer">Roleplayer</button>@if(Session.CanManageCurrentMap){<button class="@(Session.Role=="GM"?"selected":"")" @onclick="SelectGameMaster">GameMaster</button>}</div></fieldset>
      @if(!string.IsNullOrWhiteSpace(Session.DiscordDisplayName)){<p class="status-line">Signed in as <strong>@Session.DiscordDisplayName</strong></p>}
     </section>
     break;
@@ -49,7 +49,7 @@
      </div>
 
      <fieldset class="choice-block"><legend>Table Mode</legend><div class="choice-row wrap">@foreach(var mode in TableModes){<button class="@(Session.TableMode==mode.Key?"selected":"")" @onclick="()=>Session.SetTableMode(mode.Key)">@mode.Label</button>}</div></fieldset>
-     <fieldset class="choice-block"><legend>Map Grid</legend><div class="choice-row"><button class="@(Session.GridStyle=="square"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("square")">Square</button><button class="@(Session.GridStyle=="hex"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("hex")">Hex</button><button class="@(Session.GridStyle=="none"?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>SetGrid("none")">None</button></div></fieldset>
+     <fieldset class="choice-block"><legend>Map Grid</legend><div class="choice-row"><button class="@(Session.GridStyle=="square"?"selected":"")" disabled="@Session.EncounterActive" @onclick="SelectSquareGrid">Square</button><button class="@(Session.GridStyle=="hex"?"selected":"")" disabled="@Session.EncounterActive" @onclick="SelectHexGrid">Hex</button><button class="@(Session.GridStyle=="none"?"selected":"")" disabled="@Session.EncounterActive" @onclick="SelectNoGrid">None</button></div></fieldset>
      <fieldset class="choice-block"><legend>Scale</legend><div class="scale-row"><input type="number" min="0.01" step="0.25" @bind="Session.GridDistance" @bind:after="Session.CalibrateGrid" disabled="@Session.EncounterActive" aria-label="Grid distance" /><div class="choice-row compact">@foreach(var unit in Units){<button class="@(Session.DistanceUnit==unit?"selected":"")" disabled="@Session.EncounterActive" @onclick="()=>Session.SetDistanceUnit(unit)">@unit</button>}</div></div><output>@(Session.EncounterActive?"5 ft/hex":$"{Session.EffectiveGridDistance:0.##} {Session.EffectiveGridUnit}/sq")</output></fieldset>
      <fieldset class="choice-block"><legend>Recursive Tier</legend><div class="choice-row wrap">@foreach(var tier in WorldSession.RecursionTiers){<button class="@(Session.ViewportTier==tier?"selected":"")" @onclick="()=>Session.SetViewportTier(tier)">@TierShort(tier)</button>}</div></fieldset>
 
@@ -92,11 +92,11 @@
     break;
 
    case "logs":
-    <section class="dock-panel logs-panel"><DockPanelHeader IconKey="logs" Title="Logs" Subtitle="Roleplay and rolls" /><div class="choice-row"><button class="@(_logMode=="chat-log"?"selected":"")" @onclick="()=>_logMode="chat-log"">Roleplay</button><button class="@(_logMode=="roll-log"?"selected":"")" @onclick="()=>_logMode="roll-log"">Rolls</button></div><WorldFooter Mode="@_logMode" /></section>
+    <section class="dock-panel logs-panel"><DockPanelHeader IconKey="logs" Title="Logs" Subtitle="Roleplay and rolls" /><div class="choice-row"><button class="@(_logMode=="chat-log"?"selected":"")" @onclick="ShowRoleplayLog">Roleplay</button><button class="@(_logMode=="roll-log"?"selected":"")" @onclick="ShowRollLog">Rolls</button></div><WorldFooter Mode="@_logMode" /></section>
     break;
 
    case "custom":
-    <section class="dock-panel component-panel"><DockPanelHeader IconKey="settings" Title="Custom1" Subtitle="Language and custom controls" /><LanguagePanel /><div class="action-grid"><button @onclick="Session.OpenMixer">Character</button><button @onclick="OpenLibrary">Assets</button><button @onclick="()=>_active="map-tools"">Map Settings</button></div></section>
+    <section class="dock-panel component-panel"><DockPanelHeader IconKey="settings" Title="Custom1" Subtitle="Language and custom controls" /><LanguagePanel /><div class="action-grid"><button @onclick="Session.OpenMixer">Character</button><button @onclick="OpenLibrary">Assets</button><button @onclick="ShowMapTools">Map Settings</button></div></section>
     break;
 
    case "library":
@@ -133,7 +133,15 @@
   _loadOpen=false;
   if(key is "tokens" or "minis" or "rolling-stock" or "pawns" or "tiles" or "terrain" or "bits")Session.PieceKind=ActiveAssetKind;
  }
+ void SelectRoleplayer()=>Session.SetRole("PC");
+ void SelectGameMaster()=>Session.SetRole("GM");
  void SetGrid(string value){if(Session.EncounterActive)return;Session.GridStyle=value;Session.Notify();}
+ void SelectSquareGrid()=>SetGrid("square");
+ void SelectHexGrid()=>SetGrid("hex");
+ void SelectNoGrid()=>SetGrid("none");
+ void ShowRoleplayLog()=>_logMode="chat-log";
+ void ShowRollLog()=>_logMode="roll-log";
+ void ShowMapTools()=>_active="map-tools";
  void CenterMap(){Session.RequestMapViewReset();}
  void OpenCards(){if(!Session.CardBrowserOpen)Session.ToggleCardBrowser();}
  void OpenLibrary(){if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
