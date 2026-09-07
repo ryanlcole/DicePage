@@ -253,8 +253,27 @@ public partial class WorldMap:IDisposable
   if(G.Pointers.Count==1)Pan(e);else if(G.Pointers.Count>=2)Pinch();
   return Task.CompletedTask;
  }
- void Pan(PointerEventArgs e){var dx=e.ClientX-G.LastX;var dy=e.ClientY-G.LastY;if(Math.Abs(dx)+Math.Abs(dy)>1){G.PanX+=dx;G.PanY+=dy;G.Moved=true;}G.LastX=e.ClientX;G.LastY=e.ClientY;}
- void Pinch(){var d=G.Distance();if(G.LastDistance>0){G.Zoom=Math.Clamp(G.Zoom*(d/G.LastDistance),.5,5);Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;}G.LastDistance=d;}
+ void Pan(PointerEventArgs e)
+ {
+  var dx=e.ClientX-G.LastX;var dy=e.ClientY-G.LastY;
+  var touch=string.Equals(e.PointerType,"touch",StringComparison.OrdinalIgnoreCase);
+  var sensitivity=touch?.32:1.0;
+  var deadZone=touch?2.5:1.0;
+  if(Math.Abs(dx)+Math.Abs(dy)>deadZone){G.PanX+=dx*sensitivity;G.PanY+=dy*sensitivity;G.Moved=true;}
+  G.LastX=e.ClientX;G.LastY=e.ClientY;
+ }
+ void Pinch()
+ {
+  var d=G.Distance();
+  if(G.LastDistance>0)
+  {
+   var raw=d/G.LastDistance;
+   var softened=Math.Pow(Math.Max(raw,.01),.42);
+   G.Zoom=Math.Clamp(G.Zoom*softened,.5,5);
+   Session.ViewZoom=G.Zoom;Session.Notify();G.Moved=true;
+  }
+  G.LastDistance=d;
+ }
  async Task Up(PointerEventArgs e)
  {
   var held=TileHoldTriggered;CancelTileHold();TileHoldTriggered=false;if(held)return;
