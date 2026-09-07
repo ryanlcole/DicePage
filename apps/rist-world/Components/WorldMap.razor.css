@@ -171,3 +171,10 @@
 .base.ocean-world > img:first-of-type {
     display: none !important;
 }
+
+/* The recovered viewer still renders a legacy floating +/- zoom group. On mobile
+   its inherited styling collapses into the stray gold circle. Gesture, wheel and
+   keyboard zoom remain authoritative, so keep the obsolete overlay out of the map. */
+.desktop-map-zoom {
+    display: none !important;
+}
