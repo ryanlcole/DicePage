@@ -22,7 +22,17 @@
    auth.idleTimer=setTimeout(expire,auth.idleMs);
   };
   ['pointerdown','keydown','touchstart'].forEach(name=>addEventListener(name,activity,{passive:true}));
-  addEventListener('visibilitychange',()=>{if(!document.hidden)expire();},{passive:true});
+
+  // Switching apps, tabs, browser views, or locking the phone is not player
+  // inactivity. Pause the client idle countdown while the document is hidden
+  // and start a fresh visible-session countdown when the player returns.
+  document.addEventListener('visibilitychange',()=>{
+   if(document.hidden){clearTimeout(auth.idleTimer);return;}
+   activity();
+  },{passive:true});
+  addEventListener('pagehide',()=>clearTimeout(auth.idleTimer),{passive:true});
+  addEventListener('pageshow',activity,{passive:true});
+  addEventListener('focus',activity,{passive:true});
   activity();
  };
  if(sessionStorage.getItem('rist.session'))auth.installIdleExpiry();
