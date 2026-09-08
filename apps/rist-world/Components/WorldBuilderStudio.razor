@@ -1,0 +1,93 @@
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div class="worldbuilder-studio">
+ <header class="studio-header" aria-label="World Builder header">
+  <button type="button" class="studio-home" @onclick="GoHomeAsync" aria-label="Home">⌂</button>
+  <div class="studio-ticker" aria-label="World context ticker">
+   <div class="studio-ticker-track">
+    <span><strong>WORLD</strong> @Session.MapName</span>
+    <span><strong>SCALE</strong> @Session.Layer</span>
+    <span><strong>TIER</strong> @Session.TierIndex</span>
+    <span><strong>LAYER</strong> @Session.LayerOffset</span>
+    <span><strong>GRID</strong> @Session.GridStyle</span>
+   </div>
+  </div>
+  <button type="button" class="studio-profile" aria-label="Account profile">
+   @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+   {
+    <img src="@Session.CharacterPortraitDataUrl" alt="Profile" />
+   }
+   else
+   {
+    <span aria-hidden="true">●</span>
+   }
+  </button>
+ </header>
+
+ <section class="studio-workbench" aria-label="World Builder workbench">
+  <nav class="studio-modes" aria-label="Creation mode">
+   @foreach(var mode in Modes)
+   {
+    <button type="button" class="@(_toolMode==mode?"active":"")" @onclick="()=>_toolMode=mode" aria-pressed="@(_toolMode==mode)">@mode</button>
+   }
+  </nav>
+  <div class="studio-pinned" aria-label="Pinned working tiles" @ondragover:preventDefault="true">
+   @foreach(var tile in _pinnedTiles)
+   {
+    <button type="button" class="pinned-tile" @onclick="Session.ToggleTileBrowser">@tile</button>
+   }
+   @if(_pinnedTiles.Count==0)
+   {
+    <span class="studio-hint">Drag tile shortcuts here for quick use</span>
+   }
+  </div>
+  <div class="studio-actions">
+   <button type="button" @onclick="ToggleGrid">Grid: @GridLabel</button>
+   <button type="button" @onclick="Session.ToggleMapLock">@(Session.MapLocked?"Unlock":"Lock")</button>
+   <button type="button" @onclick="SaveAsync">@_saveLabel</button>
+  </div>
+ </section>
+
+ <main class="studio-viewer" aria-label="World map viewer">
+  <div class="studio-viewer-canvas">
+   <WorldMap />
+   <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
+   <div class="studio-viewer-overlays">
+    <AssetLibrary />
+    <RecursionCockpit />
+   </div>
+  </div>
+ </main>
+
+ <nav class="studio-tile-slider" aria-label="World tile quick navigation">
+  @foreach(var tile in QuickTiles)
+  {
+   <button type="button" draggable="true" @ondragstart="()=>PinTile(tile)" @onclick="()=>PinTile(tile)" title="Drag or tap to pin to the workbench">@tile</button>
+  }
+  <button type="button" class="library-button" @onclick="Session.ToggleTileBrowser">Library…</button>
+ </nav>
+</div>
+
+<style>
+ .worldbuilder-studio{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:48px 74px minmax(0,1fr) 68px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}
+ .studio-header{min-width:0;display:grid;grid-template-columns:5% 90% 5%;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017;overflow:hidden}.studio-home,.studio-profile{min-width:0;border:0;background:#0c151d;color:#e4c97d;font-size:22px;font-weight:900;display:grid;place-items:center;padding:0}.studio-home{border-right:1px solid #715b2d}.studio-profile{border-left:1px solid #715b2d;overflow:hidden}.studio-profile img{width:100%;height:100%;object-fit:cover;display:block}.studio-profile span{font-size:16px;color:#7ca5bf}.studio-ticker{min-width:0;overflow:hidden;display:flex;align-items:center}.studio-ticker-track{min-width:max-content;display:flex;align-items:center;gap:24px;padding:0 12px;white-space:nowrap;color:#d7caa7;font-size:12px}.studio-ticker-track strong{color:#7fb1d7;font-size:10px;letter-spacing:.12em;margin-right:4px}
+ .studio-workbench{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);overflow:hidden}.studio-modes,.studio-actions{display:flex;gap:5px;align-items:center;min-width:0}.studio-modes{overflow-x:auto;scrollbar-width:none}.studio-modes::-webkit-scrollbar{display:none}.studio-modes button,.studio-actions button,.studio-pinned button,.studio-tile-slider button{min-height:42px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 11px/1 system-ui;white-space:nowrap;padding:0 12px;touch-action:manipulation}.studio-modes button.active{border-color:#d0aa56;background:#202015;color:#f4d98d}.studio-pinned{min-width:0;height:48px;display:flex;align-items:center;gap:6px;padding:2px 6px;border:1px dashed #526773;border-radius:10px;overflow-x:auto;overflow-y:hidden;background:#071015}.studio-pinned .pinned-tile{border-color:#866e37;color:#f1d792}.studio-hint{padding:0 8px;color:#728794;font-size:10px;white-space:nowrap}.studio-actions button{color:#e3c97f}
+ .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;overflow:hidden!important}.studio-viewer-canvas .map{width:min(100%,100cqh)!important;height:min(100%,100cqw)!important;max-width:none!important;max-height:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important}.studio-viewer-grid{position:absolute;inset:0;z-index:20;pointer-events:none;background-image:linear-gradient(to right,rgba(135,187,214,.28) 1px,transparent 1px),linear-gradient(to bottom,rgba(135,187,214,.28) 1px,transparent 1px);background-size:calc(100% / 30) calc(100% / 30);background-position:0 0}.studio-viewer-grid.off{display:none}.studio-viewer-overlays{position:absolute;inset:0;z-index:40;pointer-events:none}.studio-viewer-overlays>*{pointer-events:auto}
+ .studio-tile-slider{min-width:0;display:flex;align-items:center;gap:7px;padding:7px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;border-top:1px solid #715b2d;background:#0a1117}.studio-tile-slider::-webkit-scrollbar{display:none}.studio-tile-slider button{flex:0 0 auto;min-width:92px;height:50px;color:#e1ca87;border-color:#6f5a2f}.studio-tile-slider .library-button{border-color:#7c9eb0;color:#b9d4e2}
+ @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:44px 64px minmax(0,1fr) 60px}.studio-header{grid-template-columns:10% 80% 10%}.studio-workbench{grid-template-columns:1fr auto}.studio-modes{grid-column:1/-1}.studio-pinned{display:none}.studio-actions button{min-height:36px;padding:0 8px;font-size:9px}.studio-modes button{min-height:34px;padding:0 10px;font-size:9px}.studio-tile-slider{padding:5px 6px}.studio-tile-slider button{height:46px;min-width:80px;font-size:10px}.studio-ticker-track{gap:16px;font-size:10px}.studio-ticker-track strong{font-size:8px}}
+</style>
+
+@code{
+ static readonly string[] Modes={"Tiles","Cartography","Lightboard","Image","Draw"};
+ static readonly string[] QuickTiles={"Ocean","Coast","Grassland","Forest","Mountain","River","Road","City","Village","Ruins"};
+ readonly List<string> _pinnedTiles=new();
+ string _toolMode="Tiles";
+ bool _viewerGrid=true;
+ string _saveLabel="Save";
+ string GridLabel=>_viewerGrid?"On":"Off";
+ void ToggleGrid()=>_viewerGrid=!_viewerGrid;
+ void PinTile(string tile){if(!_pinnedTiles.Contains(tile))_pinnedTiles.Add(tile);}
+ async Task GoHomeAsync()=>await JS.InvokeVoidAsync("location.assign","./index.html");
+ async Task SaveAsync(){_saveLabel="Saving…";await Session.SaveAsync();_saveLabel="Saved";}
+}
