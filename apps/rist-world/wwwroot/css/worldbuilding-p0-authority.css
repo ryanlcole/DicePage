@@ -1,18 +1,18 @@
 /* Shaelvien World Building P0 authority.
    Semantic authority remains WorldSession: 30x30 one-mile cells, Ocean 071 implicit terrain.
-   This stylesheet controls representation only. */
+   Representation authority here is intentionally limited to the World Building workspace. */
 
-/* The authored world stage remains one transform surface. Ocean, grid, terrain and pieces
-   therefore pan/zoom together while preserving their semantic separation. */
+/* One authored transform surface. Ocean, viewer grid, authored terrain and encounter
+   objects pan/zoom together without merging their semantic identities. */
 .ws-world .world-stage{
   position:absolute!important;
   inset:0!important;
   z-index:2!important;
-  overflow:visible!important;
+  overflow:hidden!important;
 }
 
-/* Ocean 071 is the implicit terrain for every un-authored cell. Render it as one seamless
-   surface rather than materializing 900 image/DOM nodes. */
+/* Ocean 071 is the implicit terrain. The canonical component stylesheet owns the actual
+   Ocean 071 image and its exact one-cell repeat size. P0 must not replace that asset. */
 .ws-world .world-stage>.ocean-world{
   position:absolute!important;
   inset:0!important;
@@ -21,19 +21,10 @@
   width:100%!important;
   height:100%!important;
   pointer-events:none!important;
-  background-color:#1f6f92!important;
-  background-image:
-    radial-gradient(ellipse at 18% 22%,rgba(116,190,216,.20) 0 3%,transparent 19%),
-    radial-gradient(ellipse at 76% 70%,rgba(4,45,69,.25) 0 4%,transparent 22%),
-    repeating-linear-gradient(168deg,#3b91ad 0 3px,#2b819f 3px 9px,#347f99 9px 14px)!important;
-  background-repeat:repeat!important;
-  background-size:auto!important;
-  box-shadow:inset 0 0 70px rgba(2,25,43,.42)!important;
 }
 
-/* The actual grid element is the viewer overlay. It is independent of terrain state,
-   stays inside the same stage transform, is non-interactive, and sits between terrain
-   and pieces. 30 divisions on each axis = 900 addressable one-mile cells. */
+/* The actual grid element is the independent viewer overlay. It is presentation state,
+   not terrain state, and always spans the same 30x30 stage. */
 .ws-world .world-stage>.grid{
   position:absolute!important;
   inset:0!important;
@@ -52,10 +43,14 @@
     linear-gradient(to bottom,rgba(240,248,255,.72) 1px,transparent 1px)!important;
   background-size:calc(100% / 30) calc(100% / 30)!important;
 }
-.ws-world .world-stage>.grid.none{display:none!important}
+.ws-world .world-stage>.grid.none{
+  display:block!important;
+  background:none!important;
+  opacity:0!important;
+}
 
-/* Disable the legacy viewport pseudo-grid in World Building. It was fixed to a 20-column
-   glass and did not share the authoritative world transform. */
+/* Disable the legacy viewport pseudo-grid only in World Building. It used a different
+   geometry authority and could visually disagree with the authored world transform. */
 .ws-world .map:has(.grid.square)::before,
 .ws-world .map:has(.grid.hex)::before{
   content:none!important;
@@ -63,27 +58,44 @@
   background:none!important;
 }
 
-/* Authored terrain remains below the observer grid; actors/pieces retain their existing
-   z-index above it. */
+/* Sparse authored terrain sits above Ocean 071 but below the viewer grid. Labels, dice,
+   pins and encounter pieces retain their component-defined level above the terrain. */
 .ws-world .world-stage>.tile-cell{z-index:3!important}
+.ws-world .world-stage>.map-zone-label,
+.ws-world .world-stage>.pin-label-callout,
+.ws-world .world-stage>.rolled-die,
+.ws-world .world-stage>.piece{z-index:5!important}
 
-/* 30 x 30 logical cells are square, so the worldbuilding board is square. Landscape
-   gives the remaining horizontal room to the right-side builder controls. */
+/* A 30x30 logical board is square. The map consumes the largest square available in its
+   center workspace; the right-hand World Controls panel remains a sibling column. */
 .ws-world .release-map-region>.table-workspace>.map-shell{
   place-items:center!important;
 }
 .ws-world .release-map-region>.table-workspace>.map-shell>.map{
+  grid-column:1!important;
+  grid-row:2!important;
+  align-self:stretch!important;
+  justify-self:center!important;
   aspect-ratio:1 / 1!important;
   width:auto!important;
-  height:min(100%,calc(100dvh - 302px))!important;
+  height:100%!important;
   max-width:100%!important;
   max-height:100%!important;
-  margin:auto!important;
+  margin:0 auto!important;
+}
+
+/* When width, not height, is the limiting dimension, keep the square inside the map row. */
+@supports (width:min(100cqw,100cqh)){
+  .ws-world .release-map-region>.table-workspace>.map-shell>.map{
+    width:min(100cqw,100cqh)!important;
+    height:min(100cqw,100cqh)!important;
+    align-self:center!important;
+  }
 }
 
 @media (max-width:720px){
   .ws-world .release-map-region>.table-workspace>.map-shell>.map{
-    width:min(100%,calc(100dvh - 330px))!important;
+    width:min(100%,100cqw)!important;
     height:auto!important;
     max-height:100%!important;
   }
@@ -91,7 +103,6 @@
 
 @media (orientation:landscape){
   .ws-world .release-map-region>.table-workspace>.map-shell>.map{
-    height:min(100%,calc(100dvh - 254px))!important;
-    width:auto!important;
+    justify-self:center!important;
   }
 }
