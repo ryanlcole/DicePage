@@ -17,19 +17,49 @@
   node.replaceWith(span);
   return span;
  }
+ function prepareItem(node){
+  node.style.flex='0 0 auto';
+  node.style.whiteSpace='nowrap';
+  node.style.minWidth='max-content';
+ }
  function buildLoop(track){
-  if(track.dataset.tickerLoopReady==='1')return;
-  track.querySelectorAll('[data-ticker-clone="1"]').forEach(node=>node.remove());
-  const originals=[...track.children];
-  for(const node of originals){
+  if(track.dataset.tickerLoopReady==='2')return;
+  const existing=[...track.children];
+  const raw=existing.some(node=>node.matches?.('[data-ticker-group]'))
+   ? [...(track.querySelector('[data-ticker-group="a"]')?.children||[])]
+   : existing.filter(node=>!node.matches?.('[data-ticker-clone="1"]'));
+  if(!raw.length)return;
+
+  const groupA=document.createElement('span');
+  groupA.dataset.tickerGroup='a';
+  groupA.className='world-context-loop-group';
+  const groupB=document.createElement('span');
+  groupB.dataset.tickerGroup='b';
+  groupB.className='world-context-loop-group';
+  groupB.setAttribute('aria-hidden','true');
+  groupB.style.pointerEvents='none';
+
+  for(const node of raw){
+   prepareItem(node);
+   groupA.appendChild(node);
    const clone=node.cloneNode(true);
    clone.dataset.tickerClone='1';
-   clone.setAttribute('aria-hidden','true');
    clone.removeAttribute('id');
-   clone.style.pointerEvents='none';
-   track.appendChild(clone);
+   prepareItem(clone);
+   groupB.appendChild(clone);
   }
-  track.dataset.tickerLoopReady='1';
+  for(const group of [groupA,groupB]){
+   group.style.display='inline-flex';
+   group.style.alignItems='center';
+   group.style.gap='8px';
+   group.style.flex='0 0 auto';
+   group.style.width='max-content';
+   group.style.minWidth='max-content';
+   group.style.whiteSpace='nowrap';
+   group.style.paddingRight='8px';
+  }
+  track.replaceChildren(groupA,groupB);
+  track.dataset.tickerLoopReady='2';
  }
  function makeHeaderTickerOnly(){
   const strip=document.querySelector('.world-context-strip');
@@ -44,7 +74,7 @@
    track.tabIndex=0;
    track.style.display='flex';
    track.style.alignItems='center';
-   track.style.gap='8px';
+   track.style.gap='0';
    track.style.width='100%';
    track.style.minWidth='0';
    track.style.overflowX='hidden';
@@ -54,11 +84,14 @@
    track.style.scrollbarWidth='none';
    track.style.webkitOverflowScrolling='touch';
    if(!track.querySelector('[data-start-menu-label]:not([data-ticker-clone="1"])')){
+    const target=track.querySelector('[data-ticker-group="a"]')||track;
     const label=document.createElement('span');
     label.className='world-context-readout world-context-start-menu';
     label.dataset.startMenuLabel='1';
     label.innerHTML='<strong>Start Menu</strong>';
-    track.appendChild(label);
+    prepareItem(label);
+    target.appendChild(label);
+    track.dataset.tickerLoopReady='0';
    }
    buildLoop(track);
   }
@@ -88,8 +121,8 @@
   document.querySelectorAll('.world-context-utc time').forEach(node=>{if(node.textContent!==utcValue)node.textContent=utcValue;});
  }
  function loopBoundary(track){
-  const clone=track.querySelector('[data-ticker-clone="1"]');
-  return clone?clone.offsetLeft:0;
+  const groupB=track.querySelector('[data-ticker-group="b"]');
+  return groupB?groupB.offsetLeft:0;
  }
  function marquee(now){
   const track=document.querySelector('.world-context-track');
