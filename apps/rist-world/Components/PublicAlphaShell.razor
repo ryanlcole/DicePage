@@ -68,7 +68,9 @@ else
 </style>
 
 @code {
+ [Parameter] public bool AutoEnter { get; set; }
  bool _entered;
+ protected override void OnParametersSet(){if(AutoEnter)_entered=true;}
  void EnterWorld()=>_entered=true;
  void PreviewWorld()=>_entered=true;
  void ReturnToEntry()=>_entered=false;
