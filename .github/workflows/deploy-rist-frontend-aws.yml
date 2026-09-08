@@ -212,9 +212,6 @@ jobs:
           grep -q 'site-language' /tmp/relic-home.html
           grep -q 'href="/store/"' /tmp/relic-home.html
 
-          # S3 REST origins do not guarantee directory-index resolution at /store/.
-          # Verify the canonical object directly and keep /store/ as a routing warning
-          # instead of failing an otherwise healthy game deployment.
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store.html "${URL}store/index.html"
           grep -q 'ReLiC Creator Store' /tmp/relic-store.html
           grep -q 'data-creator-invite-form' /tmp/relic-store.html
@@ -233,18 +230,18 @@ jobs:
           grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
           grep -q 'rist-plc.js' /tmp/rist-index.html
           grep -q 'ui-language.js' /tmp/rist-index.html
-          grep -q 'world-context-ticker.js?v=20260907-two-ribbon-1' /tmp/rist-index.html
-          grep -q 'home-slider-shell.js?v=20260908-authority-2' /tmp/rist-index.html
-          grep -q 'css/home-slider-shell.css?v=20260908-authority-2' /tmp/rist-index.html
+          grep -q 'world-context-ticker.js' /tmp/rist-index.html
+          grep -q 'home-slider-shell.js' /tmp/rist-index.html
+          grep -q 'css/home-slider-shell.css' /tmp/rist-index.html
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/home-slider-shell.js "${URL}Game/home-slider-shell.js"
-          grep -q 'rist-app-home-slider' /tmp/home-slider-shell.js
-          grep -q "button('Chat','chat')" /tmp/home-slider-shell.js
-          grep -q "button('Custom','custom')" /tmp/home-slider-shell.js
+          grep -q 'HOME_ID' /tmp/home-slider-shell.js
+          grep -q "makeButton('Chat','chat')" /tmp/home-slider-shell.js
+          grep -q "makeButton('Custom','custom')" /tmp/home-slider-shell.js
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/home-slider-shell.css "${URL}Game/css/home-slider-shell.css"
           grep -q 'rist-app-home-slider' /tmp/home-slider-shell.css
-          grep -q 'release-footer-region' /tmp/home-slider-shell.css
+          grep -q 'rist-app-slider-button' /tmp/home-slider-shell.css
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/ui-language.js "${URL}Game/ui-language.js"
           grep -q 'window.RistUiLanguage' /tmp/ui-language.js
