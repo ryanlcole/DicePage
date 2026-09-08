@@ -1,0 +1,51 @@
+@inject WorldSession Session
+
+<section class="task-workspace manage-workspace" aria-label="Save share and return">
+ <header class="task-workspace-hero">
+  <p class="task-kicker">SHAELVIEN WORLD MANAGEMENT</p>
+  <h2>Save. Share. Return.</h2>
+  <p>Your world persists independently from the viewer. Save locally, sync privately, share a portable RIST map, or export a recovery copy.</p>
+ </header>
+
+ <div class="task-action-grid">
+  <button type="button" @onclick="SaveLocalAsync" disabled="@Busy">
+   <span aria-hidden="true">◆</span><strong>Save World</strong><small>Write the current RIST world to this device.</small>
+  </button>
+  <button type="button" @onclick="SyncPrivateAsync" disabled="@(Busy || !Session.IsLoggedIn)">
+   <span aria-hidden="true">☁</span><strong>Sync Private</strong><small>@(Session.IsLoggedIn?"Sync your private checkpoint to AWS.":"Sign in to use private cloud storage.")</small>
+  </button>
+  <button type="button" @onclick="ShareAsync" disabled="@Busy">
+   <span aria-hidden="true">↗</span><strong>Share World</strong><small>Use the device share sheet when available.</small>
+  </button>
+  <button type="button" @onclick="ExportAsync" disabled="@Busy">
+   <span aria-hidden="true">⇩</span><strong>Export</strong><small>Download a portable .ristmap recovery file.</small>
+  </button>
+ </div>
+
+ <section class="task-status-card" aria-live="polite">
+  <span>WORLD</span><strong>@Session.MapName</strong>
+  <span>POSITION</span><strong>Plane @Session.PlaneIndex · Tier @Session.TierIndex · Layer @Session.LayerOffset</strong>
+  <span>GRID</span><strong>@Session.GridStyle · 30 × 30</strong>
+  <span>STATUS</span><strong>@Status</strong>
+ </section>
+</section>
+
+<style>
+ .task-workspace{box-sizing:border-box;height:100%;min-height:0;padding:clamp(18px,4vw,46px);overflow:auto;background:radial-gradient(circle at 12% 0,#12304a88,transparent 30%),linear-gradient(180deg,#07111a,#05090d);color:#e7e2d8;font-family:Inter,system-ui,sans-serif}.task-workspace-hero{max-width:900px;margin:0 auto 24px;text-align:center}.task-kicker{margin:0 0 8px;color:#8ea7b6;font-size:10px;font-weight:900;letter-spacing:.22em}.task-workspace-hero h2{margin:0;color:#e7c875;font:600 clamp(32px,5vw,64px)/1 Georgia,serif;letter-spacing:.04em}.task-workspace-hero>p:last-child{max-width:720px;margin:14px auto 0;color:#afbec6;line-height:1.55}.task-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1100px;margin:0 auto}.task-action-grid button{min-height:180px;padding:20px;border:1px solid #526a79;border-radius:10px;background:linear-gradient(180deg,#101c25,#091118);color:#e9e4d8;text-align:left;display:flex;flex-direction:column;gap:7px;box-shadow:0 14px 28px #0006;touch-action:manipulation}.task-action-grid button>span{color:#e0bb64;font-size:28px}.task-action-grid button strong{margin-top:auto;color:#f0d590;font:600 20px Georgia,serif}.task-action-grid button small{color:#97aab5;line-height:1.4}.task-action-grid button:disabled{opacity:.48}.task-status-card{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;max-width:760px;margin:18px auto 0;padding:16px 18px;border:1px solid #725d30;border-radius:9px;background:#09131bcc}.task-status-card span{color:#7f96a3;font-size:9px;font-weight:900;letter-spacing:.12em}.task-status-card strong{color:#e5d6ad;font-size:11px}@@media(max-width:760px){.task-workspace{padding:14px}.task-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.task-action-grid button{min-height:140px;padding:14px}.task-action-grid button strong{font-size:16px}}@@media(max-width:420px){.task-action-grid{grid-template-columns:1fr 1fr;gap:8px}.task-action-grid button{min-height:126px}.task-status-card{grid-template-columns:1fr;gap:4px}.task-status-card strong{margin-bottom:7px}}
+</style>
+
+@code {
+ bool Busy;
+ string Status="Ready";
+ async Task RunAsync(Func<Task> action,string success)
+ {
+  if(Busy)return;Busy=true;Status="Working…";
+  try{await action();Status=success;}
+  catch(Exception ex){Status="Action failed: "+ex.Message;}
+  finally{Busy=false;}
+ }
+ Task SaveLocalAsync()=>RunAsync(Session.SaveAsync,"Saved on this device.");
+ Task SyncPrivateAsync()=>RunAsync(Session.SaveRistAsync,"Private checkpoint sync finished.");
+ Task ShareAsync()=>RunAsync(Session.ShareMapAsync,"Share prepared.");
+ Task ExportAsync()=>RunAsync(Session.DownloadMapAsync,"Recovery copy exported.");
+}
