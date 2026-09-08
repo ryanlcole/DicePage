@@ -1,6 +1,6 @@
 (()=>{
  'use strict';
- let timer=0,observer=null,marqueeFrame=0,lastMarqueeTime=0;
+ let timer=0,marqueeFrame=0,lastMarqueeTime=0;
  const pad=value=>String(value).padStart(2,'0');
  const legacyPopouts=[
   '.world-context-dialog','.world-context-popover','.world-context-popup',
@@ -16,6 +16,20 @@
   span.innerHTML=node.innerHTML;
   node.replaceWith(span);
   return span;
+ }
+ function buildLoop(track){
+  if(track.dataset.tickerLoopReady==='1')return;
+  track.querySelectorAll('[data-ticker-clone="1"]').forEach(node=>node.remove());
+  const originals=[...track.children];
+  for(const node of originals){
+   const clone=node.cloneNode(true);
+   clone.dataset.tickerClone='1';
+   clone.setAttribute('aria-hidden','true');
+   clone.removeAttribute('id');
+   clone.style.pointerEvents='none';
+   track.appendChild(clone);
+  }
+  track.dataset.tickerLoopReady='1';
  }
  function makeHeaderTickerOnly(){
   const strip=document.querySelector('.world-context-strip');
@@ -33,19 +47,20 @@
    track.style.gap='8px';
    track.style.width='100%';
    track.style.minWidth='0';
-   track.style.overflowX='auto';
+   track.style.overflowX='hidden';
    track.style.overflowY='hidden';
    track.style.whiteSpace='nowrap';
    track.style.scrollBehavior='auto';
    track.style.scrollbarWidth='none';
    track.style.webkitOverflowScrolling='touch';
-   if(!track.querySelector('[data-start-menu-label]')){
+   if(!track.querySelector('[data-start-menu-label]:not([data-ticker-clone="1"])')){
     const label=document.createElement('span');
     label.className='world-context-readout world-context-start-menu';
     label.dataset.startMenuLabel='1';
     label.innerHTML='<strong>Start Menu</strong>';
     track.appendChild(label);
    }
+   buildLoop(track);
   }
   strip.style.gridTemplateColumns='minmax(0,1fr)';
   strip.style.position='relative';
@@ -67,10 +82,14 @@
  function tick(){
   makeHeaderTickerOnly();
   const now=new Date();
-  const date=document.querySelector('.world-context-date time');
-  const utc=document.querySelector('.world-context-utc time');
-  if(date){const value=`${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;if(date.textContent!==value)date.textContent=value;}
-  if(utc){const value=`${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;if(utc.textContent!==value)utc.textContent=value;}
+  const dateValue=`${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
+  const utcValue=`${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+  document.querySelectorAll('.world-context-date time').forEach(node=>{if(node.textContent!==dateValue)node.textContent=dateValue;});
+  document.querySelectorAll('.world-context-utc time').forEach(node=>{if(node.textContent!==utcValue)node.textContent=utcValue;});
+ }
+ function loopBoundary(track){
+  const clone=track.querySelector('[data-ticker-clone="1"]');
+  return clone?clone.offsetLeft:0;
  }
  function marquee(now){
   const track=document.querySelector('.world-context-track');
@@ -78,17 +97,18 @@
    if(lastMarqueeTime){
     const delta=Math.min(50,now-lastMarqueeTime);
     track.scrollLeft+=delta*0.035;
-    if(track.scrollLeft>=track.scrollWidth-track.clientWidth-1)track.scrollLeft=0;
+    const boundary=loopBoundary(track);
+    if(boundary>0&&track.scrollLeft>=boundary)track.scrollLeft-=boundary;
    }
   }else if(track&&track.scrollLeft!==0){track.scrollLeft=0;}
   lastMarqueeTime=now;
   marqueeFrame=requestAnimationFrame(marquee);
  }
  function start(){
-  tick();if(!timer)timer=setInterval(tick,1000);
+  tick();
+  if(!timer)timer=setInterval(tick,1000);
   document.addEventListener('click',toggleStart,true);
   document.addEventListener('keydown',toggleStart,true);
-  if(!observer){observer=new MutationObserver(()=>{makeHeaderTickerOnly();removeLegacyPopouts()});observer.observe(document.body,{childList:true,subtree:true})}
   if(!marqueeFrame)marqueeFrame=requestAnimationFrame(marquee);
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastMarqueeTime=0;tick()}});
