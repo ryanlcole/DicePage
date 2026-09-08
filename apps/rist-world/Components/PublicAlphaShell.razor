@@ -31,7 +31,7 @@
 
   <section class="launcher-secondary" aria-label="Quick access">
    <button type="button" @onclick="OpenManage"><span>◎</span>MY WORLDS</button>
-   <button type="button" @onclick="OpenRoleplay"><span>♙</span>CHARACTERS</button>
+   <button type="button" @onclick="OpenCharacters"><span>♙</span>CHARACTERS</button>
    <button type="button" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
    <button type="button" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
    <button type="button" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
@@ -76,6 +76,7 @@ else
  void OpenViewer()=>OpenWorkspace("viewer","MAP VIEWER","WORLD → REGION → LOCAL → SITE → ROOM → TACTICAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGN EDITING","PLAN → PLACE → RUN → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET CREATION","BROWSE → CREATE → PLACE → SAVE");
+ void OpenCharacters()=>OpenWorkspace("characters","CHARACTERS","IDENTITY → VALUES → EQUIPMENT → LINKED ASSETS");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenManage()=>OpenWorkspace("manage","SAVE · SHARE · RETURN","SAVE → SYNC → SHARE → EXPORT");
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
