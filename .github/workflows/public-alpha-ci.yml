@@ -8,6 +8,7 @@ on:
       - build/workspace-layouts-2026-09-08
       - build/worldbuilding-p0-2026-09-08
       - build/world-authority-2026-09-08
+      - build/task-workspaces-2026-09-08
     paths:
       - 'apps/rist-world/**'
       - 'site/relic-home/Play/**'
@@ -53,17 +54,33 @@ jobs:
         run: |
           set -euo pipefail
           test -f apps/rist-world/Components/PublicAlphaShell.razor
+          test -f apps/rist-world/Components/PublicAlphaShell.razor.css
           test -f apps/rist-world/Components/WorkspaceSurface.razor
+          test -f apps/rist-world/Components/TaskWorkspaceRouter.razor
+          test -f apps/rist-world/Components/ScaleViewerWorkspace.razor
+          test -f apps/rist-world/Components/WorldManagementWorkspace.razor
+          test -f apps/rist-world/Components/FeedbackWorkspace.razor
           test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           test -f apps/rist-world/wwwroot/world-coordinate-authority.js
           test -f apps/rist-world/wwwroot/shaelvien-navigation-authority.js
           test -f apps/rist-world/wwwroot/css/shaelvien-navigation-authority.css
+          grep -q 'BUILD YOUR WORLD' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ZOOM BETWEEN SCALES' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'PLAY YOUR STORY' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'SAVE · SHARE · RETURN' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'FEEDBACK' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'RULEBOOKS' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'WorkspaceSurface Mode=' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'TaskWorkspaceRouter Mode=' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ScaleViewerWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'WorldManagementWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'FeedbackWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'ShareMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'DownloadMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'relic.gamemaster@gmail.com' apps/rist-world/Components/FeedbackWorkspace.razor
           grep -q 'ws-world' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-campaign' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-assets' apps/rist-world/Components/WorkspaceSurface.razor
