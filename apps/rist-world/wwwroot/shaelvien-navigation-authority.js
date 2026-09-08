@@ -23,6 +23,15 @@
    sub.prepend(top);
   }
  }
+ function normalizeWorkspaceBack(){
+  const ribbon=document.querySelector('.alpha-world-ribbon');
+  const button=ribbon?.querySelector('button');
+  if(!button)return;
+  if(button.dataset.shaelvienBack==='1')return;
+  button.dataset.shaelvienBack='1';
+  button.textContent=backLabel;
+  button.setAttribute('aria-label','Back to Shaelvien hub');
+ }
  function bindBrowserBack(){
   if(window.__shaelvienBackBound)return;window.__shaelvienBackBound=true;
   addEventListener('popstate',()=>{
@@ -34,7 +43,7 @@
    }
   });
  }
- const update=()=>{addStartBack();bindBrowserBack();};
+ const update=()=>{addStartBack();normalizeWorkspaceBack();bindBrowserBack();};
  const observer=new MutationObserver(update);
  function start(){observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});update();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
