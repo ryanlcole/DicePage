@@ -1,3 +1,5 @@
+using Microsoft.JSInterop;
+
 namespace RistWorld;
 
 public readonly record struct MapCell(int Column,int Row);
@@ -5,6 +7,58 @@ public readonly record struct MapCell(int Column,int Row);
 public sealed partial class WorldSession
 {
     const string ImplicitOceanTerrain = "__ocean071__";
+    MapCell? _tileToolAnchor;
+    string _tileToolAnchorName="";
+    IJSObjectReference? _tileToolJs;
+
+    public void HandleTileToolTap(double x,double y)=>_=HandleTileToolTapAsync(x,y);
+
+    async Task HandleTileToolTapAsync(double x,double y)
+    {
+        if(!CanEditTiles||MapLocked)return;
+        try
+        {
+            _tileToolJs??=await js.InvokeAsync<IJSObjectReference>("import","./worldbuilder-tools.js");
+            var tool=(await _tileToolJs.InvokeAsync<string>("selectedTileTool")??"draw").Trim().ToLowerInvariant();
+            var cell=CellFromNormalized(x,y);
+            var brush=StagedAssets.LastOrDefault(item=>item.Kind=="tile");
+            if(tool!="erase"&&brush is null)
+            {
+                await _tileToolJs.InvokeVoidAsync("toolStatus","Stage a terrain tile in the pallet before painting.","warning");
+                return;
+            }
+
+            if(tool is "line" or "square" or "circle")
+            {
+                if(_tileToolAnchor is null||!string.Equals(_tileToolAnchorName,tool,StringComparison.Ordinal))
+                {
+                    _tileToolAnchor=cell;_tileToolAnchorName=tool;
+                    await _tileToolJs.InvokeVoidAsync("toolStatus",$"{ToolLabel(tool)} anchor: {cell.Column+1}, {cell.Row+1}. Tap an endpoint.","anchor");
+                    return;
+                }
+                var start=_tileToolAnchor.Value;_tileToolAnchor=null;_tileToolAnchorName="";
+                var changed=ApplyTileTool(tool,brush,start,cell,ViewZoom);
+                await _tileToolJs.InvokeVoidAsync("toolStatus",changed?$"{ToolLabel(tool)} applied.":"No editable cells changed.",changed?"success":"neutral");
+                return;
+            }
+
+            _tileToolAnchor=null;_tileToolAnchorName="";
+            var applied=ApplyTileTool(tool,brush,cell,cell,ViewZoom);
+            await _tileToolJs.InvokeVoidAsync("toolStatus",applied?$"{ToolLabel(tool)} applied at {cell.Column+1}, {cell.Row+1}.":"No editable cells changed.",applied?"success":"neutral");
+        }
+        catch(JSException){}
+    }
+
+    static string ToolLabel(string tool)=>tool switch
+    {
+        "brush"=>"Brush",
+        "fill"=>"Fill",
+        "line"=>"Line",
+        "square"=>"Square",
+        "circle"=>"Circle",
+        "erase"=>"Erase",
+        _=>"Draw"
+    };
 
     public MapCell CellFromNormalized(double x,double y)
     {
