@@ -1,0 +1,16 @@
+@if (Mode == "manage")
+{
+ <WorldManagementWorkspace />
+}
+else if (Mode == "feedback")
+{
+ <FeedbackWorkspace />
+}
+else
+{
+ <WorkspaceSurface Mode="@Mode" />
+}
+
+@code {
+ [Parameter] public string Mode { get; set; } = "world";
+}
