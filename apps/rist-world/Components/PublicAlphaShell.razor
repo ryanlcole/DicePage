@@ -9,7 +9,16 @@
    <h1>SHAELVIEN</h1>
    <p class="launcher-subtitle">A LIVING WORLD AWAITS</p>
    <p class="launcher-tagline">BUILD THE WORLD.<br />THEN STEP INSIDE IT.</p>
+   <button type="button" class="launcher-enter" @onclick="OpenRoleplay">ENTER SHAELVIEN</button>
   </section>
+
+  <nav class="launcher-journey" aria-label="Shaelvien core tasks">
+   <button type="button" class="journey-card" @onclick="OpenWorldbuilding"><span>1</span><strong>BUILD YOUR WORLD</strong><small>Paint · place · shape</small></button>
+   <button type="button" class="journey-card" @onclick="OpenViewer"><span>2</span><strong>ZOOM BETWEEN SCALES</strong><small>World → region → local</small></button>
+   <button type="button" class="journey-card" @onclick="OpenRoleplay"><span>3</span><strong>PLAY YOUR STORY</strong><small>Characters · dice · encounters</small></button>
+   <button type="button" class="journey-card" @onclick="OpenManage"><span>4</span><strong>SAVE · SHARE · RETURN</strong><small>Persist · share · export</small></button>
+   <button type="button" class="journey-card" @onclick="OpenFeedback"><span>5</span><strong>FEEDBACK</strong><small>Help shape what comes next</small></button>
+  </nav>
 
   <section class="launcher-primary" aria-label="Primary activities">
    <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLD BUILDING</strong><small>Create lands. Shape cultures.<br />Bring your world to life.</small></button>
@@ -21,11 +30,12 @@
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
-   <button type="button" @onclick="OpenWorldbuilding"><span>◎</span>MY WORLDS</button>
+   <button type="button" @onclick="OpenManage"><span>◎</span>MY WORLDS</button>
    <button type="button" @onclick="OpenRoleplay"><span>♙</span>CHARACTERS</button>
-   <button type="button" @onclick="OpenWorldbuilding"><span>▱</span>MAP VIEWER</button>
+   <button type="button" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
    <button type="button" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
    <button type="button" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
+   <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenAccessibility"><span>⚙</span>SETTINGS</button>
   </section>
 
@@ -40,38 +50,35 @@ else
 {
  <div class="alpha-world-stage">
   <div class="alpha-world-ribbon" aria-label="Shaelvien workspace">
-   <button type="button" @onclick="ReturnToHub" aria-label="Return to Shaelvien launcher">SHAELVIEN</button>
+   <button type="button" @onclick="ReturnToHub" aria-label="Back to Shaelvien hub">← BACK</button>
    <span>@_workspaceLabel</span>
    <span class="alpha-ribbon-path">@_workspaceHint</span>
   </div>
-  <WorkspaceSurface Mode="@_workspaceMode" />
+  <TaskWorkspaceRouter Mode="@_workspaceMode" />
  </div>
 }
-
-<style>
- .launcher-hub{box-sizing:border-box;min-height:100dvh;padding:18px clamp(12px,2vw,28px) 14px;background:radial-gradient(circle at 18% 8%,rgba(17,72,124,.54),transparent 30%),radial-gradient(circle at 82% 9%,rgba(181,119,34,.43),transparent 29%),linear-gradient(180deg,#06101b 0%,#08111a 42%,#04080d 100%);color:#f1ead9;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
- .launcher-hero{position:relative;min-height:28dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 12px 18px;overflow:hidden}.launcher-hero:before,.launcher-hero:after{content:"";position:absolute;z-index:0;top:4%;width:min(37vw,520px);aspect-ratio:1.7;border:1px solid rgba(132,179,225,.22);border-radius:54% 20% 56% 24%;background:linear-gradient(145deg,rgba(3,20,38,.88),rgba(20,76,124,.22));clip-path:polygon(0 50%,14% 30%,31% 22%,43% 2%,53% 29%,73% 15%,100% 28%,72% 43%,100% 58%,73% 64%,59% 89%,46% 60%,27% 77%,13% 66%)}.launcher-hero:before{left:-3%;transform:rotate(-10deg)}.launcher-hero:after{right:-3%;transform:scaleX(-1) rotate(-10deg);border-color:rgba(255,215,145,.2);background:linear-gradient(145deg,rgba(48,31,8,.86),rgba(195,130,41,.24))}.launcher-hero>*{position:relative;z-index:1}
- .launcher-crest{width:42px;height:42px;display:grid;place-items:center;border:1px solid #c9a75d;border-radius:50%;background:radial-gradient(circle,#1e669a 0 15%,#bb8a32 17% 23%,#07101a 25% 58%,#9f7938 60% 64%,transparent 66%);color:#fff3c4;box-shadow:0 0 24px #2471a766}.launcher-kicker{margin:8px 0 2px;color:#d6bb7a;font-size:10px;font-weight:900;letter-spacing:.28em}.launcher-hero h1{margin:0;color:#ead7a4;font:500 clamp(46px,8vw,112px)/.92 Georgia,"Times New Roman",serif;letter-spacing:.055em;text-shadow:0 4px 0 #24190d,0 8px 26px #000}.launcher-subtitle{margin:7px 0 0;color:#cbd7dd;font:700 clamp(10px,1.1vw,14px)/1.2 Georgia,serif;letter-spacing:.35em}.launcher-tagline{margin:10px 0 0;color:#f2ecdf;font:600 clamp(13px,1.5vw,20px)/1.35 Georgia,serif;letter-spacing:.24em;text-shadow:0 2px 14px #000}
- .launcher-primary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;max-width:1540px;margin:0 auto}.launcher-card{position:relative;min-height:220px;padding:18px 12px 16px;border:1px solid #687d8d;border-radius:7px;background:linear-gradient(180deg,rgba(8,19,29,.86),rgba(5,10,16,.98));color:#f5eee1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;overflow:hidden;box-shadow:0 12px 28px #0007;cursor:pointer;touch-action:manipulation}.launcher-card:before{content:"";position:absolute;inset:0 0 39%;opacity:.52;background:radial-gradient(circle at 50% 20%,rgba(85,144,186,.52),transparent 48%),linear-gradient(155deg,#152e41,#08131d)}.launcher-card.campaign:before{background:radial-gradient(circle at 50% 24%,#7c5a2c88,transparent 44%),linear-gradient(155deg,#302517,#0d151b)}.launcher-card.assets:before{background:radial-gradient(circle at 50% 24%,#66748a88,transparent 42%),linear-gradient(155deg,#26313a,#10151b)}.launcher-card.store:before{background:radial-gradient(circle at 50% 24%,#a0632c88,transparent 44%),linear-gradient(155deg,#3a2416,#11171e)}.launcher-card.rules:before{background:radial-gradient(circle at 50% 24%,#76583a88,transparent 44%),linear-gradient(155deg,#2e251d,#10151a)}.launcher-card.roleplay:before{background:radial-gradient(circle at 50% 24%,#b56a2888,transparent 44%),linear-gradient(155deg,#3c2111,#11171c)}.launcher-card>*{position:relative;z-index:1}.card-icon{margin:auto 0 22px;color:#dfc17c;font:32px Georgia,serif;text-shadow:0 2px 12px #000}.launcher-card strong{font:600 clamp(13px,1.15vw,18px)/1.2 Georgia,serif;letter-spacing:.05em}.launcher-card small{margin-top:8px;color:#c8d2d7;font-size:11px;line-height:1.4}.launcher-card:hover,.launcher-card:focus-visible{border-color:#d7ad58;transform:translateY(-2px);box-shadow:0 0 0 1px #d7ad5844,0 16px 32px #0009}.launcher-card:focus-visible{outline:2px solid #ffe7a9;outline-offset:2px}
- .launcher-secondary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;max-width:1540px;margin:10px auto 0}.launcher-secondary button{min-height:76px;border:1px solid #536b7d;border-radius:7px;background:#09131dcc;color:#e7edf0;font-weight:800;font-size:11px;letter-spacing:.05em;display:grid;place-items:center;gap:4px}.launcher-secondary button span{color:#b9d1e7;font-size:20px}.launcher-secondary button:hover,.launcher-secondary button:focus-visible{border-color:#cba557;color:#ffe9ad}
- .launcher-footer{max-width:1540px;margin:12px auto 0;padding:12px 4px 2px;border-top:1px solid #725d30;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;color:#b9c4c9;font-family:Georgia,serif;font-size:10px;letter-spacing:.12em}.launcher-footer strong{color:#d8b966;text-align:center}.launcher-status{text-align:right;color:#a8d5b3}
- .alpha-world-stage{height:100dvh;min-height:0;overflow:hidden;background:#05090c}.alpha-world-ribbon{box-sizing:border-box;height:30px;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:9px;padding:0 8px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#080e14,#101923 55%,#17130c);color:#b9c5ca;font:800 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.06em}.alpha-world-ribbon button{height:22px;padding:0 9px;border:1px solid #9f8142;border-radius:5px;background:#151d22;color:#e4c979;font-weight:900}.alpha-world-ribbon>span:first-of-type{color:#e4c979}.alpha-ribbon-path{text-align:right;color:#8da0aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- @@media(max-width:980px){.launcher-primary{grid-template-columns:repeat(3,minmax(0,1fr))}.launcher-secondary{grid-template-columns:repeat(3,minmax(0,1fr))}.launcher-card{min-height:180px}.launcher-footer{grid-template-columns:1fr;text-align:center}.launcher-status{text-align:center}}
- @@media(max-width:600px){.launcher-hub{padding:10px}.launcher-hero{min-height:25dvh}.launcher-primary{grid-template-columns:repeat(2,minmax(0,1fr))}.launcher-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}.launcher-card{min-height:160px}.launcher-tagline{letter-spacing:.13em}.launcher-subtitle{letter-spacing:.2em}.alpha-world-ribbon{grid-template-columns:auto auto}.alpha-ribbon-path{display:none}}
- @@media(orientation:landscape) and (max-height:560px){.launcher-hero{min-height:0;padding:3px 8px 10px}.launcher-crest,.launcher-subtitle{display:none}.launcher-hero h1{font-size:42px}.launcher-tagline{margin-top:4px;font-size:10px}.launcher-primary{grid-template-columns:repeat(6,minmax(0,1fr))}.launcher-card{min-height:118px;padding:8px}.card-icon{margin:auto 0 8px;font-size:20px}.launcher-card small{display:none}.launcher-secondary{display:none}.launcher-footer{margin-top:7px;padding-top:7px}}
- @@media(prefers-reduced-motion:no-preference){.launcher-card{transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}}
-</style>
 
 @code {
  bool _workspaceOpen;
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLD BUILDING";
  string _workspaceHint = "BUILD → ZOOM → PLACE → SAVE";
- void OpenWorkspace(string mode,string label,string hint){_workspaceMode=mode;_workspaceLabel=label;_workspaceHint=hint;_workspaceOpen=true;}
+
+ void OpenWorkspace(string mode,string label,string hint)
+ {
+  _workspaceMode=mode;
+  _workspaceLabel=label;
+  _workspaceHint=hint;
+  _workspaceOpen=true;
+ }
+
  void OpenWorldbuilding()=>OpenWorkspace("world","WORLD BUILDING","BUILD → ZOOM → PLACE → SAVE");
+ void OpenViewer()=>OpenWorkspace("viewer","MAP VIEWER","WORLD → REGION → LOCAL → SITE → ROOM → TACTICAL");
  void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGN EDITING","PLAN → PLACE → RUN → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET CREATION","BROWSE → CREATE → PLACE → SAVE");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
+ void OpenManage()=>OpenWorkspace("manage","SAVE · SHARE · RETURN","SAVE → SYNC → SHARE → EXPORT");
+ void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
