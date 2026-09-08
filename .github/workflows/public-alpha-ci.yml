@@ -50,6 +50,7 @@ jobs:
           set -euo pipefail
           test -f apps/rist-world/Components/PublicAlphaShell.razor
           test -f apps/rist-world/Components/WorkspaceSurface.razor
+          test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
@@ -62,11 +63,18 @@ jobs:
           grep -q 'ws-roleplay' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'DefaultCubeWidthMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultCubeHeightMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeCellCount = DefaultCubeWidthMiles \* DefaultCubeHeightMiles' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultTerrainTilesetName = "Ocean 071"' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
           grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs
-          grep -q '900 addressable cells' apps/rist-world/Components/WorldMap.razor.css
-          grep -q 'Ocean 071' apps/rist-world/Components/WorldMap.razor.css
-          grep -q 'world-stage > .grid.square' apps/rist-world/Components/WorldMap.razor.css
+          grep -q 'class="base ocean-world"' apps/rist-world/Components/WorldMap.razor
+          grep -q 'class="grid @Session.GridStyle"' apps/rist-world/Components/WorldMap.razor
+          grep -q 'background-size:calc(100% / 30) calc(100% / 30)' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
+          grep -q 'world-stage>.grid' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
+          grep -q 'world-stage>.tile-cell' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
+          grep -q 'Ocean 071 is the implicit terrain' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
+          grep -q 'PlacedTiles=\[\]' apps/rist-world/WorldSession.Persistence.cs
+          grep -q 'worldbuilding-p0-authority.css' apps/rist-world/wwwroot/index.html
           grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
@@ -75,4 +83,5 @@ jobs:
           grep -q 'id="signup"' site/relic-home/Play/index.html
           ! grep -q 'id="preview"' site/relic-home/Play/index.html
           test -f build/rist/wwwroot/index.html
+          test -f build/rist/wwwroot/css/worldbuilding-p0-authority.css
           grep -q 'ReLiCGameMaster RIST WORLD' build/rist/wwwroot/index.html
