@@ -1,5 +1,9 @@
 <div class="task-workspace-router">
- @if (Mode == "viewer")
+ @if (Mode == "world")
+ {
+  <WorldBuilderStudio />
+ }
+ else if (Mode == "viewer")
  {
   <ScaleViewerWorkspace />
  }
@@ -18,7 +22,7 @@
 </div>
 
 <style>
- .task-workspace-router{box-sizing:border-box;height:calc(100dvh - 38px);min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface{height:100%!important}
+ .task-workspace-router{box-sizing:border-box;height:calc(100dvh - 38px);min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface,.task-workspace-router>.worldbuilder-studio{height:100%!important}
 </style>
 
 @code {
