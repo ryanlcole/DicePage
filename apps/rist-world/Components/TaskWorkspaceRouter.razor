@@ -1,4 +1,8 @@
-@if (Mode == "manage")
+@if (Mode == "viewer")
+{
+ <ScaleViewerWorkspace />
+}
+else if (Mode == "manage")
 {
  <WorldManagementWorkspace />
 }
