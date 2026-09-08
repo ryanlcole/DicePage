@@ -1,0 +1,41 @@
+@inject WorldSession Session
+
+<section class="scale-viewer-workspace" aria-label="Zoom between world scales">
+ <aside class="scale-viewer-nav" aria-label="World scale navigation">
+  <p>ZOOM BETWEEN SCALES</p>
+  <h2>One World.<br />Multiple Perspectives.</h2>
+  <nav>
+   @foreach(var scale in Scales)
+   {
+    <button type="button" class="@(Session.Layer==scale?"active":"")" @onclick="()=>Session.SetLayer(scale)" aria-pressed="@(Session.Layer==scale)"><strong>@scale</strong><span>@Description(scale)</span></button>
+   }
+  </nav>
+ </aside>
+
+ <div class="scale-viewer-map"><WorldTable /></div>
+
+ <aside class="scale-viewer-readout" aria-label="Current world position">
+  <p>CURRENT VIEW</p>
+  <strong>@Session.Layer</strong>
+  <dl><dt>Plane</dt><dd>@Session.PlaneIndex</dd><dt>Tier</dt><dd>@Session.TierIndex</dd><dt>Layer</dt><dd>@Session.LayerOffset</dd><dt>Grid</dt><dd>@Session.GridStyle</dd><dt>World</dt><dd>@Session.MapName</dd></dl>
+  <small>Changing representation does not change the identity of the world beneath it.</small>
+ </aside>
+</section>
+
+<style>
+ .scale-viewer-workspace{box-sizing:border-box;height:100%;min-height:0;display:grid;grid-template-columns:210px minmax(0,1fr) 190px;background:#05090d;color:#e6e0d4;font-family:Inter,system-ui,sans-serif}.scale-viewer-nav,.scale-viewer-readout{box-sizing:border-box;min-height:0;padding:16px 13px;overflow:auto;background:linear-gradient(180deg,#0b151e,#071018)}.scale-viewer-nav{border-right:1px solid #725d30}.scale-viewer-readout{border-left:1px solid #725d30}.scale-viewer-nav>p,.scale-viewer-readout>p{margin:0 0 6px;color:#8ca4b2;font-size:9px;font-weight:900;letter-spacing:.16em}.scale-viewer-nav h2{margin:0 0 15px;color:#e4ca84;font:600 19px/1.2 Georgia,serif}.scale-viewer-nav nav{display:grid;gap:7px}.scale-viewer-nav button{display:grid;gap:2px;min-height:54px;padding:9px 10px;border:1px solid #344a57;border-radius:7px;background:#0b161e;color:#9baeb8;text-align:left;touch-action:manipulation}.scale-viewer-nav button strong{font:700 12px Georgia,serif;letter-spacing:.05em}.scale-viewer-nav button span{font-size:9px}.scale-viewer-nav button.active{border-color:#c8a252;background:#1c1b12;color:#f1da9c;box-shadow:0 0 18px #c8a25222}.scale-viewer-map{min-width:0;min-height:0;overflow:hidden}.scale-viewer-map>.world-context-strip{height:42px!important}.scale-viewer-map>.rist.release-world{height:calc(100% - 42px)!important;max-height:calc(100% - 42px)!important}.scale-viewer-readout>strong{display:block;margin:4px 0 16px;color:#efd897;font:600 28px Georgia,serif}.scale-viewer-readout dl{display:grid;grid-template-columns:auto 1fr;gap:9px 12px;margin:0}.scale-viewer-readout dt{color:#8095a0;font-size:9px;font-weight:900;text-transform:uppercase}.scale-viewer-readout dd{margin:0;color:#e4d7b5;font-size:10px;font-weight:800;text-align:right}.scale-viewer-readout small{display:block;margin-top:18px;color:#899da8;font-size:9px;line-height:1.5}@media(max-width:840px){.scale-viewer-workspace{grid-template-columns:145px minmax(0,1fr)}.scale-viewer-readout{display:none}}@media(max-width:640px){.scale-viewer-workspace{grid-template-columns:1fr;grid-template-rows:50px minmax(0,1fr)}.scale-viewer-nav{display:flex;align-items:center;padding:5px 7px;border-right:0;border-bottom:1px solid #725d30;overflow-x:auto}.scale-viewer-nav>p,.scale-viewer-nav h2{display:none}.scale-viewer-nav nav{display:flex;gap:5px}.scale-viewer-nav button{min-height:38px;min-width:86px;padding:6px 8px}.scale-viewer-nav button span{display:none}.scale-viewer-map{grid-row:2}}
+</style>
+
+@code {
+ static readonly string[] Scales=["WORLD","REGION","LOCAL","SITE","ROOM","TACTICAL"];
+ static string Description(string scale)=>scale switch
+ {
+  "WORLD"=>"World overview",
+  "REGION"=>"Travel & formations",
+  "LOCAL"=>"Places & routes",
+  "SITE"=>"Buildings & locations",
+  "ROOM"=>"Interior space",
+  "TACTICAL"=>"Encounter detail",
+  _=>"World view"
+ };
+}
