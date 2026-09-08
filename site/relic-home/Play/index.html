@@ -9,29 +9,39 @@
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#05070d}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#05070d}body{min-height:100dvh;overflow:hidden}
-.screen{position:fixed;inset:0;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center center/cover no-repeat;display:flex;align-items:flex-end;justify-content:center;padding:max(28px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
-.screen:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.02) 0%,rgba(0,0,0,.04) 62%,rgba(0,0,0,.72) 100%);pointer-events:none}
-.entry{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:min(92vw,620px);min-height:96px;padding-bottom:clamp(18px,5vh,60px);text-align:center}
-.auth-link,.status{color:#ffe9ad;font-weight:900;line-height:1.08;font-family:system-ui,-apple-system,sans-serif;letter-spacing:.02em;text-shadow:0 2px 12px #000,0 1px 1px #000}
-.auth-link{appearance:none;border:0;background:transparent;cursor:pointer;padding:14px 18px;touch-action:manipulation;font-size:clamp(28px,6vw,46px)}
-.auth-link:focus-visible{outline:3px solid #ffe9ad;outline-offset:4px;border-radius:8px}.auth-link:active{transform:scale(.97)}
-.status{margin:0;padding:14px 18px;pointer-events:none;font-size:calc(clamp(28px,6vw,46px) - 4px)}
+.screen{position:fixed;inset:0;background:#05070d url('/Game/assets/branding/shaelvien-dragon-creation-startup-screen.png?v=20260907') center center/cover no-repeat;display:grid;place-items:end center;padding:max(26px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(34px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
+.screen:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.03) 0%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.82) 100%);pointer-events:none}
+.entry{position:relative;z-index:2;width:min(92vw,660px);display:grid;gap:12px;justify-items:center;text-align:center;padding-bottom:clamp(6px,2vh,20px)}
+.title{margin:0;color:#f4e1a5;font:500 clamp(38px,8vw,72px)/.95 Georgia,"Times New Roman",serif;letter-spacing:.08em;text-shadow:0 3px 2px #000,0 8px 24px #000}
+.tagline{margin:0 0 4px;color:#eef3f5;font:700 clamp(12px,2.8vw,17px)/1.35 Georgia,"Times New Roman",serif;letter-spacing:.18em;text-shadow:0 2px 10px #000}
+.menu{width:min(92vw,430px);display:grid;grid-template-columns:1fr 1fr;gap:10px}.menu button{min-height:50px;border:1px solid #718492;border-radius:7px;background:rgba(8,16,25,.88);color:#f4f0e5;font-weight:900;font-size:15px;letter-spacing:.04em;box-shadow:0 10px 24px #0008;touch-action:manipulation}.menu button:focus-visible{outline:3px solid #ffe9ad;outline-offset:3px}.menu button:active{transform:scale(.98)}.menu .preview{grid-column:1/-1;border-color:#c79a47;background:linear-gradient(#51381a,#291a0d);color:#ffe9ad}
+.status{margin:0;color:#ffe9ad;font-weight:900;font-size:16px;text-shadow:0 2px 12px #000}.alpha{margin:2px 0 0;color:#b7c2c9;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
 [hidden]{display:none!important}
-@media (orientation:landscape) and (max-height:540px){.screen{background-position:center 46%;padding-bottom:max(20px,env(safe-area-inset-bottom))}.entry{padding-bottom:4px}.auth-link{font-size:clamp(24px,4vw,38px)}.status{font-size:calc(clamp(24px,4vw,38px) - 4px)}}
-@media (max-width:420px){.auth-link{font-size:30px}.status{font-size:26px}}
+@media (orientation:landscape) and (max-height:560px){.screen{background-position:center 46%;padding-bottom:max(14px,env(safe-area-inset-bottom))}.entry{gap:7px}.title{font-size:clamp(32px,7vh,50px)}.tagline{font-size:11px}.menu{grid-template-columns:repeat(3,1fr);width:min(88vw,620px)}.menu .preview{grid-column:auto}.menu button{min-height:42px}.alpha{display:none}}
+@media (max-width:420px){.title{font-size:42px}.menu{width:100%}}
 </style>
 </head>
 <body>
 <main class="screen" aria-label="Shaelvien startup">
- <div class="entry"><button id="discord" class="auth-link" type="button">Continue with Discord</button><p id="status" class="status" role="status" aria-live="polite" hidden></p></div>
+ <section class="entry">
+  <h1 class="title">SHAELVIEN</h1>
+  <p class="tagline">BUILD THE WORLD. THEN STEP INSIDE IT.</p>
+  <div id="menu" class="menu" aria-label="Shaelvien entry options">
+   <button id="signin" type="button">SIGN IN</button>
+   <button id="signup" type="button">SIGN UP</button>
+   <button id="preview" class="preview" type="button">PREVIEW</button>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+  <p class="alpha">RIST MMO / Sandbox · Public Alpha</p>
+ </section>
 </main>
 <script>
 (()=>{
 'use strict';
-const status=document.getElementById('status'),button=document.getElementById('discord');
+const status=document.getElementById('status'),menu=document.getElementById('menu'),signin=document.getElementById('signin'),signup=document.getElementById('signup'),preview=document.getElementById('preview');
 const cookieName='rist_session',profileKey='account/profile.json';let api='',busy=false;
-const say=m=>{const text=String(m||'');status.textContent=text;status.hidden=!text;button.hidden=!!text;};
-const restoreButton=()=>{status.textContent='';status.hidden=true;button.hidden=false;};
+const say=m=>{const text=String(m||'');status.textContent=text;status.hidden=!text;menu.hidden=!!text;};
+const restoreMenu=()=>{status.textContent='';status.hidden=true;menu.hidden=false;};
 const setCookie=t=>document.cookie=`${cookieName}=${encodeURIComponent(t)}; Path=/; Max-Age=28800; Secure; SameSite=Lax`;
 const clearLegacyAuthState=()=>{try{localStorage.removeItem('rist.auth.intent');localStorage.removeItem('rist.signup.alias');localStorage.removeItem('rist.signup.plan');localStorage.removeItem('rist.signup.termsAccepted');}catch{}};
 async function getApi(){if(api)return api;const r=await fetch('./auth-config.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Account service configuration is unavailable.');const c=await r.json();api=(c.apiBaseUrl||'').replace(/\/$/,'');if(!api)throw new Error('Account service configuration is incomplete.');return api;}
@@ -41,10 +51,10 @@ async function writeProfile(base,token,data){const prep=await authFetch(base,tok
 async function ensureAccount(base,token,me){const existing=await readProfile(base,token);if(existing)return;const now=new Date().toISOString();const alias=(me?.displayName||me?.DisplayName||'Player').trim().slice(0,32)||'Player';await writeProfile(base,token,{AccountId:crypto.randomUUID(),PlayerAlias:alias,Plan:'player',CreatedAtUtc:now,TermsAcceptedAtUtc:'0001-01-01T00:00:00+00:00',TermsVersion:'',ContentAccess:null});}
 function enter(token){clearLegacyAuthState();sessionStorage.setItem('rist.session',token);sessionStorage.setItem('rist.lastActivity',String(Date.now()));setCookie(token);say('Entering Shaelvien…');location.replace('/Game/index.html');}
 async function completeToken(base,token){const meResponse=await authFetch(base,token,'/me');if(!meResponse.ok)throw new Error('Your authenticated session could not be verified.');const me=await meResponse.json();await ensureAccount(base,token,me);enter(token);}
-async function begin(){if(busy)return;busy=true;try{clearLegacyAuthState();say('Opening secure Discord login…');location.href=(await getApi())+'/auth/login';}catch(e){busy=false;say(e?.message||'Unable to start authentication.');setTimeout(restoreButton,2600);}}
+async function begin(mode){if(busy)return;busy=true;try{clearLegacyAuthState();sessionStorage.setItem('rist.entryMode',mode);say(mode==='signup'?'Opening secure Discord sign up…':'Opening secure Discord sign in…');location.href=(await getApi())+'/auth/login';}catch(e){busy=false;say(e?.message||'Unable to start authentication.');setTimeout(restoreMenu,2600);}}
 async function handoff(code){say('Completing secure Discord sign in…');const base=await getApi();const r=await fetch(base+'/auth/session?handoff='+encodeURIComponent(code),{cache:'no-store'});if(!r.ok)throw new Error('The sign-in handoff expired. Please try again.');const p=await r.json();if(!p.sessionToken)throw new Error('The account service returned an invalid session.');await completeToken(base,p.sessionToken);}
-button.onclick=begin;
-(async()=>{clearLegacyAuthState();try{const q=new URLSearchParams(location.search),h=q.get('rist_handoff');if(h){say('Completing secure Discord sign in…');history.replaceState(null,'',location.pathname);await handoff(h);return;}const saved=sessionStorage.getItem('rist.session');if(saved){say('Entering Shaelvien…');await completeToken(await getApi(),saved);return;}}catch(e){sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');busy=false;say(e?.message||'Authentication could not be completed.');setTimeout(restoreButton,3000);}})();
+signin.onclick=()=>begin('signin');signup.onclick=()=>begin('signup');preview.onclick=()=>{clearLegacyAuthState();sessionStorage.setItem('rist.preview','1');location.href='/Game/index.html?preview=1';};
+(async()=>{clearLegacyAuthState();try{const q=new URLSearchParams(location.search),h=q.get('rist_handoff');if(h){say('Completing secure Discord sign in…');history.replaceState(null,'',location.pathname);await handoff(h);return;}const saved=sessionStorage.getItem('rist.session');if(saved){say('Entering Shaelvien…');await completeToken(await getApi(),saved);return;}}catch(e){sessionStorage.removeItem('rist.session');sessionStorage.removeItem('rist.lastActivity');busy=false;say(e?.message||'Authentication could not be completed.');setTimeout(restoreMenu,3000);}})();
 })();
 </script>
 </body>
