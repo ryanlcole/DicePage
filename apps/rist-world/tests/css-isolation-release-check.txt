@@ -1,0 +1,1 @@
+Release invariant: apps/rist-world/wwwroot/index.html must reference RistWorld.styles.css and the published output must contain build/rist/wwwroot/RistWorld.styles.css.
