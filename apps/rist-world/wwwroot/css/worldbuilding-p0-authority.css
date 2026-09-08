@@ -1,0 +1,97 @@
+/* Shaelvien World Building P0 authority.
+   Semantic authority remains WorldSession: 30x30 one-mile cells, Ocean 071 implicit terrain.
+   This stylesheet controls representation only. */
+
+/* The authored world stage remains one transform surface. Ocean, grid, terrain and pieces
+   therefore pan/zoom together while preserving their semantic separation. */
+.ws-world .world-stage{
+  position:absolute!important;
+  inset:0!important;
+  z-index:2!important;
+  overflow:visible!important;
+}
+
+/* Ocean 071 is the implicit terrain for every un-authored cell. Render it as one seamless
+   surface rather than materializing 900 image/DOM nodes. */
+.ws-world .world-stage>.ocean-world{
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  pointer-events:none!important;
+  background-color:#1f6f92!important;
+  background-image:
+    radial-gradient(ellipse at 18% 22%,rgba(116,190,216,.20) 0 3%,transparent 19%),
+    radial-gradient(ellipse at 76% 70%,rgba(4,45,69,.25) 0 4%,transparent 22%),
+    repeating-linear-gradient(168deg,#3b91ad 0 3px,#2b819f 3px 9px,#347f99 9px 14px)!important;
+  background-repeat:repeat!important;
+  background-size:auto!important;
+  box-shadow:inset 0 0 70px rgba(2,25,43,.42)!important;
+}
+
+/* The actual grid element is the viewer overlay. It is independent of terrain state,
+   stays inside the same stage transform, is non-interactive, and sits between terrain
+   and pieces. 30 divisions on each axis = 900 addressable one-mile cells. */
+.ws-world .world-stage>.grid{
+  position:absolute!important;
+  inset:0!important;
+  z-index:4!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  pointer-events:none!important;
+  opacity:.52!important;
+  transform:none!important;
+  background-position:0 0!important;
+}
+.ws-world .world-stage>.grid.square{
+  background-image:
+    linear-gradient(to right,rgba(240,248,255,.72) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(240,248,255,.72) 1px,transparent 1px)!important;
+  background-size:calc(100% / 30) calc(100% / 30)!important;
+}
+.ws-world .world-stage>.grid.none{display:none!important}
+
+/* Disable the legacy viewport pseudo-grid in World Building. It was fixed to a 20-column
+   glass and did not share the authoritative world transform. */
+.ws-world .map:has(.grid.square)::before,
+.ws-world .map:has(.grid.hex)::before{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+}
+
+/* Authored terrain remains below the observer grid; actors/pieces retain their existing
+   z-index above it. */
+.ws-world .world-stage>.tile-cell{z-index:3!important}
+
+/* 30 x 30 logical cells are square, so the worldbuilding board is square. Landscape
+   gives the remaining horizontal room to the right-side builder controls. */
+.ws-world .release-map-region>.table-workspace>.map-shell{
+  place-items:center!important;
+}
+.ws-world .release-map-region>.table-workspace>.map-shell>.map{
+  aspect-ratio:1 / 1!important;
+  width:auto!important;
+  height:min(100%,calc(100dvh - 302px))!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  margin:auto!important;
+}
+
+@media (max-width:720px){
+  .ws-world .release-map-region>.table-workspace>.map-shell>.map{
+    width:min(100%,calc(100dvh - 330px))!important;
+    height:auto!important;
+    max-height:100%!important;
+  }
+}
+
+@media (orientation:landscape){
+  .ws-world .release-map-region>.table-workspace>.map-shell>.map{
+    height:min(100%,calc(100dvh - 254px))!important;
+    width:auto!important;
+  }
+}
