@@ -48,12 +48,15 @@
 }
 else
 {
- <div class="alpha-world-stage">
-  <div class="alpha-world-ribbon" aria-label="Shaelvien workspace">
-   <button type="button" @onclick="ReturnToHub" aria-label="Back to Shaelvien hub">← BACK</button>
-   <span>@_workspaceLabel</span>
-   <span class="alpha-ribbon-path">@_workspaceHint</span>
-  </div>
+ <div class="alpha-world-stage @(_workspaceMode=="world"?"worldbuilder-stage":"")">
+  @if (_workspaceMode != "world")
+  {
+   <div class="alpha-world-ribbon" aria-label="Shaelvien workspace">
+    <button type="button" @onclick="ReturnToHub" aria-label="Back to Shaelvien hub">← BACK</button>
+    <span>@_workspaceLabel</span>
+    <span class="alpha-ribbon-path">@_workspaceHint</span>
+   </div>
+  }
   <TaskWorkspaceRouter Mode="@_workspaceMode" />
  </div>
 }
