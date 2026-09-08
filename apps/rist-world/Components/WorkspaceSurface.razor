@@ -1,0 +1,71 @@
+@inject WorldSession Session
+
+<div class="workspace-surface ws-@Mode">
+ @if (Mode == "world")
+ {
+  <aside class="ws-panel ws-world-nav" aria-label="World scale navigator">
+   <p class="ws-eyebrow">WORLD BUILDER</p>
+   <h2>Scale</h2>
+   <ol class="ws-scale-list">
+    <li class="active">WORLD</li><li>REGION</li><li>LOCAL</li><li>SITE</li><li>ROOM</li><li>TACTICAL</li>
+   </ol>
+   <div class="ws-live-readout"><span>Tier</span><strong>@Session.TierIndex</strong><span>Layer</span><strong>@Session.LayerOffset</strong></div>
+  </aside>
+  <section class="ws-table-host" aria-label="Worldbuilding canvas"><WorldTable /></section>
+  <aside class="ws-panel ws-world-inspector" aria-label="World properties">
+   <p class="ws-eyebrow">PROPERTIES</p><h2>World</h2>
+   <dl><dt>Surface</dt><dd>Map + Grid</dd><dt>Assets</dt><dd>@Session.PublicAssetType</dd><dt>Z Position</dt><dd>Tier @Session.TierIndex · Layer @Session.LayerOffset</dd><dt>Persistence</dt><dd>Autosave</dd></dl>
+   <p class="ws-help">Build first. Representation changes as you move between scales; world identity does not.</p>
+  </aside>
+ }
+ else if (Mode == "campaign")
+ {
+  <header class="ws-campaign-command" aria-label="Campaign command bar">
+   <div><p class="ws-eyebrow">CAMPAIGN DESK</p><h2>Plan → Stage → Run → Replay</h2></div>
+   <div class="ws-command-metrics"><span>WORLD LINKED</span><span>TIER @Session.TierIndex</span><span>LAYER @Session.LayerOffset</span><span>AUTOSAVE</span></div>
+  </header>
+  <aside class="ws-panel ws-campaign-nav" aria-label="Campaign organizer">
+   <h2>Organizer</h2>
+   <div class="ws-section-stack"><section><strong>Story Arc</strong><small>Campaign direction</small></section><section><strong>Sessions</strong><small>Run order & history</small></section><section><strong>Scenes</strong><small>Locations & encounters</small></section><section><strong>Actors</strong><small>Characters & NPCs</small></section><section><strong>Notes</strong><small>Private GM context</small></section></div>
+  </aside>
+  <section class="ws-table-host" aria-label="Campaign staging table"><WorldTable /></section>
+ }
+ else if (Mode == "assets")
+ {
+  <aside class="ws-panel ws-asset-library" aria-label="Asset creation library">
+   <p class="ws-eyebrow">ASSET STUDIO</p><h2>Library</h2>
+   <div class="ws-asset-type"><span>Current family</span><strong>@Session.PublicAssetType</strong></div>
+   <div class="ws-section-stack compact"><section><strong>Tiles</strong><small>World surfaces</small></section><section><strong>Tokens</strong><small>Actors & markers</small></section><section><strong>Cards</strong><small>Rules & actions</small></section><section><strong>Terrain</strong><small>Scenery & structures</small></section><section><strong>Characters</strong><small>Portrait → token</small></section></div>
+  </aside>
+  <section class="ws-table-host" aria-label="Asset preview canvas"><WorldTable /></section>
+  <aside class="ws-panel ws-asset-inspector" aria-label="Asset inspector">
+   <p class="ws-eyebrow">INSPECTOR</p><h2>Preview</h2>
+   <dl><dt>Target Tier</dt><dd>@Session.TierIndex</dd><dt>Target Layer</dt><dd>@Session.LayerOffset</dd><dt>Placement</dt><dd>Grid-aware</dd><dt>State</dt><dd>Private until placed</dd></dl>
+   <p class="ws-help">Create against the real map so scale, crop and placement can be judged in context.</p>
+  </aside>
+ }
+ else
+ {
+  <header class="ws-role-party" aria-label="Roleplay party bar">
+   <div><p class="ws-eyebrow">ROLEPLAY</p><h2>@(string.IsNullOrWhiteSpace(Session.CharacterName) ? "Your Character" : Session.CharacterName)</h2></div>
+   <div class="ws-party-status"><span>WORLD ACTIVE</span><span>TIER @Session.TierIndex</span><span>LAYER @Session.LayerOffset</span></div>
+  </header>
+  <section class="ws-table-host" aria-label="Roleplay encounter table"><WorldTable /></section>
+  <footer class="ws-role-footer" aria-label="Roleplay focus"><span>CHARACTER</span><span>DICE</span><strong>ENCOUNTER</strong><span>REPLAY</span><span>CHAT</span></footer>
+ }
+</div>
+
+<style>
+ .workspace-surface{box-sizing:border-box;height:calc(100dvh - 30px);min-height:0;width:100%;overflow:hidden;background:#05090c;color:#e9e2d4;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.ws-table-host{box-sizing:border-box;min-width:0;min-height:0;height:100%;overflow:hidden;background:#071015}.ws-table-host>.world-context-strip{height:42px!important}.ws-table-host>.rist.release-world{height:calc(100% - 42px)!important;max-height:calc(100% - 42px)!important}.ws-panel{box-sizing:border-box;min-width:0;min-height:0;padding:16px 14px;background:linear-gradient(180deg,#0b151e,#071018);border-color:#725d30;color:#dce4e7;overflow:auto}.ws-panel h2,.ws-campaign-command h2,.ws-role-party h2{margin:3px 0 14px;color:#e5ca82;font:600 20px/1.1 Georgia,"Times New Roman",serif;letter-spacing:.04em}.ws-eyebrow{margin:0;color:#8ea6b5;font-size:9px;font-weight:900;letter-spacing:.2em}.ws-help{margin:18px 0 0;color:#9fb0ba;font-size:11px;line-height:1.5}.ws-panel dl{display:grid;grid-template-columns:1fr auto;gap:9px 10px;margin:16px 0 0;font-size:11px}.ws-panel dt{color:#8fa2ad}.ws-panel dd{margin:0;color:#f2dfac;font-weight:800;text-align:right}.ws-section-stack{display:grid;gap:8px}.ws-section-stack section{padding:10px;border:1px solid #344956;border-radius:8px;background:#0d1922}.ws-section-stack strong,.ws-section-stack small{display:block}.ws-section-stack strong{color:#e6d4a4;font:600 13px Georgia,serif}.ws-section-stack small{margin-top:3px;color:#899da8;font-size:9px}.ws-section-stack.compact section{padding:8px}.ws-live-readout{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:18px;padding-top:12px;border-top:1px solid #344956;font-size:11px}.ws-live-readout span{color:#91a3ad}.ws-live-readout strong{color:#f4dfa7}.ws-scale-list{list-style:none;margin:0;padding:0;border-left:1px solid #3d5665}.ws-scale-list li{position:relative;padding:7px 8px 7px 15px;color:#8196a3;font:800 10px/1 system-ui;letter-spacing:.08em}.ws-scale-list li:before{content:"";position:absolute;left:-4px;top:11px;width:7px;height:7px;border-radius:50%;background:#344956}.ws-scale-list li.active{color:#f0d590}.ws-scale-list li.active:before{background:#d4aa50;box-shadow:0 0 10px #d4aa5088}
+ .ws-world{display:grid;grid-template-columns:178px minmax(0,1fr) 218px}.ws-world-nav{border-right:1px solid #725d30}.ws-world-inspector{border-left:1px solid #725d30}
+ .ws-campaign{display:grid;grid-template-columns:236px minmax(0,1fr);grid-template-rows:72px minmax(0,1fr)}.ws-campaign-command{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:10px 16px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#10151c,#1c160d);overflow:hidden}.ws-campaign-command h2{margin:2px 0 0}.ws-campaign-nav{border-right:1px solid #725d30}.ws-command-metrics{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.ws-command-metrics span,.ws-party-status span{padding:6px 8px;border:1px solid #4d5c65;border-radius:999px;background:#0a1117;color:#b5c1c8;font-size:8px;font-weight:900;letter-spacing:.08em}
+ .ws-assets{display:grid;grid-template-columns:220px minmax(0,1fr) 230px}.ws-asset-library{border-right:1px solid #725d30}.ws-asset-inspector{border-left:1px solid #725d30}.ws-asset-type{display:grid;gap:4px;margin:4px 0 14px;padding:10px;border:1px solid #4c5f6a;border-radius:8px;background:#101a21}.ws-asset-type span{color:#8398a5;font-size:9px;text-transform:uppercase;letter-spacing:.1em}.ws-asset-type strong{color:#f0d590;font:600 15px Georgia,serif;text-transform:capitalize}
+ .ws-roleplay{display:grid;grid-template-rows:58px minmax(0,1fr) 58px}.ws-role-party{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:7px 14px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#10141a,#191008 62%,#281409);overflow:hidden}.ws-role-party h2{margin:2px 0 0}.ws-party-status{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.ws-role-footer{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid #725d30;background:#0a1117;color:#9babb4;text-align:center;font-size:9px;font-weight:900;letter-spacing:.1em}.ws-role-footer span,.ws-role-footer strong{display:grid;place-items:center;height:100%;border-right:1px solid #263945}.ws-role-footer strong{color:#f0d590;background:#15170f}.ws-role-footer>*:last-child{border-right:0}
+ .ws-world .release-world{--rist-public-h:92px;--rist-home-slider-h:56px}.ws-campaign .release-world{--rist-public-h:112px;--rist-home-slider-h:66px}.ws-assets .release-world{--rist-public-h:138px;--rist-home-slider-h:54px}.ws-roleplay .release-world{--rist-public-h:68px;--rist-home-slider-h:82px}
+ @@media(max-width:900px){.ws-world{grid-template-columns:132px minmax(0,1fr)}.ws-world-inspector{display:none}.ws-assets{grid-template-columns:150px minmax(0,1fr)}.ws-asset-inspector{display:none}.ws-campaign{grid-template-columns:170px minmax(0,1fr)}.ws-panel{padding:10px 8px}.ws-section-stack small,.ws-help{display:none}}
+ @@media(max-width:620px){.workspace-surface{height:calc(100dvh - 30px)}.ws-world,.ws-assets{grid-template-columns:1fr;grid-template-rows:48px minmax(0,1fr)}.ws-world-nav,.ws-asset-library{display:flex;align-items:center;gap:12px;padding:5px 8px;border-right:0;border-bottom:1px solid #725d30;overflow-x:auto}.ws-world-nav h2,.ws-asset-library h2,.ws-world-nav .ws-eyebrow,.ws-asset-library .ws-eyebrow,.ws-world-nav .ws-live-readout,.ws-asset-library .ws-asset-type{display:none}.ws-scale-list{display:flex;border-left:0}.ws-scale-list li{padding:6px 8px}.ws-scale-list li:before{display:none}.ws-section-stack{display:flex;gap:5px}.ws-section-stack section{white-space:nowrap}.ws-campaign{grid-template-columns:1fr;grid-template-rows:52px 48px minmax(0,1fr)}.ws-campaign-command{padding:6px 8px}.ws-campaign-command h2{font-size:14px}.ws-command-metrics span:nth-child(n+3){display:none}.ws-campaign-nav{display:flex;align-items:center;padding:5px 8px;border-right:0;border-bottom:1px solid #725d30;overflow-x:auto}.ws-campaign-nav h2{display:none}.ws-campaign-nav .ws-section-stack{display:flex}.ws-roleplay{grid-template-rows:50px minmax(0,1fr) 48px}.ws-role-party{padding:5px 8px}.ws-role-party h2{font-size:14px}.ws-party-status span:nth-child(n+2){display:none}.ws-role-footer{font-size:7px}.ws-world .release-world,.ws-campaign .release-world,.ws-assets .release-world,.ws-roleplay .release-world{--rist-public-h:76px;--rist-home-slider-h:58px}}
+</style>
+
+@code {
+ [Parameter] public string Mode { get; set; } = "world";
+}
