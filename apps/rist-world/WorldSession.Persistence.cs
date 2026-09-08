@@ -16,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=5,
+   Version=6,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,
@@ -33,6 +33,7 @@ public sealed partial class WorldSession
    PlaneIndex,
    TierIndex,
    LayerOffset,
+   BaseTerrainOverrideTileId,
    Pieces=pieces,
    TileItems=terrain,
    Tiles=terrain,
@@ -130,6 +131,9 @@ public sealed partial class WorldSession
   GridDistance=1;
   GridCalibrationZoom=1;
   ViewZoom=1;
+  BaseTerrainOverrideTileId="";
+  WorldBuilderTool="draw";
+  CancelWorldBuilderShape();
   Pieces=[];
   PlacedTiles=[];
   ResetTopologyToCanonicalOrigin();
@@ -146,6 +150,8 @@ public sealed partial class WorldSession
   DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
+  BaseTerrainOverrideTileId=save.BaseTerrainOverrideTileId??"";
+  CancelWorldBuilderShape();
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
   ImportSpatialContent(save.Tiles??[],pieces);
