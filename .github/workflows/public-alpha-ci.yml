@@ -74,6 +74,10 @@ jobs:
           grep -q 'world-stage>.tile-cell' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           grep -q 'Ocean 071 is the implicit terrain' apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           grep -q 'PlacedTiles=\[\]' apps/rist-world/WorldSession.Persistence.cs
+          grep -q "worldBuilder=!!map.closest('.ws-world')" apps/rist-world/wwwroot/map-visibility-recovery.js
+          grep -q 'if(!worldBuilder)' apps/rist-world/wwwroot/map-visibility-recovery.js
+          grep -q 'const cols=worldBuilder?30:20' apps/rist-world/wwwroot/grid-coordinate-system.js
+          grep -q 'const rows=worldBuilder?30:13' apps/rist-world/wwwroot/grid-coordinate-system.js
           grep -q 'worldbuilding-p0-authority.css' apps/rist-world/wwwroot/index.html
           grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
