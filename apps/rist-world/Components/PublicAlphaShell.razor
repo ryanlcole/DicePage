@@ -1,0 +1,76 @@
+@inject NavigationManager Navigation
+
+@if (!_entered)
+{
+ <main class="alpha-entry" aria-label="Shaelvien public alpha">
+  <section class="alpha-hero">
+   <div class="alpha-glow alpha-glow-left"></div>
+   <div class="alpha-glow alpha-glow-right"></div>
+   <div class="alpha-crest" aria-hidden="true">✦</div>
+   <p class="alpha-kicker">SHAELVIEN · PUBLIC ALPHA</p>
+   <h1>SHAELVIEN</h1>
+   <p class="alpha-tagline">BUILD THE WORLD.<br />THEN STEP INSIDE IT.</p>
+   <div class="alpha-actions">
+    <button class="alpha-primary" @onclick="EnterWorld">ENTER SHAELVIEN</button>
+    <button @onclick="PreviewWorld">PREVIEW</button>
+    <button @onclick="OpenAccessibility">ACCESSIBILITY</button>
+   </div>
+   <p class="alpha-note">A living tabletop world powered by RIST.</p>
+  </section>
+
+  <section class="alpha-path" aria-label="Alpha experience">
+   <article><span>01</span><div><strong>BUILD YOUR WORLD</strong><small>Paint · Place · Shape</small></div></article>
+   <article><span>02</span><div><strong>ZOOM BETWEEN SCALES</strong><small>World · Region · Local</small></div></article>
+   <article><span>03</span><div><strong>PLAY YOUR STORY</strong><small>Characters · Dice · Encounters</small></div></article>
+   <article><span>04</span><div><strong>SAVE · RETURN</strong><small>Your world persists</small></div></article>
+   <article><span>05</span><div><strong>SHAPE WHAT'S NEXT</strong><small>Public alpha feedback</small></div></article>
+  </section>
+
+  <footer class="alpha-footer">
+   <span>ACCESSIBLE BY DESIGN</span>
+   <span>PLAY ON ANY DEVICE</span>
+   <span>SECURE & PRIVATE</span>
+   <span>A LIVING WORLD</span>
+   <strong>MORE THAN A GAME. A PLACE TO BELONG.</strong>
+  </footer>
+ </main>
+}
+else
+{
+ <div class="alpha-world-stage">
+  <div class="alpha-world-ribbon" aria-label="Public alpha status">
+   <button type="button" @onclick="ReturnToEntry" aria-label="Return to Shaelvien entry">SHAELVIEN</button>
+   <span>PUBLIC ALPHA</span>
+   <span class="alpha-ribbon-path">BUILD → ZOOM → PLAY → REPLAY → SAVE</span>
+  </div>
+  <WorldTable />
+ </div>
+}
+
+<style>
+ .alpha-entry{box-sizing:border-box;min-height:100dvh;background:radial-gradient(circle at 20% 24%,rgba(15,71,118,.58),transparent 34%),radial-gradient(circle at 82% 20%,rgba(171,111,31,.5),transparent 31%),linear-gradient(180deg,#040910 0%,#0a121b 52%,#05080d 100%);color:#f4ead2;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
+ .alpha-hero{position:relative;isolation:isolate;min-height:62dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:clamp(28px,5vw,72px) 18px 32px;border-bottom:1px solid rgba(220,179,89,.48);overflow:hidden}
+ .alpha-hero:before,.alpha-hero:after{content:"";position:absolute;z-index:-2;top:7%;width:min(42vw,620px);aspect-ratio:1.65;border:2px solid rgba(137,174,211,.16);border-radius:64% 28% 62% 32%;filter:drop-shadow(0 24px 24px #0009);transform:rotate(-12deg);background:linear-gradient(145deg,rgba(7,20,34,.92),rgba(14,54,86,.25));clip-path:polygon(0 50%,12% 31%,29% 23%,43% 4%,52% 28%,73% 16%,100% 28%,72% 43%,100% 58%,72% 63%,58% 86%,46% 59%,28% 76%,14% 66%)}
+ .alpha-hero:before{left:-8%}.alpha-hero:after{right:-8%;transform:scaleX(-1) rotate(-12deg);background:linear-gradient(145deg,rgba(40,29,9,.9),rgba(194,137,52,.24));border-color:rgba(255,214,130,.18)}
+ .alpha-glow{position:absolute;z-index:-3;width:42vw;height:42vw;border-radius:50%;filter:blur(35px);opacity:.22}.alpha-glow-left{left:-12vw;top:-10vw;background:#1978d1}.alpha-glow-right{right:-12vw;top:-10vw;background:#ffb547}
+ .alpha-crest{width:62px;height:62px;display:grid;place-items:center;margin-bottom:-8px;border:1px solid #c7a45a;border-radius:50%;background:radial-gradient(circle,#1d5e91 0 16%,#bb8a32 18% 23%,#07101a 25% 58%,#9f7938 60% 64%,transparent 66%);color:#fff6ce;font-size:22px;box-shadow:0 0 30px #2471a766}
+ .alpha-kicker{margin:24px 0 4px;color:#d7be80;font-size:clamp(11px,1.4vw,14px);font-weight:800;letter-spacing:.26em}
+ .alpha-hero h1{margin:0;color:#ead8a7;font-family:Georgia,"Times New Roman",serif;font-size:clamp(52px,10vw,138px);font-weight:500;letter-spacing:.045em;line-height:.93;text-shadow:0 4px 0 #24190d,0 8px 26px #000}
+ .alpha-tagline{margin:16px 0 24px;color:#f1eadc;font-family:Georgia,"Times New Roman",serif;font-size:clamp(18px,2.4vw,34px);letter-spacing:.28em;line-height:1.42;text-shadow:0 2px 16px #000}
+ .alpha-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}.alpha-actions button{min-height:48px;padding:0 22px;border:1px solid #6f8290;border-radius:6px;background:rgba(9,18,28,.84);color:#f0eee7;font-weight:900;letter-spacing:.04em;box-shadow:0 10px 24px #0006}.alpha-actions button:hover,.alpha-actions button:focus-visible{border-color:#d3ad5c;transform:translateY(-1px)}.alpha-actions .alpha-primary{border-color:#d0a54f;background:linear-gradient(#4f371b,#2b1c0e);color:#fff0bc;box-shadow:0 0 20px #e8a63d44,0 10px 24px #0008}
+ .alpha-note{margin:18px 0 0;color:#b9c6ce;font-size:13px;letter-spacing:.09em;text-transform:uppercase}
+ .alpha-path{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-bottom:1px solid rgba(220,179,89,.35);background:rgba(5,10,16,.82)}
+ .alpha-path article{min-height:110px;display:flex;align-items:center;gap:12px;padding:16px;border-right:1px solid rgba(220,179,89,.25)}.alpha-path article:last-child{border-right:0}.alpha-path span{color:#d7be80;font-family:Georgia,serif;font-size:30px}.alpha-path div{display:grid;gap:5px}.alpha-path strong{font-size:12px;letter-spacing:.08em}.alpha-path small{color:#9fb0bb;font-size:11px}
+ .alpha-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 26px;padding:18px 20px 24px;color:#c8d1d5;font-family:Georgia,serif;font-size:11px;letter-spacing:.13em;text-align:center}.alpha-footer strong{color:#d7be80}
+ .alpha-world-stage{height:100dvh;min-height:0;overflow:hidden;background:#05090c}.alpha-world-ribbon{box-sizing:border-box;height:30px;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:9px;padding:0 8px;border-bottom:1px solid #725d30;background:linear-gradient(90deg,#080e14,#101923 55%,#17130c);color:#b9c5ca;font:800 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.06em}.alpha-world-ribbon button{height:22px;padding:0 9px;border:1px solid #9f8142;border-radius:5px;background:#151d22;color:#e4c979;font-weight:900}.alpha-world-ribbon>span:nth-of-type(1){color:#e4c979}.alpha-ribbon-path{text-align:right;color:#8da0aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.alpha-world-stage .world-context-strip{height:42px!important}
+ @media(max-width:760px){.alpha-hero{min-height:68dvh}.alpha-path{grid-template-columns:1fr 1fr}.alpha-path article:nth-child(5){grid-column:1/-1}.alpha-path article{min-height:82px}.alpha-hero:before,.alpha-hero:after{width:74vw;top:16%}.alpha-tagline{letter-spacing:.15em}.alpha-world-ribbon{grid-template-columns:auto auto}.alpha-ribbon-path{display:none}}
+ @media(prefers-reduced-motion:no-preference){.alpha-actions button{transition:transform .14s ease,border-color .14s ease}.alpha-crest{animation:alphaPulse 4s ease-in-out infinite}@keyframes alphaPulse{50%{box-shadow:0 0 42px #2471a799}}}
+</style>
+
+@code {
+ bool _entered;
+ void EnterWorld()=>_entered=true;
+ void PreviewWorld()=>_entered=true;
+ void ReturnToEntry()=>_entered=false;
+ void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
+}
