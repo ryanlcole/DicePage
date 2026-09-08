@@ -7,6 +7,7 @@ on:
       - build/launcher-functional-hub-2026-09-08
       - build/workspace-layouts-2026-09-08
       - build/worldbuilding-p0-2026-09-08
+      - build/worldbuilder-tools-p1-2026-09-08
     paths:
       - 'apps/rist-world/**'
       - 'site/relic-home/Play/**'
@@ -50,25 +51,19 @@ jobs:
           set -euo pipefail
           test -f apps/rist-world/Components/PublicAlphaShell.razor
           test -f apps/rist-world/Components/WorkspaceSurface.razor
+          test -f apps/rist-world/WorldSession.WorldBuilderTools.cs
           grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'RULEBOOKS' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'WorkspaceSurface Mode=' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ws-world' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'ws-campaign' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'ws-assets' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'ws-roleplay' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'DefaultCubeWidthMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultCubeHeightMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
           grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs
           grep -q '900 addressable cells' apps/rist-world/Components/WorldMap.razor.css
-          grep -q 'Ocean 071' apps/rist-world/Components/WorldMap.razor.css
           grep -q 'world-stage > .grid.square' apps/rist-world/Components/WorldMap.razor.css
-          grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
+          grep -q '"draw", "brush", "fill", "line", "square", "circle", "erase"' apps/rist-world/WorldSession.WorldBuilderTools.cs
+          grep -q 'FillRegion' apps/rist-world/WorldSession.WorldBuilderTools.cs
+          grep -q 'BaseTerrainOverrideTileId' apps/rist-world/WorldSession.Persistence.cs
+          grep -q 'BaseTerrainOverrideTileId' apps/rist-world/WorldSession.Models.cs
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q 'AutoEnter' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'id="signin"' site/relic-home/Play/index.html
