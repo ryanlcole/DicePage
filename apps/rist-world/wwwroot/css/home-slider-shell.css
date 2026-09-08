@@ -1,0 +1,104 @@
+/* Authoritative app-style slider shell.
+   This file intentionally loads after legacy component styles and owns the visible app chrome. */
+:root{--rist-app-font:18px;--rist-home-slider-h:58px;--rist-legal-font:7px}
+
+/* Readable app-control scale. Keep map/coordinate typography independent. */
+.world-context-strip,
+.world-context-strip .world-context-ribbon,
+.world-context-strip .world-context-ribbon *,
+.rist-app-home-slider,
+.rist-app-home-slider button,
+.rist-app-slider-surface,
+.rist-app-slider-surface button,
+.rist-app-slider-surface input,
+.rist-app-slider-surface select,
+.rist-app-slider-surface textarea,
+.rist-app-slider-surface label{
+ font-size:var(--rist-app-font)!important;
+}
+.world-context-strip .world-context-ribbon{font-weight:800!important;line-height:1!important}
+
+/* Home has exactly one visible private control surface. */
+html body #app .rist.release-world .release-footer-region{
+ display:none!important;
+ visibility:hidden!important;
+ position:absolute!important;
+ width:1px!important;
+ height:1px!important;
+ min-width:0!important;
+ min-height:0!important;
+ max-width:1px!important;
+ max-height:1px!important;
+ overflow:hidden!important;
+ opacity:0!important;
+ pointer-events:none!important;
+ clip-path:inset(50%)!important;
+}
+html body #app .rist.release-world .release-private-region{
+ position:relative!important;
+ box-sizing:border-box!important;
+ display:block!important;
+ width:100%!important;
+ height:var(--rist-home-slider-h)!important;
+ min-height:var(--rist-home-slider-h)!important;
+ max-height:var(--rist-home-slider-h)!important;
+ overflow:hidden!important;
+ background:#0b1117!important;
+ border-top:1px solid #725d30!important;
+}
+html body #app .rist.release-world .release-private-region>.private-assets-rail{
+ position:absolute!important;
+ width:1px!important;
+ height:1px!important;
+ min-width:0!important;
+ min-height:0!important;
+ max-width:1px!important;
+ max-height:1px!important;
+ overflow:hidden!important;
+ opacity:0!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+ clip-path:inset(50%)!important;
+}
+
+.rist-app-home-slider{
+ position:absolute!important;
+ inset:0!important;
+ z-index:50!important;
+ box-sizing:border-box!important;
+ display:flex!important;
+ align-items:center!important;
+ gap:8px!important;
+ width:100%!important;
+ height:100%!important;
+ padding:5px 8px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ scrollbar-width:none!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-x!important;
+ background:#0b1117!important;
+}
+.rist-app-home-slider::-webkit-scrollbar{display:none!important}
+.rist-app-slider-button{
+ box-sizing:border-box!important;
+ flex:0 0 auto!important;
+ min-width:104px!important;
+ height:46px!important;
+ min-height:46px!important;
+ padding:0 16px!important;
+ border:1px solid #725d30!important;
+ border-radius:12px!important;
+ background:#111920!important;
+ color:#e0c781!important;
+ font-family:system-ui,-apple-system,sans-serif!important;
+ font-weight:800!important;
+ line-height:1!important;
+ letter-spacing:.02em!important;
+ white-space:nowrap!important;
+ touch-action:manipulation!important;
+}
+.rist-app-slider-button:active{transform:translateY(1px)!important;background:#172229!important}
+
+/* Legal ticker intentionally remains tiny. */
+.rist-bottom-ticker,.rist-bottom-ticker *{font-size:var(--rist-legal-font)!important}
