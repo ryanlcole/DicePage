@@ -1,0 +1,55 @@
+@inject WorldSession Session
+
+<section class="character-workspace" aria-label="Character workspace">
+ <header class="character-hero">
+  <p>SHAELVIEN CHARACTER STUDIO</p>
+  <h2>Your Character</h2>
+  <span>Build identity here, then carry the same character into roleplay and encounters.</span>
+ </header>
+
+ <div class="character-layout">
+  <section class="character-summary">
+   <div class="character-portrait-shell">
+    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
+    {
+     <img src="@Session.CharacterPortraitDataUrl" alt="Character portrait" />
+    }
+    else
+    {
+     <span aria-hidden="true">♙</span>
+    }
+   </div>
+   <div class="character-identity">
+    <small>ACTIVE CHARACTER</small>
+    <strong>@(string.IsNullOrWhiteSpace(Session.CharacterName)?"Unnamed Character":Session.CharacterName)</strong>
+    <p>@(string.IsNullOrWhiteSpace(Session.CharacterBackground)?"No identity or concept has been written yet.":Session.CharacterBackground)</p>
+   </div>
+  </section>
+
+  <section class="character-actions" aria-label="Character actions">
+   <button type="button" @onclick="OpenSheet"><span>✎</span><strong>Open Character Sheet</strong><small>Edit portrait, values, trackers, entries, equipment and linked assets.</small></button>
+   <button type="button" @onclick="SaveAsync"><span>◆</span><strong>Save Character State</strong><small>Persist the current RIST state on this device.</small></button>
+  </section>
+
+  <section class="character-readout" aria-label="Character summary">
+   <div><span>Attributes</span><strong>@AttributeCount</strong></div>
+   <div><span>Trackers</span><strong>@TrackerCount</strong></div>
+   <div><span>Entries</span><strong>@EntryCount</strong></div>
+   <div><span>World Scale</span><strong>@Session.Layer</strong></div>
+  </section>
+ </div>
+
+ <CharacterMixer />
+</section>
+
+<style>
+ .character-workspace{box-sizing:border-box;height:100%;min-height:0;padding:clamp(16px,3.5vw,42px);overflow:auto;background:radial-gradient(circle at 15% 0,#173b5688,transparent 32%),radial-gradient(circle at 85% 8%,#56351d66,transparent 28%),linear-gradient(180deg,#07111a,#05090d);color:#e8e2d6;font-family:Inter,system-ui,sans-serif}.character-hero{max-width:900px;margin:0 auto 24px;text-align:center}.character-hero p{margin:0 0 8px;color:#90a8b6;font-size:10px;font-weight:900;letter-spacing:.22em}.character-hero h2{margin:0;color:#e5c46f;font:600 clamp(32px,5vw,62px)/1 Georgia,serif}.character-hero span{display:block;max-width:680px;margin:12px auto 0;color:#aebdc5;line-height:1.5}.character-layout{display:grid;gap:14px;max-width:1050px;margin:0 auto}.character-summary{display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;align-items:center;padding:20px;border:1px solid #6a5b37;border-radius:12px;background:linear-gradient(135deg,#0d1922,#11140f);box-shadow:0 16px 32px #0006}.character-portrait-shell{width:150px;aspect-ratio:1;border:1px solid #b18f46;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#091219;box-shadow:inset 0 0 28px #0008}.character-portrait-shell img{width:100%;height:100%;object-fit:cover}.character-portrait-shell span{color:#d6b865;font:58px Georgia,serif}.character-identity{display:grid;gap:7px}.character-identity small{color:#89a2af;font-size:9px;font-weight:900;letter-spacing:.14em}.character-identity strong{color:#f0d590;font:600 clamp(24px,4vw,44px) Georgia,serif}.character-identity p{margin:0;color:#aebcc4;line-height:1.5}.character-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.character-actions button{min-height:140px;padding:18px;border:1px solid #506978;border-radius:10px;background:#0b161ecc;color:#e8e2d6;text-align:left;display:flex;flex-direction:column;gap:5px;touch-action:manipulation}.character-actions button>span{color:#dfbc68;font-size:26px}.character-actions button strong{margin-top:auto;color:#efd89b;font:600 18px Georgia,serif}.character-actions button small{color:#93a7b2;line-height:1.4}.character-readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.character-readout div{padding:12px;border:1px solid #354b57;border-radius:8px;background:#09131b;display:grid;gap:4px}.character-readout span{color:#8097a3;font-size:9px;font-weight:900;text-transform:uppercase}.character-readout strong{color:#e7d5aa;font:600 18px Georgia,serif}@@media(max-width:640px){.character-workspace{padding:12px}.character-summary{grid-template-columns:92px minmax(0,1fr);padding:13px;gap:12px}.character-portrait-shell{width:92px}.character-actions{grid-template-columns:1fr}.character-actions button{min-height:105px}.character-readout{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+@code {
+ int AttributeCount=>Session.CharacterFields.Count(WorldSession.IsAttributeField);
+ int TrackerCount=>Session.CharacterFields.Count(WorldSession.IsTrackerField);
+ int EntryCount=>Session.CharacterFields.Count(WorldSession.IsFlareField);
+ void OpenSheet(){Session.EnsureCharacterSheetFields();Session.EnsureCharacterLanguages();Session.OpenMixer();}
+ Task SaveAsync()=>Session.SaveAsync();
+}
