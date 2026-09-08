@@ -9,7 +9,7 @@
 else if (_canEnter)
 {
  <LauncherStartupBridge />
- <WorldTable />
+ <PublicAlphaShell />
  @if (_termsRequired)
  {
   <section class="rist-terms-gate" role="dialog" aria-modal="true" aria-label="Terms agreement"><form class="rist-terms-card" @onsubmit="AcceptTermsAsync"><h1>Before You Play</h1><p>You are already inside Shaelvien. Agree to the Terms and Privacy Policy to continue interacting with the game.</p><label><input type="checkbox" @bind="_termsChecked" /> <span>I agree to the Terms and Privacy Policy.</span></label>@if (!string.IsNullOrWhiteSpace(_termsError)) { <p class="rist-terms-error">@_termsError</p> }<button type="submit" disabled="@_savingTerms">@(_savingTerms ? "Saving…" : "Agree & Continue")</button></form></section>
