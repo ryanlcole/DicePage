@@ -5,13 +5,12 @@
 <div class="worldbuilder-studio">
  <header class="studio-header" aria-label="World Builder header">
   <button type="button" class="studio-home" @onclick="GoHomeAsync" aria-label="Home">⌂</button>
-  <div class="studio-ticker" aria-label="World context ticker">
+  <div class="studio-ticker" aria-label="World Building ticker">
    <div class="studio-ticker-track">
-    <span><strong>WORLD</strong> @Session.MapName</span>
-    <span><strong>SCALE</strong> @Session.Layer</span>
-    <span><strong>TIER</strong> @Session.TierIndex</span>
-    <span><strong>LAYER</strong> @Session.LayerOffset</span>
-    <span><strong>Z</strong> @Session.SceneZ</span>
+    @for(var i=0;i<6;i++)
+    {
+     <span aria-hidden="@(i>0)"><strong>WORLD BUILDING</strong></span>
+    }
    </div>
   </div>
   <button type="button" class="studio-profile" aria-label="Account profile">
@@ -26,23 +25,33 @@
   </button>
  </header>
 
- <section class="studio-workbench" aria-label="World Builder workbench">
-  <nav class="studio-modes" aria-label="Creation mode">
-   @foreach(var mode in Modes)
+ <section class="studio-workbench" aria-label="World Builder quick tools">
+  <div class="studio-top-slider">
+   @if(_toolsOpen)
    {
-    <button type="button" class="@(_toolMode==mode?"active":"")" @onclick="()=>_toolMode=mode" aria-pressed="@(_toolMode==mode)">@mode</button>
+    <button type="button" class="slider-back" @onclick="()=>_toolsOpen=false" aria-label="Back">‹</button>
    }
-  </nav>
-  <div class="studio-pinned" aria-label="Recursive build guidance">
-   <span class="studio-hint">Build like a cake: place this layer, zoom out for the next layer, zoom in to return below.</span>
-  </div>
-  <div class="studio-actions">
-   <button type="button" @onclick="()=>Session.MoveLayer(-1)" aria-label="Move down one z layer">Z−</button>
-   <button type="button" class="z-readout" disabled>@($"T{Session.TierIndex} · L{Session.LayerOffset} · Z{Session.SceneZ}")</button>
-   <button type="button" @onclick="()=>Session.MoveLayer(1)" aria-label="Move up one z layer">Z+</button>
-   <button type="button" @onclick="ToggleGrid">Grid: @GridLabel</button>
-   <button type="button" @onclick="Session.ToggleMapLock">@(Session.MapLocked?"Unlock":"Lock")</button>
-   <button type="button" @onclick="SaveAsync">@_saveLabel</button>
+   <button type="button" class="tools-button @(_toolsOpen?"active":"")" @onclick="()=>_toolsOpen=!_toolsOpen">Tools</button>
+   @if(_toolsOpen)
+   {
+    @foreach(var mode in Modes)
+    {
+     <button type="button" class="tool-choice @(_toolMode==mode?"active":"")" @onclick="()=>SelectTool(mode)">@mode</button>
+    }
+   }
+   else
+   {
+    @foreach(var tile in _quickTiles)
+    {
+     <button type="button" class="quick-slot filled" draggable="true" @ondragstart="()=>Session.StageTile(tile)" @ondblclick="()=>RemoveQuickTile(tile)" title="Drag to map; double click to remove">
+      <img src="@tile.Image" alt="" draggable="false" /><span>@tile.Name</span>
+     </button>
+    }
+    @for(var i=_quickTiles.Count;i<QuickSlotCount;i++)
+    {
+     <span class="quick-slot empty" aria-label="Empty quick asset slot"></span>
+    }
+   }
   </div>
  </section>
 
@@ -50,37 +59,37 @@
   <div class="studio-viewer-canvas" @ref="_viewerElement">
    <WorldMap />
    <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
-   <div class="studio-viewer-overlays">
-    <AssetLibrary />
-   </div>
+   <div class="studio-viewer-overlays"><AssetLibrary /></div>
   </div>
  </main>
 
- <section class="studio-tile-slider" aria-label="World tile quick navigation">
+ <section class="studio-tile-slider" aria-label="World building asset navigation">
   <WorldAssetFolderRail />
  </section>
 </div>
 
 <style>
- .worldbuilder-studio{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:48px 74px minmax(0,1fr) 68px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}
- .studio-header{min-width:0;display:grid;grid-template-columns:5% 90% 5%;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017;overflow:hidden}.studio-home,.studio-profile{min-width:0;border:0;background:#0c151d;color:#e4c97d;font-size:22px;font-weight:900;display:grid;place-items:center;padding:0}.studio-home{border-right:1px solid #715b2d}.studio-profile{border-left:1px solid #715b2d;overflow:hidden}.studio-profile img{width:100%;height:100%;object-fit:cover;display:block}.studio-profile span{font-size:16px;color:#7ca5bf}.studio-ticker{min-width:0;overflow:hidden;display:flex;align-items:center}.studio-ticker-track{min-width:max-content;display:flex;align-items:center;gap:24px;padding:0 12px;white-space:nowrap;color:#d7caa7;font-size:12px}.studio-ticker-track strong{color:#7fb1d7;font-size:10px;letter-spacing:.12em;margin-right:4px}
- .studio-workbench{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);overflow:hidden}.studio-modes,.studio-actions{display:flex;gap:5px;align-items:center;min-width:0}.studio-modes{overflow-x:auto;scrollbar-width:none}.studio-modes::-webkit-scrollbar{display:none}.studio-modes button,.studio-actions button{min-height:42px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 11px/1 system-ui;white-space:nowrap;padding:0 12px;touch-action:manipulation}.studio-modes button.active{border-color:#d0aa56;background:#202015;color:#f4d98d}.studio-pinned{min-width:0;height:48px;display:flex;align-items:center;padding:2px 8px;border:1px dashed #526773;border-radius:10px;overflow:hidden;background:#071015}.studio-hint{color:#728794;font-size:10px;white-space:nowrap}.studio-actions{overflow-x:auto;scrollbar-width:none}.studio-actions::-webkit-scrollbar{display:none}.studio-actions button{color:#e3c97f}.studio-actions .z-readout{min-width:110px;color:#9ec3d9;border-color:#46606d;opacity:1}
- .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:100% 100%!important;background-repeat:no-repeat!important;background-position:center!important}.studio-viewer-canvas .status{display:none!important}.studio-viewer-grid{position:absolute;inset:0;z-index:30;pointer-events:none;background-image:linear-gradient(to right,rgba(135,187,214,.34) 1px,transparent 1px),linear-gradient(to bottom,rgba(135,187,214,.34) 1px,transparent 1px);background-size:calc(100% / 30) calc(100% / 30);background-position:0 0}.studio-viewer-grid.off{display:none}.studio-viewer-overlays{position:absolute;inset:0;z-index:40;pointer-events:none}.studio-viewer-overlays>*{pointer-events:auto}
+ .worldbuilder-studio{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:48px 62px minmax(0,1fr) 68px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}
+ .studio-header{min-width:0;display:grid;grid-template-columns:8% 84% 8%;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017;overflow:hidden}.studio-home,.studio-profile{min-width:0;border:0;background:#0c151d;color:#e4c97d;font-size:22px;font-weight:900;display:grid;place-items:center;padding:0}.studio-home{border-right:1px solid #715b2d}.studio-profile{border-left:1px solid #715b2d;overflow:hidden}.studio-profile img{width:100%;height:100%;object-fit:cover;display:block}.studio-profile span{font-size:16px;color:#7ca5bf}.studio-ticker{min-width:0;overflow:hidden;display:flex;align-items:center}.studio-ticker-track{width:max-content;display:flex;align-items:center;gap:80px;white-space:nowrap;animation:worldTicker 16s linear infinite}.studio-ticker-track span{min-width:190px;text-align:center}.studio-ticker-track strong{color:#e4c97d;font-size:12px;letter-spacing:.16em}@keyframes worldTicker{from{transform:translateX(0)}to{transform:translateX(-270px)}}
+ .studio-workbench{min-width:0;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);padding:6px}.studio-top-slider{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-top-slider::-webkit-scrollbar{display:none}.studio-top-slider button,.quick-slot{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:72px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 10px/1 system-ui;touch-action:manipulation}.studio-top-slider button.active{border-color:#d0aa56;color:#f4d98d;background:#202015}.slider-back{width:48px;min-width:48px!important;font-size:25px!important}.tools-button{min-width:82px!important}.quick-slot.empty{display:block;width:64px;min-width:64px;border-style:dashed;opacity:.45}.quick-slot.filled{position:relative;overflow:hidden;padding:0}.quick-slot.filled img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.quick-slot.filled span{position:absolute;z-index:2;inset:auto 0 0;padding:4px;background:#000b;color:#fff1bd;font-size:8px;overflow:hidden;text-overflow:ellipsis}.tool-choice{min-width:96px!important}
+ .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:100% 100%!important;background-repeat:no-repeat!important;background-position:center!important}.studio-viewer-canvas .status,.studio-viewer-canvas .coordinate-system,.studio-viewer-canvas .grid-coordinates{display:none!important}.studio-viewer-grid{position:absolute;inset:0;z-index:30;pointer-events:none;background-image:linear-gradient(to right,rgba(135,187,214,.34) 1px,transparent 1px),linear-gradient(to bottom,rgba(135,187,214,.34) 1px,transparent 1px);background-size:calc(100% / 30) calc(100% / 30);background-position:0 0}.studio-viewer-grid.off{display:none}.studio-viewer-overlays{position:absolute;inset:0;z-index:40;pointer-events:none}.studio-viewer-overlays>*{pointer-events:auto}
  .studio-tile-slider{min-width:0;display:block;padding:0;overflow:hidden;border-top:1px solid #715b2d;background:#0a1117}
- @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:44px 64px minmax(0,1fr) 60px}.studio-header{grid-template-columns:10% 80% 10%}.studio-workbench{grid-template-columns:1fr auto}.studio-modes{grid-column:1/-1}.studio-pinned{display:none}.studio-actions button{min-height:36px;padding:0 8px;font-size:9px}.studio-actions .z-readout{min-width:88px}.studio-modes button{min-height:34px;padding:0 10px;font-size:9px}.studio-ticker-track{gap:16px;font-size:10px}.studio-ticker-track strong{font-size:8px}}
+ @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:44px 58px minmax(0,1fr) 60px}.studio-header{grid-template-columns:10% 80% 10%}.studio-top-slider button,.quick-slot{height:44px}.studio-ticker-track{gap:55px}}
 </style>
 
 @code{
  static readonly string[] Modes={"Tiles","Cartography","Lightboard","Image","Draw"};
+ const int QuickSlotCount=8;
+ readonly List<AtlasTile> _quickTiles=[];
  ElementReference _viewerElement;
  IJSObjectReference? _zModule;
  IJSObjectReference? _zBinding;
  DotNetObjectReference<WorldBuilderStudio>? _self;
  string _toolMode="Tiles";
+ bool _toolsOpen;
  bool _viewerGrid=true;
- string _saveLabel="Save";
- string GridLabel=>_viewerGrid?"On":"Off";
- void ToggleGrid()=>_viewerGrid=!_viewerGrid;
+ void SelectTool(string mode){_toolMode=mode;_toolsOpen=false;}
+ void RemoveQuickTile(AtlasTile tile)=>_quickTiles.Remove(tile);
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender)return;
@@ -88,15 +97,7 @@
   _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
- [JSInvokable]
- public Task StepZ(int delta){Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}
+ [JSInvokable] public Task StepZ(int delta){Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}
  async Task GoHomeAsync()=>await JS.InvokeVoidAsync("location.assign","./index.html");
- async Task SaveAsync(){_saveLabel="Saving…";await Session.SaveAsync();_saveLabel="Saved";}
- public async ValueTask DisposeAsync()
- {
-  if(_zBinding is not null)try{await _zBinding.InvokeVoidAsync("dispose");}catch{}
-  if(_zBinding is not null)await _zBinding.DisposeAsync();
-  if(_zModule is not null)await _zModule.DisposeAsync();
-  _self?.Dispose();
- }
+ public async ValueTask DisposeAsync(){if(_zBinding is not null)try{await _zBinding.InvokeVoidAsync("dispose");}catch{} if(_zBinding is not null)await _zBinding.DisposeAsync();if(_zModule is not null)await _zModule.DisposeAsync();_self?.Dispose();}
 }
