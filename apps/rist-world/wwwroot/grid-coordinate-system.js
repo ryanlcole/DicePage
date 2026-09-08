@@ -48,14 +48,18 @@
   const stage=map.querySelector('.world-stage');
   const shell=map.closest('.map-shell');
   if(!stage||!shell)return;
-  /* Coordinates belong to the permanent shell frame, never inside the map. */
   const stale=map.querySelector(':scope > .rist-coordinate-frame');
   if(stale)stale.remove();
   const frame=ensureFrame(shell,'map-coordinates');
   const mapRect=map.getBoundingClientRect();
   const stageRect=stage.getBoundingClientRect();
   if(mapRect.width<2||mapRect.height<2||stageRect.width<2||stageRect.height<2)return;
-  const scale=parseScale(map),cols=20,rows=13;
+  const scale=parseScale(map);
+  /* WorldSession's public-alpha cube is 30 x 30 one-mile cells. Keep older
+     representations unchanged outside the dedicated World Building workspace. */
+  const worldBuilder=!!map.closest('.ws-world');
+  const cols=worldBuilder?30:20;
+  const rows=worldBuilder?30:13;
   const halfX=cols*scale.distance/2,halfY=rows*scale.distance/2;
   const xAt=x=>Math.max(-halfX,Math.min(halfX,(((x-stageRect.left)/stageRect.width)-.5)*cols*scale.distance));
   const yAt=y=>Math.max(-halfY,Math.min(halfY,(.5-((y-stageRect.top)/stageRect.height))*rows*scale.distance));
