@@ -1,19 +1,41 @@
 @inject WorldSession Session
 
-<nav class="world-asset-rail" aria-label="World building assets">
+<nav class="world-asset-rail" aria-label="World building tile directory">
  <button type="button" class="rail-back" @onclick="Back" disabled="@(_directory is null && _folder is null)" aria-label="Back one folder">‹</button>
+
+ @if(_directory is not null)
+ {
+  <button type="button" class="rail-location" @onclick="()=>{_folder=null;}" title="Current directory">
+   <small>Directory</small><strong>@_directory</strong>
+  </button>
+ }
+ @if(_folder is not null)
+ {
+  <button type="button" class="rail-location" title="Current folder">
+   <small>Folder</small><strong>@_folder</strong>
+  </button>
+ }
+
  @if(_directory is null)
  {
   @foreach(var directory in Directories)
   {
-   <button type="button" class="folder-card" @onclick="()=>OpenDirectory(directory)"><span>▰</span><strong>@directory</strong></button>
+   <button type="button" class="folder-card" @onclick="()=>OpenDirectory(directory)" aria-label="Open @directory directory"><span>▰</span><strong>@directory</strong><small>Directory</small></button>
+  }
+  @if(Directories.Count==0)
+  {
+   <span class="rail-empty">No tile directories are loaded.</span>
   }
  }
  else if(_folder is null)
  {
   @foreach(var folder in Folders)
   {
-   <button type="button" class="folder-card" @onclick="()=>OpenFolder(folder)"><span>▰</span><strong>@folder</strong></button>
+   <button type="button" class="folder-card" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder folder"><span>▰</span><strong>@folder</strong><small>Folder</small></button>
+  }
+  @if(Folders.Count==0)
+  {
+   <span class="rail-empty">No folders are available in @_directory.</span>
   }
  }
  else
@@ -25,36 +47,31 @@
     <strong>@tile.Name</strong>
    </button>
   }
+  @if(Tiles.Count==0)
+  {
+   <span class="rail-empty">This folder has no tiles.</span>
+  }
  }
 </nav>
 
 <style>
- .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:7px;padding:7px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:50px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .rail-back:disabled{opacity:.28}.world-asset-rail .folder-card{display:flex;align-items:center;justify-content:center;gap:7px;padding:0 10px}.world-asset-rail .folder-card span{font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}
+ .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:7px;padding:7px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:50px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .rail-back:disabled{opacity:.28}.world-asset-rail .folder-card{display:grid;grid-template-columns:auto auto;grid-template-rows:1fr auto;align-items:center;justify-content:center;column-gap:7px;padding:4px 10px}.world-asset-rail .folder-card span{grid-row:1/3;font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .folder-card small,.world-asset-rail .rail-location small{color:#7fa9c7;font:700 7px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.world-asset-rail .rail-location{display:grid;place-items:center;gap:2px;min-width:88px;padding:4px 9px;border-color:#536b78;background:#101a21}.world-asset-rail .rail-location strong{white-space:nowrap;color:#f2dfac}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}.world-asset-rail .rail-empty{flex:0 0 auto;padding:0 10px;color:#8799a3;font:700 9px/1.2 system-ui;white-space:nowrap}
  @@media(max-width:760px){.world-asset-rail{padding:5px 6px}.world-asset-rail button{height:46px;min-width:82px}.world-asset-rail .rail-back{min-width:44px;width:44px}}
 </style>
 
 @code{
  string? _directory;
  string? _folder;
- IEnumerable<AtlasTile> WorldTiles=>Session.AtlasTiles.Where(IsWorldBuildingTile);
+
+ // The bottom rail is the directory browser for the Tiles toolset. AtlasTiles is
+ // already the tile inventory, so do not hide valid directories behind filename
+ // heuristics. Only the intentionally excluded Naeja test-map entries are removed.
+ IEnumerable<AtlasTile> WorldTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase));
  IReadOnlyList<string> Directories=>WorldTiles.Select(x=>Normalize(x.Directory,"Tiles")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
  IReadOnlyList<string> Folders=>WorldTiles.Where(x=>Same(Normalize(x.Directory,"Tiles"),_directory)).Select(x=>Normalize(x.Folder,"General")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
  IReadOnlyList<AtlasTile> Tiles=>WorldTiles.Where(x=>Same(Normalize(x.Directory,"Tiles"),_directory)&&Same(Normalize(x.Folder,"General"),_folder)).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
  static string Normalize(string? value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
  static bool Same(string? a,string? b)=>string.Equals(a,b,StringComparison.OrdinalIgnoreCase);
- static bool IsWorldBuildingTile(AtlasTile tile)
- {
-  var raw=$"{tile.Layer} {tile.Directory} {tile.Folder} {tile.Name} {tile.Image}".ToLowerInvariant();
-  var worldTagged=tile.Layer.Equals("WORLD",StringComparison.OrdinalIgnoreCase)
-      || tile.Layer.Equals("REGION",StringComparison.OrdinalIgnoreCase);
-  var worldPath=raw.Contains("world_map")||raw.Contains("region_map")||raw.Contains("terrain")
-      || raw.Contains("ocean")||raw.Contains("coast")||raw.Contains("river")||raw.Contains("forest")
-      || raw.Contains("mountain")||raw.Contains("plains")||raw.Contains("road")||raw.Contains("landmark")
-      || raw.Contains("shore")||raw.Contains("valley")||raw.Contains("hill")||raw.Contains("desert")
-      || raw.Contains("swamp")||raw.Contains("marsh")||raw.Contains("ice")||raw.Contains("snow")
-      || raw.Contains("volcano")||raw.Contains("canyon")||raw.Contains("island");
-  return worldTagged||worldPath;
- }
  void OpenDirectory(string directory){_directory=directory;_folder=null;}
  void OpenFolder(string folder)=>_folder=folder;
  void Back(){if(_folder is not null)_folder=null;else _directory=null;}
