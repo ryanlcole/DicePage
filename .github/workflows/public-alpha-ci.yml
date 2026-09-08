@@ -7,6 +7,7 @@ on:
       - build/launcher-functional-hub-2026-09-08
       - build/workspace-layouts-2026-09-08
       - build/worldbuilding-p0-2026-09-08
+      - build/world-authority-2026-09-08
     paths:
       - 'apps/rist-world/**'
       - 'site/relic-home/Play/**'
@@ -41,6 +42,9 @@ jobs:
           python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
           PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
 
+      - name: Verify world coordinate authority
+        run: node apps/rist-world/tests/world-coordinate-authority.test.mjs
+
       - name: Publish RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
@@ -51,6 +55,9 @@ jobs:
           test -f apps/rist-world/Components/PublicAlphaShell.razor
           test -f apps/rist-world/Components/WorkspaceSurface.razor
           test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
+          test -f apps/rist-world/wwwroot/world-coordinate-authority.js
+          test -f apps/rist-world/wwwroot/shaelvien-navigation-authority.js
+          test -f apps/rist-world/wwwroot/css/shaelvien-navigation-authority.css
           grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
@@ -79,6 +86,13 @@ jobs:
           grep -q 'const cols=worldBuilder?30:20' apps/rist-world/wwwroot/grid-coordinate-system.js
           grep -q 'const rows=worldBuilder?30:13' apps/rist-world/wwwroot/grid-coordinate-system.js
           grep -q 'worldbuilding-p0-authority.css' apps/rist-world/wwwroot/index.html
+          grep -q 'world-coordinate-authority.js' apps/rist-world/wwwroot/index.html
+          grep -q 'worldPointFromClient' apps/rist-world/wwwroot/world-coordinate-authority.js
+          grep -q 'snapWorldPoint' apps/rist-world/wwwroot/world-coordinate-authority.js
+          grep -q 'shaelvien-navigation-authority.js' apps/rist-world/wwwroot/index.html
+          grep -q 'shaelvien-navigation-authority.css' apps/rist-world/wwwroot/index.html
+          grep -q "const backLabel='← BACK'" apps/rist-world/wwwroot/shaelvien-navigation-authority.js
+          grep -q 'Back to Shaelvien hub' apps/rist-world/wwwroot/shaelvien-navigation-authority.js
           grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
@@ -88,4 +102,7 @@ jobs:
           ! grep -q 'id="preview"' site/relic-home/Play/index.html
           test -f build/rist/wwwroot/index.html
           test -f build/rist/wwwroot/css/worldbuilding-p0-authority.css
+          test -f build/rist/wwwroot/world-coordinate-authority.js
+          test -f build/rist/wwwroot/shaelvien-navigation-authority.js
+          test -f build/rist/wwwroot/css/shaelvien-navigation-authority.css
           grep -q 'ReLiCGameMaster RIST WORLD' build/rist/wwwroot/index.html

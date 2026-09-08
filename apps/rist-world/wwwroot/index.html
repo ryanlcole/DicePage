@@ -35,6 +35,7 @@
  <link rel="stylesheet" href="css/paged-game-shell.css?v=20260907-readable-home-slider-1">
  <link rel="stylesheet" href="css/home-slider-shell.css?v=20260908-authority-2">
  <link rel="stylesheet" href="css/worldbuilding-p0-authority.css?v=20260908-grid-ocean-1">
+ <link rel="stylesheet" href="css/shaelvien-navigation-authority.css?v=20260908-navigation-1">
 </head>
 <body>
  <div id="rist-boot-probe" style="position:fixed;inset:0;z-index:2147483647;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.4 system-ui,-apple-system,sans-serif;text-align:center;pointer-events:none"><div><strong>Loading RIST…</strong><br><small id="rist-boot-stage" style="color:#9eb0b9;font-weight:500">HTML loaded; starting Blazor</small></div></div>
@@ -55,6 +56,7 @@
   if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>{for(const registration of registrations)registration.unregister().catch(()=>{})}).catch(()=>{})}
  </script>
  <script src="rist.js?v=20260906-auth-preserved-1"></script>
+ <script src="world-coordinate-authority.js?v=20260908-world-authority-1"></script>
  <script src="auth-session-compat.js?v=20260907-screen-switch-1"></script>
  <script src="tileset-cutter.js?v=20260831-cache-clear-1"></script>
  <script src="slider-controller.js?v=20260901-repeat-menu-1"></script>
@@ -89,6 +91,7 @@
  <script src="chat-composer-authority.js?v=20260903-chat-actions-5"></script>
  <script src="paged-game-shell.js?v=20260907-immersive-bands-1"></script>
  <script src="home-slider-shell.js?v=20260908-authority-2"></script>
+ <script src="shaelvien-navigation-authority.js?v=20260908-navigation-1"></script>
  <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
  <script src="rist-plc.js?v=20260903-frame-state-1"></script>
 </body>
