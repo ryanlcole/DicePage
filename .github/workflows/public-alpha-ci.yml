@@ -6,6 +6,7 @@ on:
       - build/public-alpha-2026-09-08-v2
       - build/launcher-functional-hub-2026-09-08
       - build/workspace-layouts-2026-09-08
+      - build/worldbuilding-p0-2026-09-08
     paths:
       - 'apps/rist-world/**'
       - 'site/relic-home/Play/**'
@@ -43,7 +44,7 @@ jobs:
       - name: Publish RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
-      - name: Verify functional launcher
+      - name: Verify functional launcher and worldbuilder
         shell: bash
         run: |
           set -euo pipefail
@@ -59,6 +60,15 @@ jobs:
           grep -q 'ws-campaign' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-assets' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-roleplay' apps/rist-world/Components/WorkspaceSurface.razor
+          grep -q 'DefaultCubeWidthMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeHeightMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
+          grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs
+          grep -q '900 addressable cells' apps/rist-world/Components/WorldMap.razor.css
+          grep -q 'Ocean 071' apps/rist-world/Components/WorldMap.razor.css
+          grep -q 'world-stage > .grid.square' apps/rist-world/Components/WorldMap.razor.css
+          grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
+          grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
           ! grep -q 'AutoEnter' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'id="signin"' site/relic-home/Play/index.html
