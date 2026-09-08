@@ -125,7 +125,7 @@ public sealed partial class WorldSession
   RestoreOperatingMode("mmo");
   Layer="WORLD";
   GridStyle="square";
-  DistanceUnit="mi";
+  DistanceUnit="km";
   GridDiameter=48;
   GridDistance=1;
   GridCalibrationZoom=1;
@@ -143,8 +143,12 @@ public sealed partial class WorldSession
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
-  DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"mi"};
+  DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"km"};
   GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
+  // WORLD scale is canonical rather than a user calibration: every authored
+  // terrain tile is exactly 1 km x 1 km. This also migrates pre-metric saves
+  // without moving or deleting normalized placements.
+  if(Layer=="WORLD"){DistanceUnit="km";GridDistance=1;GridCalibrationZoom=1;}
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
