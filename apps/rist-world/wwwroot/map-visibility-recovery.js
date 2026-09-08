@@ -8,6 +8,8 @@
   const stage=q(':scope > .world-stage',map);
   if(!shell||!map)return;
   const set=(el,name,value)=>el?.style.setProperty(name,value,'important');
+  const worldBuilder=!!map.closest('.ws-world');
+
   set(map,'grid-column','1 / -1');
   set(map,'grid-row','1 / -1');
   set(map,'position','relative');
@@ -15,12 +17,24 @@
   set(map,'display','block');
   set(map,'visibility','visible');
   set(map,'opacity','1');
-  set(map,'width','100%');
-  set(map,'height','100%');
   set(map,'min-width','0');
   set(map,'min-height','0');
-  set(map,'max-width','none');
-  set(map,'max-height','none');
+
+  /* Visibility recovery must never become layout authority. World Building owns
+     a square 30x30 board in CSS; repeatedly forcing 100% x 100% here distorted
+     that board after first render. Preserve the legacy fallback elsewhere. */
+  if(!worldBuilder){
+   set(map,'width','100%');
+   set(map,'height','100%');
+   set(map,'max-width','none');
+   set(map,'max-height','none');
+  }else{
+   map.style.removeProperty('width');
+   map.style.removeProperty('height');
+   map.style.removeProperty('max-width');
+   map.style.removeProperty('max-height');
+  }
+
   if(stage){
    set(stage,'position','absolute');
    set(stage,'inset','0');
