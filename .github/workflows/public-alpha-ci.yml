@@ -56,6 +56,8 @@ jobs:
           test -f apps/rist-world/Components/WorkspaceSurface.razor
           test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           test -f apps/rist-world/wwwroot/world-coordinate-authority.js
+          test -f apps/rist-world/wwwroot/shaelvien-navigation-authority.js
+          test -f apps/rist-world/wwwroot/css/shaelvien-navigation-authority.css
           grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
@@ -87,6 +89,10 @@ jobs:
           grep -q 'world-coordinate-authority.js' apps/rist-world/wwwroot/index.html
           grep -q 'worldPointFromClient' apps/rist-world/wwwroot/world-coordinate-authority.js
           grep -q 'snapWorldPoint' apps/rist-world/wwwroot/world-coordinate-authority.js
+          grep -q 'shaelvien-navigation-authority.js' apps/rist-world/wwwroot/index.html
+          grep -q 'shaelvien-navigation-authority.css' apps/rist-world/wwwroot/index.html
+          grep -q "const backLabel='← BACK'" apps/rist-world/wwwroot/shaelvien-navigation-authority.js
+          grep -q 'Back to Shaelvien hub' apps/rist-world/wwwroot/shaelvien-navigation-authority.js
           grep -q 'Open Asset Palette' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'Save Now' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
@@ -97,4 +103,6 @@ jobs:
           test -f build/rist/wwwroot/index.html
           test -f build/rist/wwwroot/css/worldbuilding-p0-authority.css
           test -f build/rist/wwwroot/world-coordinate-authority.js
+          test -f build/rist/wwwroot/shaelvien-navigation-authority.js
+          test -f build/rist/wwwroot/css/shaelvien-navigation-authority.css
           grep -q 'ReLiCGameMaster RIST WORLD' build/rist/wwwroot/index.html
