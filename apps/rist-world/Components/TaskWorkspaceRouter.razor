@@ -1,19 +1,25 @@
-@if (Mode == "viewer")
-{
- <ScaleViewerWorkspace />
-}
-else if (Mode == "manage")
-{
- <WorldManagementWorkspace />
-}
-else if (Mode == "feedback")
-{
- <FeedbackWorkspace />
-}
-else
-{
- <WorkspaceSurface Mode="@Mode" />
-}
+<div class="task-workspace-router">
+ @if (Mode == "viewer")
+ {
+  <ScaleViewerWorkspace />
+ }
+ else if (Mode == "manage")
+ {
+  <WorldManagementWorkspace />
+ }
+ else if (Mode == "feedback")
+ {
+  <FeedbackWorkspace />
+ }
+ else
+ {
+  <WorkspaceSurface Mode="@Mode" />
+ }
+</div>
+
+<style>
+ .task-workspace-router{box-sizing:border-box;height:calc(100dvh - 38px);min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface{height:100%!important}
+</style>
 
 @code {
  [Parameter] public string Mode { get; set; } = "world";
