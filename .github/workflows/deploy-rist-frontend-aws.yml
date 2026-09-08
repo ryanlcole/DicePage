@@ -145,12 +145,25 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
+          # Keep prior fingerprinted Blazor resources during live development. A client may
+          # still have an older boot manifest in its browser cache; deleting those hashes
+          # turns the SPA fallback HTML into a JavaScript MIME error. New assets are
+          # published first and index.html is promoted last.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
-            --delete \
+            --exclude 'index.html' \
             --exclude 'Launcher/*' \
             --exclude 'assets/shaelvien/*' \
             --cache-control 'public,max-age=86400' \
             --only-show-errors
+
+          # Boot manifests are authorities, not immutable assets. Always revalidate them.
+          if [ -f build/rist/wwwroot/_framework/blazor.boot.json ]; then
+            aws s3 cp build/rist/wwwroot/_framework/blazor.boot.json "s3://${BUCKET}/Game/_framework/blazor.boot.json" \
+              --cache-control 'no-cache,no-store,must-revalidate' \
+              --content-type 'application/json' \
+              --only-show-errors
+          fi
+
           aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
@@ -234,6 +247,16 @@ jobs:
           grep -q 'home-slider-shell.js' /tmp/rist-index.html
           grep -q 'css/home-slider-shell.css' /tmp/rist-index.html
 
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/worldbuilder-z-axis.js "${URL}Game/worldbuilder-z-axis.js"
+          grep -q 'export function attach' /tmp/worldbuilder-z-axis.js
+          Z_TYPE=$(curl --fail --silent --show-error --location --head "${URL}Game/worldbuilder-z-axis.js" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')
+          [[ "$Z_TYPE" == *javascript* ]] || { echo "World Builder module has invalid MIME type: $Z_TYPE"; exit 1; }
+
+          FRAMEWORK_SRC=$(grep -oE 'src="_framework/[^"]+\.js"' /tmp/rist-index.html | head -n1 | cut -d'"' -f2)
+          test -n "$FRAMEWORK_SRC"
+          FRAMEWORK_TYPE=$(curl --fail --silent --show-error --location --head "${URL}Game/${FRAMEWORK_SRC}" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')
+          [[ "$FRAMEWORK_TYPE" == *javascript* ]] || { echo "Blazor framework loader has invalid MIME type: $FRAMEWORK_TYPE ($FRAMEWORK_SRC)"; exit 1; }
+
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/home-slider-shell.js "${URL}Game/home-slider-shell.js"
           grep -q 'HOME_ID' /tmp/home-slider-shell.js
           grep -q "makeButton('Chat','chat')" /tmp/home-slider-shell.js
@@ -272,7 +295,7 @@ jobs:
 
           echo "ReLiCGameMaster home verified at $URL"
           echo "ReLiC Creator Store verified at ${URL}store/index.html"
-          echo "RIST WORLD + current app shell verified at ${URL}Game/index.html"
+          echo "RIST WORLD + framework MIME verified at ${URL}Game/index.html"
           echo "Launcher verified at ${URL}Launcher/index.html"
           if [ "$STORY_MISSING" -eq 0 ]; then
             echo "ReLiC story scenes verified at ${URL}relic-story-{1..6}.jpg"
