@@ -1,7 +1,7 @@
 <div class="task-workspace-router">
  @if (Mode == "world")
  {
-  <WorldBuilderStudio />
+  <WorldBuilderStudio OnStartMenu="OnStartMenu" />
  }
  else if (Mode == "viewer")
  {
@@ -27,4 +27,5 @@
 
 @code {
  [Parameter] public string Mode { get; set; } = "world";
+ [Parameter] public EventCallback OnStartMenu { get; set; }
 }
