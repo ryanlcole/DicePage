@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - build/public-alpha-2026-09-08-v2
+      - build/launcher-functional-hub-2026-09-08
     paths:
       - 'apps/rist-world/**'
       - 'site/relic-home/Play/**'
@@ -41,17 +42,20 @@ jobs:
       - name: Publish RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
-      - name: Verify public alpha shell
+      - name: Verify functional launcher
         shell: bash
         run: |
           set -euo pipefail
           test -f apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'BUILD THE WORLD' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'RULEBOOKS' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'PublicAlphaShell' apps/rist-world/Components/AuthenticatedWorld.razor
-          grep -q 'AutoEnter="@_preview"' apps/rist-world/Components/AuthenticatedWorld.razor
+          ! grep -q 'AutoEnter' apps/rist-world/Components/AuthenticatedWorld.razor
           grep -q 'id="signin"' site/relic-home/Play/index.html
           grep -q 'id="signup"' site/relic-home/Play/index.html
-          grep -q 'id="preview"' site/relic-home/Play/index.html
-          grep -q '/Game/index.html?preview=1' site/relic-home/Play/index.html
+          ! grep -q 'id="preview"' site/relic-home/Play/index.html
           test -f build/rist/wwwroot/index.html
           grep -q 'ReLiCGameMaster RIST WORLD' build/rist/wwwroot/index.html
