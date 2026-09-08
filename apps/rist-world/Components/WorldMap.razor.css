@@ -1,13 +1,11 @@
 /*
- * Canonical empty RIST world cube.
+ * Canonical public-alpha RIST world cube.
  *
- * A new cube is 100 x 100 logical one-mile cells. Ocean 071 is rendered as
- * the implicit terrain layer rather than creating 10,000 DOM nodes or saved
- * placement records. Authored terrain remains sparse and sits above it.
+ * A new cube is 30 x 30 logical one-mile cells (900 addressable cells).
+ * Ocean 071 is rendered as the implicit terrain layer rather than creating
+ * 900 DOM nodes or save records. Authored terrain remains sparse above it.
  */
 
-/* The map section owns one continuous canvas. Coordinate/status rulers overlay that
-   canvas instead of reserving layout rows that squeeze the world into the middle. */
 .map-shell {
     box-sizing: border-box !important;
     position: relative !important;
@@ -21,27 +19,32 @@
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
+    container-type: size !important;
+    background: #03080c !important;
 }
 
+/* The coordinate surface is deliberately square. Empty landscape space outside
+   it is null, so a 30 x 30 logical world remains 30 x 30 regardless of viewport
+   shape. MapElement therefore matches the exact surface used by snapping. */
 .map {
     box-sizing: border-box !important;
     position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+    left: 50% !important;
+    top: 50% !important;
+    inset: auto !important;
+    width: min(100cqw, 100cqh) !important;
+    height: min(100cqw, 100cqh) !important;
     min-width: 0 !important;
     min-height: 0 !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    aspect-ratio: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    transform: translate(-50%, -50%) !important;
     margin: 0 !important;
     overflow: hidden !important;
     container-type: size !important;
-
-    /* WORLD is 100 miles wide and every WORLD column is exactly one mile.
-       Using the map width (not the smaller viewport axis) keeps Ocean 071 and
-       the square grid locked to the same 100-column coordinate system. */
-    --rist-grid-cell: 1cqw;
+    --rist-grid-cell: calc(100cqw / 30);
+    background: #071015 !important;
 }
 
 .world-stage {
@@ -69,10 +72,7 @@
     min-height: 100% !important;
 }
 
-/* WorldMap.razor renders <div class="base ocean-world">.
-   Ocean 071 is the canonical one-mile WORLD terrain tile. The tile repeat and
-   square-grid repeat use the exact same cell variable, so the water starts
-   aligned to the one-mile grid rather than drifting between cells. */
+/* Ocean 071 and square-grid repeats share the exact one-mile cell variable. */
 .base.ocean-world {
     z-index: 0 !important;
     background-color: #0a3040 !important;
@@ -83,9 +83,8 @@
     image-rendering: auto !important;
 }
 
-/* Break up the obvious wallpaper effect without changing the one-mile tile
-   geometry. This is a low-contrast, large-scale water-light variation above
-   Ocean 071; it adds depth while keeping Ocean 071 itself as the terrain. */
+/* A low-contrast water-light pass hides obvious wallpaper repetition while
+   preserving the exact 30 x 30 semantic cell boundaries below it. */
 .base.ocean-world::after {
     content: "" !important;
     position: absolute !important;
@@ -99,13 +98,14 @@
     mix-blend-mode: soft-light !important;
 }
 
+/* Viewer grid is an independent presentation layer. Terrain changes can never
+   remove it; only GridStyle changes its visual representation. */
 .world-stage > .grid {
     z-index: 1 !important;
     pointer-events: none !important;
     background-position: 0 0 !important;
 }
 
-/* Square mode shares the exact Ocean 071 repeat. One repeat = one mile. */
 .world-stage > .grid.square {
     background-image:
         linear-gradient(to right, rgba(217, 199, 145, .42) 1px, transparent 1px),
@@ -113,19 +113,16 @@
     background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
 }
 
-/* Hex mode is owned only by the hex grid rules; square rules never bleed into it. */
 .world-stage > .grid.hex {
     background-size: auto !important;
 }
 
-/* None means no visual grid at all. */
 .world-stage > .grid.none {
     background-image: none !important;
     background: none !important;
 }
 
-/* Authored tiles must meet edge-to-edge. Never let borders, inline-image
-   baselines, padding, or rounding reveal white seams around a placed tile. */
+/* Authored tiles meet edge-to-edge. */
 .world-stage > .tile-cell {
     box-sizing: border-box !important;
     padding: 0 !important;
@@ -158,7 +155,6 @@
     vertical-align: top !important;
 }
 
-/* Authored terrain, pieces, pins, labels and dice remain above base/grid. */
 .world-stage > .tile-cell,
 .world-stage > .piece,
 .world-stage > .map-zone-label,
@@ -167,14 +163,16 @@
     z-index: 2 !important;
 }
 
-/* Legacy fallback art must never cover the canonical Ocean 071 cube. */
 .base.ocean-world > img:first-of-type {
     display: none !important;
 }
 
-/* The recovered viewer still renders a legacy floating +/- zoom group. On mobile
-   its inherited styling collapses into the stray gold circle. Gesture, wheel and
-   keyboard zoom remain authoritative, so keep the obsolete overlay out of the map. */
 .desktop-map-zoom {
     display: none !important;
+}
+
+/* Landscape is the primary editing posture. Keep the square world centered while
+   side workspaces consume the surplus horizontal space. */
+@media (orientation: landscape) {
+    .map-shell { background: linear-gradient(90deg,#03080c,#071015 18%,#071015 82%,#03080c) !important; }
 }
