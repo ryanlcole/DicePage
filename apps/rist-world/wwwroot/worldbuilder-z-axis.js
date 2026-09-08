@@ -9,7 +9,10 @@ export function attach(element,dotnet){
   e.preventDefault();
   wheelAccumulator+=e.deltaY;
   if(Math.abs(wheelAccumulator)<70)return;
-  const delta=wheelAccumulator<0?1:-1;
+  // World Builder treats zoom as recursive depth navigation: zooming OUT
+  // reveals/builds the next layer above the current slice; zooming IN returns
+  // toward the layer below. The viewer itself never changes size.
+  const delta=wheelAccumulator>0?1:-1;
   wheelAccumulator=0;
   step(delta);
  };
@@ -24,8 +27,8 @@ export function attach(element,dotnet){
   const next=distance();
   if(!pinchDistance){pinchDistance=next;return;}
   const ratio=next/pinchDistance;
-  if(ratio>=1.16){step(1);pinchDistance=next;}
-  else if(ratio<=0.86){step(-1);pinchDistance=next;}
+  if(ratio>=1.16){step(-1);pinchDistance=next;}
+  else if(ratio<=0.86){step(1);pinchDistance=next;}
   e.preventDefault();
  };
  const release=e=>{pointers.delete(e.pointerId);if(pointers.size<2)pinchDistance=0;};
