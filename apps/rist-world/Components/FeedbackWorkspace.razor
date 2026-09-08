@@ -1,0 +1,49 @@
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject WorldSession Session
+
+<section class="feedback-workspace" aria-label="Shaelvien alpha feedback">
+ <header>
+  <p>SHAELVIEN PUBLIC ALPHA</p>
+  <h2>Your Feedback Shapes What’s Next</h2>
+  <span>Report a problem, describe an idea, or tell us what worked. Device and world context can be copied without attaching private account data.</span>
+ </header>
+
+ <div class="feedback-grid">
+  <section class="feedback-card">
+   <h3>Send Feedback</h3>
+   <label>Subject<input @bind="Subject" maxlength="120" /></label>
+   <label>Message<textarea @bind="Message" maxlength="4000" rows="8" placeholder="What happened? What were you trying to do?"></textarea></label>
+   <div class="feedback-actions"><button type="button" @onclick="SendEmail">Open Email</button><button type="button" @onclick="CopyContextAsync">Copy System Info</button></div>
+   <p aria-live="polite">@Status</p>
+  </section>
+
+  <aside class="feedback-card feedback-context">
+   <h3>Current Context</h3>
+   <dl><dt>World</dt><dd>@Session.MapName</dd><dt>Scale</dt><dd>@Session.Layer</dd><dt>Plane</dt><dd>@Session.PlaneIndex</dd><dt>Tier</dt><dd>@Session.TierIndex</dd><dt>Layer</dt><dd>@Session.LayerOffset</dd><dt>Grid</dt><dd>@Session.GridStyle</dd><dt>Build</dt><dd>Public Alpha</dd></dl>
+   <p>No password, Discord token, email contents, or private world file is included by this panel.</p>
+  </aside>
+ </div>
+</section>
+
+<style>
+ .feedback-workspace{box-sizing:border-box;height:100%;min-height:0;padding:clamp(18px,4vw,46px);overflow:auto;background:radial-gradient(circle at 88% 0,#4f321d77,transparent 32%),linear-gradient(180deg,#08121a,#05090d);color:#e5dfd2;font-family:Inter,system-ui,sans-serif}.feedback-workspace>header{max-width:920px;margin:0 auto 24px;text-align:center}.feedback-workspace>header p{margin:0 0 8px;color:#90a8b6;font-size:10px;font-weight:900;letter-spacing:.22em}.feedback-workspace>header h2{margin:0;color:#e4c36e;font:600 clamp(30px,5vw,58px)/1 Georgia,serif}.feedback-workspace>header span{display:block;max-width:700px;margin:13px auto 0;color:#aebcc4;line-height:1.5}.feedback-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,.7fr);gap:14px;max-width:1080px;margin:0 auto}.feedback-card{padding:18px;border:1px solid #596d79;border-radius:10px;background:#0a141ccc;box-shadow:0 14px 28px #0005}.feedback-card h3{margin:0 0 14px;color:#efd89c;font:600 21px Georgia,serif}.feedback-card label{display:grid;gap:6px;margin-top:10px;color:#99adb7;font-size:10px;font-weight:800;letter-spacing:.05em}.feedback-card input,.feedback-card textarea{box-sizing:border-box;width:100%;padding:11px;border:1px solid #445b68;border-radius:7px;background:#071017;color:#e9e3d6;font:14px/1.4 system-ui;resize:vertical}.feedback-actions{display:flex;gap:8px;margin-top:12px}.feedback-actions button{min-height:42px;padding:0 15px;border:1px solid #a28443;border-radius:7px;background:#151c20;color:#f0d590;font-weight:900;touch-action:manipulation}.feedback-card>p{color:#93a6b1;font-size:10px;line-height:1.5}.feedback-context dl{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;margin:0}.feedback-context dt{color:#7f96a3;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}.feedback-context dd{margin:0;color:#ead9ad;font-size:11px;font-weight:800;text-align:right}@media(max-width:720px){.feedback-workspace{padding:14px}.feedback-grid{grid-template-columns:1fr}.feedback-context{order:-1}.feedback-context dl{grid-template-columns:repeat(2,auto 1fr)}.feedback-context p{display:none}}@media(max-width:430px){.feedback-context dl{grid-template-columns:auto 1fr}.feedback-actions{display:grid;grid-template-columns:1fr 1fr}}
+</style>
+
+@code {
+ string Subject="Shaelvien Alpha Feedback";
+ string Message="";
+ string Status="";
+ string ContextText=>$"Shaelvien Public Alpha\nWorld: {Session.MapName}\nScale: {Session.Layer}\nPlane: {Session.PlaneIndex}\nTier: {Session.TierIndex}\nLayer: {Session.LayerOffset}\nGrid: {Session.GridStyle}";
+ void SendEmail()
+ {
+  var body=Uri.EscapeDataString(Message+"\n\n---\n"+ContextText);
+  var subject=Uri.EscapeDataString(Subject);
+  Navigation.NavigateTo($"mailto:relic.gamemaster@gmail.com?subject={subject}&body={body}",forceLoad:true);
+ }
+ async Task CopyContextAsync()
+ {
+  try{await JS.InvokeVoidAsync("navigator.clipboard.writeText",ContextText);Status="System info copied.";}
+  catch{Status="Clipboard unavailable. You can include the context shown at right.";}
+ }
+}
