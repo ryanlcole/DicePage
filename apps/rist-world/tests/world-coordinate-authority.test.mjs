@@ -5,7 +5,7 @@ await import(new URL('../wwwroot/world-coordinate-authority.js',import.meta.url)
 const A=window.ristWorldCoordinates;
 assert.ok(A,'coordinate authority exported');
 
-const rect={left:100,top:50,width:600,height:600};
+const rect={left:100,top:50,width:600,height:600,right:700,bottom:650};
 const center=A.worldPointFromClient(rect,400,350,0,0,1);
 assert.deepEqual(center,[0.5,0.5]);
 
