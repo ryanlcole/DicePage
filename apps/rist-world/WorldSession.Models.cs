@@ -169,6 +169,7 @@ public sealed class SavedWorld
     public int PlaneIndex { get; set; }
     public int TierIndex { get; set; }
     public int LayerOffset { get; set; }
+    public string BaseTerrainOverrideTileId { get; set; } = "";
     public List<PieceItem> Pieces { get; set; } = [];
     public List<TileItem> Tiles { get; set; } = [];
     public List<NpcBoundaryExchange> NpcBoundaryExchanges { get; set; } = [];
