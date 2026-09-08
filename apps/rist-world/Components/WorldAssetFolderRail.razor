@@ -26,11 +26,10 @@
    </button>
   }
  }
- <button type="button" class="library-card" @onclick="Session.ToggleTileBrowser">Library…</button>
 </nav>
 
 <style>
- .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:7px;padding:7px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:50px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .rail-back:disabled{opacity:.28}.world-asset-rail .folder-card{display:flex;align-items:center;justify-content:center;gap:7px;padding:0 10px}.world-asset-rail .folder-card span{font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}.world-asset-rail .library-card{border-color:#6f8794;color:#bcd8e5}
+ .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:7px;padding:7px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:50px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .rail-back:disabled{opacity:.28}.world-asset-rail .folder-card{display:flex;align-items:center;justify-content:center;gap:7px;padding:0 10px}.world-asset-rail .folder-card span{font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}
  @@media(max-width:760px){.world-asset-rail{padding:5px 6px}.world-asset-rail button{height:46px;min-width:82px}.world-asset-rail .rail-back{min-width:44px;width:44px}}
 </style>
 
@@ -46,10 +45,15 @@
  static bool IsWorldBuildingTile(AtlasTile tile)
  {
   var raw=$"{tile.Layer} {tile.Directory} {tile.Folder} {tile.Name} {tile.Image}".ToLowerInvariant();
-  return tile.Layer.Equals("WORLD",StringComparison.OrdinalIgnoreCase)
-      || tile.Layer.Equals("REGION",StringComparison.OrdinalIgnoreCase)
-      || tile.Layer.Equals("UNIVERSAL",StringComparison.OrdinalIgnoreCase)
-      || raw.Contains("world_map")||raw.Contains("region_map")||raw.Contains("terrain")||raw.Contains("ocean")||raw.Contains("coast")||raw.Contains("river")||raw.Contains("forest")||raw.Contains("mountain")||raw.Contains("plains")||raw.Contains("road")||raw.Contains("landmark");
+  var worldTagged=tile.Layer.Equals("WORLD",StringComparison.OrdinalIgnoreCase)
+      || tile.Layer.Equals("REGION",StringComparison.OrdinalIgnoreCase);
+  var worldPath=raw.Contains("world_map")||raw.Contains("region_map")||raw.Contains("terrain")
+      || raw.Contains("ocean")||raw.Contains("coast")||raw.Contains("river")||raw.Contains("forest")
+      || raw.Contains("mountain")||raw.Contains("plains")||raw.Contains("road")||raw.Contains("landmark")
+      || raw.Contains("shore")||raw.Contains("valley")||raw.Contains("hill")||raw.Contains("desert")
+      || raw.Contains("swamp")||raw.Contains("marsh")||raw.Contains("ice")||raw.Contains("snow")
+      || raw.Contains("volcano")||raw.Contains("canyon")||raw.Contains("island");
+  return worldTagged||worldPath;
  }
  void OpenDirectory(string directory){_directory=directory;_folder=null;}
  void OpenFolder(string folder)=>_folder=folder;
