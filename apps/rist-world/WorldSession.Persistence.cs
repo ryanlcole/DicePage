@@ -143,18 +143,26 @@ public sealed partial class WorldSession
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
-  DistanceUnit=save.DistanceUnit switch{"mi" or "km" or "m" or "yd" or "ft"=>save.DistanceUnit,_=>"km"};
-  GridDiameter=save.GridDiameter;GridDistance=Math.Max(.01,save.GridDistance);GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
-  // WORLD scale is canonical rather than a user calibration: every authored
-  // terrain tile is exactly 1 km x 1 km. This also migrates pre-metric saves
-  // without moving or deleting normalized placements.
-  if(Layer=="WORLD"){DistanceUnit="km";GridDistance=1;GridCalibrationZoom=1;}
+  var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
+  DistanceUnit=metric.Unit;
+  GridDiameter=save.GridDiameter;GridDistance=metric.Distance;GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
   ImportSpatialContent(save.Tiles??[],pieces);
   MapLocked=true;CloseHeaderMenus();Notify();
  }
+
+ static (string Unit,double Distance) MetricDistance(string? unit,double distance)=>unit switch
+ {
+  "km"=>("km",distance),
+  "m"=>("m",distance),
+  "mi"=>("km",distance*1.609344),
+  "yd"=>("m",distance*.9144),
+  "ft"=>("m",distance*.3048),
+  _=>("km",distance)
+ };
+
  public void ShowCard(CardItem card){OpenCard=card;Notify();}
  public void CloseCard(){OpenCard=null;Notify();}
 }

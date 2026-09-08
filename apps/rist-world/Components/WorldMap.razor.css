@@ -1,8 +1,7 @@
 /*
- * Canonical public-alpha RIST WORLD cube.
+ * Canonical public-alpha RIST world cube.
  *
- * A new cube is 30 x 30 logical one-kilometre tiles (900 addressable tiles).
- * Each kilometre tile contains a 10 x 10 viewer subdivision of 100 m squares.
+ * A new cube is 30 x 30 logical one-mile cells (900 addressable cells).
  * Ocean 071 is rendered as the implicit terrain layer rather than creating
  * 900 DOM nodes or save records. Authored terrain remains sparse above it.
  */
@@ -44,8 +43,7 @@
     margin: 0 !important;
     overflow: hidden !important;
     container-type: size !important;
-    --rist-grid-tile: calc(100cqw / 30);
-    --rist-grid-subcell: calc(var(--rist-grid-tile) / 10);
+    --rist-grid-cell: calc(100cqw / 30);
     background: #071015 !important;
 }
 
@@ -74,19 +72,19 @@
     min-height: 100% !important;
 }
 
-/* Ocean repeats once per logical 1 km terrain tile. */
+/* Ocean 071 and square-grid repeats share the exact one-mile cell variable. */
 .base.ocean-world {
     z-index: 0 !important;
     background-color: #0a3040 !important;
     background-image: url("https://assets.relicgamemaster.com/tilesets/world/terrain/ocean/ocean-071/tile-01-01.jpg") !important;
     background-repeat: repeat !important;
     background-position: 0 0 !important;
-    background-size: var(--rist-grid-tile) var(--rist-grid-tile) !important;
+    background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
     image-rendering: auto !important;
 }
 
 /* A low-contrast water-light pass hides obvious wallpaper repetition while
-   preserving the exact 30 x 30 semantic tile boundaries below it. */
+   preserving the exact 30 x 30 semantic cell boundaries below it. */
 .base.ocean-world::after {
     content: "" !important;
     position: absolute !important;
@@ -100,9 +98,8 @@
     mix-blend-mode: soft-light !important;
 }
 
-/* Viewer grid is independent from terrain. Ten 100 m subdivisions form one
-   authoritative 1 km x 1 km tile. Major kilometre lines remain visually clear
-   while the minor lines provide precise local reference when zoomed in. */
+/* Viewer grid is an independent presentation layer. Terrain changes can never
+   remove it; only GridStyle changes its visual representation. */
 .world-stage > .grid {
     z-index: 1 !important;
     pointer-events: none !important;
@@ -111,15 +108,9 @@
 
 .world-stage > .grid.square {
     background-image:
-        linear-gradient(to right, rgba(229, 207, 139, .72) 1.5px, transparent 1.5px),
-        linear-gradient(to bottom, rgba(229, 207, 139, .72) 1.5px, transparent 1.5px),
-        linear-gradient(to right, rgba(166, 206, 218, .24) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(166, 206, 218, .24) 1px, transparent 1px) !important;
-    background-size:
-        var(--rist-grid-tile) var(--rist-grid-tile),
-        var(--rist-grid-tile) var(--rist-grid-tile),
-        var(--rist-grid-subcell) var(--rist-grid-subcell),
-        var(--rist-grid-subcell) var(--rist-grid-subcell) !important;
+        linear-gradient(to right, rgba(217, 199, 145, .42) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(217, 199, 145, .42) 1px, transparent 1px) !important;
+    background-size: var(--rist-grid-cell) var(--rist-grid-cell) !important;
 }
 
 .world-stage > .grid.hex {
