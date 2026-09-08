@@ -73,10 +73,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     public bool HeaderPinDragging { get; private set; }
     public string GridStyle { get; set; } = "square";
     public string DistanceUnit { get; private set; } = "mi";
-    public const int GridColumns = 20;
-    public const int GridRows = 13;
+    public const int GridColumns = DefaultCubeWidthMiles;
+    public const int GridRows = DefaultCubeHeightMiles;
     public int GridDiameter { get; set; } = 48;
-    public double GridDistance { get; set; } = 5;
+    public double GridDistance { get; set; } = 1;
     public double GridCalibrationZoom { get; set; } = 1;
     public double ViewZoom { get; set; } = 1;
     public double GridCellWidthPercent => 100.0 / GridColumns;
@@ -204,15 +204,11 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     {
         if(PlacedTiles.Count>0)return;
 
-        // The World remains a 20x13 navigation grid, but the default terrain is
-        // authored as though it were placed at 4x zoom. Each world square can
-        // therefore contain sixteen independently editable detail tiles.
+        // Legacy Pangaea authoring footprint. It remains available as authored
+        // content inside the 30 x 30 world; the public-alpha origin itself stays ocean.
         const int detailZoom=4;
         string[] pangea=
         [
-            // Geography follows the original Drive-deployed Naeja.PNG world map.
-            // Recent screenshots are presentation references only and must not
-            // be used as source geography.
             "..CCCCCCCCCCCCCCCC..",
             ".CPPMMMPPPPPPPPPMPC.",
             "CPMMMMMPPPMMMMPPMMPC",
@@ -280,15 +276,10 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
     {
         var code=map[row][column];
         if(code=='C')return 'C';
-
-        // Pull coast detail one micro-cell into exposed land edges.
         if(subColumn==0&&(column==0||map[row][column-1]=='.'))return 'C';
         if(subColumn==detailZoom-1&&(column==map[row].Length-1||map[row][column+1]=='.'))return 'C';
         if(subRow==0&&(row==0||map[row-1][column]=='.'))return 'C';
         if(subRow==detailZoom-1&&(row==map.Length-1||map[row+1][column]=='.'))return 'C';
-
-        // Small deterministic transition details break up large biome blocks
-        // while keeping the approved continental geography readable at 1x.
         var seed=column*31+row*17+subColumn*7+subRow*13;
         if(code=='P'&&seed%11==0)return 'H';
         if(code=='F'&&seed%13==0)return 'P';
