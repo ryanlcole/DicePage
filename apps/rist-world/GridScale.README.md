@@ -1,9 +1,13 @@
-# RIST WORLD adaptive grid
+# RIST WORLD authoritative grid
 
-The WORLD map uses a viewport overlay grid with 10 columns and 20 rows.
+The public-alpha WORLD map is a square 30 × 30 logical surface: 900 addressable cells at one mile per cell.
 
-Grid modes are `square`, `hex`, and `none`.
+Ocean 071 is the implicit base terrain. It is rendered as a repeating visual layer and is not materialized as 900 placed objects. Authored terrain, pieces, regions, and recursive content remain sparse semantic state above that base.
 
-A GM calibrates the current zoom by entering the distance represented by one visible grid cell and selecting **Set scale here**. The calibration stores both that distance and the zoom at which it was set. The displayed distance per cell then scales inversely with map zoom, so zooming out increases the represented distance per cell and zooming in decreases it.
+The viewer grid is a separate presentation layer with `square`, `hex`, and `none` modes. Changing or hiding the viewer grid never changes terrain or world identity.
 
-The overlay remains fixed to the tabletop viewport while the underlying world map pans and zooms. Calibration is persisted with the saved world state.
+The square map element is also the pointer coordinate surface. Tile drops, moves, fill/edit tools, and persisted normalized positions therefore resolve against the same 30 × 30 authority in portrait and landscape layouts. Space outside the square map is null workspace rather than extra world cells.
+
+At WORLD scale the default distance is one mile per cell. Encounter mode may temporarily switch grid representation and units; leaving the encounter restores the pre-encounter grid state.
+
+Grid style, calibration, recursive address, terrain overrides, and pieces remain part of saved world state. Existing normalized placements are preserved when loaded into the 30 × 30 alpha surface.
