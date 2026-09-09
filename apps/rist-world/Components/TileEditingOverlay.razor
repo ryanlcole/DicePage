@@ -47,7 +47,7 @@
   if(Disposed)return;
   if(firstRender)
   {
-   Module=await JS.InvokeAsync<IJSObjectReference>("import","./tile-editing.js?v=20260909-z-navigation-1");
+   Module=await JS.InvokeAsync<IJSObjectReference>("import","./tile-editing.js?v=20260909-native-callout-1");
    Self=DotNetObjectReference.Create(this);
    await Module.InvokeVoidAsync("register",Self);
   }
@@ -86,6 +86,13 @@
  public Task SelectTileFromMap(int index)
  {
   Session.SelectTileForEditing(index,rotateIfAlready:true);
+  return Task.CompletedTask;
+ }
+
+ [JSInvokable]
+ public Task HoldTileFromMap(int index)
+ {
+  Session.SelectTileForEditing(index,rotateIfAlready:false);
   return Task.CompletedTask;
  }
 
