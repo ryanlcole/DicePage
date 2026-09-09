@@ -1,0 +1,82 @@
+.tile-edit-overlay {
+    position: fixed;
+    left: var(--tile-left);
+    top: var(--tile-top);
+    width: var(--tile-width);
+    height: var(--tile-height);
+    z-index: 12000;
+    box-sizing: border-box;
+    pointer-events: none;
+    overflow: visible;
+    outline: 1px solid rgba(215,190,128,.92);
+    outline-offset: 1px;
+}
+
+.tile-edit-overlay.lock-armed {
+    outline-width: 2px;
+}
+
+.tile-edit-arrow,
+.tile-edit-lock {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 3px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d7be80;
+    border-radius: 50%;
+    background: rgba(5,9,12,.94);
+    box-shadow: 0 2px 8px rgba(0,0,0,.55);
+    pointer-events: auto;
+    touch-action: manipulation;
+    cursor: pointer;
+}
+
+.tile-edit-arrow img,
+.tile-edit-lock img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+.tile-edit-lock {
+    right: 0;
+    top: 0;
+    transform: translate(66%,-66%);
+    z-index: 3;
+}
+
+.tile-edit-arrow.north-west { left: 0; top: 0; transform: translate(-66%,-66%); }
+.tile-edit-arrow.north      { left: 50%; top: 0; transform: translate(-50%,-110%); }
+.tile-edit-arrow.north-east { right: 0; top: 0; transform: translate(66%,-66%); margin-top: 32px; }
+.tile-edit-arrow.east       { right: 0; top: 50%; transform: translate(110%,-50%); }
+.tile-edit-arrow.south-east { right: 0; bottom: 0; transform: translate(66%,66%); }
+.tile-edit-arrow.south      { left: 50%; bottom: 0; transform: translate(-50%,110%); }
+.tile-edit-arrow.south-west { left: 0; bottom: 0; transform: translate(-66%,66%); }
+.tile-edit-arrow.west       { left: 0; top: 50%; transform: translate(-110%,-50%); }
+
+/* page-arrow.png is the established character-sheet arrow art. The same image
+   is rotated to provide all eight one-pixel nudge directions. */
+.tile-edit-arrow.east img       { transform: rotate(0deg); }
+.tile-edit-arrow.south-east img { transform: rotate(45deg); }
+.tile-edit-arrow.south img      { transform: rotate(90deg); }
+.tile-edit-arrow.south-west img { transform: rotate(135deg); }
+.tile-edit-arrow.west img       { transform: rotate(180deg); }
+.tile-edit-arrow.north-west img { transform: rotate(225deg); }
+.tile-edit-arrow.north img      { transform: rotate(270deg); }
+.tile-edit-arrow.north-east img { transform: rotate(315deg); }
+
+@media (pointer: coarse) {
+    .tile-edit-arrow,
+    .tile-edit-lock {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        min-height: 34px;
+    }
+}
