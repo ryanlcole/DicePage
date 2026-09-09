@@ -27,7 +27,7 @@ public partial class WorldBuilderStudio
         return Math.Clamp((int)Math.Round(1.0 / zoom), 1, 300);
     }
 
-    TileItem CreateViewerTile(AtlasTile tile, int column, int row, int footprint)
+    TileItem CreateViewerTile(AtlasTile tile, int column, int row, int footprint, string treatment = "normal")
     {
         var x = column / (double)WorldSession.GridColumns;
         var y = row / (double)WorldSession.GridRows;
@@ -53,12 +53,24 @@ public partial class WorldBuilderStudio
             PlaneIndex = Session.PlaneIndex,
             TierIndex = Session.TierIndex,
             LayerOffset = Session.LayerOffset,
-            RotationQuarterTurns = 0
+            RotationQuarterTurns = 0,
+            PlacementTreatment = NormalizeTreatment(treatment)
         };
     }
 
-    void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1) =>
-        Session.PlacedTiles.Add(CreateViewerTile(tile, column, row, footprint));
+    static string NormalizeTreatment(string? value) => value?.ToLowerInvariant() switch
+    {
+        "blend" => "blend",
+        "crop" => "crop",
+        _ => "normal"
+    };
+
+    void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1, bool upperLayer = false, string treatment = "normal")
+    {
+        var placed = CreateViewerTile(tile, column, row, footprint, treatment);
+        if (upperLayer) Session.AddPlacedTileAtSceneDelta(placed, 1);
+        else Session.PlacedTiles.Add(placed);
+    }
 
     async Task<(int Column,int Row)?> ViewerCell(double clientX, double clientY, int footprint)
     {
@@ -131,6 +143,10 @@ public partial class WorldBuilderStudio
         var cell = await ViewerCell(clientX, clientY, footprint);
         if (cell is null) return false;
 
+        PlacementChoice choice;
+        try { choice = await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume"); }
+        catch { choice = new(false, "normal"); }
+        var treatment = NormalizeTreatment(choice.Treatment);
         var tile = _quickTiles[quickIndex];
         var visibleColumns = Math.Min(footprint, WorldSession.GridColumns);
         var visibleRows = Math.Min(footprint, WorldSession.GridRows);
@@ -142,11 +158,11 @@ public partial class WorldBuilderStudio
         {
             for (var y = 0; y < visibleRows; y++)
                 for (var x = 0; x < visibleColumns; x++)
-                    AddViewerTile(tile, cell.Value.Column + x, cell.Value.Row + y, 1);
+                    AddViewerTile(tile, cell.Value.Column + x, cell.Value.Row + y, 1, choice.UpperLayer, treatment);
         }
         else
         {
-            AddViewerTile(tile, cell.Value.Column, cell.Value.Row, footprint);
+            AddViewerTile(tile, cell.Value.Column, cell.Value.Row, footprint, choice.UpperLayer, treatment);
         }
 
         Session.Notify();
@@ -223,5 +239,6 @@ public partial class WorldBuilderStudio
             _selectedPlacedTileIndices.Count));
 }
 
+public sealed record PlacementChoice(bool UpperLayer, string Treatment);
 public sealed record WorldBuilderCommandState(string PlacementMode, bool CanUndo, int SelectedCount);
 public sealed record WorldBuilderTileVisual(int Index, int RotationQuarterTurns);
