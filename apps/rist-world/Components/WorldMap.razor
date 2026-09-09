@@ -131,7 +131,7 @@
     <div class="grid @Session.GridStyle"></div>
     @foreach(var t in Session.PlacedTiles)
     {
-     <div class="tile-cell @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t) @Session.RecursiveRegionBoundaryClasses(t)" style="@TileStyle(t)" @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="@(!Session.MapLocked)" @oncontextmenu:preventDefault="true" data-zone="@t.ZoneId" aria-label="@t.Name"><span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span></div>
+     <div class="tile-cell treatment-@t.PlacementTreatment @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t) @Session.RecursiveRegionBoundaryClasses(t)" style="@TileStyle(t)" @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="@(!Session.MapLocked)" @oncontextmenu:preventDefault="true" data-zone="@t.ZoneId" aria-label="@t.Name"><span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span></div>
     }
     @foreach(var zone in Session.MapZoneLabels){<div class="map-zone-label @(zone.Locked?"locked":"")" style="left:@Pct(zone.X);top:@Pct(zone.Y)">@zone.Label</div>}
     @foreach(var roll in Session.Rolls){var die=Session.Dice(roll.Key);if(die is not null){<div class="rolled-die die-@die.Key" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>}}
