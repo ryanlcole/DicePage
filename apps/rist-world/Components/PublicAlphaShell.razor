@@ -1,4 +1,5 @@
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @if (!_workspaceOpen)
 {
@@ -62,10 +63,43 @@ else
 }
 
 @code {
+ const string WorkspaceStorageKey="rist.shell.workspace.v1";
  bool _workspaceOpen;
+ bool _workspaceRestored;
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLD BUILDING";
  string _workspaceHint = "BUILD → ZOOM → PLACE → SAVE";
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender||_workspaceRestored)return;
+  _workspaceRestored=true;
+  try
+  {
+   var mode=await JS.InvokeAsync<string?>("localStorage.getItem",WorkspaceStorageKey);
+   if(!string.IsNullOrWhiteSpace(mode)&&mode!="hub")
+   {
+    ApplyWorkspace(mode);
+    _workspaceOpen=true;
+    StateHasChanged();
+   }
+  }
+  catch{}
+ }
+
+ void ApplyWorkspace(string mode)
+ {
+  switch(mode)
+  {
+   case "viewer":_workspaceMode="viewer";_workspaceLabel="MAP VIEWER";_workspaceHint="WORLD → REGION → LOCAL → SITE → ROOM → TACTICAL";break;
+   case "campaign":_workspaceMode="campaign";_workspaceLabel="CAMPAIGN EDITING";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
+   case "assets":_workspaceMode="assets";_workspaceLabel="ASSET CREATION";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
+   case "roleplay":_workspaceMode="roleplay";_workspaceLabel="ROLEPLAY";_workspaceHint="CHARACTER → DICE → ENCOUNTER → REPLAY";break;
+   case "manage":_workspaceMode="manage";_workspaceLabel="SAVE · SHARE · RETURN";_workspaceHint="SAVE → SYNC → SHARE → EXPORT";break;
+   case "feedback":_workspaceMode="feedback";_workspaceLabel="FEEDBACK";_workspaceHint="REPORT → CONTEXT → SEND";break;
+   default:_workspaceMode="world";_workspaceLabel="WORLD BUILDING";_workspaceHint="BUILD → ZOOM → PLACE → SAVE";break;
+  }
+ }
 
  void OpenWorkspace(string mode,string label,string hint)
  {
@@ -73,6 +107,12 @@ else
   _workspaceLabel=label;
   _workspaceHint=hint;
   _workspaceOpen=true;
+  _=PersistWorkspaceAsync(mode);
+ }
+
+ async Task PersistWorkspaceAsync(string mode)
+ {
+  try{await JS.InvokeVoidAsync("localStorage.setItem",WorkspaceStorageKey,mode);}catch{}
  }
 
  void OpenWorldbuilding()=>OpenWorkspace("world","WORLD BUILDING","BUILD → ZOOM → PLACE → SAVE");
@@ -85,5 +125,5 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void ReturnToHub()=>_workspaceOpen=false;
+ void ReturnToHub(){_workspaceOpen=false;_=PersistWorkspaceAsync("hub");}
 }
