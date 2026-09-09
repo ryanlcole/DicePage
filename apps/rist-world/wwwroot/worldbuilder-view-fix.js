@@ -5,10 +5,18 @@ let pointers=new Map();
 let panX=0;
 let panY=0;
 let navigationMode=false;
+let explicitMode=null;
 
 function studio(){return document.querySelector('.worldbuilder-studio');}
 function viewer(){return studio()?.querySelector('.studio-viewer-canvas');}
 function stage(){return studio()?.querySelector('.world-stage');}
+function uiNavigationMode(){
+ const root=studio();
+ if(!root)return false;
+ const button=[...root.querySelectorAll('.studio-command-rail button')]
+  .find(node=>node.querySelector('strong')?.textContent?.trim()==='Z-Lock');
+ return button?.querySelector('small')?.textContent?.trim()==='Unlocked';
+}
 
 function ensureStyle(){
  if(style)return;
@@ -19,10 +27,7 @@ function ensureStyle(){
    transform:translate(var(--wb-pan-x,0px),var(--wb-pan-y,0px)) scale(var(--wb-z-scale,1))!important;
    transform-origin:center center!important;
   }
-  .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{
-   pointer-events:none!important;
-   cursor:default!important;
-  }
+  .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
   .wb-underlay-host{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
   .wb-underlay-tile{position:absolute;box-sizing:border-box;overflow:hidden;pointer-events:none;border:0;outline:0}
@@ -34,6 +39,7 @@ function ensureStyle(){
 }
 
 function syncMode(){
+ navigationMode=explicitMode??uiNavigationMode();
  const root=studio();
  if(!root)return;
  root.classList.toggle('wb-z-unlocked',navigationMode);
@@ -45,7 +51,8 @@ function syncMode(){
 }
 
 export function setNavigationMode(enabled){
- navigationMode=!!enabled;
+ explicitMode=!!enabled;
+ navigationMode=explicitMode;
  if(!navigationMode)pointers.clear();
  syncMode();
 }
@@ -62,8 +69,6 @@ function onPointerDown(event){
  syncMode();
  if(!shouldHandle(event))return;
  pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
- // Do not stop sibling document listeners. worldbuilder-z-axis owns two-finger
- // Z traversal; this helper owns only one-finger camera pan/compositing.
  event.preventDefault();
  event.stopPropagation();
 }
@@ -86,17 +91,14 @@ function onPointerMove(event){
 function release(event){
  if(!pointers.has(event.pointerId))return;
  pointers.delete(event.pointerId);
- if(navigationMode){
-  event.preventDefault();
-  event.stopPropagation();
- }
+ if(navigationMode){event.preventDefault();event.stopPropagation();}
 }
 
 function onWheel(event){
  syncMode();
  if(!shouldHandle(event))return;
- // Z-axis module owns wheel/pinch scale and boundary traversal. Stop the map's
- // legacy wheel handler without suppressing sibling document listeners.
+ // worldbuilder-z-axis owns continuous scale and layer-boundary traversal.
+ // This only keeps the legacy map wheel handler from also zooming.
  event.stopPropagation();
 }
 
@@ -108,12 +110,7 @@ function cropStyle(tile){
  const cropWidth=Number(tile.cropWidth??tile.CropWidth??0);
  const cropHeight=Number(tile.cropHeight??tile.CropHeight??0);
  if(sourceWidth<=0||sourceHeight<=0||cropWidth<=0||cropHeight<=0)return null;
- return {
-  width:`${sourceWidth*100/cropWidth}%`,
-  height:`${sourceHeight*100/cropHeight}%`,
-  left:`${-cropX*100/cropWidth}%`,
-  top:`${-cropY*100/cropHeight}%`
- };
+ return {width:`${sourceWidth*100/cropWidth}%`,height:`${sourceHeight*100/cropHeight}%`,left:`${-cropX*100/cropWidth}%`,top:`${-cropY*100/cropHeight}%`};
 }
 
 export function renderUnderlay(tiles,currentSceneZ){
@@ -138,34 +135,24 @@ export function renderUnderlay(tiles,currentSceneZ){
   const sceneZ=Number(tile.sceneZ??tile.SceneZ??0);
   const depth=Math.max(1,current-sceneZ);
   cell.style.opacity=String(Math.max(.42,.94-Math.min(depth,14)*.03));
-  const crop=document.createElement('span');
-  crop.className='wb-underlay-crop';
-  const img=document.createElement('img');
-  img.src=tile.image??tile.Image??'';
-  img.alt='';
-  const css=cropStyle(tile);
-  if(css)Object.assign(img.style,css);else{img.style.width='100%';img.style.height='100%';}
-  const turns=Number(tile.rotationQuarterTurns??tile.RotationQuarterTurns??0);
-  img.style.transform=`rotate(${turns*90}deg)`;
-  crop.appendChild(img);
-  cell.appendChild(crop);
-  host.appendChild(cell);
+  const crop=document.createElement('span');crop.className='wb-underlay-crop';
+  const img=document.createElement('img');img.src=tile.image??tile.Image??'';img.alt='';
+  const css=cropStyle(tile);if(css)Object.assign(img.style,css);else{img.style.width='100%';img.style.height='100%';}
+  const turns=Number(tile.rotationQuarterTurns??tile.RotationQuarterTurns??0);img.style.transform=`rotate(${turns*90}deg)`;
+  crop.appendChild(img);cell.appendChild(crop);host.appendChild(cell);
  }
  const firstCurrent=s.querySelector(':scope > .tile-cell');
  if(firstCurrent)s.insertBefore(host,firstCurrent);else s.appendChild(host);
 }
 
 export function attach(dotnet){
- bridge=dotnet;
- ensureStyle();
- syncMode();
+ bridge=dotnet;ensureStyle();syncMode();
  document.addEventListener('pointerdown',onPointerDown,true);
  document.addEventListener('pointermove',onPointerMove,true);
  document.addEventListener('pointerup',release,true);
  document.addEventListener('pointercancel',release,true);
  document.addEventListener('wheel',onWheel,{capture:true,passive:false});
- observer=new MutationObserver(syncMode);
- observer.observe(document.body,{childList:true,subtree:true});
+ observer=new MutationObserver(syncMode);observer.observe(document.body,{childList:true,subtree:true,characterData:true});
  return true;
 }
 
@@ -175,9 +162,8 @@ export function dispose(){
  document.removeEventListener('pointerup',release,true);
  document.removeEventListener('pointercancel',release,true);
  document.removeEventListener('wheel',onWheel,true);
- observer?.disconnect();observer=null;
- pointers.clear();
+ observer?.disconnect();observer=null;pointers.clear();
  document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
  document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked');
- style?.remove();style=null;bridge=null;
+ style?.remove();style=null;bridge=null;explicitMode=null;
 }
