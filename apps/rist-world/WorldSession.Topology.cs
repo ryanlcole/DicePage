@@ -38,15 +38,9 @@ public sealed partial class WorldSession
 
     public void MoveTier(int delta)
     {
-        if (delta == 0) return;
-        var next=checked(TierIndex+delta);
-        if(!IsLoggedIn)next=Math.Clamp(next,0,GuestTierCount-1);
-        if(next==TierIndex)return;
-        StoreCurrentSpatialPage();
-        TierIndex = next;
-        LayerOffset = 0;
-        LoadCurrentSpatialPage();
-        Notify();
+        // Tier is a view of the same Z axis. Preserve the current layer while
+        // moving one complete tier so manual controls and pinch traversal agree.
+        MoveSceneTier(delta);
     }
 
     public void MovePlane(int delta)
@@ -60,23 +54,15 @@ public sealed partial class WorldSession
 
     public void MoveLayer(int delta)
     {
-        if (delta == 0) return;
-        var nextLayer = Math.Clamp(LayerOffset + delta, 0, LayersPerTier - 1);
-        if(nextLayer==LayerOffset)return;
-        StoreCurrentSpatialPage();
-        LayerOffset = nextLayer;
-        LoadCurrentSpatialPage();
-        Notify();
+        // Layers flow continuously across tier boundaries instead of clamping.
+        MoveSceneZ(delta);
     }
 
     public void SetLayerOffset(int offset)
     {
         var next=Math.Clamp(offset,0,LayersPerTier-1);
         if(next==LayerOffset)return;
-        StoreCurrentSpatialPage();
-        LayerOffset=next;
-        LoadCurrentSpatialPage();
-        Notify();
+        SetSceneZ(checked((TierIndex*LayersPerTier)+next));
     }
 
     public void SetWorldCube(int x, int y, int z, WorldCubeRole role)
