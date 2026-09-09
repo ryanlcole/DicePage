@@ -22,25 +22,28 @@ function ensureBottomControls() {
     group.className = 'rist-tile-edit-bottom';
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', 'Selected tile controls');
+    group.style.display = 'none';
 
     const smaller = document.createElement('button');
     smaller.type = 'button';
     smaller.className = 'rist-app-slider-button tile-size-down';
     smaller.textContent = 'Size −';
+    smaller.setAttribute('aria-label', 'Make selected tile smaller');
     smaller.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      bridge.invokeMethodAsync('ResizeSelectedTile', false);
+      bridge?.invokeMethodAsync('ResizeSelectedTile', false);
     });
 
     const larger = document.createElement('button');
     larger.type = 'button';
     larger.className = 'rist-app-slider-button tile-size-up';
     larger.textContent = 'Size +';
+    larger.setAttribute('aria-label', 'Make selected tile larger');
     larger.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      bridge.invokeMethodAsync('ResizeSelectedTile', true);
+      bridge?.invokeMethodAsync('ResizeSelectedTile', true);
     });
 
     const lock = document.createElement('button');
@@ -48,10 +51,11 @@ function ensureBottomControls() {
     lock.className = 'rist-app-slider-button tile-lock-commit';
     lock.textContent = 'Lock Tile';
     lock.disabled = true;
+    lock.setAttribute('aria-label', 'Lock selected tile and autosave');
     lock.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      if (!lock.disabled) bridge.invokeMethodAsync('CommitTileLock');
+      if (!lock.disabled) bridge?.invokeMethodAsync('CommitTileLock');
     });
 
     group.append(smaller, larger, lock);
@@ -88,22 +92,34 @@ export function updateBottomState(hasTile, lockArmed) {
   ensureBottomControls();
   const group = document.querySelector('#rist-app-home-slider .rist-tile-edit-bottom');
   if (!group) return;
-  group.hidden = !hasTile;
+  group.style.display = hasTile ? 'contents' : 'none';
   group.querySelectorAll('.tile-size-down,.tile-size-up').forEach(button => button.disabled = !hasTile);
   const lock = group.querySelector('.tile-lock-commit');
   if (lock) {
     lock.disabled = !hasTile || !lockArmed;
     lock.classList.toggle('armed', !!lockArmed);
+    lock.setAttribute('aria-pressed', lockArmed ? 'true' : 'false');
   }
 }
 
+export function syncRotations(rotations) {
+  const values = Array.isArray(rotations) ? rotations : [];
+  tileCells().forEach((tile, index) => {
+    const crop = tile.querySelector(':scope > .tile-image-crop');
+    if (!crop) return;
+    const quarterTurns = Number(values[index] || 0);
+    crop.style.transformOrigin = '50% 50%';
+    crop.style.transform = `rotate(${quarterTurns * 90}deg)`;
+  });
+}
+
 export function positionOverlay(element, index) {
-  if (!element) return null;
+  if (!element) return [0, 0];
   const tile = tileCells()[index];
   const stage = document.querySelector('.world-stage');
   if (!tile || !stage) {
     element.style.display = 'none';
-    return null;
+    return [0, 0];
   }
 
   const rect = tile.getBoundingClientRect();
@@ -114,10 +130,10 @@ export function positionOverlay(element, index) {
   element.style.setProperty('--tile-width', `${rect.width}px`);
   element.style.setProperty('--tile-height', `${rect.height}px`);
 
-  return {
-    pixelX: stageRect.width > 0 ? 1 / stageRect.width : 0,
-    pixelY: stageRect.height > 0 ? 1 / stageRect.height : 0
-  };
+  return [
+    stageRect.width > 0 ? 1 / stageRect.width : 0,
+    stageRect.height > 0 ? 1 / stageRect.height : 0
+  ];
 }
 
 export function dispose() {
