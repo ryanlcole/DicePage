@@ -1,0 +1,137 @@
+/* Viewer frame dimensional authority: X/Y control visible square count; Z controls cube scale. */
+.map-shell .map {
+    --rist-grid-columns: 30;
+    --rist-grid-rows: 30;
+    --rist-grid-aspect: 1;
+    width: min(100cqw, calc(100cqh * var(--rist-grid-aspect))) !important;
+    height: min(100cqh, calc(100cqw / var(--rist-grid-aspect))) !important;
+    aspect-ratio: var(--rist-grid-aspect) !important;
+    --rist-grid-tile-x: calc(100cqw / var(--rist-grid-columns));
+    --rist-grid-tile-y: calc(100cqh / var(--rist-grid-rows));
+    --rist-grid-subcell-x: calc(var(--rist-grid-tile-x) / 10);
+    --rist-grid-subcell-y: calc(var(--rist-grid-tile-y) / 10);
+}
+
+.map-shell .base.ocean-world {
+    background-size: var(--rist-grid-tile-x) var(--rist-grid-tile-y) !important;
+}
+
+.map-shell .world-stage > .grid.square {
+    background-size:
+        var(--rist-grid-tile-x) var(--rist-grid-tile-y),
+        var(--rist-grid-tile-x) var(--rist-grid-tile-y),
+        var(--rist-grid-subcell-x) var(--rist-grid-subcell-y),
+        var(--rist-grid-subcell-x) var(--rist-grid-subcell-y) !important;
+}
+
+.viewer-frame-controls {
+    position: fixed;
+    inset: 0;
+    z-index: 2147478000;
+    pointer-events: none;
+    color: #e5cf8b;
+    font: 700 10px/1.1 system-ui,-apple-system,sans-serif;
+}
+.viewer-frame-controls[hidden] { display: none !important; }
+.viewer-edge-control {
+    position: fixed;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    touch-action: none;
+    user-select: none;
+}
+.viewer-edge-control input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    accent-color: #d7be80;
+    cursor: pointer;
+    touch-action: none;
+}
+.viewer-edge-control input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 99px;
+    background: rgba(215,190,128,.62);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.6);
+}
+.viewer-edge-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -8.5px;
+    border-radius: 50%;
+    border: 1px solid #f1dda3;
+    background: #15191b;
+    box-shadow: 0 0 0 2px rgba(215,190,128,.24);
+}
+.viewer-edge-readout {
+    flex: 0 0 auto;
+    padding: 3px 5px;
+    border: 1px solid rgba(215,190,128,.45);
+    border-radius: 5px;
+    background: rgba(3,8,12,.86);
+    white-space: nowrap;
+}
+.viewer-edge-x {
+    left: calc(var(--viewer-map-left) + 38px);
+    top: calc(var(--viewer-map-top) + var(--viewer-map-height) - 18px);
+    width: calc(var(--viewer-map-width) - 76px);
+    flex-direction: row;
+}
+.viewer-edge-x input { width: 100%; }
+.viewer-edge-y,
+.viewer-edge-z {
+    top: calc(var(--viewer-map-top) + 38px);
+    height: calc(var(--viewer-map-height) - 76px);
+    flex-direction: column;
+}
+.viewer-edge-y { left: calc(var(--viewer-map-left) + 3px); }
+.viewer-edge-z { left: calc(var(--viewer-map-left) + var(--viewer-map-width) - 27px); }
+.viewer-edge-y input,
+.viewer-edge-z input {
+    position: absolute;
+    top: 50%;
+    width: calc(var(--viewer-map-height) - 96px);
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center;
+}
+.viewer-edge-y .viewer-edge-readout,
+.viewer-edge-z .viewer-edge-readout {
+    position: absolute;
+    top: -32px;
+}
+.viewer-edge-y .viewer-edge-readout { left: -2px; }
+.viewer-edge-z .viewer-edge-readout { right: -2px; }
+.viewer-scale-readout {
+    position: fixed;
+    left: calc(var(--viewer-map-left) + 34px);
+    top: calc(var(--viewer-map-top) + 5px);
+    width: calc(var(--viewer-map-width) - 68px);
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: .92;
+}
+
+.world-context-track {
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+}
+.map .status {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+}
+
+@media (max-width: 640px) {
+    .viewer-edge-readout { font-size: 9px; padding: 2px 4px; }
+    .viewer-edge-x { left: calc(var(--viewer-map-left) + 30px); width: calc(var(--viewer-map-width) - 60px); }
+    .viewer-edge-y { left: calc(var(--viewer-map-left) + 1px); }
+    .viewer-edge-z { left: calc(var(--viewer-map-left) + var(--viewer-map-width) - 24px); }
+    .viewer-scale-readout { left: calc(var(--viewer-map-left) + 30px); width: calc(var(--viewer-map-width) - 60px); }
+}
