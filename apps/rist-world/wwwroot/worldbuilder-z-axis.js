@@ -4,10 +4,10 @@ export function viewerPoint(element,clientX,clientY){
  if(!element)return null;
  const rect=element.getBoundingClientRect();
  if(rect.width<1||rect.height<1)return null;
- return [
-  Math.max(0,Math.min(1,(clientX-rect.left)/rect.width)),
-  Math.max(0,Math.min(1,(clientY-rect.top)/rect.height))
- ];
+ const x=(clientX-rect.left)/rect.width;
+ const y=(clientY-rect.top)/rect.height;
+ if(x<0||x>1||y<0||y>1)return null;
+ return [x,y];
 }
 
 export function beginQuickPointerDrop(dotnet,pointerId){
@@ -36,6 +36,7 @@ export function attach(element,dotnet){
  const pointers=new Map();
  let pinchDistance=0;
  let wheelAccumulator=0;
+ let quickPointer=null;
 
  // World Builder has one and only one grid authority: .studio-viewer-grid.
  // Legacy map/grid helpers may still render their own overlays for other
@@ -103,18 +104,60 @@ export function attach(element,dotnet){
   e.preventDefault();
  };
  const release=e=>{pointers.delete(e.pointerId);if(pointers.size<2)pinchDistance=0;};
+
+ // iOS/Safari does not provide dependable native HTML drag-and-drop for touch.
+ // Bridge touch/pen movement into the same Blazor dragstart/drop handlers the
+ // desktop path already uses, while leaving mouse drag behavior native.
+ const onQuickPointerDown=e=>{
+  if(e.pointerType==='mouse')return;
+  const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');
+  if(!button)return;
+  quickPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,moved:false,button};
+  button.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
+ };
+ const onQuickPointerMove=e=>{
+  if(!quickPointer||e.pointerId!==quickPointer.id)return;
+  if(Math.abs(e.clientX-quickPointer.startX)+Math.abs(e.clientY-quickPointer.startY)>8)quickPointer.moved=true;
+  if(quickPointer.moved)e.preventDefault();
+ };
+ const onQuickPointerUp=e=>{
+  if(!quickPointer||e.pointerId!==quickPointer.id)return;
+  const current=quickPointer;
+  quickPointer=null;
+  if(current.moved){
+   const target=document.elementFromPoint(e.clientX,e.clientY);
+   const viewer=target?.closest?.('.worldbuilder-studio .studio-viewer-canvas');
+   if(viewer) viewer.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
+  }
+  current.button.dispatchEvent(new DragEvent('dragend',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
+ };
+ const onQuickPointerCancel=e=>{
+  if(!quickPointer||e.pointerId!==quickPointer.id)return;
+  const current=quickPointer;quickPointer=null;
+  current.button.dispatchEvent(new DragEvent('dragend',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
+ };
+
  element.addEventListener('wheel',onWheel,{passive:false});
  element.addEventListener('pointerdown',onPointerDown,{passive:true});
  element.addEventListener('pointermove',onPointerMove,{passive:false});
  element.addEventListener('pointerup',release,{passive:true});
  element.addEventListener('pointercancel',release,{passive:true});
+ document.addEventListener('pointerdown',onQuickPointerDown,true);
+ document.addEventListener('pointermove',onQuickPointerMove,{capture:true,passive:false});
+ document.addEventListener('pointerup',onQuickPointerUp,true);
+ document.addEventListener('pointercancel',onQuickPointerCancel,true);
  return {dispose(){
   element.removeEventListener('wheel',onWheel);
   element.removeEventListener('pointerdown',onPointerDown);
   element.removeEventListener('pointermove',onPointerMove);
   element.removeEventListener('pointerup',release);
   element.removeEventListener('pointercancel',release);
+  document.removeEventListener('pointerdown',onQuickPointerDown,true);
+  document.removeEventListener('pointermove',onQuickPointerMove,true);
+  document.removeEventListener('pointerup',onQuickPointerUp,true);
+  document.removeEventListener('pointercancel',onQuickPointerCancel,true);
   pointers.clear();
+  quickPointer=null;
   if(quickDropCleanup)quickDropCleanup();
   const style=document.getElementById(styleId);
   if(style)style.remove();
