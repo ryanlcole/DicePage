@@ -1,6 +1,5 @@
 @implements IDisposable
 @inject WorldSession Session
-@inject IJSRuntime JS
 
 <div id="viewer-frame-controls"
      class="viewer-frame-controls"
@@ -28,11 +27,6 @@
 
 @code {
     protected override void OnInitialized() => Session.Changed += Refresh;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await JS.InvokeVoidAsync("ristViewerFrame.sync");
-    }
 
     void Refresh() => InvokeAsync(StateHasChanged);
 
