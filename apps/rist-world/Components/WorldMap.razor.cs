@@ -63,7 +63,7 @@ public partial class WorldMap:IDisposable
  static string PieceStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)}";
  static string TileStyle(TileItem t)
  {
-  var zoom=Math.Max(t.PlacementZoom,.01);var inv=CultureInfo.InvariantCulture;
+  var zoom=Math.Max(t.PlacementZoom,1.0/300.0);var inv=CultureInfo.InvariantCulture;
   return $"left:{Pct(t.X)};top:{Pct(t.Y)};width:{(100.0/WorldSession.GridColumns/zoom).ToString("0.###",inv)}%;height:{(100.0/WorldSession.GridRows/zoom).ToString("0.###",inv)}%";
  }
  static string CropStyle(int sourceWidth,int sourceHeight,int cropX,int cropY,int cropWidth,int cropHeight)
