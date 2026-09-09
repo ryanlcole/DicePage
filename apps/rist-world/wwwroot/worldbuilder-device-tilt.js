@@ -28,7 +28,7 @@
  };
 
  window.ristMotionPermission={
-  state(){return [state.permission,state.enabled];},
+  state(){return state.permission;},
   async request(){return await requestPermission();}
  };
 
