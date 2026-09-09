@@ -51,6 +51,7 @@ export function attach(element,dotnet){
  let quickDragIndex=-1;
  let selectionPointer=null;
  let commandObserver=null;
+ let quickGhost=null;
 
  const studio=element.closest('.worldbuilder-studio');
 
@@ -82,6 +83,16 @@ export function attach(element,dotnet){
     -webkit-user-select:none!important;user-select:none!important;
     -webkit-touch-callout:none!important;touch-action:none!important;
    }
+   .worldbuilder-studio .quick-slot.filled.wb-grabbing{
+    transform:scale(.96);opacity:.72;border-color:#f2cf72!important;
+   }
+   .wb-quick-drag-ghost{
+    position:fixed!important;z-index:2147483000!important;pointer-events:none!important;
+    width:84px;height:64px;border:2px solid #f2cf72;border-radius:10px;overflow:hidden;
+    background:#0d171e;box-shadow:0 10px 28px #000b;transform:translate(-50%,-50%) scale(1.06);
+   }
+   .wb-quick-drag-ghost img{width:100%;height:100%;object-fit:cover;display:block}
+   .wb-quick-drag-ghost span{position:absolute;left:0;right:0;bottom:0;padding:4px;background:#000c;color:#fff1bd;font:800 9px/1 system-ui;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
    .worldbuilder-studio .world-stage .tile-cell.wb-selected{
     outline:3px solid #f2cf72!important;outline-offset:-3px!important;
     box-shadow:inset 0 0 0 2px rgba(12,30,40,.85)!important;
@@ -184,6 +195,22 @@ export function attach(element,dotnet){
   try{const placed=await dotnet.invokeMethodAsync('PlaceQuickTileFromJs',index,clientX,clientY);if(placed){applySelection([]);await syncCommandControls();}}catch{}
  };
 
+ const removeGhost=()=>{
+  if(quickGhost){quickGhost.remove();quickGhost=null;}
+ };
+ const createGhost=(button,x,y)=>{
+  removeGhost();
+  quickGhost=document.createElement('div');
+  quickGhost.className='wb-quick-drag-ghost';
+  const img=button.querySelector('img');
+  const label=button.querySelector('span');
+  if(img){const ghostImg=document.createElement('img');ghostImg.src=img.src;ghostImg.alt='';quickGhost.appendChild(ghostImg);}
+  if(label){const ghostLabel=document.createElement('span');ghostLabel.textContent=label.textContent||'';quickGhost.appendChild(ghostLabel);}
+  quickGhost.style.left=`${x}px`;quickGhost.style.top=`${y}px`;
+  document.body.appendChild(quickGhost);
+ };
+ const moveGhost=(x,y)=>{if(quickGhost){quickGhost.style.left=`${x}px`;quickGhost.style.top=`${y}px`;}};
+
  const onNativeDragStart=e=>{
   const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');
   if(!button)return;
@@ -203,26 +230,37 @@ export function attach(element,dotnet){
   if(e.pointerType==='mouse')return;
   const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');
   if(!button)return;
-  e.preventDefault();
+  const index=quickIndexFor(button);
+  if(index<0)return;
+  e.preventDefault();e.stopPropagation();
   button.setPointerCapture?.(e.pointerId);
-  quickPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,moved:false,button,index:quickIndexFor(button)};
+  button.classList.add('wb-grabbing');
+  quickPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,moved:false,button,index};
  };
  const onQuickPointerMove=e=>{
   if(!quickPointer||e.pointerId!==quickPointer.id)return;
-  if(Math.abs(e.clientX-quickPointer.startX)+Math.abs(e.clientY-quickPointer.startY)>8)quickPointer.moved=true;
-  e.preventDefault();
+  const distance=Math.abs(e.clientX-quickPointer.startX)+Math.abs(e.clientY-quickPointer.startY);
+  if(!quickPointer.moved&&distance>6){
+   quickPointer.moved=true;
+   createGhost(quickPointer.button,e.clientX,e.clientY);
+  }
+  if(quickPointer.moved)moveGhost(e.clientX,e.clientY);
+  e.preventDefault();e.stopPropagation();
+ };
+ const finishQuickPointer=(e,place)=>{
+  if(!quickPointer||e.pointerId!==quickPointer.id)return;
+  const current=quickPointer;quickPointer=null;
+  current.button.classList.remove('wb-grabbing');
+  current.button.releasePointerCapture?.(e.pointerId);
+  removeGhost();
+  if(place&&current.moved)placeQuick(current.index,e.clientX,e.clientY);
  };
  const onQuickPointerUp=e=>{
   if(!quickPointer||e.pointerId!==quickPointer.id)return;
-  e.preventDefault();
-  const current=quickPointer;quickPointer=null;
-  current.button.releasePointerCapture?.(e.pointerId);
-  if(current.moved)placeQuick(current.index,e.clientX,e.clientY);
+  e.preventDefault();e.stopPropagation();
+  finishQuickPointer(e,true);
  };
- const onQuickPointerCancel=e=>{
-  if(!quickPointer||e.pointerId!==quickPointer.id)return;
-  const current=quickPointer;quickPointer=null;current.button.releasePointerCapture?.(e.pointerId);
- };
+ const onQuickPointerCancel=e=>finishQuickPointer(e,false);
 
  const onSelectPointerDown=e=>{
   const tile=e.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
@@ -275,6 +313,7 @@ export function attach(element,dotnet){
   document.removeEventListener('pointerup',onSelectPointerUp,true);
   commandObserver?.disconnect();
   pointers.clear();quickPointer=null;selectionPointer=null;quickDragIndex=-1;
+  removeGhost();
   if(quickDropCleanup)quickDropCleanup();
   const style=document.getElementById(styleId);if(style)style.remove();
  }};
