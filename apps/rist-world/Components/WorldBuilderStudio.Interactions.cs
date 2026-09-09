@@ -227,8 +227,12 @@ public partial class WorldBuilderStudio
     }
 
     [JSInvokable]
-    public Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals() =>
-        Task.FromResult(Session.PlacedTiles.Select((tile,index) => new WorldBuilderTileVisual(index, tile.RotationQuarterTurns, tile.TierIndex, tile.LayerOffset)).ToArray());
+    public async Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals()
+    {
+        var visuals=Session.PlacedTiles.Select((tile,index) => new WorldBuilderTileVisual(index, tile.RotationQuarterTurns, tile.TierIndex, tile.LayerOffset)).ToArray();
+        try{await JS.InvokeVoidAsync("ristDepth.set",visuals);}catch{}
+        return visuals;
+    }
 
     [JSInvokable]
     public Task<WorldBuilderCommandState> GetWorldBuilderCommandState() =>
