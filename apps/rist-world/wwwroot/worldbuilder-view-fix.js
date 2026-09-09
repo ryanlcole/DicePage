@@ -10,11 +10,14 @@ let explicitMode=null;
 function studio(){return document.querySelector('.worldbuilder-studio');}
 function viewer(){return studio()?.querySelector('.studio-viewer-canvas');}
 function stage(){return studio()?.querySelector('.world-stage');}
-function uiNavigationMode(){
+function zLockButton(){
  const root=studio();
- if(!root)return false;
- const button=[...root.querySelectorAll('.studio-command-rail button')]
-  .find(node=>node.querySelector('strong')?.textContent?.trim()==='Z-Lock');
+ if(!root)return null;
+ return [...root.querySelectorAll('.studio-command-rail button')]
+  .find(node=>node.querySelector('strong')?.textContent?.trim()==='Z-Lock')||null;
+}
+function uiNavigationMode(){
+ const button=zLockButton();
  return button?.querySelector('small')?.textContent?.trim()==='Unlocked';
 }
 
@@ -29,13 +32,40 @@ function ensureStyle(){
   }
   .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
+  .worldbuilder-studio .studio-command-rail .wb-select-command{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}
+  .worldbuilder-studio .studio-command-rail .wb-select-command strong{font:900 12px/1 system-ui;color:#f0ddb0}
+  .worldbuilder-studio .studio-command-rail .wb-select-command small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}
+  .worldbuilder-studio .studio-command-rail .wb-select-command.active{border-color:#d0aa56;background:#201b10}
   .wb-underlay-host{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
   .wb-underlay-tile{position:absolute;box-sizing:border-box;overflow:hidden;pointer-events:none;border:0;outline:0}
   .wb-underlay-tile>.wb-underlay-crop{position:absolute;inset:0;display:block;overflow:hidden;line-height:0}
   .wb-underlay-tile img{position:absolute;display:block;max-width:none;max-height:none;border:0;outline:0;transform-origin:center center}
   .wb-quick-drag-ghost{transform:translate(calc(-50% + var(--wb-thumb-side,70px)),calc(-50% - 88px)) scale(1.06)!important}
+  @media(max-width:760px){.worldbuilder-studio .studio-command-rail .wb-select-command{height:44px;min-width:94px;padding:4px 9px}}
  `;
  document.head.appendChild(style);
+}
+
+function ensureSelectButton(){
+ const root=studio();
+ const rail=root?.querySelector('.studio-command-rail');
+ if(!rail)return null;
+ let button=rail.querySelector('[data-wb-select="true"]');
+ if(button)return button;
+ button=document.createElement('button');
+ button.type='button';
+ button.className='wb-select-command';
+ button.dataset.wbSelect='true';
+ button.innerHTML='<strong>Select</strong><small>Tile Edit</small>';
+ button.addEventListener('click',()=>{
+  const lock=zLockButton();
+  if(lock?.querySelector('small')?.textContent?.trim()==='Unlocked')lock.click();
+  explicitMode=false;
+  syncMode();
+ });
+ const library=rail.querySelector('button');
+ if(library)library.insertAdjacentElement('afterend',button);else rail.prepend(button);
+ return button;
 }
 
 function syncMode(){
@@ -43,6 +73,10 @@ function syncMode(){
  const root=studio();
  if(!root)return;
  root.classList.toggle('wb-z-unlocked',navigationMode);
+ root.classList.toggle('wb-select-mode',!navigationMode);
+ const select=ensureSelectButton();
+ select?.classList.toggle('active',!navigationMode);
+ if(select)select.querySelector('small').textContent=navigationMode?'Tap to Edit':'Tile Edit';
  const s=stage();
  if(s){
   s.style.setProperty('--wb-pan-x',`${panX}px`);
@@ -97,8 +131,6 @@ function release(event){
 function onWheel(event){
  syncMode();
  if(!shouldHandle(event))return;
- // worldbuilder-z-axis owns continuous scale and layer-boundary traversal.
- // This only keeps the legacy map wheel handler from also zooming.
  event.stopPropagation();
 }
 
@@ -164,6 +196,6 @@ export function dispose(){
  document.removeEventListener('wheel',onWheel,true);
  observer?.disconnect();observer=null;pointers.clear();
  document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
- document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked');
+ document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked','wb-select-mode');
  style?.remove();style=null;bridge=null;explicitMode=null;
 }
