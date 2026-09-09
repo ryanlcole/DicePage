@@ -74,6 +74,13 @@ export function attach(element,dotnet){
     display:none!important;
     visibility:hidden!important;
    }
+   .worldbuilder-studio .quick-slot.filled,
+   .worldbuilder-studio .quick-slot.filled *{
+    -webkit-user-select:none!important;
+    user-select:none!important;
+    -webkit-touch-callout:none!important;
+    touch-action:none!important;
+   }
   `;
   document.head.appendChild(gridAuthority);
  }
@@ -112,18 +119,24 @@ export function attach(element,dotnet){
   if(e.pointerType==='mouse')return;
   const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');
   if(!button)return;
+  // Prevent Safari's text-selection/callout gesture from owning the hold before
+  // we can turn it into a tile drag.
+  e.preventDefault();
   quickPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,moved:false,button};
+  try{button.setPointerCapture?.(e.pointerId);}catch{}
   button.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
  };
  const onQuickPointerMove=e=>{
   if(!quickPointer||e.pointerId!==quickPointer.id)return;
   if(Math.abs(e.clientX-quickPointer.startX)+Math.abs(e.clientY-quickPointer.startY)>8)quickPointer.moved=true;
-  if(quickPointer.moved)e.preventDefault();
+  e.preventDefault();
  };
  const onQuickPointerUp=e=>{
   if(!quickPointer||e.pointerId!==quickPointer.id)return;
+  e.preventDefault();
   const current=quickPointer;
   quickPointer=null;
+  try{current.button.releasePointerCapture?.(e.pointerId);}catch{}
   if(current.moved){
    const target=document.elementFromPoint(e.clientX,e.clientY);
    const viewer=target?.closest?.('.worldbuilder-studio .studio-viewer-canvas');
@@ -134,6 +147,7 @@ export function attach(element,dotnet){
  const onQuickPointerCancel=e=>{
   if(!quickPointer||e.pointerId!==quickPointer.id)return;
   const current=quickPointer;quickPointer=null;
+  try{current.button.releasePointerCapture?.(e.pointerId);}catch{}
   current.button.dispatchEvent(new DragEvent('dragend',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY}));
  };
 
@@ -142,9 +156,9 @@ export function attach(element,dotnet){
  element.addEventListener('pointermove',onPointerMove,{passive:false});
  element.addEventListener('pointerup',release,{passive:true});
  element.addEventListener('pointercancel',release,{passive:true});
- document.addEventListener('pointerdown',onQuickPointerDown,true);
+ document.addEventListener('pointerdown',onQuickPointerDown,{capture:true,passive:false});
  document.addEventListener('pointermove',onQuickPointerMove,{capture:true,passive:false});
- document.addEventListener('pointerup',onQuickPointerUp,true);
+ document.addEventListener('pointerup',onQuickPointerUp,{capture:true,passive:false});
  document.addEventListener('pointercancel',onQuickPointerCancel,true);
  return {dispose(){
   element.removeEventListener('wheel',onWheel);
