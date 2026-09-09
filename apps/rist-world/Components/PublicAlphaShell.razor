@@ -38,8 +38,26 @@
    <button type="button" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
-   <button type="button" @onclick="OpenAccessibility"><span>⚙</span>SETTINGS</button>
+   <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
   </section>
+
+  @if(_settingsOpen)
+  {
+   <section class="launcher-settings-backdrop" role="presentation" @onclick="CloseSettings">
+    <div class="launcher-settings" role="dialog" aria-modal="true" aria-label="Start menu settings" @onclick:stopPropagation="true">
+     <header><strong>SETTINGS</strong><button type="button" @onclick="CloseSettings" aria-label="Close settings">×</button></header>
+     <section class="launcher-settings-group" aria-label="Graphics settings">
+      <h2>GRAPHICS</h2>
+      <button type="button" class="launcher-fullscreen" @onclick="ToggleFullscreenAsync">
+       <strong>@(_fullscreen?"EXIT FULL SCREEN":"FULL SCREEN")</strong>
+       <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
+      </button>
+      @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
+     </section>
+     <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY SETTINGS</button>
+    </div>
+   </section>
+  }
 
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
@@ -63,10 +81,20 @@ else
  </div>
 }
 
+<style>
+ .launcher-settings-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
+ .launcher-settings{box-sizing:border-box;width:min(92vw,520px);max-height:88dvh;overflow:auto;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
+ .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
+ .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}
+</style>
+
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
  bool _workspaceOpen;
  bool _workspaceRestored;
+ bool _settingsOpen;
+ bool _fullscreen;
+ bool _fullscreenSupported=true;
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLDBUILDER";
  string _workspaceHint = "WORLD → TIER → LAYER → CUBE";
@@ -108,6 +136,7 @@ else
   _workspaceLabel=label;
   _workspaceHint=hint;
   _workspaceOpen=true;
+  _settingsOpen=false;
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -116,6 +145,10 @@ else
   try{await JS.InvokeVoidAsync("localStorage.setItem",WorkspaceStorageKey,mode);}catch{}
  }
 
+ void OpenSettings(){_settingsOpen=true;_=RefreshFullscreenStateAsync();}
+ void CloseSettings()=>_settingsOpen=false;
+ async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
+ async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenWorldbuilding()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
  void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
@@ -136,5 +169,5 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void ReturnToHub(){_workspaceOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_=PersistWorkspaceAsync("hub");}
 }
