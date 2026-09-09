@@ -68,8 +68,7 @@ public partial class WorldBuilderStudio
     void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1, bool upperLayer = false, string treatment = "normal")
     {
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
-        if (upperLayer) Session.AddPlacedTileAtLayerDelta(placed, 1);
-        else Session.PlacedTiles.Add(placed);
+        Session.AddPlacedTileStacked(placed, upperLayer);
     }
 
     async Task<(int Column,int Row)?> ViewerCell(double clientX, double clientY, int footprint)
@@ -229,7 +228,7 @@ public partial class WorldBuilderStudio
 
     [JSInvokable]
     public Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals() =>
-        Task.FromResult(Session.PlacedTiles.Select((tile,index) => new WorldBuilderTileVisual(index, tile.RotationQuarterTurns)).ToArray());
+        Task.FromResult(Session.PlacedTiles.Select((tile,index) => new WorldBuilderTileVisual(index, tile.RotationQuarterTurns, tile.TierIndex, tile.LayerOffset)).ToArray());
 
     [JSInvokable]
     public Task<WorldBuilderCommandState> GetWorldBuilderCommandState() =>
@@ -241,4 +240,4 @@ public partial class WorldBuilderStudio
 
 public sealed record PlacementChoice(bool UpperLayer, string Treatment);
 public sealed record WorldBuilderCommandState(string PlacementMode, bool CanUndo, int SelectedCount);
-public sealed record WorldBuilderTileVisual(int Index, int RotationQuarterTurns);
+public sealed record WorldBuilderTileVisual(int Index, int RotationQuarterTurns, int TierIndex, int LayerOffset);
