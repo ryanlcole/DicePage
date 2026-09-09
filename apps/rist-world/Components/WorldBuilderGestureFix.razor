@@ -1,0 +1,56 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+@code {
+    IJSObjectReference? Module;
+    DotNetObjectReference<WorldBuilderGestureFix>? Self;
+    bool Disposed;
+    double LastViewZoom = 1;
+
+    protected override void OnInitialized() => Session.Changed += SessionChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Disposed) return;
+        if (firstRender)
+        {
+            Module = await JS.InvokeAsync<IJSObjectReference>("import", "./worldbuilder-view-fix.js?v=20260909-nav-1");
+            Self = DotNetObjectReference.Create(this);
+            await Module.InvokeVoidAsync("attach", Self);
+        }
+
+        if (Module is not null)
+            await Module.InvokeVoidAsync("renderUnderlay", Session.GetWorldBuilderUnderlayTiles(), Session.SceneZ);
+    }
+
+    void SessionChanged()
+    {
+        if (Disposed) return;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task SetWorldBuilderViewZoom(double zoom)
+    {
+        zoom = Math.Clamp(zoom, .5, 5);
+        if (Math.Abs(zoom - LastViewZoom) < .01) return Task.CompletedTask;
+        LastViewZoom = zoom;
+        Session.ViewZoom = zoom;
+        Session.Notify();
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Disposed = true;
+        Session.Changed -= SessionChanged;
+        if (Module is not null)
+        {
+            try { await Module.InvokeVoidAsync("dispose"); await Module.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+        Self?.Dispose();
+    }
+}
