@@ -1,12 +1,52 @@
 let bridge = null;
 let down = null;
 let observer = null;
+let zStyle = null;
 
 function tileCells() {
   return [...document.querySelectorAll('.world-stage > .tile-cell')];
 }
 
+function zNavigationUnlocked() {
+  const control = document.querySelector('.map-lock-button');
+  return !!control && (control.getAttribute('aria-pressed') === 'true' || control.classList.contains('active'));
+}
+
+function ensureZNavigationStyle() {
+  if (zStyle) return;
+  zStyle = document.createElement('style');
+  zStyle.id = 'rist-z-navigation-authority';
+  zStyle.textContent = `
+    html.rist-z-unlocked .map-shell > .map {
+      touch-action: none !important;
+      cursor: grab !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+    html.rist-z-unlocked .map-shell > .map:active { cursor: grabbing !important; }
+    html.rist-z-unlocked .world-stage > .tile-cell,
+    html.rist-z-unlocked .world-stage > .piece {
+      pointer-events: none !important;
+    }
+    html.rist-z-unlocked .tile-edit-overlay,
+    html.rist-z-unlocked #rist-app-home-slider .rist-tile-edit-bottom {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(zStyle);
+}
+
+function syncZNavigationMode() {
+  ensureZNavigationStyle();
+  const unlocked = zNavigationUnlocked();
+  document.documentElement.classList.toggle('rist-z-unlocked', unlocked);
+  const map = document.querySelector('.release-map-region .map-shell > .map, .map-shell > .map');
+  if (map) map.setAttribute('data-z-unlocked', unlocked ? 'true' : 'false');
+  if (unlocked) down = null;
+}
+
 function editableIndexFromTarget(target) {
+  if (zNavigationUnlocked()) return -1;
   const tile = target?.closest?.('.world-stage > .tile-cell.unlocked');
   if (!tile || target?.closest?.('.tile-edit-overlay, .rist-tile-edit-bottom')) return -1;
   return tileCells().indexOf(tile);
@@ -75,35 +115,41 @@ function pointerUp(event) {
   down = null;
   if (Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) > 7) return;
 
-  // Blazor's existing drag path may own pointer capture at this moment. Use the
-  // visible element under the release point so a true tap still resolves to the
-  // tile instead of the capture owner.
   const visibleTarget = document.elementFromPoint(event.clientX, event.clientY);
   const index = editableIndexFromTarget(visibleTarget);
   if (index !== start.index) return;
   bridge?.invokeMethodAsync('SelectTileFromMap', index);
 }
 
+function resync() {
+  ensureBottomControls();
+  syncZNavigationMode();
+}
+
 export function register(dotnet) {
   bridge = dotnet;
   document.addEventListener('pointerdown', pointerDown, true);
   document.addEventListener('pointerup', pointerUp, true);
-  ensureBottomControls();
-  observer = new MutationObserver(ensureBottomControls);
-  observer.observe(document.body, { childList: true, subtree: true });
+  document.addEventListener('click', event => {
+    if (event.target?.closest?.('.map-lock-button')) setTimeout(syncZNavigationMode, 0);
+  }, true);
+  resync();
+  observer = new MutationObserver(resync);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'class'] });
 }
 
 export function updateBottomState(hasTile, lockArmed) {
   ensureBottomControls();
   const group = document.querySelector('#rist-app-home-slider .rist-tile-edit-bottom');
   if (!group) return;
-  group.style.display = hasTile ? 'contents' : 'none';
-  group.querySelectorAll('.tile-size-down,.tile-size-up').forEach(button => button.disabled = !hasTile);
+  const navigates = zNavigationUnlocked();
+  group.style.display = hasTile && !navigates ? 'contents' : 'none';
+  group.querySelectorAll('.tile-size-down,.tile-size-up').forEach(button => button.disabled = !hasTile || navigates);
   const lock = group.querySelector('.tile-lock-commit');
   if (lock) {
-    lock.disabled = !hasTile || !lockArmed;
-    lock.classList.toggle('armed', !!lockArmed);
-    lock.setAttribute('aria-pressed', lockArmed ? 'true' : 'false');
+    lock.disabled = !hasTile || !lockArmed || navigates;
+    lock.classList.toggle('armed', !!lockArmed && !navigates);
+    lock.setAttribute('aria-pressed', lockArmed && !navigates ? 'true' : 'false');
   }
 }
 
@@ -120,6 +166,10 @@ export function syncRotations(rotations) {
 
 export function positionOverlay(element, index) {
   if (!element) return [0, 0];
+  if (zNavigationUnlocked()) {
+    element.style.display = 'none';
+    return [0, 0];
+  }
   const tile = tileCells()[index];
   const stage = document.querySelector('.world-stage');
   if (!tile || !stage) {
@@ -148,5 +198,8 @@ export function dispose() {
   observer = null;
   bridge = null;
   down = null;
+  document.documentElement.classList.remove('rist-z-unlocked');
+  zStyle?.remove();
+  zStyle = null;
   document.querySelector('#rist-app-home-slider .rist-tile-edit-bottom')?.remove();
 }
