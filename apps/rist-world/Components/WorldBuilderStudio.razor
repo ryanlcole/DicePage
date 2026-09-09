@@ -199,7 +199,10 @@
   var staged=Session.StagedAssets.LastOrDefault(x=>x.Key==$"tile:{tile.Id}");
   if(staged is null)return;
   Session.PlaceStaged(staged,column/(double)WorldSession.GridColumns,row/(double)WorldSession.GridRows,1.0/footprint);
+  var placedIndex=Session.PlacedTiles.FindLastIndex(x=>x.Id==tile.Id);
+  if(placedIndex>=0)Session.PlacedTiles[placedIndex]=Session.PlacedTiles[placedIndex] with{PlacementZoom=1.0/footprint};
   Session.RemoveStaged(staged.Key);
+  Session.Notify();
  }
  async Task SaveAsync(){if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();}
  async Task LoadLocalAsync(){await Session.LoadAsync();_loadOpen=false;}
