@@ -4,6 +4,7 @@
  const state={
   enabled:false,
   permissionAsked:false,
+  permission:'unknown',
   baselineBeta:null,
   baselineGamma:null,
   targetX:0,
@@ -16,7 +17,6 @@
 
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
- const viewer=()=>studio()?.querySelector('.studio-viewer-canvas');
  const tiles=()=>studio()?[...studio().querySelectorAll('.world-stage .tile-cell')]:[];
  const zUnlocked=()=>studio()?.classList.contains('wb-z-unlocked')===true;
 
@@ -25,6 +25,11 @@
    state.visuals=Array.isArray(visuals)?visuals:[];
    schedule();
   }
+ };
+
+ window.ristMotionPermission={
+  state(){return [state.permission,state.enabled];},
+  async request(){return await requestPermission();}
  };
 
  function screenAdjusted(beta,gamma){
@@ -85,35 +90,33 @@
  function enable(){
   if(state.enabled)return;
   state.enabled=true;
+  state.permission='granted';
   state.baselineBeta=null;
   state.baselineGamma=null;
   window.addEventListener('deviceorientation',onOrientation,true);
   schedule();
  }
 
- async function requestFromGesture(){
-  if(state.enabled||state.permissionAsked)return;
+ async function requestPermission(){
+  if(state.enabled)return state.permission;
+  if(state.permissionAsked)return state.permission;
   state.permissionAsked=true;
   try{
    const Orientation=window.DeviceOrientationEvent;
-   if(Orientation&&typeof Orientation.requestPermission==='function'){
+   if(!Orientation){state.permission='unsupported';return state.permission;}
+   if(typeof Orientation.requestPermission==='function'){
     const result=await Orientation.requestPermission();
     if(result==='granted')enable();
-    else state.permissionAsked=false;
-   }else if('DeviceOrientationEvent' in window){
+    else state.permission='denied';
+   }else{
     enable();
    }
   }catch{
+   state.permission='denied';
+  }finally{
    state.permissionAsked=false;
   }
- }
-
- function bindViewer(){
-  const target=viewer();
-  if(!target||target.dataset.ristTiltBound==='1')return;
-  target.dataset.ristTiltBound='1';
-  target.addEventListener('pointerup',requestFromGesture,{capture:true,passive:true});
-  target.addEventListener('touchend',requestFromGesture,{capture:true,passive:true});
+  return state.permission;
  }
 
  function resetForOrientationChange(){
@@ -127,7 +130,7 @@
  window.addEventListener('orientationchange',resetForOrientationChange,{passive:true});
  screen.orientation?.addEventListener?.('change',resetForOrientationChange);
 
- bindViewer();
- const observer=new MutationObserver(()=>{bindViewer();schedule();});
+ if('DeviceOrientationEvent' in window&&typeof window.DeviceOrientationEvent?.requestPermission!=='function')enable();
+ const observer=new MutationObserver(schedule);
  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
