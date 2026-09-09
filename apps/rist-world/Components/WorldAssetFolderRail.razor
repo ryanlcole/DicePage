@@ -42,7 +42,12 @@
  {
   @foreach(var tile in Tiles)
   {
-   <button type="button" class="asset-card" draggable="true" @ondragstart="()=>Select(tile)" @onclick="()=>Select(tile)" title="Drag or tap to stage @tile.Name">
+   <button type="button" class="asset-card" draggable="true"
+           @ondragstart="()=>BeginDrag(tile)"
+           @ondragend="EndDrag"
+           @onclick="()=>Pin(tile)"
+           @ondblclick="()=>Pin(tile)"
+           title="Drag to the top quick rail, or tap to pin @tile.Name">
     <img src="@tile.Image" alt="" loading="lazy" draggable="false" />
     <strong>@tile.Name</strong>
    </button>
@@ -61,6 +66,9 @@
 
 @code{
  [Parameter] public EventCallback OnExit { get; set; }
+ [Parameter] public EventCallback<AtlasTile> OnAssetDragStart { get; set; }
+ [Parameter] public EventCallback OnAssetDragEnd { get; set; }
+ [Parameter] public EventCallback<AtlasTile> OnAssetPin { get; set; }
  string? _directory;
  string? _folder;
 
@@ -73,5 +81,7 @@
  void OpenDirectory(string directory){_directory=directory;_folder=null;}
  void OpenFolder(string folder)=>_folder=folder;
  async Task Back(){if(_folder is not null){_folder=null;return;}if(_directory is not null){_directory=null;return;}await OnExit.InvokeAsync();}
- void Select(AtlasTile tile)=>Session.StageTile(tile);
+ Task BeginDrag(AtlasTile tile)=>OnAssetDragStart.InvokeAsync(tile);
+ Task EndDrag()=>OnAssetDragEnd.InvokeAsync();
+ Task Pin(AtlasTile tile)=>OnAssetPin.InvokeAsync(tile);
 }
