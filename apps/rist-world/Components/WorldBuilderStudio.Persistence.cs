@@ -5,6 +5,7 @@ namespace RistWorld.Components;
 public partial class WorldBuilderStudio
 {
     const string WorldBuilderUiStorageKey = "rist.worldbuilder.ui.v1";
+    static readonly int[] PersistedFootprints = [1, 2, 4, 8, 16, 30];
     bool _uiRestoreStarted;
     bool _uiRestoreComplete;
 
@@ -49,7 +50,7 @@ public partial class WorldBuilderStudio
                 if (tile is not null) _quickTiles.Add(tile);
             }
 
-            if (Footprints.Contains(state.TileFootprint))
+            if (PersistedFootprints.Contains(state.TileFootprint))
                 _tileFootprint = state.TileFootprint;
 
             if (Modes.Contains(state.ToolMode, StringComparer.Ordinal))
