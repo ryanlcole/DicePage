@@ -94,8 +94,6 @@
  }
  function onMove(e){
   if(!pointer||pointer.id!==e.pointerId||!zUnlocked())return;
-  const activeTouches=e.pointerType==='touch'?[...document.querySelectorAll(':active')].length:1;
-  // Two-finger motion remains owned by worldbuilder-z-axis.js for Z zoom.
   if(e.pointerType==='touch'&&e.isPrimary===false)return;
   const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;
   pointer.x=e.clientX;pointer.y=e.clientY;
@@ -118,6 +116,21 @@
  `;
  document.head.appendChild(style);
 
+ function annotateDepth(){
+  const cells=[...(studio()?.querySelectorAll('.world-stage .tile-cell')||[])];
+  const source=window.__ristWorldBuilderTileVisuals||[];
+  cells.forEach((tile,index)=>{
+   const visual=source[index]||{};
+   const tier=Number(visual.tierIndex??visual.TierIndex??0);
+   const layer=Number(visual.layerOffset??visual.LayerOffset??0);
+   tile.dataset.tier=String(tier);
+   tile.dataset.layer=String(layer);
+   tile.dataset.sceneZ=String((tier*9)+layer);
+  });
+ }
+
+ const depthObserver=new MutationObserver(()=>requestAnimationFrame(annotateDepth));
+
  function start(){
   const root=studio();if(!root)return setTimeout(start,100);
   const view=canvas();
@@ -127,7 +140,9 @@
   view?.addEventListener('pointercancel',release,{passive:true});
   observer=new MutationObserver(()=>requestAnimationFrame(syncMode));
   observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-footprint']});
+  depthObserver.observe(root,{childList:true,subtree:true});
   syncMode();
+  annotateDepth();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
