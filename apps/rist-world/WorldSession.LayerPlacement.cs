@@ -2,43 +2,67 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    static double TileFootprintWidth(TileItem tile)=>Math.Clamp(1.0/Math.Max(tile.PlacementZoom,1.0/300.0),1,GridColumns)/GridColumns;
+    static double TileFootprintHeight(TileItem tile)=>Math.Clamp(1.0/Math.Max(tile.PlacementZoom,1.0/300.0),1,GridRows)/GridRows;
+
+    static bool TilesOverlap(TileItem a,TileItem b)
+    {
+        var aw=TileFootprintWidth(a);var ah=TileFootprintHeight(a);
+        var bw=TileFootprintWidth(b);var bh=TileFootprintHeight(b);
+        return a.X < b.X+bw && a.X+aw > b.X && a.Y < b.Y+bh && a.Y+ah > b.Y;
+    }
+
+    IEnumerable<TileItem> TerrainInCurrentTier()
+    {
+        var stored=_terrainByAddress
+            .Where(pair=>pair.Key.CubeX==CubeX&&pair.Key.CubeY==CubeY&&pair.Key.CubeZ==CubeZ&&pair.Key.PlaneIndex==PlaneIndex&&pair.Key.TierIndex==TierIndex)
+            .SelectMany(pair=>pair.Value);
+        return stored;
+    }
+
     /// <summary>
-    /// Places terrain at a layer offset relative to the layer currently being viewed
-    /// without changing the viewer's current tier/layer. A delta of +1 means the
-    /// immediately adjacent upper layer, not the next tier.
+    /// Adds terrain to the current tier. Overlapping terrain naturally stacks onto
+    /// the next available layer. A forced upper placement always starts at least one
+    /// layer above the current focus. Stacking never crosses into another tier.
     /// </summary>
-    public void AddPlacedTileAtLayerDelta(TileItem tile, int layerDelta)
+    public void AddPlacedTileStacked(TileItem tile,bool forceUpper=false)
     {
         StoreCurrentSpatialPage();
 
-        var targetSceneZ = checked(SceneZ + layerDelta);
-        if (!IsLoggedIn)
-            targetSceneZ = Math.Clamp(targetSceneZ, 0, (GuestTierCount * LayersPerTier) - 1);
-
-        var targetTier = FloorDiv(targetSceneZ, LayersPerTier);
-        var targetLayer = targetSceneZ - (targetTier * LayersPerTier);
-        var target = new SpatialAddress(CubeX, CubeY, CubeZ, PlaneIndex, targetTier, targetLayer);
-
-        var placed = tile with
+        var candidate=tile with
         {
-            CubeX = CubeX,
-            CubeY = CubeY,
-            CubeZ = CubeZ,
-            PlaneIndex = PlaneIndex,
-            TierIndex = targetTier,
-            LayerOffset = targetLayer
+            CubeX=CubeX,CubeY=CubeY,CubeZ=CubeZ,PlaneIndex=PlaneIndex,TierIndex=TierIndex,
+            LayerOffset=Math.Clamp(LayerOffset,0,LayersPerTier-1)
         };
 
-        if (!_terrainByAddress.TryGetValue(target, out var terrain))
-            terrain = [];
-        else
-            terrain = terrain.ToList();
+        var overlapping=TerrainInCurrentTier().Where(existing=>TilesOverlap(candidate,existing)).ToList();
+        var targetLayer=LayerOffset;
+        if(overlapping.Count>0)targetLayer=Math.Max(targetLayer,overlapping.Max(existing=>existing.LayerOffset)+1);
+        if(forceUpper)targetLayer=Math.Max(targetLayer,LayerOffset+1);
+        targetLayer=Math.Clamp(targetLayer,0,LayersPerTier-1);
 
+        var target=new SpatialAddress(CubeX,CubeY,CubeZ,PlaneIndex,TierIndex,targetLayer);
+        var placed=candidate with{LayerOffset=targetLayer};
+        var terrain=_terrainByAddress.TryGetValue(target,out var existingTerrain)?existingTerrain.ToList():[];
         terrain.Add(placed);
-        _terrainByAddress[target] = terrain;
+        _terrainByAddress[target]=terrain;
 
-        // Keep the user on the layer they were editing. The newly placed tile is
-        // intentionally invisible until they navigate to its target layer.
+        LoadCurrentSpatialPage();
+        Notify();
+    }
+
+    public void AddPlacedTileAtLayerDelta(TileItem tile,int layerDelta)
+    {
+        StoreCurrentSpatialPage();
+        var targetLayer=Math.Clamp(LayerOffset+layerDelta,0,LayersPerTier-1);
+        var target=new SpatialAddress(CubeX,CubeY,CubeZ,PlaneIndex,TierIndex,targetLayer);
+        var placed=tile with
+        {
+            CubeX=CubeX,CubeY=CubeY,CubeZ=CubeZ,PlaneIndex=PlaneIndex,TierIndex=TierIndex,LayerOffset=targetLayer
+        };
+        var terrain=_terrainByAddress.TryGetValue(target,out var existingTerrain)?existingTerrain.ToList():[];
+        terrain.Add(placed);
+        _terrainByAddress[target]=terrain;
         LoadCurrentSpatialPage();
         Notify();
     }
