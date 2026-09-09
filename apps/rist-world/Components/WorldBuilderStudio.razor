@@ -67,7 +67,6 @@
   <div class="studio-viewer-canvas" @ref="_viewerElement">
    <WorldMap />
    <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
-   <div class="studio-viewer-overlays"><AssetLibrary /></div>
    @if(_loadOpen)
    {
     <section class="studio-load-panel" role="dialog" aria-modal="true" aria-label="Load world">
@@ -104,16 +103,23 @@
  </main>
 
  <section class="studio-command-slider" aria-label="World building commands">
-  <div class="studio-command-rail">
-   <button type="button" @onclick="ToggleLibrary"><strong>Library</strong><small>Assets</small></button>
-   <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Z-Lock</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
-   <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@Session.LayerOffset / Z @Session.SceneZ</small></button>
-   <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTiers"><strong>Tiers</strong><small>Tier @Session.TierIndex</small></button>
-   <button type="button" @onclick="ToggleView"><strong>View</strong><small>Grid @(_viewerGrid?"On":"Off")</small></button>
-   <button type="button" @onclick="SaveAsync"><strong>Save</strong><small>World</small></button>
-   <button type="button" class="@(_loadOpen?"active":"")" @onclick="ToggleLoad"><strong>Load</strong><small>Saved / Published</small></button>
-   <button type="button" class="publish @(_publishMode?"active":"")" @onclick="TogglePublish"><strong>Publish</strong><small>To Region</small></button>
-  </div>
+  @if(_libraryRailOpen)
+  {
+   <WorldAssetFolderRail OnExit="CloseLibraryRail" />
+  }
+  else
+  {
+   <div class="studio-command-rail">
+    <button type="button" @onclick="OpenLibraryRail"><strong>Library</strong><small>Assets</small></button>
+    <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Z-Lock</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
+    <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@Session.LayerOffset / Z @Session.SceneZ</small></button>
+    <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTiers"><strong>Tiers</strong><small>Tier @Session.TierIndex</small></button>
+    <button type="button" @onclick="ToggleView"><strong>View</strong><small>Grid @(_viewerGrid?"On":"Off")</small></button>
+    <button type="button" @onclick="SaveAsync"><strong>Save</strong><small>World</small></button>
+    <button type="button" class="@(_loadOpen?"active":"")" @onclick="ToggleLoad"><strong>Load</strong><small>Saved / Published</small></button>
+    <button type="button" class="publish @(_publishMode?"active":"")" @onclick="TogglePublish"><strong>Publish</strong><small>To Region</small></button>
+   </div>
+  }
  </section>
 </div>
 
@@ -121,10 +127,10 @@
  .worldbuilder-studio{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:20px 62px minmax(0,1fr) 62px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}
  .studio-header{min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr) 26px;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017;overflow:hidden}.studio-home,.studio-profile{min-width:0;border:0;background:#0c151d;color:#e4c97d;font-size:12px;font-weight:900;display:grid;place-items:center;padding:0}.studio-home{border-right:1px solid #715b2d}.studio-profile{border-left:1px solid #715b2d;overflow:hidden}.studio-profile img{width:100%;height:100%;object-fit:cover;display:block}.studio-profile span{font-size:8px;color:#7ca5bf}.studio-context-strip{min-width:0;display:flex;align-items:center;gap:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-context-strip::-webkit-scrollbar{display:none}.studio-context-strip button,.studio-context-strip>span{box-sizing:border-box;flex:0 0 auto;height:19px;padding:0 6px;border:0;border-right:1px solid #273943;background:transparent;color:#aeb9be;font:700 7px/19px system-ui;white-space:nowrap}.studio-ticker{color:#e4c97d!important;font-size:7px!important;font-weight:900!important;letter-spacing:.08em!important}.studio-field span{color:#72b4ee;margin-left:2px}.studio-readout strong,.studio-field strong{color:#d8c89c}.studio-readout span{margin-left:2px;color:#c7d2d6}
  .studio-workbench{min-width:0;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);padding:6px}.studio-top-slider{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-top-slider::-webkit-scrollbar{display:none}.studio-top-slider button,.quick-slot{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:72px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 10px/1 system-ui;touch-action:manipulation}.studio-top-slider button.active{border-color:#d0aa56;color:#f4d98d;background:#202015}.slider-back{width:48px;min-width:48px!important;font-size:25px!important}.tools-button{min-width:92px!important;padding:4px 10px!important;display:grid!important;grid-template-rows:auto auto auto!important;place-items:center!important;gap:1px!important;line-height:1!important;white-space:normal!important}.tools-button>strong{font:900 13px/1 system-ui!important;color:#f2dfac!important}.tools-button>small{font:800 7px/1 system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#94a7b2!important}.tools-button>span{font:800 8px/1 system-ui!important;color:#63aef1!important}.quick-slot.empty{display:block;width:64px;min-width:64px;border-style:dashed;opacity:.45}.quick-slot.filled{position:relative;overflow:hidden;padding:0}.quick-slot.filled img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.quick-slot.filled span{position:absolute;z-index:2;inset:auto 0 0;padding:4px;background:#000b;color:#fff1bd;font-size:8px;overflow:hidden;text-overflow:ellipsis}.tool-choice{min-width:96px!important}
- .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none;container-type:size}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:auto!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:calc(100cqw / 30) calc(100cqw / 30)!important;background-repeat:repeat!important;background-position:0 0!important}.studio-viewer-canvas .status,.studio-viewer-canvas .coordinate-system,.studio-viewer-canvas .grid-coordinates{display:none!important}.studio-viewer-grid{position:absolute;inset:0;z-index:30;pointer-events:none;background-image:linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px);background-size:calc(100cqw / 30) calc(100cqw / 30);background-position:0 0;background-repeat:repeat}.studio-viewer-grid.off{display:none}.studio-viewer-overlays{position:absolute;inset:0;z-index:40;pointer-events:none}.studio-viewer-overlays>*{pointer-events:auto}.studio-viewer-canvas .map-asset-filter-toggle,.studio-viewer-canvas .map-asset-filters{display:none!important}.studio-viewer-canvas .map-asset-toolbar{grid-template-columns:auto minmax(110px,1fr) auto 36px!important}
+ .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none;container-type:size}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:auto!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:calc(100cqw / 30) calc(100cqw / 30)!important;background-repeat:repeat!important;background-position:0 0!important}.studio-viewer-canvas .status,.studio-viewer-canvas .coordinate-system,.studio-viewer-canvas .grid-coordinates{display:none!important}.studio-viewer-grid{position:absolute;inset:24px;z-index:30;pointer-events:none;background-image:linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px);background-size:calc((100cqw - 48px) / 30) calc((100cqw - 48px) / 30);background-position:0 0;background-repeat:repeat}.studio-viewer-grid.off{display:none}
  .studio-command-slider{min-width:0;overflow:hidden;border-top:1px solid #715b2d;background:#0a1117;padding:6px}.studio-command-rail{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-command-rail::-webkit-scrollbar{display:none}.studio-command-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}.studio-command-rail button strong{font:900 12px/1 system-ui;color:#f0ddb0}.studio-command-rail button small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}.studio-command-rail button.active{border-color:#d0aa56;background:#201b10}.studio-command-rail button.publish{border-color:#806a39}
  .studio-load-panel{position:absolute;left:10px;right:10px;bottom:10px;z-index:70;display:grid;gap:7px;padding:10px;border:1px solid #8d6a28;border-radius:12px;background:#071015f5;box-shadow:0 8px 28px #000b}.studio-load-panel header{display:flex;align-items:center;justify-content:space-between;color:#e1c77f}.studio-load-panel header button{width:32px;height:32px;border:1px solid #725d30;border-radius:7px;background:#111920;color:#e1c77f;font-size:20px}.studio-load-panel>button{min-height:48px;display:grid;gap:3px;text-align:left;padding:8px 10px;border:1px solid #4b5f69;border-radius:8px;background:#0d171e;color:#eee6d2}.studio-load-panel>button small{color:#8fa5b0}.studio-load-panel>button:disabled{opacity:.45}.studio-mini-panel{position:absolute;left:50%;bottom:10px;z-index:65;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #8d6a28;border-radius:10px;background:#071015f5}.studio-mini-panel button{height:38px;border:1px solid #4b5f69;border-radius:7px;background:#0d171e;color:#e7d29a}.studio-mini-panel button:disabled{opacity:.35}.studio-mini-panel span{white-space:nowrap;font:800 10px/1 system-ui;color:#e7d29a}.studio-publish-banner{position:absolute;left:10px;right:10px;top:10px;z-index:65;padding:8px 10px;border:1px solid #8d6a28;border-radius:8px;background:#211c10ee;color:#f2dda3;font:800 9px/1.25 system-ui;text-align:center}
- @@media(max-width:760px){.worldbuilder-studio{height:100%;padding-bottom:34px;grid-template-rows:18px 58px minmax(0,1fr) 58px}.studio-header{grid-template-columns:24px minmax(0,1fr) 24px}.studio-context-strip button,.studio-context-strip>span{height:17px;line-height:17px;padding:0 5px;font-size:6.5px}.studio-top-slider button,.quick-slot{height:44px}.studio-viewer-canvas .map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important}.studio-command-slider{padding:5px}.studio-command-rail button{height:44px;min-width:94px;padding:4px 9px}}
+ @@media(max-width:760px){.worldbuilder-studio{height:100%;padding-bottom:34px;grid-template-rows:18px 58px minmax(0,1fr) 58px}.studio-header{grid-template-columns:24px minmax(0,1fr) 24px}.studio-context-strip button,.studio-context-strip>span{height:17px;line-height:17px;padding:0 5px;font-size:6.5px}.studio-top-slider button,.quick-slot{height:44px}.studio-command-slider{padding:5px}.studio-command-rail button{height:44px;min-width:94px;padding:4px 9px}.studio-viewer-grid{inset:24px;background-size:calc((100cqw - 48px) / 30) calc((100cqw - 48px) / 30)}}
 </style>
 
 @code{
@@ -142,6 +148,7 @@
  bool _toolsOpen;
  bool _viewerGrid=true;
  bool _zLocked=true;
+ bool _libraryRailOpen;
  bool _loadOpen;
  bool _layerOpen;
  bool _tierOpen;
@@ -149,7 +156,8 @@
  void SelectTool(string mode){_toolMode=mode;_toolsOpen=false;}
  void RemoveQuickTile(AtlasTile tile)=>_quickTiles.Remove(tile);
  Task OpenStartMenu()=>OnStartMenu.InvokeAsync();
- void ToggleLibrary()=>Session.ToggleTileBrowser();
+ async Task OpenLibraryRail(){await EnsureWorldAtlasAsync();_libraryRailOpen=true;_loadOpen=false;_layerOpen=false;_tierOpen=false;_publishMode=false;}
+ void CloseLibraryRail()=>_libraryRailOpen=false;
  void ToggleZLock()=>_zLocked=!_zLocked;
  void ToggleLayers(){_layerOpen=!_layerOpen;_tierOpen=false;_loadOpen=false;}
  void ToggleTiers(){_tierOpen=!_tierOpen;_layerOpen=false;_loadOpen=false;}
@@ -167,7 +175,7 @@
   if(Session.AtlasTiles.Any(x=>!x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase)))return;
   try
   {
-   var catalog=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json?v=20260909-worldbuilder-atlas-1");
+   var catalog=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json?v=20260909-worldbuilder-atlas-2");
    if(catalog is null)return;
    foreach(var tile in catalog)
     if(Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
