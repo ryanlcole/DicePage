@@ -12,8 +12,9 @@ export function viewerPoint(element,clientX,clientY){
 
 export function viewerGridPoint(element,clientX,clientY){
  if(!element)return null;
+ const stage=element.querySelector('.world-stage');
  const grid=element.querySelector('.studio-viewer-grid');
- const rect=(grid||element).getBoundingClientRect();
+ const rect=(stage||grid||element).getBoundingClientRect();
  if(rect.width<1||rect.height<1)return null;
  const x=(clientX-rect.left)/rect.width;
  const y=(clientY-rect.top)/rect.height;
@@ -54,22 +55,26 @@ export function attach(element,dotnet){
   style.id=styleId;
   style.textContent=`
    .worldbuilder-studio .studio-viewer-canvas .map [class*="grid"]{display:none!important;visibility:hidden!important;background:none!important;background-image:none!important;border:0!important;outline:0!important}
-   .worldbuilder-studio .studio-viewer-canvas .map::before,.worldbuilder-studio .studio-viewer-canvas .map::after,.worldbuilder-studio .studio-viewer-canvas .world-stage::before,.worldbuilder-studio .studio-viewer-canvas .world-stage::after{content:none!important;display:none!important;background:none!important;background-image:none!important}
+   .worldbuilder-studio .studio-viewer-canvas .map::before,.worldbuilder-studio .studio-viewer-canvas .map::after,.worldbuilder-studio .studio-viewer-canvas .world-stage::after{content:none!important;display:none!important;background:none!important;background-image:none!important}
    .worldbuilder-studio .studio-viewer-canvas .coordinate-system,.worldbuilder-studio .studio-viewer-canvas .grid-coordinates,.worldbuilder-studio .studio-viewer-canvas .coordinate-grid,.worldbuilder-studio .studio-viewer-canvas .map-grid,.worldbuilder-studio .studio-viewer-canvas .grid-overlay{display:none!important;visibility:hidden!important}
-   .worldbuilder-studio .studio-viewer-canvas .world-stage{inset:var(--viewer-frame)!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important}
-   .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world{background-position:0 0!important}
-   .worldbuilder-studio .world-stage .tile-cell{transform:none!important}
+   .worldbuilder-studio .studio-viewer-canvas .world-stage{inset:var(--viewer-frame)!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;isolation:isolate!important}
+   .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world{background-position:0 0!important;z-index:0!important}
+   .worldbuilder-studio .studio-viewer-canvas .world-stage::before{content:""!important;display:block!important;position:absolute!important;inset:0!important;box-sizing:border-box!important;z-index:1!important;pointer-events:none!important;border:1px solid rgba(215,199,145,.64)!important;background-image:linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px)!important;background-size:calc(100% / 30) calc(100% / 30)!important;background-position:0 0!important;background-repeat:repeat!important}
+   .worldbuilder-studio .studio-viewer-canvas:has(.studio-viewer-grid.off) .world-stage::before{display:none!important}
+   .worldbuilder-studio .studio-viewer-grid{opacity:0!important;background:none!important;border:0!important;pointer-events:none!important;z-index:0!important}
+   .worldbuilder-studio .world-stage .tile-cell{transform:none!important;z-index:2!important;pointer-events:auto!important;touch-action:none!important;cursor:grab!important}
    .worldbuilder-studio .world-stage .tile-cell>.tile-image-crop{transform:rotate(var(--wb-rotation,0deg));transform-origin:center center}
    .worldbuilder-studio .quick-slot.filled,.worldbuilder-studio .quick-slot.filled *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;touch-action:none!important}
    .worldbuilder-studio .quick-slot.filled.wb-grabbing{transform:scale(.96);opacity:.72;border-color:#f2cf72!important}
    .wb-quick-drag-ghost{position:fixed!important;z-index:2147483000!important;pointer-events:none!important;width:84px;height:64px;border:2px solid #f2cf72;border-radius:10px;overflow:hidden;background:#0d171e;box-shadow:0 10px 28px #000b;transform:translate(-50%,-50%) scale(1.06)}
    .wb-quick-drag-ghost img{width:100%;height:100%;object-fit:cover;display:block}.wb-quick-drag-ghost span{position:absolute;left:0;right:0;bottom:0;padding:4px;background:#000c;color:#fff1bd;font:800 9px/1 system-ui;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-   .worldbuilder-studio .world-stage .tile-cell.wb-selected{outline:3px solid #f2cf72!important;outline-offset:-3px!important;box-shadow:inset 0 0 0 2px rgba(12,30,40,.85)!important;z-index:25!important;touch-action:none!important}
-   .worldbuilder-studio .world-stage .tile-cell.wb-moving{opacity:.72!important;cursor:grabbing!important}
+   .worldbuilder-studio .world-stage .tile-cell.wb-selected{outline:3px solid #f2cf72!important;outline-offset:-3px!important;box-shadow:inset 0 0 0 2px rgba(12,30,40,.85)!important;z-index:3!important;touch-action:none!important}
+   .worldbuilder-studio .world-stage .tile-cell.wb-moving{opacity:.72!important;cursor:grabbing!important;z-index:4!important}
+   .worldbuilder-studio .studio-command-slider{transform:translateY(-1px)!important}
    .worldbuilder-studio .studio-command-rail .wb-injected-command{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}
    .worldbuilder-studio .studio-command-rail .wb-injected-command strong{font:900 12px/1 system-ui;color:#f0ddb0}.worldbuilder-studio .studio-command-rail .wb-injected-command small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}.worldbuilder-studio .studio-command-rail .wb-injected-command.active{border-color:#d0aa56;background:#201b10}.worldbuilder-studio .studio-command-rail .wb-injected-command:disabled{opacity:.38}
    .worldbuilder-studio .studio-command-rail .tile-size-button small{display:block;font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}
-   @media(max-width:760px){.worldbuilder-studio .studio-command-rail .wb-injected-command{height:44px;min-width:94px;padding:4px 9px}}
+   @media(max-width:760px){.worldbuilder-studio .studio-command-rail .wb-injected-command{height:44px;min-width:94px;padding:4px 9px}.worldbuilder-studio .studio-command-slider{transform:translateY(-1px)!important}}
   `;
   document.head.appendChild(style);
  }
