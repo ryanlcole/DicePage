@@ -10,25 +10,22 @@
   targetY:0,
   x:0,
   y:0,
-  raf:0
+  raf:0,
+  visuals:[]
  };
 
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const viewer=()=>studio()?.querySelector('.studio-viewer-canvas');
  const tiles=()=>studio()?[...studio().querySelectorAll('.world-stage .tile-cell')]:[];
+ const zUnlocked=()=>document.documentElement.classList.contains('rist-wb-z-unlocked');
 
- function currentTier(){
-  const buttons=studio()?.querySelectorAll('.studio-command-rail button')||[];
-  for(const button of buttons){
-   const strong=(button.querySelector('strong')?.textContent||'').trim().toLowerCase();
-   if(strong!=='tiers')continue;
-   const text=button.querySelector('small')?.textContent||'';
-   const match=text.match(/tier\s*(-?\d+)/i);
-   if(match)return Number(match[1])||0;
+ window.ristDepth={
+  set(visuals){
+   state.visuals=Array.isArray(visuals)?visuals:[];
+   schedule();
   }
-  return 0;
- }
+ };
 
  function screenAdjusted(beta,gamma){
   const angle=(screen.orientation?.angle ?? window.orientation ?? 0);
@@ -38,20 +35,34 @@
   return {beta,gamma};
  }
 
+ function depthFor(index){
+  const visual=state.visuals[index]||{};
+  const tier=Number(visual.tierIndex??visual.TierIndex??0);
+  const layer=Number(visual.layerOffset??visual.LayerOffset??0);
+  return Math.max(0,(tier*9)+layer);
+ }
+
  function apply(){
   state.raf=0;
   state.x+=(state.targetX-state.x)*0.16;
   state.y+=(state.targetY-state.y)*0.16;
 
-  const tier=Math.max(0,currentTier());
-  const elevation=tier===0?0:Math.min(2.4,0.85+(tier*.28));
-  const dx=state.x*elevation;
-  const dy=state.y*elevation;
+  const list=tiles();
+  const depths=list.map((_,index)=>depthFor(index));
+  const maxDepth=Math.max(0,...depths);
+  const navigating=zUnlocked();
 
-  for(const tile of tiles()){
+  list.forEach((tile,index)=>{
+   const depth=depths[index];
+   // Sea-level/lowest terrain is the visual anchor. Each higher layer receives a
+   // little more parallax, capped so phone tilt remains subtle and readable.
+   const elevation=navigating&&maxDepth>0?Math.min(1,depth/Math.max(1,maxDepth)):0;
+   const dx=state.x*elevation;
+   const dy=state.y*elevation;
    tile.style.translate=`${dx.toFixed(2)}px ${dy.toFixed(2)}px`;
-   tile.style.willChange='translate';
-  }
+   tile.style.willChange=elevation>0?'translate':'';
+   tile.dataset.sceneZ=String(depth);
+  });
 
   const active=Math.abs(state.targetX-state.x)>.05||Math.abs(state.targetY-state.y)>.05;
   if(active)state.raf=requestAnimationFrame(apply);
@@ -68,9 +79,6 @@
   }
   const beta=clamp(adjusted.beta-state.baselineBeta,-24,24);
   const gamma=clamp(adjusted.gamma-state.baselineGamma,-24,24);
-
-  // The raised surface moves opposite the phone tilt, like looking across a
-  // physical stacked board. The grid/ocean stay fixed as the reference plane.
   state.targetX=clamp(gamma*.62,-15,15);
   state.targetY=clamp(beta*.46,-12,12);
   schedule();
@@ -105,8 +113,6 @@
   const target=viewer();
   if(!target||target.dataset.ristTiltBound==='1')return;
   target.dataset.ristTiltBound='1';
-  // iOS requires motion permission to originate from a user gesture. The first
-  // touch on the map requests it; after approval tilt remains passive.
   target.addEventListener('pointerup',requestFromGesture,{capture:true,passive:true});
   target.addEventListener('touchend',requestFromGesture,{capture:true,passive:true});
  }
@@ -123,6 +129,6 @@
  screen.orientation?.addEventListener?.('change',resetForOrientationChange);
 
  bindViewer();
- const observer=new MutationObserver(()=>{bindViewer();if(state.enabled)schedule();});
- observer.observe(document.body,{childList:true,subtree:true});
+ const observer=new MutationObserver(()=>{bindViewer();schedule();});
+ observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
