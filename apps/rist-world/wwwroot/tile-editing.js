@@ -2,6 +2,7 @@ let bridge = null;
 let down = null;
 let observer = null;
 let zStyle = null;
+let holdTimer = null;
 
 function tileCells() {
   return [...document.querySelectorAll('.world-stage > .tile-cell')];
@@ -42,7 +43,10 @@ function syncZNavigationMode() {
   document.documentElement.classList.toggle('rist-z-unlocked', unlocked);
   const map = document.querySelector('.release-map-region .map-shell > .map, .map-shell > .map');
   if (map) map.setAttribute('data-z-unlocked', unlocked ? 'true' : 'false');
-  if (unlocked) down = null;
+  if (unlocked) {
+    cancelHold();
+    down = null;
+  }
 }
 
 function editableIndexFromTarget(target) {
@@ -103,22 +107,53 @@ function ensureBottomControls() {
   }
 }
 
+function cancelHold() {
+  if (holdTimer !== null) {
+    clearTimeout(holdTimer);
+    holdTimer = null;
+  }
+}
+
 function pointerDown(event) {
   const index = editableIndexFromTarget(event.target);
   if (index < 0) return;
-  down = { index, x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  cancelHold();
+  down = { index, x: event.clientX, y: event.clientY, pointerId: event.pointerId, held: false };
+  if (event.pointerType !== 'mouse') {
+    holdTimer = setTimeout(() => {
+      if (!down || down.pointerId !== event.pointerId || zNavigationUnlocked()) return;
+      down.held = true;
+      bridge?.invokeMethodAsync('HoldTileFromMap', index);
+      if (navigator.vibrate) navigator.vibrate(8);
+    }, 320);
+  }
+}
+
+function pointerMove(event) {
+  if (!down || down.pointerId !== event.pointerId) return;
+  const distance = Math.abs(event.clientX - down.x) + Math.abs(event.clientY - down.y);
+  if (distance > 7) cancelHold();
 }
 
 function pointerUp(event) {
   if (!down || down.pointerId !== event.pointerId) return;
+  cancelHold();
   const start = down;
   down = null;
+  if (start.held) return;
   if (Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) > 7) return;
 
   const visibleTarget = document.elementFromPoint(event.clientX, event.clientY);
   const index = editableIndexFromTarget(visibleTarget);
   if (index !== start.index) return;
   bridge?.invokeMethodAsync('SelectTileFromMap', index);
+}
+
+function blockNativeContextMenu(event) {
+  if (!event.target?.closest?.('.world-stage > .tile-cell')) return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation?.();
 }
 
 function resync() {
@@ -129,7 +164,10 @@ function resync() {
 export function register(dotnet) {
   bridge = dotnet;
   document.addEventListener('pointerdown', pointerDown, true);
+  document.addEventListener('pointermove', pointerMove, true);
   document.addEventListener('pointerup', pointerUp, true);
+  document.addEventListener('pointercancel', () => { cancelHold(); down = null; }, true);
+  document.addEventListener('contextmenu', blockNativeContextMenu, true);
   document.addEventListener('click', event => {
     if (event.target?.closest?.('.map-lock-button')) setTimeout(syncZNavigationMode, 0);
   }, true);
@@ -193,7 +231,10 @@ export function positionOverlay(element, index) {
 
 export function dispose() {
   document.removeEventListener('pointerdown', pointerDown, true);
+  document.removeEventListener('pointermove', pointerMove, true);
   document.removeEventListener('pointerup', pointerUp, true);
+  document.removeEventListener('contextmenu', blockNativeContextMenu, true);
+  cancelHold();
   observer?.disconnect();
   observer = null;
   bridge = null;
