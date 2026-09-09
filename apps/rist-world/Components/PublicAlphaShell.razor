@@ -13,21 +13,21 @@
    <button type="button" class="launcher-enter" @onclick="OpenRoleplay">ENTER SHAELVIEN</button>
   </section>
 
-  <nav class="launcher-journey" aria-label="Shaelvien core tasks">
-   <button type="button" class="journey-card" @onclick="OpenWorldbuilding"><span>1</span><strong>BUILD YOUR WORLD</strong><small>Paint · place · shape</small></button>
-   <button type="button" class="journey-card" @onclick="OpenViewer"><span>2</span><strong>ZOOM BETWEEN SCALES</strong><small>World → region → local</small></button>
-   <button type="button" class="journey-card" @onclick="OpenRoleplay"><span>3</span><strong>PLAY YOUR STORY</strong><small>Characters · dice · encounters</small></button>
-   <button type="button" class="journey-card" @onclick="OpenManage"><span>4</span><strong>SAVE · SHARE · RETURN</strong><small>Persist · share · export</small></button>
-   <button type="button" class="journey-card" @onclick="OpenFeedback"><span>5</span><strong>FEEDBACK</strong><small>Help shape what comes next</small></button>
-  </nav>
-
-  <section class="launcher-primary" aria-label="Primary activities">
-   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLD BUILDING</strong><small>Create lands. Shape cultures.<br />Bring your world to life.</small></button>
-   <button type="button" class="launcher-card campaign" @onclick="OpenCampaign"><span class="card-icon">⌖</span><strong>CAMPAIGN EDITING</strong><small>Design arcs. Manage sessions.<br />Guide the story.</small></button>
-   <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET CREATION</strong><small>Build tiles, tokens, characters<br />and custom content.</small></button>
-   <button type="button" class="launcher-card store" @onclick="OpenStore"><span class="card-icon">◇</span><strong>STORE</strong><small>Browse the invite-only<br />Shaelvien storefront.</small></button>
-   <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Systems, settings and lore.<br />Everything you need to play.</small></button>
-   <button type="button" class="launcher-card roleplay" @onclick="OpenRoleplay"><span class="card-icon">♜</span><strong>ROLEPLAY</strong><small>Step into the world.<br />Play with friends.</small></button>
+  <section class="launcher-primary" aria-label="Shaelvien categories">
+   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>Build the world map, tiers and layers.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
+   <button type="button" class="launcher-card campaign" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
+   <button type="button" class="launcher-card roleplay" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
+   <button type="button" class="launcher-card campaign" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
+   <button type="button" class="launcher-card rules" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize setting knowledge and canon.</small></button>
+   <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Open systems, rules and reference books.</small></button>
+   <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET DESIGNER</strong><small>Create tiles, tokens, sprites and other assets.</small></button>
+   <button type="button" class="launcher-card roleplay" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
+   <button type="button" class="launcher-card campaign" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
@@ -36,6 +36,7 @@
    <button type="button" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
    <button type="button" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
    <button type="button" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
+   <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenAccessibility"><span>⚙</span>SETTINGS</button>
   </section>
@@ -67,8 +68,8 @@ else
  bool _workspaceOpen;
  bool _workspaceRestored;
  string _workspaceMode = "world";
- string _workspaceLabel = "WORLD BUILDING";
- string _workspaceHint = "BUILD → ZOOM → PLACE → SAVE";
+ string _workspaceLabel = "WORLDBUILDER";
+ string _workspaceHint = "WORLD → TIER → LAYER → CUBE";
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
@@ -91,13 +92,13 @@ else
  {
   switch(mode)
   {
-   case "viewer":_workspaceMode="viewer";_workspaceLabel="MAP VIEWER";_workspaceHint="WORLD → REGION → LOCAL → SITE → ROOM → TACTICAL";break;
-   case "campaign":_workspaceMode="campaign";_workspaceLabel="CAMPAIGN EDITING";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
-   case "assets":_workspaceMode="assets";_workspaceLabel="ASSET CREATION";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
+   case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
+   case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
+   case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
    case "roleplay":_workspaceMode="roleplay";_workspaceLabel="ROLEPLAY";_workspaceHint="CHARACTER → DICE → ENCOUNTER → REPLAY";break;
-   case "manage":_workspaceMode="manage";_workspaceLabel="SAVE · SHARE · RETURN";_workspaceHint="SAVE → SYNC → SHARE → EXPORT";break;
+   case "manage":_workspaceMode="manage";_workspaceLabel="MY WORLDS";_workspaceHint="SAVE → SYNC → SHARE → EXPORT";break;
    case "feedback":_workspaceMode="feedback";_workspaceLabel="FEEDBACK";_workspaceHint="REPORT → CONTEXT → SEND";break;
-   default:_workspaceMode="world";_workspaceLabel="WORLD BUILDING";_workspaceHint="BUILD → ZOOM → PLACE → SAVE";break;
+   default:_workspaceMode="world";_workspaceLabel="WORLDBUILDER";_workspaceHint="WORLD → TIER → LAYER → CUBE";break;
   }
  }
 
@@ -115,12 +116,22 @@ else
   try{await JS.InvokeVoidAsync("localStorage.setItem",WorkspaceStorageKey,mode);}catch{}
  }
 
- void OpenWorldbuilding()=>OpenWorkspace("world","WORLD BUILDING","BUILD → ZOOM → PLACE → SAVE");
- void OpenViewer()=>OpenWorkspace("viewer","MAP VIEWER","WORLD → REGION → LOCAL → SITE → ROOM → TACTICAL");
- void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGN EDITING","PLAN → PLACE → RUN → REPLAY");
- void OpenAssets()=>OpenWorkspace("assets","ASSET CREATION","BROWSE → CREATE → PLACE → SAVE");
+ void OpenWorldbuilding()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
+ void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
+ void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
+ void OpenInstance()=>OpenWorkspace("roleplay","INSTANCE","LOCAL → INSTANCE → ENCOUNTER");
+ void OpenWeather()=>OpenWorkspace("world","WEATHER","SKY → WEATHER → WORLD");
+ void OpenGeology()=>OpenWorkspace("world","GEOLOGICAL EVENTS","TERRAIN → EVENT → HISTORY");
+ void OpenHistory()=>OpenWorkspace("campaign","HISTORY","ERA → EVENT → CHRONOLOGY");
+ void OpenLore()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
+ void OpenAstrology()=>OpenWorkspace("world","ASTROLOGY","CELESTIAL → INFLUENCE → WORLD");
+ void OpenAstronomy()=>OpenWorkspace("world","ASTRONOMY","STARS → SKY → CELESTIAL STRUCTURE");
+ void OpenGameMaster()=>OpenWorkspace("campaign","GAMEMASTER","BUILD → MANAGE → RUN → REPLAY");
+ void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
+ void OpenCampaign()=>OpenWorkspace("campaign","GAMEMASTER","PLAN → PLACE → RUN → REPLAY");
+ void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
- void OpenManage()=>OpenWorkspace("manage","SAVE · SHARE · RETURN","SAVE → SYNC → SHARE → EXPORT");
+ void OpenManage()=>OpenWorkspace("manage","MY WORLDS","SAVE → SYNC → SHARE → EXPORT");
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
