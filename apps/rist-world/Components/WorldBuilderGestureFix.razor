@@ -15,7 +15,7 @@
         if (firstRender)
         {
             Module = await JS.InvokeAsync<IJSObjectReference>("import", "./worldbuilder-view-fix.js?v=20260909-zmerge-1");
-            await Module.InvokeVoidAsync("attach", DotNetObjectReference.Create(this));
+            await Module.InvokeVoidAsync("attach");
         }
 
         if (Module is not null)
