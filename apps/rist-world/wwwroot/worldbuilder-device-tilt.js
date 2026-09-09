@@ -18,7 +18,7 @@
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const viewer=()=>studio()?.querySelector('.studio-viewer-canvas');
  const tiles=()=>studio()?[...studio().querySelectorAll('.world-stage .tile-cell')]:[];
- const zUnlocked=()=>document.documentElement.classList.contains('rist-wb-z-unlocked');
+ const zUnlocked=()=>studio()?.classList.contains('wb-z-unlocked')===true;
 
  window.ristDepth={
   set(visuals){
@@ -54,8 +54,6 @@
 
   list.forEach((tile,index)=>{
    const depth=depths[index];
-   // Sea-level/lowest terrain is the visual anchor. Each higher layer receives a
-   // little more parallax, capped so phone tilt remains subtle and readable.
    const elevation=navigating&&maxDepth>0?Math.min(1,depth/Math.max(1,maxDepth)):0;
    const dx=state.x*elevation;
    const dy=state.y*elevation;
@@ -90,6 +88,7 @@
   state.baselineBeta=null;
   state.baselineGamma=null;
   window.addEventListener('deviceorientation',onOrientation,true);
+  schedule();
  }
 
  async function requestFromGesture(){
