@@ -1,3 +1,13 @@
+export function viewerPoint(element,clientX,clientY){
+ if(!element)return null;
+ const rect=element.getBoundingClientRect();
+ if(rect.width<1||rect.height<1)return null;
+ return [
+  Math.max(0,Math.min(1,(clientX-rect.left)/rect.width)),
+  Math.max(0,Math.min(1,(clientY-rect.top)/rect.height))
+ ];
+}
+
 export function attach(element,dotnet){
  if(!element)return {dispose(){}};
  const pointers=new Map();
@@ -50,9 +60,6 @@ export function attach(element,dotnet){
   e.preventDefault();
   wheelAccumulator+=e.deltaY;
   if(Math.abs(wheelAccumulator)<70)return;
-  // World Builder treats zoom as recursive depth navigation: zooming OUT
-  // reveals/builds the next layer above the current slice; zooming IN returns
-  // toward the layer below. The viewer itself never changes size.
   const delta=wheelAccumulator>0?1:-1;
   wheelAccumulator=0;
   step(delta);
