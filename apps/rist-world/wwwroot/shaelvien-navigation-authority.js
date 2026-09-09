@@ -1,7 +1,6 @@
 (()=>{
  'use strict';
  const backLabel='← BACK';
- const railBackSelector='.worldbuilder-studio .world-asset-rail .rail-back';
  function isOpen(el){return !!el&&!el.hidden&&getComputedStyle(el).display!=='none';}
  function addStartBack(){
   const overlay=document.querySelector('.rist-start-overlay');
@@ -33,23 +32,9 @@
   button.textContent=backLabel;
   button.setAttribute('aria-label','Back to Shaelvien hub');
  }
- function armWorldBuilderRailBack(){
-  const back=document.querySelector(railBackSelector);
-  if(!back)return;
-  if(history.state?.shaelvienRailBack)return;
-  history.pushState({...history.state,shaelvienRailBack:true},'',location.href);
- }
  function bindBrowserBack(){
   if(window.__shaelvienBackBound)return;window.__shaelvienBackBound=true;
   addEventListener('popstate',()=>{
-   const railBack=document.querySelector(railBackSelector);
-   if(railBack){
-    railBack.click();
-    queueMicrotask(()=>{
-     if(document.querySelector(railBackSelector))history.pushState({...history.state,shaelvienRailBack:true},'',location.href);
-    });
-    return;
-   }
    const overlay=document.querySelector('.rist-start-overlay');
    const sub=overlay?.querySelector('.rist-start-sub');
    if(isOpen(overlay)&&sub){
@@ -58,7 +43,7 @@
    }
   });
  }
- const update=()=>{addStartBack();normalizeWorkspaceBack();bindBrowserBack();armWorldBuilderRailBack();};
+ const update=()=>{addStartBack();normalizeWorkspaceBack();bindBrowserBack();};
  const observer=new MutationObserver(update);
  function start(){observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});update();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
