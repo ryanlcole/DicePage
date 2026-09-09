@@ -11,6 +11,21 @@
   });
  };
 
+ const labelVerticalControls=()=>{
+  const layer=document.querySelector('.worldbuilder-studio .studio-mini-panel[aria-label="Layer controls"]');
+  if(layer){
+   const buttons=layer.querySelectorAll('button');
+   if(buttons[0]){buttons[0].textContent='Layer ↓';buttons[0].setAttribute('aria-label','Move down one layer');}
+   if(buttons[1]){buttons[1].textContent='Layer ↑';buttons[1].setAttribute('aria-label','Move up one layer');}
+  }
+  const tier=document.querySelector('.worldbuilder-studio .studio-mini-panel[aria-label="Tier controls"]');
+  if(tier){
+   const buttons=tier.querySelectorAll('button');
+   if(buttons[0]){buttons[0].textContent='Tier ↓';buttons[0].setAttribute('aria-label','Move down one tier');}
+   if(buttons[1]){buttons[1].textContent='Tier ↑';buttons[1].setAttribute('aria-label','Move up one tier');}
+  }
+ };
+
  const style=document.createElement('style');
  style.id='rist-start-menu-display-authority';
  style.textContent=`
@@ -46,7 +61,8 @@
   }
  };
 
- makeTickerScroll();
- const observer=new MutationObserver(makeTickerScroll);
+ const sync=()=>{makeTickerScroll();labelVerticalControls();};
+ sync();
+ const observer=new MutationObserver(sync);
  observer.observe(document.body,{childList:true,subtree:true});
 })();
