@@ -1,3 +1,5 @@
+let quickDropCleanup=null;
+
 export function viewerPoint(element,clientX,clientY){
  if(!element)return null;
  const rect=element.getBoundingClientRect();
@@ -6,6 +8,27 @@ export function viewerPoint(element,clientX,clientY){
   Math.max(0,Math.min(1,(clientX-rect.left)/rect.width)),
   Math.max(0,Math.min(1,(clientY-rect.top)/rect.height))
  ];
+}
+
+export function beginQuickPointerDrop(dotnet,pointerId){
+ if(quickDropCleanup)quickDropCleanup();
+ const finish=()=>{
+  document.removeEventListener('pointerup',onUp,true);
+  document.removeEventListener('pointercancel',onCancel,true);
+  quickDropCleanup=null;
+ };
+ const onUp=e=>{
+  if(e.pointerId!==pointerId)return;
+  finish();
+  dotnet?.invokeMethodAsync('QuickPointerDrop',e.clientX,e.clientY).catch(()=>{});
+ };
+ const onCancel=e=>{
+  if(e.pointerId!==pointerId)return;
+  finish();
+ };
+ document.addEventListener('pointerup',onUp,true);
+ document.addEventListener('pointercancel',onCancel,true);
+ quickDropCleanup=finish;
 }
 
 export function attach(element,dotnet){
@@ -92,6 +115,7 @@ export function attach(element,dotnet){
   element.removeEventListener('pointerup',release);
   element.removeEventListener('pointercancel',release);
   pointers.clear();
+  if(quickDropCleanup)quickDropCleanup();
   const style=document.getElementById(styleId);
   if(style)style.remove();
  }};
