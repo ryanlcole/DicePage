@@ -44,16 +44,21 @@
     user-select: none;
 }
 
+/* The lock belongs to the tile itself. Keeping it just inside the top-right
+   corner leaves the northeast nudge arrow in its natural outside-corner slot. */
 .tile-edit-lock {
-    right: 0;
-    top: 0;
-    transform: translate(66%,-66%);
+    right: 2px;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     z-index: 3;
 }
 
 .tile-edit-arrow.north-west { left: 0; top: 0; transform: translate(-66%,-66%); }
 .tile-edit-arrow.north      { left: 50%; top: 0; transform: translate(-50%,-110%); }
-.tile-edit-arrow.north-east { right: 0; top: 0; transform: translate(66%,-66%); margin-top: 32px; }
+.tile-edit-arrow.north-east { right: 0; top: 0; transform: translate(66%,-66%); }
 .tile-edit-arrow.east       { right: 0; top: 50%; transform: translate(110%,-50%); }
 .tile-edit-arrow.south-east { right: 0; bottom: 0; transform: translate(66%,66%); }
 .tile-edit-arrow.south      { left: 50%; bottom: 0; transform: translate(-50%,110%); }
@@ -72,11 +77,17 @@
 .tile-edit-arrow.north-east img { transform: rotate(315deg); }
 
 @media (pointer: coarse) {
-    .tile-edit-arrow,
-    .tile-edit-lock {
+    .tile-edit-arrow {
         width: 34px;
         height: 34px;
         min-width: 34px;
         min-height: 34px;
+    }
+
+    .tile-edit-lock {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
     }
 }
