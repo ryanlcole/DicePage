@@ -73,9 +73,14 @@ function pointerUp(event) {
   if (!down || down.pointerId !== event.pointerId) return;
   const start = down;
   down = null;
-  const index = editableIndexFromTarget(event.target);
-  if (index !== start.index) return;
   if (Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) > 7) return;
+
+  // Blazor's existing drag path may own pointer capture at this moment. Use the
+  // visible element under the release point so a true tap still resolves to the
+  // tile instead of the capture owner.
+  const visibleTarget = document.elementFromPoint(event.clientX, event.clientY);
+  const index = editableIndexFromTarget(visibleTarget);
+  if (index !== start.index) return;
   bridge?.invokeMethodAsync('SelectTileFromMap', index);
 }
 
