@@ -89,4 +89,11 @@
  document.addEventListener('pointermove',onMove,{capture:true,passive:true});
  document.addEventListener('pointerup',finish,{capture:true,passive:true});
  document.addEventListener('pointercancel',finish,{capture:true,passive:true});
+
+ if(!document.querySelector('script[data-rist-wb-navigation]')){
+  const nav=document.createElement('script');
+  nav.src='worldbuilder-navigation-authority.js?v=20260909-z-pan-scale-1';
+  nav.dataset.ristWbNavigation='1';
+  document.head.appendChild(nav);
+ }
 })();
