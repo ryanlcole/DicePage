@@ -19,6 +19,7 @@
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const tiles=()=>studio()?[...studio().querySelectorAll('.world-stage .tile-cell')]:[];
  const zUnlocked=()=>studio()?.classList.contains('wb-z-unlocked')===true;
+ const landing=()=>document.querySelector('.launcher-hub');
 
  window.ristDepth={
   set(visuals){
@@ -47,10 +48,42 @@
   return Math.max(0,(tier*9)+layer);
  }
 
+ function applyLandingParallax(){
+  const root=landing();
+  if(!root)return;
+
+  // The launcher is the first visible proof that motion permission is actually
+  // feeding the renderer. Keep the movement obvious enough to verify on a phone,
+  // while using different depths so it reads as foreground rather than page drag.
+  const hero=root.querySelector('.launcher-hero');
+  const primary=root.querySelector('.launcher-primary');
+  const secondary=root.querySelector('.launcher-secondary');
+  const footer=root.querySelector('.launcher-footer');
+
+  if(hero){
+   hero.style.translate=`${(state.x*1.15).toFixed(2)}px ${(state.y*1.15).toFixed(2)}px`;
+   hero.style.willChange='translate';
+  }
+  if(primary){
+   primary.style.translate=`${(state.x*.42).toFixed(2)}px ${(state.y*.42).toFixed(2)}px`;
+   primary.style.willChange='translate';
+  }
+  if(secondary){
+   secondary.style.translate=`${(state.x*.24).toFixed(2)}px ${(state.y*.24).toFixed(2)}px`;
+   secondary.style.willChange='translate';
+  }
+  if(footer){
+   footer.style.translate=`${(state.x*.10).toFixed(2)}px ${(state.y*.10).toFixed(2)}px`;
+   footer.style.willChange='translate';
+  }
+ }
+
  function apply(){
   state.raf=0;
   state.x+=(state.targetX-state.x)*0.16;
   state.y+=(state.targetY-state.y)*0.16;
+
+  applyLandingParallax();
 
   const list=tiles();
   const depths=list.map((_,index)=>depthFor(index));
