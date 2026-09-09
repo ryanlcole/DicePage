@@ -20,11 +20,21 @@ public sealed partial class WorldSession
     public int LocalZ => SceneZ;
     public bool IsSeaLevel => SceneZ == 0;
     public bool IsGianaph => CubeRole == WorldCubeRole.Developer && CubeX == 0 && CubeY == 0 && CubeZ == 0;
+    public bool CompositeZView { get; private set; }
     public string WorldCoordinateLabel => $"Cube {CubeX},{CubeY},{CubeZ} • Plane {PlaneIndex} • Tier {TierIndex} • Layer {LayerZ} • z={SceneZ}";
 
     SpatialAddress CurrentSpatialAddress => new(CubeX,CubeY,CubeZ,PlaneIndex,TierIndex,LayerOffset);
 
     public List<NpcBoundaryExchange> NpcBoundaryExchanges { get; private set; } = [];
+
+    public void SetCompositeZView(bool enabled)
+    {
+        if (CompositeZView == enabled) return;
+        StoreCurrentSpatialPage();
+        CompositeZView = enabled;
+        LoadCurrentSpatialPage();
+        Notify();
+    }
 
     public void MoveTier(int delta)
     {
@@ -51,13 +61,11 @@ public sealed partial class WorldSession
     public void MoveLayer(int delta)
     {
         if (delta == 0) return;
-        var targetZ = checked(SceneZ + delta);
-        if(!IsLoggedIn)targetZ=Math.Clamp(targetZ,0,(GuestTierCount*LayersPerTier)-1);
-        var nextTier=FloorDiv(targetZ, LayersPerTier);
-        var nextLayer=targetZ-(nextTier*LayersPerTier);
-        if(nextTier==TierIndex&&nextLayer==LayerOffset)return;
+        // Layers are local to a tier. Crossing a tier boundary is always an
+        // explicit Tier Up/Down action so Z navigation can never silently move terrain.
+        var nextLayer = Math.Clamp(LayerOffset + delta, 0, LayersPerTier - 1);
+        if(nextLayer==LayerOffset)return;
         StoreCurrentSpatialPage();
-        TierIndex = nextTier;
         LayerOffset = nextLayer;
         LoadCurrentSpatialPage();
         Notify();
@@ -94,8 +102,29 @@ public sealed partial class WorldSession
         piece.CubeX==address.CubeX&&piece.CubeY==address.CubeY&&piece.CubeZ==address.CubeZ&&
         piece.PlaneIndex==address.PlaneIndex&&piece.TierIndex==address.TierIndex&&piece.LayerOffset==address.LayerOffset;
 
+    static SpatialAddress AddressOf(TileItem tile)=>new(tile.CubeX,tile.CubeY,tile.CubeZ,tile.PlaneIndex,tile.TierIndex,Math.Clamp(tile.LayerOffset,0,LayersPerTier-1));
+    static SpatialAddress AddressOf(PieceItem piece)=>new(piece.CubeX,piece.CubeY,piece.CubeZ,piece.PlaneIndex,piece.TierIndex,Math.Clamp(piece.LayerOffset,0,LayersPerTier-1));
+
+    bool IsCurrentCubePlane(SpatialAddress address)=>
+        address.CubeX==CubeX&&address.CubeY==CubeY&&address.CubeZ==CubeZ&&address.PlaneIndex==PlaneIndex;
+
     void StoreCurrentSpatialPage()
     {
+        if(CompositeZView)
+        {
+            // In navigation mode PlacedTiles is a top-down composite. Preserve the
+            // address carried by every tile rather than collapsing the stack onto
+            // the currently focused layer.
+            foreach(var key in _terrainByAddress.Keys.Where(IsCurrentCubePlane).ToList())_terrainByAddress.Remove(key);
+            foreach(var group in PlacedTiles.GroupBy(AddressOf))
+                _terrainByAddress[group.Key]=group.Select(tile=>tile with{LayerOffset=group.Key.LayerOffset}).ToList();
+
+            foreach(var key in _piecesByAddress.Keys.Where(IsCurrentCubePlane).ToList())_piecesByAddress.Remove(key);
+            foreach(var group in Pieces.GroupBy(AddressOf))
+                _piecesByAddress[group.Key]=group.Select(piece=>piece with{LayerOffset=group.Key.LayerOffset}).ToList();
+            return;
+        }
+
         var address=CurrentSpatialAddress;
         var terrain=PlacedTiles.Select(tile=>MatchesAddress(tile,address)?tile:tile with
         {
@@ -123,6 +152,23 @@ public sealed partial class WorldSession
 
     void LoadCurrentSpatialPage()
     {
+        if(CompositeZView)
+        {
+            PlacedTiles=_terrainByAddress
+                .Where(pair=>IsCurrentCubePlane(pair.Key))
+                .OrderBy(pair=>pair.Key.TierIndex)
+                .ThenBy(pair=>pair.Key.LayerOffset)
+                .SelectMany(pair=>pair.Value)
+                .ToList();
+            Pieces=_piecesByAddress
+                .Where(pair=>IsCurrentCubePlane(pair.Key))
+                .OrderBy(pair=>pair.Key.TierIndex)
+                .ThenBy(pair=>pair.Key.LayerOffset)
+                .SelectMany(pair=>pair.Value)
+                .ToList();
+            return;
+        }
+
         PlacedTiles=_terrainByAddress.TryGetValue(CurrentSpatialAddress,out var tiles)
             ? tiles.ToList()
             : [];
@@ -214,6 +260,7 @@ public sealed partial class WorldSession
         PlaneIndex = 0;
         TierIndex = 0;
         LayerOffset = 0;
+        CompositeZView = false;
         _terrainByAddress.Clear();
         _piecesByAddress.Clear();
         NpcBoundaryExchanges = [];
