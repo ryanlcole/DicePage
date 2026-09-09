@@ -132,6 +132,9 @@
     gap: 0 !important;
     overflow: hidden !important;
     background: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .world-stage > .tile-cell > .tile-image-crop {
@@ -144,6 +147,9 @@
     border: 0 !important;
     outline: 0 !important;
     line-height: 0 !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .world-stage > .tile-cell > .tile-image-crop > img {
@@ -153,6 +159,11 @@
     border: 0 !important;
     outline: 0 !important;
     vertical-align: top !important;
+    pointer-events: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
 }
 
 .world-stage > .tile-cell,
