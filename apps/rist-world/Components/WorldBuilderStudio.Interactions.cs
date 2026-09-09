@@ -24,6 +24,40 @@ public partial class WorldBuilderStudio
         _selectedPlacedTileIndices.Clear();
     }
 
+    TileItem CreateViewerTile(AtlasTile tile, int column, int row, int footprint)
+    {
+        var x = column / (double)WorldSession.GridColumns;
+        var y = row / (double)WorldSession.GridRows;
+        var placementZoom = 1.0 / Math.Max(footprint, 1);
+
+        return new TileItem(
+            tile.Id,
+            tile.Name,
+            tile.Image,
+            x,
+            y,
+            tile.SourceWidth,
+            tile.SourceHeight,
+            tile.CropX,
+            tile.CropY,
+            tile.CropWidth,
+            tile.CropHeight,
+            placementZoom)
+        {
+            CubeX = Session.CubeX,
+            CubeY = Session.CubeY,
+            CubeZ = Session.CubeZ,
+            PlaneIndex = Session.PlaneIndex,
+            TierIndex = Session.TierIndex,
+            LayerOffset = Session.LayerOffset
+        };
+    }
+
+    void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1)
+    {
+        Session.PlacedTiles.Add(CreateViewerTile(tile, column, row, footprint));
+    }
+
     [JSInvokable]
     public Task<string> TogglePlacementModeFromJs()
     {
@@ -77,6 +111,8 @@ public partial class WorldBuilderStudio
         if (quickIndex < 0 || quickIndex >= _quickTiles.Count || _zModule is null || _libraryRailOpen)
             return false;
 
+        // Viewer grid is the placement authority. The map is only a visual layer
+        // beneath it; the drop becomes an X/Y address on the current Z page.
         var point = await _zModule.InvokeAsync<double[]?>("viewerGridPoint", _viewerElement, clientX, clientY);
         if (point is null || point.Length < 2) return false;
 
@@ -89,10 +125,6 @@ public partial class WorldBuilderStudio
         var column = Math.Clamp((int)Math.Floor(point[0] * WorldSession.GridColumns), 0, maxColumn);
         var row = Math.Clamp((int)Math.Floor(point[1] * WorldSession.GridRows), 0, maxRow);
 
-        Session.StageTile(tile);
-        var staged = Session.StagedAssets.LastOrDefault(x => x.Key == $"tile:{tile.Id}");
-        if (staged is null) return false;
-
         PushWorldBuilderUndo();
         ClearWorldBuilderSelection();
 
@@ -101,29 +133,14 @@ public partial class WorldBuilderStudio
             for (var y = 0; y < visibleRows; y++)
             {
                 for (var x = 0; x < visibleColumns; x++)
-                {
-                    Session.PlaceStaged(
-                        staged,
-                        (column + x) / (double)WorldSession.GridColumns,
-                        (row + y) / (double)WorldSession.GridRows,
-                        1.0);
-                }
+                    AddViewerTile(tile, column + x, row + y, 1);
             }
         }
         else
         {
-            Session.PlaceStaged(
-                staged,
-                column / (double)WorldSession.GridColumns,
-                row / (double)WorldSession.GridRows,
-                1.0 / footprint);
-
-            var placedIndex = Session.PlacedTiles.FindLastIndex(x => x.Id == tile.Id);
-            if (placedIndex >= 0)
-                Session.PlacedTiles[placedIndex] = Session.PlacedTiles[placedIndex] with { PlacementZoom = 1.0 / footprint };
+            AddViewerTile(tile, column, row, footprint);
         }
 
-        Session.RemoveStaged(staged.Key);
         Session.Notify();
         return true;
     }
