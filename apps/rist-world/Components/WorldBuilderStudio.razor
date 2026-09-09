@@ -187,18 +187,13 @@
   var tile=_draggingQuickTile;
   _draggingQuickTile=null;
   if(tile is null||_zModule is null||_libraryRailOpen)return;
-  var point=await _zModule.InvokeAsync<double[]?>("viewerPoint",_viewerElement,e.ClientX,e.ClientY);
-  if(point is null||point.Length<2)return;
   var footprint=Math.Clamp(_tileFootprint,1,300);
-  var visibleFootprint=Math.Min(footprint,Math.Min(WorldSession.GridColumns,WorldSession.GridRows));
-  var maxColumn=Math.Max(0,WorldSession.GridColumns-visibleFootprint);
-  var maxRow=Math.Max(0,WorldSession.GridRows-visibleFootprint);
-  var column=Math.Clamp((int)Math.Floor(point[0]*WorldSession.GridColumns),0,maxColumn);
-  var row=Math.Clamp((int)Math.Floor(point[1]*WorldSession.GridRows),0,maxRow);
+  var cell=await ViewerCell(e.ClientX,e.ClientY,footprint);
+  if(cell is null)return;
   Session.StageTile(tile);
   var staged=Session.StagedAssets.LastOrDefault(x=>x.Key==$"tile:{tile.Id}");
   if(staged is null)return;
-  Session.PlaceStaged(staged,column/(double)WorldSession.GridColumns,row/(double)WorldSession.GridRows,1.0/footprint);
+  Session.PlaceStaged(staged,cell.Value.Column/(double)WorldSession.GridColumns,cell.Value.Row/(double)WorldSession.GridRows,1.0/footprint);
   var placedIndex=Session.PlacedTiles.FindLastIndex(x=>x.Id==tile.Id);
   if(placedIndex>=0)Session.PlacedTiles[placedIndex]=Session.PlacedTiles[placedIndex] with{PlacementZoom=1.0/footprint};
   Session.RemoveStaged(staged.Key);
@@ -225,7 +220,7 @@
   if(!firstRender)return;
   await EnsureWorldAtlasAsync();
   _self=DotNetObjectReference.Create(this);
-  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js");
+  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260909-grid-fit-2");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
  [JSInvokable] public Task StepZ(int delta){if(!_zLocked)Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}

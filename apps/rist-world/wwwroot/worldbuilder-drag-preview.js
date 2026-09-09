@@ -10,23 +10,43 @@
   return Math.max(1,Math.min(Number.isFinite(value)?value:1,30));
  };
  const removePreview=()=>{preview?.remove();preview=null;};
+ const placePreview=(x,y)=>{
+  if(!preview)return;
+  const grid=stage();
+  const rect=grid?.getBoundingClientRect();
+  if(!rect||rect.width<1||rect.height<1)return;
+  const cells=footprint();
+  const cellWidth=rect.width/30;
+  const cellHeight=rect.height/30;
+  preview.style.width=`${cellWidth*cells}px`;
+  preview.style.height=`${cellHeight*cells}px`;
+  const inside=x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;
+  if(inside){
+   const column=Math.max(0,Math.min(30-cells,Math.floor((x-rect.left)/cellWidth)));
+   const row=Math.max(0,Math.min(30-cells,Math.floor((y-rect.top)/cellHeight)));
+   preview.style.left=`${rect.left+column*cellWidth}px`;
+   preview.style.top=`${rect.top+row*cellHeight}px`;
+   preview.classList.add('snapped');
+  }else{
+   preview.style.left=`${x}px`;
+   preview.style.top=`${y}px`;
+   preview.classList.remove('snapped');
+  }
+ };
  const createPreview=(button,x,y)=>{
   removePreview();
   const grid=stage();
   if(!grid)return;
   const rect=grid.getBoundingClientRect();
   if(rect.width<1||rect.height<1)return;
-  const cells=footprint();
   preview=document.createElement('div');
   preview.className='wb-sized-drag-preview';
-  preview.style.width=`${rect.width/30*cells}px`;
-  preview.style.height=`${rect.height/30*cells}px`;
   const img=button.querySelector('img');
   if(img){const copy=document.createElement('img');copy.src=img.src;copy.alt='';preview.appendChild(copy);}
   document.body.appendChild(preview);
-  movePreview(x,y);
+  placePreview(x,y);
  };
- const movePreview=(x,y)=>{if(preview){preview.style.left=`${x}px`;preview.style.top=`${y}px`;}};
+ const movePreview=(x,y)=>placePreview(x,y);
 
  const onDown=e=>{
   if(e.pointerType==='mouse')return;
@@ -45,7 +65,8 @@
  const style=document.createElement('style');
  style.textContent=`
   .wb-quick-drag-ghost{opacity:0!important}
-  .wb-sized-drag-preview{position:fixed;z-index:2147483001;pointer-events:none;box-sizing:border-box;transform:translate(-50%,-50%);overflow:hidden;border:2px solid #f2cf72;border-radius:3px;background:#0d171e;box-shadow:0 8px 24px #000a;opacity:.88}
+  .wb-sized-drag-preview{position:fixed;z-index:2147483001;pointer-events:none;box-sizing:border-box;transform:translate(-50%,-50%);overflow:hidden;border:1px solid rgba(215,199,145,.92);border-radius:0;background:#0d171e;box-shadow:0 8px 24px #000a;opacity:.88}
+  .wb-sized-drag-preview.snapped{transform:none;box-shadow:none;opacity:1}
   .wb-sized-drag-preview img{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none;-webkit-user-drag:none}
  `;
  document.head.appendChild(style);
