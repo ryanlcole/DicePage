@@ -1,0 +1,55 @@
+@implements IDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div id="viewer-frame-controls"
+     class="viewer-frame-controls"
+     data-cols="@Session.ViewerGridColumns"
+     data-rows="@Session.ViewerGridRows"
+     data-z-step="@Session.ViewerZStep"
+     data-z-label="@Session.ViewerZDistanceLabel"
+     data-grid-label="@Session.ViewerGridSizeLabel"
+     data-physical-label="@Session.ViewerPhysicalSizeLabel"
+     aria-label="Viewer grid dimension and scale controls">
+    <label class="viewer-edge-control viewer-edge-x" aria-label="Grid width in squares">
+        <span class="viewer-edge-readout">X @Session.ViewerGridColumns</span>
+        <input type="range" min="1" max="100" step="1" value="@Session.ViewerGridColumns" @oninput="GridColumnsChanged" />
+    </label>
+    <label class="viewer-edge-control viewer-edge-y" aria-label="Grid height in squares">
+        <span class="viewer-edge-readout">Y @Session.ViewerGridRows</span>
+        <input type="range" min="1" max="100" step="1" value="@Session.ViewerGridRows" @oninput="GridRowsChanged" />
+    </label>
+    <label class="viewer-edge-control viewer-edge-z" aria-label="Distance represented by one square and cube height">
+        <span class="viewer-edge-readout">Z @Session.ViewerZDistanceLabel</span>
+        <input type="range" min="0" max="6" step="1" value="@Session.ViewerZStep" @oninput="GridZChanged" />
+    </label>
+    <div class="viewer-scale-readout" aria-live="polite">@Session.ViewerGridSizeLabel • @Session.ViewerZDistanceLabel/sq • @Session.ViewerZDistanceLabel high • @Session.ViewerPhysicalSizeLabel</div>
+</div>
+
+@code {
+    protected override void OnInitialized() => Session.Changed += Refresh;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("ristViewerFrame.sync");
+    }
+
+    void Refresh() => InvokeAsync(StateHasChanged);
+
+    void GridColumnsChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value)) Session.SetViewerGridColumns(value);
+    }
+
+    void GridRowsChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value)) Session.SetViewerGridRows(value);
+    }
+
+    void GridZChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value)) Session.SetViewerZStep(value);
+    }
+
+    public void Dispose() => Session.Changed -= Refresh;
+}
