@@ -68,7 +68,7 @@ public partial class WorldBuilderStudio
     void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1, bool upperLayer = false, string treatment = "normal")
     {
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
-        if (upperLayer) Session.AddPlacedTileAtSceneDelta(placed, 1);
+        if (upperLayer) Session.AddPlacedTileAtLayerDelta(placed, 1);
         else Session.PlacedTiles.Add(placed);
     }
 
