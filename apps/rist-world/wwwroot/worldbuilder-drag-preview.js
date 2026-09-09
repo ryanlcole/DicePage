@@ -6,8 +6,7 @@
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const stage=()=>studio()?.querySelector('.world-stage');
  const footprint=()=>{
-  const text=studio()?.querySelector('.tile-size-button strong')?.textContent||'1';
-  const value=parseInt(text,10);
+  const value=Number(studio()?.querySelector('.tile-size-button')?.dataset.footprint);
   return Math.max(1,Math.min(Number.isFinite(value)?value:1,30));
  };
  const removePreview=()=>{preview?.remove();preview=null;};

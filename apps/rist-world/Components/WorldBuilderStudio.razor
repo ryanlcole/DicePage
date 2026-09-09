@@ -116,7 +116,7 @@
   {
    <div class="studio-command-rail">
     <button type="button" @onclick="OpenLibraryRail"><strong>Library</strong><small>Assets</small></button>
-    <button type="button" class="tile-size-button" @onclick="CycleTileFootprint" title="Tile footprint: @_tileFootprint by @_tileFootprint viewer squares" aria-label="Tile size @_tileFootprint squared"><strong>@_tileFootprint<sup>2</sup></strong></button>
+    <button type="button" class="tile-size-button" data-footprint="@_tileFootprint" @onclick="CycleTileFootprint" title="Tile footprint: @_tileFootprint by @_tileFootprint viewer squares" aria-label="Tile size @_tileFootprint squared"><strong>@_tileFootprint<sup>2</sup></strong></button>
     <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Z-Lock</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
     <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@Session.LayerOffset / Z @Session.SceneZ</small></button>
     <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTiers"><strong>Tiers</strong><small>Tier @Session.TierIndex</small></button>
