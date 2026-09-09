@@ -9,7 +9,7 @@
     pointer-events: none;
     overflow: visible;
     outline: 1px solid rgba(215,190,128,.92);
-    outline-offset: 1px;
+    outline-offset: -1px;
 }
 
 .tile-edit-overlay.lock-armed {
@@ -44,26 +44,27 @@
     user-select: none;
 }
 
-/* The lock belongs to the tile itself. Keeping it just inside the top-right
-   corner leaves the northeast nudge arrow in its natural outside-corner slot. */
+/* Tile editing is a map overlay. All controls stay inside the selected tile so
+   they remain over the world surface instead of spilling into the asset/footer
+   sliders when a tile is close to a map edge. */
 .tile-edit-lock {
-    right: 2px;
-    top: 2px;
+    right: 4px;
+    top: 4px;
     width: 24px;
     height: 24px;
     min-width: 24px;
     min-height: 24px;
-    z-index: 3;
+    z-index: 4;
 }
 
-.tile-edit-arrow.north-west { left: 0; top: 0; transform: translate(-66%,-66%); }
-.tile-edit-arrow.north      { left: 50%; top: 0; transform: translate(-50%,-110%); }
-.tile-edit-arrow.north-east { right: 0; top: 0; transform: translate(66%,-66%); }
-.tile-edit-arrow.east       { right: 0; top: 50%; transform: translate(110%,-50%); }
-.tile-edit-arrow.south-east { right: 0; bottom: 0; transform: translate(66%,66%); }
-.tile-edit-arrow.south      { left: 50%; bottom: 0; transform: translate(-50%,110%); }
-.tile-edit-arrow.south-west { left: 0; bottom: 0; transform: translate(-66%,66%); }
-.tile-edit-arrow.west       { left: 0; top: 50%; transform: translate(-110%,-50%); }
+.tile-edit-arrow.north-west { left: 4px; top: 4px; }
+.tile-edit-arrow.north      { left: 50%; top: 4px; transform: translateX(-50%); }
+.tile-edit-arrow.north-east { right: 36px; top: 4px; }
+.tile-edit-arrow.east       { right: 4px; top: 50%; transform: translateY(-50%); }
+.tile-edit-arrow.south-east { right: 4px; bottom: 4px; }
+.tile-edit-arrow.south      { left: 50%; bottom: 4px; transform: translateX(-50%); }
+.tile-edit-arrow.south-west { left: 4px; bottom: 4px; }
+.tile-edit-arrow.west       { left: 4px; top: 50%; transform: translateY(-50%); }
 
 /* page-arrow.png is the established character-sheet arrow art. The same image
    is rotated to provide all eight one-pixel nudge directions. */
@@ -90,4 +91,6 @@
         min-width: 30px;
         min-height: 30px;
     }
+
+    .tile-edit-arrow.north-east { right: 42px; }
 }
