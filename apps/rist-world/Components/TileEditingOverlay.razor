@@ -47,7 +47,7 @@
   if(Disposed)return;
   if(firstRender)
   {
-   Module=await JS.InvokeAsync<IJSObjectReference>("import","./tile-editing.js");
+   Module=await JS.InvokeAsync<IJSObjectReference>("import","./tile-editing.js?v=20260909-z-navigation-1");
    Self=DotNetObjectReference.Create(this);
    await Module.InvokeVoidAsync("register",Self);
   }
