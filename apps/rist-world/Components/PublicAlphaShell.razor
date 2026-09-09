@@ -10,6 +10,10 @@
    <h1>SHAELVIEN</h1>
    <p class="launcher-subtitle">A LIVING WORLD AWAITS</p>
    <p class="launcher-tagline">BUILD THE WORLD.<br />THEN STEP INSIDE IT.</p>
+   @if(MotionSetupNeeded)
+   {
+    <button type="button" class="launcher-device-setup" @onclick="RequestMotionAsync"><strong>ENABLE MOTION &amp; TILT</strong><small>@MotionStatusText</small></button>
+   }
    <button type="button" class="launcher-enter" @onclick="OpenRoleplay">ENTER SHAELVIEN</button>
   </section>
 
@@ -46,6 +50,13 @@
    <section class="launcher-settings-backdrop" role="presentation" @onclick="CloseSettings">
     <div class="launcher-settings" role="dialog" aria-modal="true" aria-label="Start menu settings" @onclick:stopPropagation="true">
      <header><strong>SETTINGS</strong><button type="button" @onclick="CloseSettings" aria-label="Close settings">×</button></header>
+     <section class="launcher-settings-group" aria-label="Device settings">
+      <h2>DEVICE</h2>
+      <button type="button" class="launcher-fullscreen" @onclick="RequestMotionAsync" disabled="@(!_motionSupported || _motionStatus=="granted")">
+       <strong>MOTION &amp; TILT</strong>
+       <small>@MotionStatusText</small>
+      </button>
+     </section>
      <section class="launcher-settings-group" aria-label="Graphics settings">
       <h2>GRAPHICS</h2>
       <button type="button" class="launcher-fullscreen" @onclick="ToggleFullscreenAsync">
@@ -85,7 +96,7 @@ else
  .launcher-settings-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
  .launcher-settings{box-sizing:border-box;width:min(92vw,520px);max-height:88dvh;overflow:auto;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
  .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
- .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}
+ .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
 </style>
 
 @code {
@@ -95,25 +106,27 @@ else
  bool _settingsOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
+ bool _motionSupported=true;
+ string _motionStatus="unknown";
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLDBUILDER";
  string _workspaceHint = "WORLD → TIER → LAYER → CUBE";
+
+ bool MotionSetupNeeded => _motionSupported && _motionStatus != "granted";
+ string MotionStatusText => _motionStatus switch
+ {
+  "granted" => "Enabled for this browser session",
+  "denied" => "Permission denied — tap to try again",
+  "unsupported" => "Not available on this device",
+  _ => "Enable device movement for layered world depth"
+ };
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
-  try
-  {
-   var mode=await JS.InvokeAsync<string?>("localStorage.getItem",WorkspaceStorageKey);
-   if(!string.IsNullOrWhiteSpace(mode)&&mode!="hub")
-   {
-    ApplyWorkspace(mode);
-    _workspaceOpen=true;
-    StateHasChanged();
-   }
-  }
-  catch{}
+  await RefreshMotionStateAsync();
+  await PersistWorkspaceAsync("hub");
  }
 
  void ApplyWorkspace(string mode)
@@ -145,7 +158,37 @@ else
   try{await JS.InvokeVoidAsync("localStorage.setItem",WorkspaceStorageKey,mode);}catch{}
  }
 
- void OpenSettings(){_settingsOpen=true;_=RefreshFullscreenStateAsync();}
+ async Task RefreshMotionStateAsync()
+ {
+  try
+  {
+   _motionStatus=await JS.InvokeAsync<string>("ristMotionPermission.state");
+   _motionSupported=_motionStatus!="unsupported";
+  }
+  catch
+  {
+   _motionStatus="unsupported";
+   _motionSupported=false;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task RequestMotionAsync()
+ {
+  try
+  {
+   _motionStatus=await JS.InvokeAsync<string>("ristMotionPermission.request");
+   _motionSupported=_motionStatus!="unsupported";
+  }
+  catch
+  {
+   _motionStatus="unsupported";
+   _motionSupported=false;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void OpenSettings(){_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();}
  void CloseSettings()=>_settingsOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
