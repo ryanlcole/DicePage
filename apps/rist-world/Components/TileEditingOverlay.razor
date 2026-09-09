@@ -1,0 +1,121 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+@if(Session.HasEditingTile)
+{
+ <div @ref="OverlayElement"
+      class="tile-edit-overlay @(Session.TileLockArmed?"lock-armed":"")"
+      role="toolbar"
+      aria-label="Selected tile editing controls"
+      @onpointerdown:stopPropagation="true"
+      @onpointerup:stopPropagation="true"
+      @onclick:stopPropagation="true">
+  <button type="button" class="tile-edit-lock" @onclick="ArmLock" aria-label="Arm lock for selected tile" title="Arm Lock Tile">
+   <img src="assets/ui/@(Session.TileLockArmed?"lock-closed.svg":"lock-open.svg")" alt="" draggable="false" />
+  </button>
+
+  <button type="button" class="tile-edit-arrow north-west" @onclick="()=>Nudge(-1,-1)" aria-label="Move tile one pixel northwest"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow north" @onclick="()=>Nudge(0,-1)" aria-label="Move tile one pixel north"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow north-east" @onclick="()=>Nudge(1,-1)" aria-label="Move tile one pixel northeast"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow east" @onclick="()=>Nudge(1,0)" aria-label="Move tile one pixel east"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow south-east" @onclick="()=>Nudge(1,1)" aria-label="Move tile one pixel southeast"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow south" @onclick="()=>Nudge(0,1)" aria-label="Move tile one pixel south"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow south-west" @onclick="()=>Nudge(-1,1)" aria-label="Move tile one pixel southwest"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+  <button type="button" class="tile-edit-arrow west" @onclick="()=>Nudge(-1,0)" aria-label="Move tile one pixel west"><img src="assets/ui/character-sheet/page-arrow.png" alt="" draggable="false" /></button>
+ </div>
+}
+
+@code {
+ ElementReference OverlayElement;
+ IJSObjectReference? Module;
+ DotNetObjectReference<TileEditingOverlay>? Self;
+ int KnownTileCount;
+ double PixelX;
+ double PixelY;
+ bool Disposed;
+
+ protected override void OnInitialized()
+ {
+  KnownTileCount=Session.PlacedTiles.Count;
+  Session.Changed+=SessionChanged;
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(Disposed)return;
+  if(firstRender)
+  {
+   Module=await JS.InvokeAsync<IJSObjectReference>("import","./tile-editing.js");
+   Self=DotNetObjectReference.Create(this);
+   await Module.InvokeVoidAsync("register",Self);
+  }
+  if(Module is null)return;
+
+  await Module.InvokeVoidAsync("updateBottomState",Session.HasEditingTile,Session.TileLockArmed);
+  await Module.InvokeVoidAsync("syncRotations",Session.PlacedTiles.Select(tile=>tile.RotationQuarterTurns).ToArray());
+
+  if(Session.HasEditingTile)
+  {
+   var step=await Module.InvokeAsync<double[]>("positionOverlay",OverlayElement,Session.EditingTileIndex);
+   if(step.Length>=2){PixelX=step[0];PixelY=step[1];}
+  }
+ }
+
+ void SessionChanged()
+ {
+  if(Disposed)return;
+  var count=Session.PlacedTiles.Count;
+  if(count>KnownTileCount)
+  {
+   KnownTileCount=count;
+   Session.SelectTileForEditing(count-1);
+   return;
+  }
+  if(count<KnownTileCount)
+  {
+   KnownTileCount=count;
+   Session.ClearEditingTile();
+   return;
+  }
+  _=InvokeAsync(StateHasChanged);
+ }
+
+ [JSInvokable]
+ public Task SelectTileFromMap(int index)
+ {
+  Session.SelectTileForEditing(index,rotateIfAlready:true);
+  return Task.CompletedTask;
+ }
+
+ [JSInvokable]
+ public Task ResizeSelectedTile(bool larger)
+ {
+  Session.ResizeEditingTile(larger?1.1:1.0/1.1);
+  return Task.CompletedTask;
+ }
+
+ [JSInvokable]
+ public async Task CommitTileLock()=>await Session.LockEditingTileAsync();
+
+ void ArmLock()=>Session.ArmEditingTileLock();
+
+ void Nudge(int x,int y)
+ {
+  if(PixelX<=0||PixelY<=0)return;
+  Session.NudgeEditingTile(x*PixelX,y*PixelY);
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  Disposed=true;
+  Session.Changed-=SessionChanged;
+  if(Module is not null)
+  {
+   try{await Module.InvokeVoidAsync("dispose");await Module.DisposeAsync();}
+   catch(JSDisconnectedException){}
+  }
+  Self?.Dispose();
+ }
+}
