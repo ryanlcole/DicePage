@@ -19,9 +19,12 @@ public partial class WorldBuilderStudio
         }
     }
 
-    void ClearWorldBuilderSelection()
+    void ClearWorldBuilderSelection() => _selectedPlacedTileIndices.Clear();
+
+    static int FootprintFor(TileItem tile)
     {
-        _selectedPlacedTileIndices.Clear();
+        var zoom = Math.Max(tile.PlacementZoom, 1.0 / 300.0);
+        return Math.Clamp((int)Math.Round(1.0 / zoom), 1, 300);
     }
 
     TileItem CreateViewerTile(AtlasTile tile, int column, int row, int footprint)
@@ -49,13 +52,26 @@ public partial class WorldBuilderStudio
             CubeZ = Session.CubeZ,
             PlaneIndex = Session.PlaneIndex,
             TierIndex = Session.TierIndex,
-            LayerOffset = Session.LayerOffset
+            LayerOffset = Session.LayerOffset,
+            RotationQuarterTurns = 0
         };
     }
 
-    void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1)
-    {
+    void AddViewerTile(AtlasTile tile, int column, int row, int footprint = 1) =>
         Session.PlacedTiles.Add(CreateViewerTile(tile, column, row, footprint));
+
+    async Task<(int Column,int Row)?> ViewerCell(double clientX, double clientY, int footprint)
+    {
+        if (_zModule is null) return null;
+        var point = await _zModule.InvokeAsync<double[]?>("viewerGridPoint", _viewerElement, clientX, clientY);
+        if (point is null || point.Length < 2) return null;
+        var visibleColumns = Math.Min(footprint, WorldSession.GridColumns);
+        var visibleRows = Math.Min(footprint, WorldSession.GridRows);
+        var maxColumn = Math.Max(0, WorldSession.GridColumns - visibleColumns);
+        var maxRow = Math.Max(0, WorldSession.GridRows - visibleRows);
+        var column = Math.Clamp((int)Math.Floor(point[0] * WorldSession.GridColumns), 0, maxColumn);
+        var row = Math.Clamp((int)Math.Floor(point[1] * WorldSession.GridRows), 0, maxRow);
+        return (column,row);
     }
 
     [JSInvokable]
@@ -111,19 +127,13 @@ public partial class WorldBuilderStudio
         if (quickIndex < 0 || quickIndex >= _quickTiles.Count || _zModule is null || _libraryRailOpen)
             return false;
 
-        // Viewer grid is the placement authority. The map is only a visual layer
-        // beneath it; the drop becomes an X/Y address on the current Z page.
-        var point = await _zModule.InvokeAsync<double[]?>("viewerGridPoint", _viewerElement, clientX, clientY);
-        if (point is null || point.Length < 2) return false;
+        var footprint = Math.Clamp(_tileFootprint, 1, 300);
+        var cell = await ViewerCell(clientX, clientY, footprint);
+        if (cell is null) return false;
 
         var tile = _quickTiles[quickIndex];
-        var footprint = Math.Clamp(_tileFootprint, 1, 300);
         var visibleColumns = Math.Min(footprint, WorldSession.GridColumns);
         var visibleRows = Math.Min(footprint, WorldSession.GridRows);
-        var maxColumn = Math.Max(0, WorldSession.GridColumns - visibleColumns);
-        var maxRow = Math.Max(0, WorldSession.GridRows - visibleRows);
-        var column = Math.Clamp((int)Math.Floor(point[0] * WorldSession.GridColumns), 0, maxColumn);
-        var row = Math.Clamp((int)Math.Floor(point[1] * WorldSession.GridRows), 0, maxRow);
 
         PushWorldBuilderUndo();
         ClearWorldBuilderSelection();
@@ -131,19 +141,79 @@ public partial class WorldBuilderStudio
         if (_multiPlacement)
         {
             for (var y = 0; y < visibleRows; y++)
-            {
                 for (var x = 0; x < visibleColumns; x++)
-                    AddViewerTile(tile, column + x, row + y, 1);
-            }
+                    AddViewerTile(tile, cell.Value.Column + x, cell.Value.Row + y, 1);
         }
         else
         {
-            AddViewerTile(tile, column, row, footprint);
+            AddViewerTile(tile, cell.Value.Column, cell.Value.Row, footprint);
         }
 
         Session.Notify();
         return true;
     }
+
+    [JSInvokable]
+    public async Task<int[]> MovePlacedTileFromJs(int index, double clientX, double clientY)
+    {
+        if (index < 0 || index >= Session.PlacedTiles.Count) return _selectedPlacedTileIndices.Order().ToArray();
+        var tile = Session.PlacedTiles[index];
+        var footprint = FootprintFor(tile);
+        var cell = await ViewerCell(clientX, clientY, footprint);
+        if (cell is null) return _selectedPlacedTileIndices.Order().ToArray();
+
+        PushWorldBuilderUndo();
+        Session.PlacedTiles[index] = tile with
+        {
+            X = cell.Value.Column / (double)WorldSession.GridColumns,
+            Y = cell.Value.Row / (double)WorldSession.GridRows
+        };
+        ClearWorldBuilderSelection();
+        _selectedPlacedTileIndices.Add(index);
+        Session.Notify();
+        return _selectedPlacedTileIndices.Order().ToArray();
+    }
+
+    [JSInvokable]
+    public Task<int[]> RotateSelectedTilesFromJs()
+    {
+        if (_selectedPlacedTileIndices.Count == 0) return Task.FromResult(Array.Empty<int>());
+        PushWorldBuilderUndo();
+        foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count))
+        {
+            var tile = Session.PlacedTiles[index];
+            Session.PlacedTiles[index] = tile with { RotationQuarterTurns = (tile.RotationQuarterTurns + 1) % 4 };
+        }
+        Session.Notify();
+        return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());
+    }
+
+    [JSInvokable]
+    public Task<int[]> ResizeSelectedTilesFromJs()
+    {
+        if (_selectedPlacedTileIndices.Count == 0) return Task.FromResult(Array.Empty<int>());
+        PushWorldBuilderUndo();
+        var footprint = Math.Clamp(_tileFootprint, 1, 300);
+        var visible = Math.Min(footprint, Math.Min(WorldSession.GridColumns, WorldSession.GridRows));
+        foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count))
+        {
+            var tile = Session.PlacedTiles[index];
+            var column = Math.Clamp((int)Math.Round(tile.X * WorldSession.GridColumns), 0, Math.Max(0, WorldSession.GridColumns - visible));
+            var row = Math.Clamp((int)Math.Round(tile.Y * WorldSession.GridRows), 0, Math.Max(0, WorldSession.GridRows - visible));
+            Session.PlacedTiles[index] = tile with
+            {
+                X = column / (double)WorldSession.GridColumns,
+                Y = row / (double)WorldSession.GridRows,
+                PlacementZoom = 1.0 / footprint
+            };
+        }
+        Session.Notify();
+        return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());
+    }
+
+    [JSInvokable]
+    public Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals() =>
+        Task.FromResult(Session.PlacedTiles.Select((tile,index) => new WorldBuilderTileVisual(index, tile.RotationQuarterTurns)).ToArray());
 
     [JSInvokable]
     public Task<WorldBuilderCommandState> GetWorldBuilderCommandState() =>
@@ -154,3 +224,4 @@ public partial class WorldBuilderStudio
 }
 
 public sealed record WorldBuilderCommandState(string PlacementMode, bool CanUndo, int SelectedCount);
+public sealed record WorldBuilderTileVisual(int Index, int RotationQuarterTurns);
