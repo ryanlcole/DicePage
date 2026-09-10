@@ -27,38 +27,41 @@
  outline:0!important;
 }
 
-.worldbuilder-studio .studio-viewer-grid{
+/* The grid belongs to the viewer, never to the movable/scalable world stage. */
+html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid{
  position:absolute!important;
  inset:var(--viewer-frame)!important;
- opacity:0!important;
- visibility:hidden!important;
- background:none!important;
- background-image:none!important;
- border:0!important;
- outline:0!important;
- pointer-events:none!important;
- z-index:0!important;
-}
-
-.worldbuilder-studio .studio-viewer-canvas .world-stage::before{
- content:""!important;
  display:block!important;
- position:absolute!important;
- inset:0!important;
+ visibility:visible!important;
+ opacity:1!important;
  box-sizing:border-box!important;
- z-index:1!important;
  pointer-events:none!important;
+ z-index:30!important;
  border:1px solid rgba(215,199,145,.64)!important;
+ outline:0!important;
  background-image:
   linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),
   linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px)!important;
  background-size:calc(100% / 30) calc(100% / 30)!important;
  background-position:0 0!important;
  background-repeat:repeat!important;
+ transform:none!important;
 }
 
-.worldbuilder-studio .studio-viewer-canvas:has(.studio-viewer-grid.off) .world-stage::before{
+html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.off{
  display:none!important;
+ visibility:hidden!important;
+ opacity:0!important;
+}
+
+/* Legacy/core grid painted on the map stage is explicitly disabled. */
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage::before{
+ content:none!important;
+ display:none!important;
+ visibility:hidden!important;
+ background:none!important;
+ background-image:none!important;
+ border:0!important;
 }
 
 .worldbuilder-studio .studio-viewer-canvas .world-stage::after,
