@@ -50,6 +50,8 @@ public sealed partial class WorldSession
 {
     public const string CardStoragePrefix = "cards";
     public const string PublishedCardStoragePrefix = "published-cards";
+    readonly List<RistCardEnvelope> _ownedCardEnvelopes = [];
+    public IReadOnlyList<RistCardEnvelope> OwnedCardEnvelopes => _ownedCardEnvelopes;
 
     public static string CardTypeSlug(RistCardType type) => type switch
     {
@@ -60,11 +62,14 @@ public sealed partial class WorldSession
         _ => type.ToString().ToLowerInvariant()
     };
 
+    // Cards belong to the account, not to a browser or a single world. WorldId in
+    // the envelope links a card into a world when appropriate, but ownership stays
+    // at the account boundary so cards can move between campaigns and future devices.
     public string PrivateCardKey(RistCardType type, string cardId) =>
-        $"{WorldStoragePrefix}/{CardStoragePrefix}/{CardTypeSlug(type)}/{cardId}.json";
+        $"{CardStoragePrefix}/{CardTypeSlug(type)}/{cardId}.json";
 
     public string PublishedCardKey(RistCardType type, string cardId) =>
-        $"{WorldStoragePrefix}/{PublishedCardStoragePrefix}/{CardTypeSlug(type)}/{cardId}.json";
+        $"{PublishedCardStoragePrefix}/{CardTypeSlug(type)}/{cardId}.json";
 
     public static string ComputeCardManifestHash<T>(T manifest)
     {
@@ -72,10 +77,10 @@ public sealed partial class WorldSession
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
     }
 
-    // The art-data mark is intentionally derived from canonical identity rather than
-    // visual styling. Renderers may encode this mark into Shaelvien-created artwork
-    // (metadata, machine-readable pattern, future physical marker, etc.) without
-    // changing the identity or copying another trading-card visual system.
+    // Shaelvien's machine-readable art mark is derived from canonical identity and
+    // reconstruction data, not from another trading-card layout. A renderer can
+    // encode this value into Shaelvien artwork metadata/patterns or a future physical
+    // marker without changing card identity.
     public static string ComputeArtDataMark(string cardId, RistCardType type, string manifestHash)
     {
         var material = $"RIST|{cardId}|{CardTypeSlug(type)}|{manifestHash}";
@@ -85,6 +90,7 @@ public sealed partial class WorldSession
     public async Task SaveCardEnvelopeAsync(RistCardEnvelope card)
     {
         if (string.IsNullOrWhiteSpace(card.CardId)) throw new ArgumentException("Card ID is required.", nameof(card));
+        card.OwnerAccountId = string.IsNullOrWhiteSpace(card.OwnerAccountId) ? WorldOwnerAccountId : card.OwnerAccountId;
         card.UpdatedAtUtc = DateTimeOffset.UtcNow;
         card.ManifestHash = ComputeCardManifestHash(new
         {
@@ -100,11 +106,42 @@ public sealed partial class WorldSession
             card.Payload
         });
         card.ArtDataMark = ComputeArtDataMark(card.CardId, card.CardType, card.ManifestHash);
+
+        var existing = _ownedCardEnvelopes.FindIndex(x => string.Equals(x.CardId, card.CardId, StringComparison.Ordinal));
+        if (existing >= 0) _ownedCardEnvelopes[existing] = card;
+        else _ownedCardEnvelopes.Add(card);
+        Notify();
+
         if (!IsLoggedIn) return;
-        await EnsureWorldRelationshipAsync();
         var json = JsonSerializer.Serialize(card, MapWriteOptions);
         await auth.UploadTextAsync(PrivateCardKey(card.CardType, card.CardId), json, "application/json");
         if (card.Published)
             await auth.UploadTextAsync(PublishedCardKey(card.CardType, card.CardId), json, "application/json");
+    }
+
+    public async Task LoadOwnedCardEnvelopesAsync()
+    {
+        _ownedCardEnvelopes.Clear();
+        if (!IsLoggedIn) { Notify(); return; }
+        try
+        {
+            var listing = await auth.ListAsync(CardStoragePrefix + "/");
+            if (listing?.Items is null) { Notify(); return; }
+            foreach (var item in listing.Items
+                .Where(x => x.Key.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(x => x.LastModified)
+                .Take(100))
+            {
+                try
+                {
+                    var card = await auth.DownloadJsonAsync<RistCardEnvelope>(item.Key);
+                    if (card is not null && string.Equals(card.Format, "RISTCARD", StringComparison.Ordinal))
+                        _ownedCardEnvelopes.Add(card);
+                }
+                catch { }
+            }
+        }
+        catch { }
+        Notify();
     }
 }
