@@ -52,6 +52,7 @@ public sealed partial class WorldSession
  {
   try
   {
+   await EnsureWorldRelationshipAsync();
    var json=snapshot??ExportMapJson();
    await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,json);
    await auth.UploadTextAsync(WorldCheckpointKey,json,"application/json");
@@ -66,6 +67,7 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   try
   {
+   await EnsureWorldRelationshipAsync();
    var saved=await auth.DownloadJsonAsync<SavedWorld>(WorldCheckpointKey);
    var migratedLegacy=false;
 
