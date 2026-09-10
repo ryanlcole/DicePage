@@ -83,6 +83,10 @@
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell{
    z-index:var(--wb-stack-z,1000000)!important;
   }
+  .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell.wb-selected,
+  .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell.wb-moving{
+   z-index:2147483000!important;
+  }
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell>.tile-image-crop{
    transform:translate(var(--wb-parallax-x,0px),var(--wb-parallax-y,0px)) scale(var(--wb-parallax-scale,1)) rotate(var(--wb-rotation,0deg))!important;
    transform-origin:center center!important;
