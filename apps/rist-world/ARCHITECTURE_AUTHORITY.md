@@ -11,6 +11,7 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 5. **Production only receives release-gated changes.** Build branches and backup refs remain recoverable.
 6. **Third-party code must be license-compatible and attributable.** Shaelvien may optimize open-source/freeware components, but proprietary code is not copied.
 7. **World identity is the persistence boundary.** Account ownership and world identity are related, but they are not the same thing.
+8. **World math is absolute; viewer projection is contextual.** One cell is always 1 km × 1 km × 1 km. Parallax, zoom, and cartographic representation never redefine geometric scale.
 
 ## Current Authorities
 
@@ -18,7 +19,9 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 | --- | --- | --- |
 | World identity | `WorldSession.WorldIdentity.cs` | Stable World ID, account relationship, world storage root, and world-scoped browser persistence. |
 | World runtime state | `WorldSession*.cs` | Plane, Tier, Layer, role, grid state, pieces, authored terrain, and active world state. |
-| Default world cube | `WorldSession.DefaultCube.cs` | 30×30 one-mile cells; Ocean 071 implicit terrain. |
+| Default world cube | `WorldSession.DefaultCube.cs` | 30×30 one-kilometre cells; Ocean 071 implicit terrain. |
+| World geometry / projection contract | `WORLD_PROJECTION_CONTRACT.md` | Fixed 1 km³ world cells and the spatial→cartographic representation continuum. |
+| WorldBuilder parallax projection | `wwwroot/worldbuilder-projection.js` | Presentation-only altitude parallax and cartographic blending. Never changes authored coordinates or footprint. |
 | Save / load | `WorldSession.Persistence.cs` | World-scoped local/private persistence payload, legacy migration, and canonical reset. |
 | Map renderer | `Components/WorldMap.razor` | Semantic render order: ocean → viewer grid → authored terrain → labels/dice/pieces. |
 | Base map geometry / Ocean 071 | `Components/WorldMap.razor.css` | Square map surface and actual Ocean 071 rendering. |
@@ -60,12 +63,16 @@ This structure allows one account to own many worlds later without changing the 
 The P0 worldbuilder must satisfy all of these simultaneously:
 
 - one square authored world surface;
-- 30 columns × 30 rows = 900 addressable one-mile cells;
+- 30 columns × 30 rows = 900 addressable one-kilometre cells;
+- every X/Y/Z cell is exactly 1 km × 1 km × 1 km at every altitude;
 - Ocean 071 is implicit base terrain and does not create 900 save records;
 - the viewer grid is independent from terrain;
 - authored terrain is sparse above the ocean;
 - tile placement snaps in **world coordinates after pan/zoom inversion**;
+- tile footprint is measured in world cells and does not change with altitude;
 - Plane/Tier/Layer remain world-state coordinates, not viewport tricks;
+- close views may use presentation-only parallax so higher-Z objects appear nearer;
+- cartographic zoom progressively removes parallax so equal true distances map to equal displayed distances;
 - landscape uses surplus horizontal space for World Controls;
 - portrait keeps the map usable without changing world geometry;
 - save/reload preserves authored state without changing the implicit ocean identity.
