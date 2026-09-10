@@ -8,6 +8,7 @@ on:
     paths:
       - 'infra/aws/rist-external-ai.yml'
       - 'infra/aws/rist_external_ai_handler.py'
+      - 'infra/aws/rist_external_ai_gateway.py'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
 concurrency:
@@ -39,8 +40,10 @@ jobs:
       - name: Validate disabled external AI stack
         run: sam validate --lint --template-file infra/aws/rist-external-ai.yml
 
-      - name: Compile defensive runtime
-        run: python -m py_compile infra/aws/rist_external_ai_handler.py
+      - name: Compile defensive runtime and AI gateway
+        run: |
+          python -m py_compile infra/aws/rist_external_ai_handler.py
+          python -m py_compile infra/aws/rist_external_ai_gateway.py
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -136,16 +139,16 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiOwnerReleased'].OutputValue" --output text)
           test "$RELEASED" = "false"
 
-      - name: Export human operator API config
+      - name: Export human and AI gateway config
         shell: bash
         run: |
           set -euo pipefail
           API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
-          printf '{"apiBaseUrl":"%s","ownerReleased":false}\n' "$API" > external-ai-config.json
+          printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$API" > external-ai-config.json
           cat external-ai-config.json
 
-      - name: Publish locked operator config to protected game origin
+      - name: Publish locked gateway config to protected game origin
         shell: bash
         run: |
           set -euo pipefail
