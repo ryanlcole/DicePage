@@ -137,7 +137,8 @@ public partial class WorldBuilderStudio
         if (quickIndex < 0 || quickIndex >= _quickTiles.Count || _zModule is null || _libraryRailOpen)
             return false;
 
-        var footprint = Math.Clamp(_tileSizeKmAtOrigin, 0.001, 1_000_000.0);
+        // Tile Size is the tile footprint in viewer squares. World distance per square is independent.
+        var footprint = Math.Clamp((double)_tileFootprint, 1.0, WorldSession.GridColumns);
         var cell = await ViewerCell(clientX, clientY, footprint);
         if (cell is null) return false;
 
@@ -191,7 +192,7 @@ public partial class WorldBuilderStudio
     {
         if (_selectedPlacedTileIndices.Count == 0) return Task.FromResult(Array.Empty<int>());
         PushWorldBuilderUndo();
-        var footprint = Math.Clamp(_tileSizeKmAtOrigin, 0.001, 1_000_000.0);
+        var footprint = Math.Clamp((double)_tileFootprint, 1.0, WorldSession.GridColumns);
         foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count))
         {
             var tile = Session.PlacedTiles[index];
