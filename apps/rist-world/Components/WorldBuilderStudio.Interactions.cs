@@ -60,13 +60,20 @@ public partial class WorldBuilderStudio
     static string NormalizeTreatment(string? value) => value?.ToLowerInvariant() switch
     {
         "blend" => "blend",
+        "trim" => "crop",
         "crop" => "crop",
         _ => "normal"
     };
 
-    void AddViewerTile(AtlasTile tile, int column, int row, double footprint = 1, bool upperLayer = false, string treatment = "normal")
+    void AddViewerTile(AtlasTile tile, int column, int row, double footprint = 1, bool upperLayer = false, bool upperTier = false, string treatment = "normal")
     {
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
+        if (upperTier)
+        {
+            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
+            Session.AddPlacedTileStacked(placed, false);
+            return;
+        }
         Session.AddPlacedTileStacked(placed, upperLayer);
     }
 
@@ -136,11 +143,11 @@ public partial class WorldBuilderStudio
 
         PlacementChoice choice;
         try { choice = await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume"); }
-        catch { choice = new(false, "normal"); }
+        catch { choice = new(false, false, "normal"); }
 
         PushWorldBuilderUndo();
         ClearWorldBuilderSelection();
-        AddViewerTile(_quickTiles[quickIndex], cell.Value.Column, cell.Value.Row, footprint, choice.UpperLayer, NormalizeTreatment(choice.Treatment));
+        AddViewerTile(_quickTiles[quickIndex], cell.Value.Column, cell.Value.Row, footprint, choice.UpperLayer, choice.UpperTier, NormalizeTreatment(choice.Treatment));
         Session.Notify();
         return true;
     }
@@ -179,7 +186,6 @@ public partial class WorldBuilderStudio
         return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());
     }
 
-    // Kept as a compatibility endpoint for older cached clients. The UI no longer exposes Resize.
     [JSInvokable]
     public Task<int[]> ResizeSelectedTilesFromJs()
     {
@@ -208,6 +214,6 @@ public partial class WorldBuilderStudio
         Task.FromResult(new WorldBuilderCommandState("Single", _worldBuilderUndo.Count > 0, _selectedPlacedTileIndices.Count));
 }
 
-public sealed record PlacementChoice(bool UpperLayer, string Treatment);
+public sealed record PlacementChoice(bool UpperLayer, bool UpperTier, string Treatment);
 public sealed record WorldBuilderCommandState(string PlacementMode, bool CanUndo, int SelectedCount);
 public sealed record WorldBuilderTileVisual(int Index, int RotationQuarterTurns, int TierIndex, int LayerOffset);
