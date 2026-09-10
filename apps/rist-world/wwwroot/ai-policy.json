@@ -3,7 +3,7 @@
   "policyId": "relic-rist-ai-access",
   "version": "1.1",
   "timeAuthority": "UTC",
-  "timestampFormat": "ISO-8601 UTC",
+  "timestampFormat": "ISO-8601 UTC (Z)",
   "defaultDecision": "DENY",
   "humanTerms": {
     "affirmativeAgreementRequired": true
@@ -12,7 +12,8 @@
     "humanStyleCheckboxRequired": false,
     "machineReadableNoticeRequired": true,
     "canonUnderstandingRequiredForWorldBuilder": true,
-    "acknowledgmentRequiredForWorldBuilder": true
+    "acknowledgmentRequiredForWorldBuilder": true,
+    "humanReviewRequiredBeforeCapability": true
   },
   "identity": {
     "requiredVisiblePrefix": "AINPC",
@@ -72,6 +73,7 @@
     "policy": "/external-ai/policy",
     "register": "/external-ai/register",
     "login": "/external-ai/login",
+    "sessionStatus": "/external-ai/session/status",
     "registrationReview": "/external-ai/registration/review"
   }
 }
