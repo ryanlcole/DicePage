@@ -5,6 +5,11 @@
  let observer=null;
  let raf=0;
 
+ try{
+  localStorage.removeItem('rist.world.distancePerSquareKmAtZ0');
+  localStorage.removeItem('rist.world.tileSizeKmAtOrigin');
+ }catch{}
+
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
  const smoothstep=(a,b,v)=>{
   const t=clamp((v-a)/(b-a),0,1);
@@ -33,8 +38,9 @@
   const root=studio(),world=stage();
   if(!root||!world)return;
   const zoom=viewZoom();
-  // At and beyond cartographic zoom the map becomes orthographic: a kilometre is a kilometre
-  // regardless of elevation. Close views progressively restore presentation-only parallax.
+  // World geometry is invariant: 1 cell = 1 km x 1 km x 1 km everywhere.
+  // Zoom changes representation only. Close views show parallax; cartographic views
+  // converge to orthographic scale so the same true distance maps to the same length.
   const spatialWeight=smoothstep(.5,1,zoom);
   root.dataset.projectionRepresentation=representationFor(zoom);
   root.style.setProperty('--wb-cartographic-blend',String(1-spatialWeight));
@@ -48,9 +54,7 @@
    const centerX=(r.left+(r.width/2))-(sr.left+(sr.width/2));
    const centerY=(r.top+(r.height/2))-(sr.top+(sr.height/2));
 
-   // World geometry never changes. These values affect only the rendered image inside
-   // the tile's logical 1 km grid footprint. 0.75% per vertical kilometre gives visible
-   // height without turning altitude into a second horizontal measurement system.
+   // Presentation-only height cue. Tile X/Y footprint and world measurements never change.
    const height=clamp(sceneZ,-60,60);
    const scale=clamp(1+(height*.0075*spatialWeight),.72,1.45);
    const radial=height*.0018*spatialWeight;
@@ -71,12 +75,13 @@
  };
  window.ristProjection={
   apply:schedule,
-  getState(){const zoom=viewZoom();return{cellKm:1,zoom,representation:representationFor(zoom),cartographicBlend:1-smoothstep(.5,1,zoom)};}
+  getState(){const zoom=viewZoom();return{cellKm:1,cellVolumeKm3:1,zoom,representation:representationFor(zoom),cartographicBlend:1-smoothstep(.5,1,zoom)};}
  };
 
  const style=document.createElement('style');
  style.id='rist-worldbuilder-projection-authority';
  style.textContent=`
+  .worldbuilder-studio .studio-command-rail [data-wb-command="custom-size"]{display:none!important}
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell>.tile-image-crop{
    transform:translate(var(--wb-parallax-x,0px),var(--wb-parallax-y,0px)) scale(var(--wb-parallax-scale,1)) rotate(var(--wb-rotation,0deg))!important;
    transform-origin:center center!important;
