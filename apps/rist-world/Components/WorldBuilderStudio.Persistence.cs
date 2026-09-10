@@ -8,6 +8,8 @@ public partial class WorldBuilderStudio
     static readonly int[] PersistedFootprints = [1, 2, 4, 8, 16, 30];
     bool _uiRestoreStarted;
     bool _uiRestoreComplete;
+    bool _worldBuilderPersistBusy;
+    bool _worldBuilderPersistAgain;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -77,18 +79,44 @@ public partial class WorldBuilderStudio
 
     async Task PersistWorldBuilderUiAsync()
     {
+        if (_worldBuilderPersistBusy)
+        {
+            _worldBuilderPersistAgain = true;
+            return;
+        }
+
+        _worldBuilderPersistBusy = true;
         try
         {
-            var state = new WorldBuilderUiState(
-                _quickTiles.Select(x => x.Id).ToArray(),
-                _tileFootprint,
-                _toolMode,
-                _viewerGrid,
-                _zLocked);
-            await JS.InvokeVoidAsync("localStorage.setItem", WorldBuilderUiStorageKey, JsonSerializer.Serialize(state));
-            await JS.InvokeVoidAsync("ristWorldBuilderUi.captureRails");
+            do
+            {
+                _worldBuilderPersistAgain = false;
+                try
+                {
+                    var state = new WorldBuilderUiState(
+                        _quickTiles.Select(x => x.Id).ToArray(),
+                        _tileFootprint,
+                        _toolMode,
+                        _viewerGrid,
+                        _zLocked);
+                    await JS.InvokeVoidAsync("localStorage.setItem", WorldBuilderUiStorageKey, JsonSerializer.Serialize(state));
+                    await JS.InvokeVoidAsync("ristWorldBuilderUi.captureRails");
+
+                    // World Builder edits must survive iOS/Safari suspension. Save the
+                    // canonical world snapshot locally after each rendered edit instead
+                    // of relying only on the 30-second timer. This never performs an AWS
+                    // upload; WorldSession.SaveAsync writes only the scoped local save.
+                    if (_autoSave)
+                        await Session.SaveAsync();
+                }
+                catch { }
+            }
+            while (_worldBuilderPersistAgain);
         }
-        catch { }
+        finally
+        {
+            _worldBuilderPersistBusy = false;
+        }
     }
 
     sealed record WorldBuilderUiState(
