@@ -65,7 +65,11 @@ public partial class WorldBuilderStudio
     public async Task SaveWorldFromJs() => await SaveAsync();
 
     [JSInvokable]
-    public async Task LoadWorldFromJs() => await Session.LoadAsync();
+    public async Task LoadWorldFromJs()
+    {
+        if (Session.IsLoggedIn) await Session.LoadPrivateCheckpointAsync();
+        else await Session.LoadAsync();
+    }
 
     [JSInvokable]
     public Task<bool> SetAutoSaveFromJs(bool enabled)
@@ -76,6 +80,13 @@ public partial class WorldBuilderStudio
 
     [JSInvokable]
     public Task<bool> GetAutoSaveFromJs() => Task.FromResult(_autoSave);
+
+    [JSInvokable]
+    public Task<bool> SetPublishModeFromJs(bool published)
+    {
+        _publishMode = published;
+        return Task.FromResult(_publishMode);
+    }
 }
 
 public sealed record WorldBuilderDepthState(int SceneZ, int TierIndex, int LayerOffset, bool ViewerLocked);
