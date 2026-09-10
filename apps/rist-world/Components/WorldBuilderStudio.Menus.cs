@@ -5,7 +5,7 @@ namespace RistWorld.Components;
 public partial class WorldBuilderStudio
 {
     bool _autoSave = true;
-    double _tileSizeKmAtOrigin = 1.0;
+    double _distancePerSquareKmAtZ0 = 1.0;
 
     [JSInvokable]
     public Task<WorldBuilderDepthState> GetWorldBuilderDepthState() =>
@@ -51,15 +51,22 @@ public partial class WorldBuilderStudio
     public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
 
     [JSInvokable]
-    public Task<double> SetTileSizeKmAtOriginFromJs(double km)
+    public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km)
     {
         if (double.IsFinite(km) && km > 0 && km <= 1_000_000)
-            _tileSizeKmAtOrigin = km;
-        return Task.FromResult(_tileSizeKmAtOrigin);
+            _distancePerSquareKmAtZ0 = km;
+        return Task.FromResult(_distancePerSquareKmAtZ0);
     }
 
     [JSInvokable]
-    public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(_tileSizeKmAtOrigin);
+    public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(_distancePerSquareKmAtZ0);
+
+    // Compatibility aliases for older cached clients. These now mean distance per viewer square at Z=0.
+    [JSInvokable]
+    public Task<double> SetTileSizeKmAtOriginFromJs(double km) => SetDistancePerSquareKmAtZ0FromJs(km);
+
+    [JSInvokable]
+    public Task<double> GetTileSizeKmAtOriginFromJs() => GetDistancePerSquareKmAtZ0FromJs();
 
     [JSInvokable]
     public async Task SaveWorldFromJs() => await SaveAsync();
