@@ -1,39 +1,49 @@
 import './worldbuilder-projection.js';
+import './rist-card-tiff.js';
 
 window.ristWorld=window.ristWorld||{};
 
-window.ristWorld.exportCurrentWorld=()=>{
+const activeMapCardEntry=()=>{
   try{
-    const key='rist.world.blazor.v6';
-    const raw=localStorage.getItem(key);
-    if(!raw)return;
-    const blob=new Blob([raw],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='rist-world.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),0);
-  }catch{}
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key?.startsWith('rist.mapcard.'))keys.push(key);
+    }
+    keys.sort();
+    const key=keys[0];
+    return key?{key,raw:localStorage.getItem(key)}:null;
+  }catch{return null;}
 };
 
-window.ristWorld.importCurrentWorld=()=>{
+window.ristWorld.exportCurrentWorld=async()=>{
   try{
-    const input=document.createElement('input');
-    input.type='file';
-    input.accept='application/json,.json';
-    input.onchange=async()=>{
-      const file=input.files?.[0];
-      if(!file)return;
-      const raw=await file.text();
-      JSON.parse(raw);
-      localStorage.setItem('rist.world.blazor.v6',raw);
+    const card=activeMapCardEntry();
+    if(!card?.raw)return;
+    const parsed=JSON.parse(card.raw);
+    const safe=(parsed.MapName||parsed.mapName||'shaelvien-map').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'')||'shaelvien-map';
+    await window.ristCardTiff?.exportJson?.(parsed,`${safe}.tiff`);
+  }catch(err){console.warn('Card TIFF export failed',err);}
+};
+
+window.ristWorld.importCurrentWorld=async()=>{
+  try{
+    const result=await window.ristCardTiff?.pickAndRead?.();
+    if(!result)return;
+    if(result.kind==='json'){
+      const card=JSON.parse(result.raw);
+      const cardId=card.CardId||card.cardId;
+      if(!cardId)throw new Error('Card ID missing.');
+      localStorage.setItem(`rist.mapcard.${cardId}`,result.raw);
+      localStorage.setItem('rist.card.import.reference',`RIST1|${cardId}|${card.ManifestHash||card.manifestHash||''}`);
       location.reload();
-    };
-    input.click();
-  }catch{}
+      return;
+    }
+    if(result.kind==='tiff'&&result.token){
+      localStorage.setItem('rist.card.import.reference',result.token);
+      location.reload();
+    }
+  }catch(err){console.warn('Card import failed',err);}
 };
 
 window.ristWorld.worldBuilderZFramePoint=(element,clientY)=>{
