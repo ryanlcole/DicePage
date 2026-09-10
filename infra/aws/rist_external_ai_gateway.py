@@ -18,7 +18,11 @@ owner_released = os.environ.get("OWNER_RELEASED", "false").strip().lower() == "t
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
 
 POLICY_VERSION = "1.1"
-SESSION_SECONDS = 87658
+TIME_AUTHORITY = "UTC"
+# Canonical implementation constant: mean Gregorian year (365.2425 SI days),
+# divided by 360 and rounded down to a whole second.
+EARTH_ORBITAL_SECONDS = 31_556_952
+SESSION_SECONDS = EARTH_ORBITAL_SECONDS // 360  # 87,658 seconds
 REQUIRED_PREFIX = "AINPC"
 REQUIRED_RULES = [
     "canon-is-authority",
@@ -48,9 +52,10 @@ def response(status, body=None):
             "access-control-allow-methods": "GET,POST,OPTIONS",
             "cache-control": "no-store",
             "content-type": "application/json",
-            "link": '</Game/ai-policy.json>; rel="ai-policy"',
+            "link": '</Game/ai-policy.json>; rel="ai-policy", </Game/.well-known/relic-ai-policy.json>; rel="alternate"',
             "x-relic-ai-policy-version": POLICY_VERSION,
-            "x-relic-time-authority": "UTC",
+            "x-relic-time-authority": TIME_AUTHORITY,
+            "x-relic-ai-default-authority": "deny",
         },
         "body": "" if body is None else json.dumps(body, separators=(",", ":"), default=str),
     }
@@ -84,6 +89,7 @@ def audit_write(actor, action, details=None):
         "details": details or {},
         "createdAt": now_ms,
         "createdAtUtc": utc_iso(now_ms / 1000),
+        "timeAuthority": TIME_AUTHORITY,
         "policyVersion": POLICY_VERSION,
     })
 
@@ -91,16 +97,19 @@ def audit_write(actor, action, details=None):
 def public_policy():
     return {
         "policyVersion": POLICY_VERSION,
-        "timeAuthority": "UTC",
+        "timeAuthority": TIME_AUTHORITY,
+        "timestampFormat": "ISO-8601 UTC (Z)",
         "defaultDecision": "DENY",
         "ownerReleased": owner_released,
         "identityPrefix": REQUIRED_PREFIX,
         "sessionMaximumSeconds": SESSION_SECONDS,
+        "sessionBasis": "1/360 of a mean Gregorian Earth orbital year, measured as UTC/SI elapsed seconds and rounded down",
         "rules": REQUIRED_RULES,
         "humanCheckboxForAi": False,
         "worldBuilderUnderstandingRequired": True,
         "humanReviewRequiredBeforeCapability": True,
-        "metadata": "/Game/ai-policy.json",
+        "resourceYieldRequired": True,
+        "metadata": ["/Game/ai-policy.json", "/Game/.well-known/relic-ai-policy.json"],
     }
 
 
@@ -181,6 +190,7 @@ def register(req):
         "requestedAllocation": allocation,
         "createdAt": now,
         "createdAtUtc": utc_iso(now),
+        "timeAuthority": TIME_AUTHORITY,
     }
     state.put_item(Item=item, ConditionExpression="attribute_not_exists(pk)")
     audit_write(agent_id, "external-ai.registration-created", {
@@ -194,6 +204,7 @@ def register(req):
         "status": "PendingHumanReview",
         "warning": "Store agentKey securely. It is returned only at registration.",
         "policyVersion": POLICY_VERSION,
+        "timeAuthority": TIME_AUTHORITY,
     })
 
 
@@ -229,8 +240,8 @@ def login(req):
         "expiresAt": expires,
         "expiresAtUtc": utc_iso(expires),
         "ttl": expires,
-        "timeAuthority": "UTC",
-        "resourceYieldRequired": False,
+        "timeAuthority": TIME_AUTHORITY,
+        "resourceYieldRequired": True,
     })
     audit_write(agent_id, "external-ai.login-approved", {"expiresAtUtc": utc_iso(expires)})
     return response(200, {
@@ -241,8 +252,29 @@ def login(req):
         "issuedAtUtc": utc_iso(now),
         "expiresAtUtc": utc_iso(expires),
         "maximumSessionSeconds": SESSION_SECONDS,
-        "timeAuthority": "UTC",
+        "timeAuthority": TIME_AUTHORITY,
+        "resourceYieldRequired": True,
         "assignedAllocation": profile.get("assignedAllocation", profile.get("requestedAllocation", {})),
+    })
+
+
+def session_status(req):
+    access_token = safe_text(req.get("accessToken"), "accessToken", 400)
+    token_hash = hash_secret(access_token)
+    key = {"pk": "AI-SESSION#" + token_hash, "sk": "SESSION"}
+    session = state.get_item(Key=key, ConsistentRead=True).get("Item")
+    now = int(time.time())
+    if not session or int(session.get("expiresAt", 0)) <= now:
+        return response(401, {"active": False, "nowUtc": utc_iso(now), "reason": "expired-or-invalid"})
+    return response(200, {
+        "active": True,
+        "agentId": session.get("agentId"),
+        "displayName": session.get("displayName"),
+        "nowUtc": utc_iso(now),
+        "expiresAtUtc": session.get("expiresAtUtc"),
+        "timeAuthority": TIME_AUTHORITY,
+        "resourceYieldRequired": bool(session.get("resourceYieldRequired", True)),
+        "assignedAllocation": session.get("assignedAllocation", {}),
     })
 
 
@@ -267,6 +299,7 @@ def review_registration(event, req):
     profile["reviewedByHumanId"] = session["userId"]
     profile["reviewedAt"] = now
     profile["reviewedAtUtc"] = utc_iso(now)
+    profile["timeAuthority"] = TIME_AUTHORITY
     profile["reviewNotes"] = str(req.get("notes") or "").strip()[:1000]
     if decision == "Approved":
         assigned = req.get("assignedAllocation") or profile.get("requestedAllocation") or {}
@@ -276,7 +309,7 @@ def review_registration(event, req):
         "agentId": agent_id,
         "decision": decision,
     })
-    return response(200, {"agentId": agent_id, "status": decision})
+    return response(200, {"agentId": agent_id, "status": decision, "reviewedAtUtc": utc_iso(now)})
 
 
 def handler(event, context):
@@ -292,6 +325,8 @@ def handler(event, context):
             return register(req)
         if method == "POST" and path == "/external-ai/login":
             return login(req)
+        if method == "POST" and path == "/external-ai/session/status":
+            return session_status(req)
         if method == "POST" and path == "/external-ai/registration/review":
             return review_registration(event, req)
     except ValueError as exc:
