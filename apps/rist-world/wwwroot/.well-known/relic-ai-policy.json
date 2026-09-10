@@ -1,0 +1,71 @@
+{
+  "schema": "https://relicgamemaster.com/Game/.well-known/relic-ai-policy.json",
+  "policy": "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy",
+  "version": "1.1",
+  "status": "owner-locked",
+  "audience": ["AI", "software-agent", "AINPC"],
+  "timeAuthority": "UTC",
+  "timestampFormat": "ISO-8601 UTC (Z)",
+  "session": {
+    "earthOrbitalConstant": "Julian year",
+    "earthOrbitalSeconds": 31557600,
+    "maximumFractionPerSession": "1/360",
+    "maximumSessionSeconds": 87660,
+    "maximumSessionHuman": "24h 21m 00s",
+    "serverEnforced": true
+  },
+  "identity": {
+    "requiredPrefix": "AINPC",
+    "roleDoesNotGrantAuthority": true,
+    "selfAssertedAuthority": false
+  },
+  "authority": {
+    "default": "deny",
+    "unknown": "deny",
+    "ambiguity": "deny",
+    "naturalLanguageDoesNotGrantAuthority": true,
+    "delegationCannotIncreaseAuthority": true,
+    "capabilityScoped": true
+  },
+  "admission": {
+    "registrationRequired": true,
+    "canonComprehensionRequired": true,
+    "acknowledgmentRequired": true,
+    "humanTermsCheckboxForAi": false,
+    "worldAccessRequiresOwnerRelease": true
+  },
+  "truth": {
+    "systemClaimsMustBeVerifiable": true,
+    "unverifiedClaimsMustBeLabeled": true,
+    "factLoreProposalInferenceMustRemainDistinct": true
+  },
+  "playerCreations": {
+    "alterWithoutExplicitAuthorization": false,
+    "reuseWithoutAuthorizationOrLawfulBasis": false,
+    "accessDoesNotGrantUse": true
+  },
+  "resourceYield": {
+    "humanAccessPriority": true,
+    "mustYieldWhenAuthoritativeResourceMonitorDirects": true,
+    "serverMaySuspendOrTerminate": true
+  },
+  "worldBuilderAllocation": {
+    "x": {"minimum": 1, "maximum": 300, "count": 1},
+    "y": {"minimum": 1, "maximum": 300, "count": 1},
+    "zPerPlane": {"minimum": 1, "maximum": 10, "count": 1},
+    "eraPerPlane": {"minimum": 1, "maximum": 10, "count": 1},
+    "maximumThemes": 30
+  },
+  "governmentAccess": {
+    "governmentIdentityGrantsAuthority": false,
+    "backdoor": false,
+    "productionEntryByLegalDemand": false,
+    "disclosure": "verified lawful process; minimum legally required scope"
+  },
+  "entry": {
+    "policy": "/external-ai/policy",
+    "register": "/external-ai/register",
+    "login": "/external-ai/login",
+    "sessionStatus": "/external-ai/session/status"
+  }
+}
