@@ -52,7 +52,8 @@
   get:getState,
   setPosition,
   setPan,
-  nudge(axis,steps){if(!isUnlocked())return getState();return axis==='x'?setPosition(viewX+asInt(steps),viewY):setPosition(viewX,viewY+asInt(steps));}
+  nudge(axis,steps){if(!isUnlocked())return getState();return axis==='x'?setPosition(viewX+asInt(steps),viewY):setPosition(viewX,viewY+asInt(steps));},
+  resync(){resume();return getState();}
  };
 
  function syncMode(){
@@ -61,6 +62,12 @@
   const view=canvas();if(view)view.dataset.zUnlocked=unlocked?'true':'false';
   if(!unlocked)pointer=null;
   applyPan();
+ }
+ function resume(){
+  pointer=null;
+  viewX=asInt(localStorage.getItem('rist.world.viewX'));
+  viewY=asInt(localStorage.getItem('rist.world.viewY'));
+  requestAnimationFrame(()=>{syncMode();publish();});
  }
  function onDown(e){
   if(!isUnlocked()||(e.pointerType==='mouse'&&e.button!==0))return;
@@ -93,7 +100,9 @@
   const root=studio();if(!root)return setTimeout(start,100);
   const view=canvas();view?.addEventListener('pointerdown',onDown,{passive:true});view?.addEventListener('pointermove',onMove,{passive:false});view?.addEventListener('pointerup',release,{passive:true});view?.addEventListener('pointercancel',release,{passive:true});
   observer=new MutationObserver(()=>requestAnimationFrame(syncMode));observer.observe(root,{attributes:true,attributeFilter:['class'],subtree:false});syncMode();
-  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-4');axisBinding=module.attachAxisRulers(view);}catch{}
+  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-5');axisBinding=module.attachAxisRulers(view);}catch{}
+  window.addEventListener('pageshow',resume);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')resume();});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
