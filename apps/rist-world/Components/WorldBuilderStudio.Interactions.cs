@@ -7,6 +7,12 @@ public partial class WorldBuilderStudio
     readonly Stack<List<TileItem>> _worldBuilderUndo = new();
     readonly HashSet<int> _selectedPlacedTileIndices = [];
 
+    async Task PersistWorldBuilderAsync()
+    {
+        await Session.SaveAsync();
+        await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id));
+    }
+
     void PushWorldBuilderUndo()
     {
         _worldBuilderUndo.Push(new List<TileItem>(Session.PlacedTiles));
@@ -127,9 +133,9 @@ public partial class WorldBuilderStudio
 
     [JSInvokable] public Task<int[]> TogglePlacedTileSelection(int index,bool additive){if(index<0||index>=Session.PlacedTiles.Count)return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());if(!additive)_selectedPlacedTileIndices.Clear();if(!_selectedPlacedTileIndices.Add(index)&&additive)_selectedPlacedTileIndices.Remove(index);return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());}
 
-    [JSInvokable] public async Task<bool> UndoWorldBuilderFromJs(){if(_worldBuilderUndo.Count==0)return false;var previous=_worldBuilderUndo.Pop();Session.PlacedTiles.Clear();Session.PlacedTiles.AddRange(previous);ClearWorldBuilderSelection();Session.Notify();await Session.SaveAsync();return true;}
+    [JSInvokable] public async Task<bool> UndoWorldBuilderFromJs(){if(_worldBuilderUndo.Count==0)return false;var previous=_worldBuilderUndo.Pop();Session.PlacedTiles.Clear();Session.PlacedTiles.AddRange(previous);ClearWorldBuilderSelection();Session.Notify();await PersistWorldBuilderAsync();return true;}
 
-    [JSInvokable] public async Task<int[]> RemoveSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count).OrderDescending())Session.PlacedTiles.RemoveAt(index);ClearWorldBuilderSelection();Session.Notify();await Session.SaveAsync();return Array.Empty<int>();}
+    [JSInvokable] public async Task<int[]> RemoveSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count).OrderDescending())Session.PlacedTiles.RemoveAt(index);ClearWorldBuilderSelection();Session.Notify();await PersistWorldBuilderAsync();return Array.Empty<int>();}
 
     [JSInvokable]
     public async Task<bool> PlaceQuickTileFromJs(int quickIndex,double clientX,double clientY)
@@ -137,7 +143,7 @@ public partial class WorldBuilderStudio
         if(quickIndex<0||quickIndex>=_quickTiles.Count||_zModule is null||_libraryRailOpen)return false;
         var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);var cell=await ViewerCell(clientX,clientY,footprint);if(cell is null)return false;
         PlacementChoice choice;try{choice=await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume");}catch{choice=new(false,false,"normal");}
-        PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(_quickTiles[quickIndex],cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await Session.SaveAsync();return true;
+        PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(_quickTiles[quickIndex],cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await PersistWorldBuilderAsync();return true;
     }
 
     async Task<int[]> MovePlacedTileCore(int index,double clientX,double clientY,bool upperLayer,bool upperTier,string treatment)
@@ -158,7 +164,7 @@ public partial class WorldBuilderStudio
         else
             moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
 
-        Session.PlacedTiles[index]=moved;ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();
+        Session.PlacedTiles[index]=moved;ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable] public Task<int[]> MovePlacedTileFromJs(int index,double clientX,double clientY)=>MovePlacedTileCore(index,clientX,clientY,false,false,"normal");
@@ -167,8 +173,8 @@ public partial class WorldBuilderStudio
     public Task<int[]> MovePlacedTileWithPlacementFromJs(int index,double clientX,double clientY,bool upperLayer,bool upperTier,string treatment)=>
         MovePlacedTileCore(index,clientX,clientY,upperLayer,upperTier,treatment);
 
-    [JSInvokable] public async Task<int[]> RotateSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];Session.PlacedTiles[index]=tile with {RotationQuarterTurns=(tile.RotationQuarterTurns+1)%4};}Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();}
-    [JSInvokable] public async Task<int[]> ResizeSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];var resized=tile with {PlacementZoom=1.0/footprint};resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};Session.PlacedTiles[index]=resized;}Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();}
+    [JSInvokable] public async Task<int[]> RotateSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];Session.PlacedTiles[index]=tile with {RotationQuarterTurns=(tile.RotationQuarterTurns+1)%4};}Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();}
+    [JSInvokable] public async Task<int[]> ResizeSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];var resized=tile with {PlacementZoom=1.0/footprint};resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};Session.PlacedTiles[index]=resized;}Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();}
     [JSInvokable] public async Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals(){var visuals=Session.PlacedTiles.Select((tile,index)=>new WorldBuilderTileVisual(index,tile.RotationQuarterTurns,tile.TierIndex,tile.LayerOffset)).ToArray();try{await JS.InvokeVoidAsync("ristDepth.set",visuals);}catch{}return visuals;}
     [JSInvokable] public Task<WorldBuilderCommandState> GetWorldBuilderCommandState()=>Task.FromResult(new WorldBuilderCommandState("Single",_worldBuilderUndo.Count>0,_selectedPlacedTileIndices.Count));
 }
