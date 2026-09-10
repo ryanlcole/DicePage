@@ -117,8 +117,9 @@
  void SelectTool(string mode){_toolMode=mode;_toolsOpen=false;}
  void OpenLibraryRail(){_libraryRailOpen=true;_toolsOpen=false;}
  void CloseLibraryRail()=>_libraryRailOpen=false;
- void RemoveQuickTile(AtlasTile tile)=>_quickTiles.RemoveAll(x=>x.Id==tile.Id);
- void ClearQuickTiles()=>_quickTiles.Clear();
+ async Task PersistQuickSlotsAsync()=>await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
+ async Task RemoveQuickTile(AtlasTile tile){_quickTiles.RemoveAll(x=>x.Id==tile.Id);await PersistQuickSlotsAsync();}
+ async Task ClearQuickTiles(){_quickTiles.Clear();await PersistQuickSlotsAsync();}
  void CycleTileFootprint(){_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,16=>30,_=>1};}
  void ToggleZLock()=>_zLocked=!_zLocked;
  void MoveLayer(int delta){if(!_zLocked)Session.MoveLayer(delta);}
@@ -130,7 +131,7 @@
  void ToggleLoad()=>_loadOpen=!_loadOpen;
  Task BeginLibraryAssetDrag(AtlasTile tile){_draggingLibraryTile=tile;return Task.CompletedTask;}
  Task EndLibraryAssetDrag(){_draggingLibraryTile=null;return Task.CompletedTask;}
- Task PinQuickTile(AtlasTile tile){if(_quickTiles.All(x=>x.Id!=tile.Id)){if(_quickTiles.Count>=QuickSlotCount)_quickTiles.RemoveAt(0);_quickTiles.Add(tile);}return InvokeAsync(StateHasChanged);}
+ async Task PinQuickTile(AtlasTile tile){if(_quickTiles.All(x=>x.Id!=tile.Id)){if(_quickTiles.Count>=QuickSlotCount)_quickTiles.RemoveAt(0);_quickTiles.Add(tile);await PersistQuickSlotsAsync();}await InvokeAsync(StateHasChanged);}
  Task PinDraggedAsset(){var tile=_draggingLibraryTile;_draggingLibraryTile=null;return tile is null?Task.CompletedTask:PinQuickTile(tile);}
  void BeginQuickAssetDrag(AtlasTile tile){_draggingQuickTile=tile;Session.StageTile(tile);}
  void EndQuickAssetDrag(){_draggingQuickTile=null;}
@@ -150,10 +151,22 @@
   if(placedIndex>=0)Session.PlacedTiles[placedIndex]=Session.PlacedTiles[placedIndex] with{PlacementZoom=1.0/footprint};
   Session.RemoveStaged(staged.Key);
   Session.Notify();
+  await PersistWorldBuilderAsync();
  }
- async Task SaveAsync(){if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();}
- async Task LoadLocalAsync(){await Session.LoadAsync();_loadOpen=false;}
- async Task LoadPrivateAsync(){await Session.LoadPrivateCheckpointAsync();_loadOpen=false;}
+ async Task SaveAsync(){if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));}
+ async Task LoadLocalAsync(){await Session.LoadAsync();await RestoreMapCardAsync();_loadOpen=false;}
+ async Task LoadPrivateAsync(){await Session.LoadPrivateCheckpointAsync();await RestoreMapCardAsync();_loadOpen=false;}
+ async Task RestoreMapCardAsync()
+ {
+  await Session.LoadActiveMapCardAsync();
+  _quickTiles.Clear();
+  foreach(var id in Session.ActiveMapCardQuickSlotTileIds)
+  {
+   var tile=Session.AtlasTiles.FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
+   if(tile is not null&&_quickTiles.All(x=>x.Id!=tile.Id)&&_quickTiles.Count<QuickSlotCount)_quickTiles.Add(tile);
+  }
+  await InvokeAsync(StateHasChanged);
+ }
  async Task EnsureWorldAtlasAsync()
  {
   if(Session.AtlasTiles.Any(x=>!x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase)))return;
@@ -171,8 +184,23 @@
  {
   if(!firstRender)return;
   await EnsureWorldAtlasAsync();
+  var restored=await Session.LoadActiveMapCardAsync();
+  if(restored)
+  {
+   _quickTiles.Clear();
+   foreach(var id in Session.ActiveMapCardQuickSlotTileIds)
+   {
+    var tile=Session.AtlasTiles.FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
+    if(tile is not null&&_quickTiles.All(x=>x.Id!=tile.Id)&&_quickTiles.Count<QuickSlotCount)_quickTiles.Add(tile);
+   }
+   await InvokeAsync(StateHasChanged);
+  }
+  else if(Session.IsLoggedIn)
+  {
+   await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
+  }
   _self=DotNetObjectReference.Create(this);
-  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260909-grid-fit-2");
+  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260910-mapcard-1");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
  [JSInvokable] public Task StepZ(int delta){if(!_zLocked)Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}
