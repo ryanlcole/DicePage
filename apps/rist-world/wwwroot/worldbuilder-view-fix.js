@@ -6,23 +6,12 @@ let panX=0;
 let panY=0;
 let navigationMode=true;
 let requestedNavigationMode=true;
-let selectMode=false;
 let syncQueued=false;
 
 function studio(){return document.querySelector('.worldbuilder-studio');}
 function viewer(){return studio()?.querySelector('.studio-viewer-canvas');}
 function stage(){return studio()?.querySelector('.world-stage');}
 function tileList(){return [...(stage()?.querySelectorAll(':scope > .tile-cell')||[])];}
-function tileAtPoint(x,y){
- const root=stage();
- if(!root||!Number.isFinite(x)||!Number.isFinite(y))return null;
- const stack=document.elementsFromPoint?.(x,y)||[];
- for(const node of stack){
-  const tile=node?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
-  if(tile&&root.contains(tile))return tile;
- }
- return null;
-}
 
 function queueSync(){
  if(syncQueued)return;
@@ -39,111 +28,48 @@ function ensureStyle(){
    transform:translate(var(--wb-pan-x,0px),var(--wb-pan-y,0px)) scale(var(--wb-z-scale,1))!important;
    transform-origin:center center!important;
   }
-  .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
-  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell::after{box-shadow:none!important;border:0!important;outline:0!important}
-  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell{pointer-events:auto!important;cursor:pointer!important;touch-action:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
-  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell img,
-  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell .tile-image-crop{pointer-events:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;touch-action:none!important}
-  .worldbuilder-studio .studio-command-rail .wb-select-command{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}
-  .worldbuilder-studio .studio-command-rail .wb-select-command strong{font:900 12px/1 system-ui;color:#f0ddb0}
-  .worldbuilder-studio .studio-command-rail .wb-select-command small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}
-  .worldbuilder-studio .studio-command-rail .wb-select-command.active{border-color:#d0aa56;background:#201b10;box-shadow:inset 0 0 0 1px rgba(242,207,114,.35)}
+  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell{
+   pointer-events:none!important;
+   cursor:default!important;
+   -webkit-user-select:none!important;
+   user-select:none!important;
+   -webkit-touch-callout:none!important;
+  }
+  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell::after{
+   box-shadow:none!important;border:0!important;outline:0!important
+  }
+  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell img,
+  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell .tile-image-crop{
+   pointer-events:none!important;
+   -webkit-user-select:none!important;
+   user-select:none!important;
+   -webkit-user-drag:none!important;
+   -webkit-touch-callout:none!important;
+  }
+  .worldbuilder-studio .world-stage .tile-cell.wb-selected{
+   outline:3px solid #f2cf72!important;
+   outline-offset:-3px!important;
+   box-shadow:inset 0 0 0 2px rgba(12,30,40,.85)!important;
+   z-index:214748!important;
+  }
   .wb-underlay-host{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
   .wb-underlay-tile{position:absolute;box-sizing:border-box;overflow:hidden;pointer-events:none;border:0;outline:0}
   .wb-underlay-tile>.wb-underlay-crop{position:absolute;inset:0;display:block;overflow:hidden;line-height:0}
-  .wb-underlay-tile img{position:absolute;display:block;max-width:none;max-height:none;border:0;outline:0;transform-origin:center center}
+  .wb-underlay-tile img{position:absolute;display:block;max-width:none;max-height:none;border:0;outline:0;transform-origin:center center;pointer-events:none;-webkit-user-drag:none;-webkit-touch-callout:none}
   .wb-quick-drag-ghost{transform:translate(calc(-50% + var(--wb-thumb-side,70px)),calc(-50% - 88px)) scale(1.06)!important}
-  @media(max-width:760px){.worldbuilder-studio .studio-command-rail .wb-select-command{height:44px;min-width:94px;padding:4px 9px}}
  `;
  document.head.appendChild(style);
-}
-
-function ensureSelectButton(){
- const root=studio();
- const rail=root?.querySelector('.studio-command-rail');
- if(!rail)return null;
- let button=rail.querySelector('[data-wb-select="true"]');
- if(button)return button;
- button=document.createElement('button');
- button.type='button';
- button.className='wb-select-command';
- button.dataset.wbSelect='true';
- button.setAttribute('aria-pressed','false');
- button.innerHTML='<strong>Select</strong><small>Tap to Edit</small>';
- button.addEventListener('click',event=>{
-  event.preventDefault();
-  event.stopPropagation();
-  selectMode=!selectMode;
-  pointers.clear();
-  if(!selectMode)applySelection([]);
-  syncMode();
- });
- const library=rail.querySelector('button');
- if(library)library.insertAdjacentElement('afterend',button);else rail.prepend(button);
- return button;
-}
-
-function applySelection(selected){
- const set=new Set((selected||[]).map(Number));
- tileList().forEach((tile,index)=>tile.classList.toggle('wb-selected',set.has(index)));
- syncEditButtons(set.size);
-}
-
-function syncEditButtons(count){
- const root=studio();
- if(!root)return;
- for(const name of ['rotate','resize','remove']){
-  const button=root.querySelector(`[data-wb-command="${name}"]`);
-  if(button)button.disabled=count<1;
- }
- const remove=root.querySelector('[data-wb-command="remove"] small');
- if(remove)remove.textContent=`${count} Selected`;
-}
-
-async function selectTile(tile,additive=false){
- if(!bridge||!selectMode||!tile)return;
- const index=tileList().indexOf(tile);
- if(index<0)return;
- try{
-  const selected=await bridge.invokeMethodAsync('TogglePlacedTileSelection',index,!!additive);
-  applySelection(selected||[]);
- }catch{}
-}
-
-function onSelectClick(event){
- if(!selectMode)return;
- const tile=tileAtPoint(event.clientX,event.clientY)||event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
- if(!tile)return;
- event.preventDefault();
- event.stopPropagation();
- event.stopImmediatePropagation();
- selectTile(tile,!!(event.shiftKey||event.ctrlKey||event.metaKey));
-}
-
-function onSelectContextMenu(event){
- if(!selectMode)return;
- const tile=tileAtPoint(event.clientX,event.clientY)||event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
- if(!tile)return;
- event.preventDefault();
- event.stopPropagation();
- event.stopImmediatePropagation();
+ document.querySelectorAll('[data-wb-select="true"]').forEach(node=>node.remove());
 }
 
 function syncMode(){
- navigationMode=selectMode?false:requestedNavigationMode;
+ navigationMode=requestedNavigationMode;
  const root=studio();
  if(!root)return;
  root.classList.toggle('wb-z-unlocked',navigationMode);
- root.classList.toggle('wb-select-mode',selectMode);
- const select=ensureSelectButton();
- select?.classList.toggle('active',selectMode);
- if(select){
-  select.setAttribute('aria-pressed',String(selectMode));
-  const small=select.querySelector('small');
-  const next=selectMode?'Editing Tiles':'Tap to Edit';
-  if(small&&small.textContent!==next)small.textContent=next;
- }
+ root.classList.remove('wb-select-mode');
+ root.querySelectorAll('[data-wb-select="true"]').forEach(node=>node.remove());
  const s=stage();
  if(s){
   s.style.setProperty('--wb-pan-x',`${panX}px`);
@@ -153,64 +79,111 @@ function syncMode(){
 
 export function setNavigationMode(enabled){
  requestedNavigationMode=!!enabled;
- if(!navigationMode)pointers.clear();
+ if(!requestedNavigationMode)pointers.clear();
  syncMode();
 }
 
-function shouldHandle(event){
- const v=viewer();
- if(!v||!navigationMode)return false;
- if(!v.contains(event.target))return false;
- if(event.target?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit'))return false;
- return true;
+function blockedTarget(target){
+ return !!target?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.desktop-map-zoom');
+}
+
+function viewerPoint(clientX,clientY){
+ const s=stage();
+ if(!s)return null;
+ const rect=s.getBoundingClientRect();
+ if(rect.width<1||rect.height<1)return null;
+ const x=(clientX-rect.left)/rect.width;
+ const y=(clientY-rect.top)/rect.height;
+ if(x<0||x>1||y<0||y>1)return null;
+ return [x,y];
+}
+
+function applySelection(selected){
+ const set=new Set((selected||[]).map(Number));
+ tileList().forEach((tile,index)=>tile.classList.toggle('wb-selected',set.has(index)));
+ const root=studio();
+ if(!root)return;
+ for(const name of ['rotate','resize','remove']){
+  const button=root.querySelector(`[data-wb-command="${name}"]`);
+  if(button)button.disabled=set.size<1;
+ }
+ const remove=root.querySelector('[data-wb-command="remove"] small');
+ if(remove)remove.textContent=`${set.size} Selected`;
+}
+
+async function pickAt(clientX,clientY,additive=false){
+ if(!bridge)return;
+ const point=viewerPoint(clientX,clientY);
+ if(!point){
+  if(!additive)applySelection([]);
+  return;
+ }
+ try{
+  const selected=await bridge.invokeMethodAsync('SelectPlacedTileAtWorldPoint',point[0],point[1],!!additive);
+  applySelection(selected||[]);
+ }catch{}
 }
 
 function onPointerDown(event){
  syncMode();
- if(selectMode){
-  const v=viewer();
-  if(v&&v.contains(event.target)){
-   const tile=tileAtPoint(event.clientX,event.clientY);
-   if(tile){
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    selectTile(tile,!!(event.shiftKey||event.ctrlKey||event.metaKey));
-    return;
-   }
-  }
+ const v=viewer();
+ if(!v||!v.contains(event.target)||blockedTarget(event.target))return;
+ pointers.set(event.pointerId,{
+  x:event.clientX,y:event.clientY,
+  startX:event.clientX,startY:event.clientY,
+  moved:false,
+  additive:!!(event.shiftKey||event.ctrlKey||event.metaKey)
+ });
+ if(navigationMode){
+  event.preventDefault();
+  event.stopPropagation();
  }
- if(!shouldHandle(event))return;
- pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
- event.preventDefault();
- event.stopPropagation();
 }
 
 function onPointerMove(event){
  const ghost=document.querySelector('.wb-quick-drag-ghost');
  if(ghost)ghost.style.setProperty('--wb-thumb-side',event.clientX<window.innerWidth/2?'70px':'-70px');
- if(!pointers.has(event.pointerId)||!navigationMode)return;
- const before=pointers.get(event.pointerId);
- pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
- if(pointers.size===1){
-  panX+=event.clientX-before.x;
-  panY+=event.clientY-before.y;
-  syncMode();
+ const current=pointers.get(event.pointerId);
+ if(!current)return;
+ const dx=event.clientX-current.x;
+ const dy=event.clientY-current.y;
+ current.x=event.clientX;current.y=event.clientY;
+ if(Math.abs(event.clientX-current.startX)+Math.abs(event.clientY-current.startY)>8)current.moved=true;
+ if(navigationMode&&pointers.size===1&&current.moved){
+  panX+=dx;panY+=dy;syncMode();
+  event.preventDefault();
+  event.stopPropagation();
  }
- event.preventDefault();
- event.stopPropagation();
 }
 
 function release(event){
- if(!pointers.has(event.pointerId))return;
+ const current=pointers.get(event.pointerId);
+ if(!current)return;
  pointers.delete(event.pointerId);
+ if(!current.moved){
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+  void pickAt(event.clientX,event.clientY,current.additive);
+  return;
+ }
  if(navigationMode){event.preventDefault();event.stopPropagation();}
 }
 
+function cancel(event){pointers.delete(event.pointerId);}
+
 function onWheel(event){
- syncMode();
- if(!shouldHandle(event))return;
+ const v=viewer();
+ if(!v||!navigationMode||!v.contains(event.target)||blockedTarget(event.target))return;
  event.stopPropagation();
+}
+
+function onContextMenu(event){
+ const v=viewer();
+ if(!v||!v.contains(event.target))return;
+ event.preventDefault();
+ event.stopPropagation();
+ event.stopImmediatePropagation();
 }
 
 function cropStyle(tile){
@@ -261,10 +234,9 @@ export function attach(dotnet){
  document.addEventListener('pointerdown',onPointerDown,true);
  document.addEventListener('pointermove',onPointerMove,true);
  document.addEventListener('pointerup',release,true);
- document.addEventListener('pointercancel',release,true);
+ document.addEventListener('pointercancel',cancel,true);
  document.addEventListener('wheel',onWheel,{capture:true,passive:false});
- document.addEventListener('click',onSelectClick,true);
- document.addEventListener('contextmenu',onSelectContextMenu,true);
+ document.addEventListener('contextmenu',onContextMenu,true);
  observer=new MutationObserver(queueSync);
  observer.observe(document.body,{childList:true,subtree:true});
  return true;
@@ -274,12 +246,11 @@ export function dispose(){
  document.removeEventListener('pointerdown',onPointerDown,true);
  document.removeEventListener('pointermove',onPointerMove,true);
  document.removeEventListener('pointerup',release,true);
- document.removeEventListener('pointercancel',release,true);
+ document.removeEventListener('pointercancel',cancel,true);
  document.removeEventListener('wheel',onWheel,true);
- document.removeEventListener('click',onSelectClick,true);
- document.removeEventListener('contextmenu',onSelectContextMenu,true);
+ document.removeEventListener('contextmenu',onContextMenu,true);
  observer?.disconnect();observer=null;pointers.clear();syncQueued=false;
- document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
+ document.querySelectorAll('.wb-underlay-host,[data-wb-select="true"]').forEach(node=>node.remove());
  document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked','wb-select-mode');
- style?.remove();style=null;bridge=null;requestedNavigationMode=true;selectMode=false;navigationMode=true;
+ style?.remove();style=null;bridge=null;requestedNavigationMode=true;navigationMode=true;
 }
