@@ -119,6 +119,9 @@ Resources:
         Login:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/login, Method: POST }
+        SessionStatus:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/session/status, Method: POST }
         RegistrationReview:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/registration/review, Method: POST }
@@ -136,6 +139,18 @@ Outputs:
   ExternalAiHumanApiBaseUrl:
     Description: Human-authenticated operator API plus owner-locked external-AI policy/registration/login gateway
     Value: !Sub https://${ExternalAiHumanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  ExternalAiPolicyPath:
+    Description: Machine-readable AI policy endpoint
+    Value: /external-ai/policy
+  ExternalAiRegisterPath:
+    Description: AI registration endpoint
+    Value: /external-ai/register
+  ExternalAiLoginPath:
+    Description: AI login endpoint
+    Value: /external-ai/login
+  ExternalAiSessionStatusPath:
+    Description: AI UTC session status endpoint
+    Value: /external-ai/session/status
   ExternalAiSecurityFunctionArn:
     Description: Internal-only classified security-event conversion Lambda; intentionally has no public route
     Value: !GetAtt ExternalAiSecurityFunction.Arn
