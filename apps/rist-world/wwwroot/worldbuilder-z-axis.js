@@ -1,6 +1,7 @@
 import * as core from './worldbuilder-z-axis-core.js';
 import './worldbuilder-controls.js';
 import './worldbuilder-controls-state.js';
+import './worldbuilder-drag-preview.js';
 
 export const viewerPoint=core.viewerPoint;
 export const viewerGridPoint=core.viewerGridPoint;
@@ -31,6 +32,7 @@ export function attach(element,dotnet){
  const viewerControl=t=>!!t?.closest?.('.wb-z-ruler,.wb-x-ruler,.wb-y-ruler,.desktop-map-zoom,.map-frame-controls');
  const tileAt=(x,y)=>{const list=tiles();for(let i=list.length-1;i>=0;i--){const r=list[i].getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return list[i];}return null;};
  const point=(x,y)=>{const s=stage();if(!s)return null;const r=s.getBoundingClientRect();if(r.width<1||r.height<1)return null;const px=(x-r.left)/r.width,py=(y-r.top)/r.height;return px<0||px>1||py<0||py>1?null:[px,py];};
+ const cellsFor=tile=>{const s=stage(),sr=s?.getBoundingClientRect(),tr=tile?.getBoundingClientRect();if(!sr||!tr||sr.width<1)return 1;return Math.max(1,Math.min(30,Math.round(tr.width/(sr.width/30))));};
  const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((t,i)=>t.classList.toggle('wb-selected',set.has(i)));for(const n of ['rotate','remove']){const b=studio?.querySelector(`[data-wb-command="${n}"]`);if(b)b.disabled=set.size<1;}const small=studio?.querySelector('[data-wb-command="remove"] small');if(small)small.textContent=`${set.size} Selected`;return [...set];};
  const pick=async(x,y,additive)=>{const p=point(x,y);if(!p)return[];try{return applySelection(await dotnet.invokeMethodAsync('SelectPlacedTileAtWorldPoint',p[0],p[1],!!additive)||[]);}catch{return[];}};
 
@@ -68,17 +70,18 @@ export function attach(element,dotnet){
  const scheduleUi=()=>queueMicrotask(syncUi);
 
  const stop=e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();};
+ const movePoint=(cur,e)=>({x:e.clientX-cur.grabX+.5,y:e.clientY-cur.grabY+.5});
  const down=e=>{
   if(disposed||!studio)return;
   if(viewerLocked&&viewerControl(e.target)){stop(e);return;}
   if(blocked(e.target))return;
   const s=stage();if(!s||(!s.contains(e.target)&&!element.contains(e.target)))return;
   const tile=tileAt(e.clientX,e.clientY);
-  if(tile){const r=tile.getBoundingClientRect(),additive=!!(e.shiftKey||e.ctrlKey||e.metaKey);active={id:e.pointerId,tile,startX:e.clientX,startY:e.clientY,grabX:e.clientX-r.left,grabY:e.clientY-r.top,moved:false,index:-1,pickPromise:null};active.pickPromise=pick(e.clientX,e.clientY,additive).then(sel=>{if(active&&active.id===e.pointerId)active.index=sel.length?sel[sel.length-1]:-1;return sel;});stop(e);return;}
+  if(tile){const r=tile.getBoundingClientRect(),additive=!!(e.shiftKey||e.ctrlKey||e.metaKey);active={id:e.pointerId,tile,startX:e.clientX,startY:e.clientY,grabX:e.clientX-r.left,grabY:e.clientY-r.top,moved:false,index:-1,cells:cellsFor(tile),preview:false,pickPromise:null};active.pickPromise=pick(e.clientX,e.clientY,additive).then(sel=>{if(active&&active.id===e.pointerId)active.index=sel.length?sel[sel.length-1]:-1;return sel;});stop(e);return;}
   if(viewerLocked)stop(e);
  };
- const move=e=>{if(active&&e.pointerId===active.id){if(Math.abs(e.clientX-active.startX)+Math.abs(e.clientY-active.startY)>8){active.moved=true;active.tile.classList.add('wb-moving');}stop(e);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
- const finish=async(e,cancel)=>{if(!active||e.pointerId!==active.id)return;const cur=active;active=null;cur.tile.classList.remove('wb-moving');stop(e);if(cancel)return;const sel=await cur.pickPromise,index=cur.index>=0?cur.index:(sel?.length?sel[sel.length-1]:-1);if(cur.moved&&index>=0){try{applySelection(await dotnet.invokeMethodAsync('MovePlacedTileFromJs',index,e.clientX-cur.grabX+.5,e.clientY-cur.grabY+.5)||[]);}catch{}}};
+ const move=e=>{if(active&&e.pointerId===active.id){if(Math.abs(e.clientX-active.startX)+Math.abs(e.clientY-active.startY)>8){active.moved=true;active.tile.classList.add('wb-moving');const p=movePoint(active,e);if(!active.preview){active.preview=true;window.ristMovePlacement?.begin?.(active.tile,p.x,p.y,active.cells);}else window.ristMovePlacement?.update?.(p.x,p.y,active.cells,active.tile);}stop(e);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
+ const finish=async(e,cancel)=>{if(!active||e.pointerId!==active.id)return;const cur=active;active=null;cur.tile.classList.remove('wb-moving');stop(e);if(cancel){window.ristMovePlacement?.cancel?.();return;}const sel=await cur.pickPromise,index=cur.index>=0?cur.index:(sel?.length?sel[sel.length-1]:-1);if(cur.moved&&index>=0){const p=movePoint(cur,e);let choice={upperLayer:false,upperTier:false,treatment:'normal'};try{choice=await window.ristMovePlacement?.choose?.(p.x,p.y,cur.cells,cur.tile)??choice;}catch{choice=null;}if(choice){try{applySelection(await dotnet.invokeMethodAsync('MovePlacedTileWithPlacementFromJs',index,p.x,p.y,!!choice.upperLayer,!!choice.upperTier,choice.treatment||'normal')||[]);}catch{try{applySelection(await dotnet.invokeMethodAsync('MovePlacedTileFromJs',index,p.x,p.y)||[]);}catch{}}}}else window.ristMovePlacement?.cancel?.();};
  const up=e=>{if(active&&e.pointerId===active.id){void finish(e,false);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
  const cancel=e=>{if(active&&e.pointerId===active.id){void finish(e,true);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
  const wheel=e=>{if(viewerLocked&&element.contains(e.target))stop(e);};
@@ -91,5 +94,5 @@ export function attach(element,dotnet){
  uiObserver=new MutationObserver(scheduleUi);uiObserver.observe(studio,{childList:true,subtree:true});
  try{viewerLocked=localStorage.getItem('rist.world.viewerLocked')!=='false';dotnet.invokeMethodAsync('SetViewerLockFromJs',viewerLocked).catch(()=>{});}catch{}
  scheduleUi();autoSaveTimer=setInterval(()=>{if(localStorage.getItem('rist.world.autosave')!=='false')dotnet.invokeMethodAsync('SaveWorldFromJs').catch(()=>{});},30000);
- return{dispose(){disposed=true;active=null;clearInterval(autoSaveTimer);uiObserver?.disconnect();document.removeEventListener('pointerdown',down,true);document.removeEventListener('pointermove',move,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('click',cameraClick,true);document.removeEventListener('keydown',keydown,true);document.removeEventListener('contextmenu',context,true);document.removeEventListener('dragstart',dragstart,true);element.removeEventListener('wheel',wheel,true);style.remove();element.querySelector('.wb-z-ruler')?.remove();clearModal();try{coreBinding?.dispose?.();}catch{}}};
+ return{dispose(){disposed=true;active=null;window.ristMovePlacement?.cancel?.();clearInterval(autoSaveTimer);uiObserver?.disconnect();document.removeEventListener('pointerdown',down,true);document.removeEventListener('pointermove',move,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('click',cameraClick,true);document.removeEventListener('keydown',keydown,true);document.removeEventListener('contextmenu',context,true);document.removeEventListener('dragstart',dragstart,true);element.removeEventListener('wheel',wheel,true);style.remove();element.querySelector('.wb-z-ruler')?.remove();clearModal();try{coreBinding?.dispose?.();}catch{}}};
 }
