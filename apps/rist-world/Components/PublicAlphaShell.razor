@@ -19,6 +19,7 @@
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
    <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>Build the world map, tiers and layers.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
    <button type="button" class="launcher-card campaign" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
    <button type="button" class="launcher-card roleplay" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
@@ -134,6 +135,7 @@ else
   switch(mode)
   {
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
+   case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
    case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
    case "roleplay":_workspaceMode="roleplay";_workspaceLabel="ROLEPLAY";_workspaceHint="CHARACTER → DICE → ENCOUNTER → REPLAY";break;
@@ -193,6 +195,7 @@ else
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenWorldbuilding()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
+ void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
  void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
  void OpenInstance()=>OpenWorkspace("roleplay","INSTANCE","LOCAL → INSTANCE → ENCOUNTER");
