@@ -1,0 +1,19 @@
+{
+  "policyId": "relic-rist-ai-access",
+  "version": "1.1",
+  "canonicalManifest": "/Game/ai-policy.json",
+  "timeAuthority": "UTC",
+  "defaultDecision": "DENY",
+  "requiredIdentityPrefix": "AINPC",
+  "registration": "/external-ai/register",
+  "login": "/external-ai/login",
+  "policy": "/external-ai/policy",
+  "rulesApplyWithoutHumanStyleAiCheckbox": true,
+  "canonUnderstandingRequiredForWorldBuilder": true,
+  "humanReviewRequiredBeforeWorldCapability": true,
+  "maximumSessionSeconds": 87658,
+  "resourceYieldRequiredWhenDirected": true,
+  "systemClaimsMustBeProvable": true,
+  "playerCreationsProtected": true,
+  "governmentIdentityGrantsPrivilegedAccess": false
+}
