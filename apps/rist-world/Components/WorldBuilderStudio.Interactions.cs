@@ -105,22 +105,23 @@ public partial class WorldBuilderStudio
     }
 
     [JSInvokable]
-    public Task<bool> UndoWorldBuilderFromJs()
+    public async Task<bool> UndoWorldBuilderFromJs()
     {
-        if (_worldBuilderUndo.Count == 0) return Task.FromResult(false);
+        if (_worldBuilderUndo.Count == 0) return false;
         var previous = _worldBuilderUndo.Pop();
         Session.PlacedTiles.Clear();
         Session.PlacedTiles.AddRange(previous);
         ClearWorldBuilderSelection();
         Session.Notify();
-        return Task.FromResult(true);
+        await Session.SaveAsync();
+        return true;
     }
 
     [JSInvokable]
-    public Task<int[]> RemoveSelectedTilesFromJs()
+    public async Task<int[]> RemoveSelectedTilesFromJs()
     {
         if (_selectedPlacedTileIndices.Count == 0)
-            return Task.FromResult(Array.Empty<int>());
+            return Array.Empty<int>();
 
         PushWorldBuilderUndo();
         foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count).OrderDescending())
@@ -128,7 +129,8 @@ public partial class WorldBuilderStudio
 
         ClearWorldBuilderSelection();
         Session.Notify();
-        return Task.FromResult(Array.Empty<int>());
+        await Session.SaveAsync();
+        return Array.Empty<int>();
     }
 
     [JSInvokable]
@@ -137,7 +139,6 @@ public partial class WorldBuilderStudio
         if (quickIndex < 0 || quickIndex >= _quickTiles.Count || _zModule is null || _libraryRailOpen)
             return false;
 
-        // Tile Size is the tile footprint in viewer squares. World distance per square is independent.
         var footprint = Math.Clamp((double)_tileFootprint, 1.0, WorldSession.GridColumns);
         var cell = await ViewerCell(clientX, clientY, footprint);
         if (cell is null) return false;
@@ -150,6 +151,7 @@ public partial class WorldBuilderStudio
         ClearWorldBuilderSelection();
         AddViewerTile(_quickTiles[quickIndex], cell.Value.Column, cell.Value.Row, footprint, choice.UpperLayer, choice.UpperTier, NormalizeTreatment(choice.Treatment));
         Session.Notify();
+        await Session.SaveAsync();
         return true;
     }
 
@@ -170,13 +172,14 @@ public partial class WorldBuilderStudio
         ClearWorldBuilderSelection();
         _selectedPlacedTileIndices.Add(index);
         Session.Notify();
+        await Session.SaveAsync();
         return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable]
-    public Task<int[]> RotateSelectedTilesFromJs()
+    public async Task<int[]> RotateSelectedTilesFromJs()
     {
-        if (_selectedPlacedTileIndices.Count == 0) return Task.FromResult(Array.Empty<int>());
+        if (_selectedPlacedTileIndices.Count == 0) return Array.Empty<int>();
         PushWorldBuilderUndo();
         foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count))
         {
@@ -184,13 +187,14 @@ public partial class WorldBuilderStudio
             Session.PlacedTiles[index] = tile with { RotationQuarterTurns = (tile.RotationQuarterTurns + 1) % 4 };
         }
         Session.Notify();
-        return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());
+        await Session.SaveAsync();
+        return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable]
-    public Task<int[]> ResizeSelectedTilesFromJs()
+    public async Task<int[]> ResizeSelectedTilesFromJs()
     {
-        if (_selectedPlacedTileIndices.Count == 0) return Task.FromResult(Array.Empty<int>());
+        if (_selectedPlacedTileIndices.Count == 0) return Array.Empty<int>();
         PushWorldBuilderUndo();
         var footprint = Math.Clamp((double)_tileFootprint, 1.0, WorldSession.GridColumns);
         foreach (var index in _selectedPlacedTileIndices.Where(i => i >= 0 && i < Session.PlacedTiles.Count))
@@ -199,7 +203,8 @@ public partial class WorldBuilderStudio
             Session.PlacedTiles[index] = tile with { PlacementZoom = 1.0 / footprint };
         }
         Session.Notify();
-        return Task.FromResult(_selectedPlacedTileIndices.Order().ToArray());
+        await Session.SaveAsync();
+        return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable]
