@@ -37,19 +37,18 @@ public partial class WorldBuilderStudio
                a.Y < b.Y + bh - epsilon && a.Y + ah > b.Y + epsilon;
     }
 
+    bool SameStructuralSpace(TileItem a, TileItem b) =>
+        a.CubeX == b.CubeX && a.CubeY == b.CubeY && a.CubeZ == b.CubeZ &&
+        a.PlaneIndex == b.PlaneIndex && a.TierIndex == b.TierIndex;
+
     bool HasLayerSupport(TileItem tile, int layerOffset, int ignoreIndex = -1)
     {
-        // Layer 1 (offset 0) is the base surface of every tier. Higher layers
-        // require overlapping support from the immediately lower layer in the
-        // same cube/plane/tier. A tier itself is an independent elevation band.
         if (layerOffset <= 0) return true;
         for (var i = 0; i < Session.PlacedTiles.Count; i++)
         {
             if (i == ignoreIndex) continue;
             var support = Session.PlacedTiles[i];
-            if (support.CubeX != tile.CubeX || support.CubeY != tile.CubeY || support.CubeZ != tile.CubeZ ||
-                support.PlaneIndex != tile.PlaneIndex || support.TierIndex != tile.TierIndex ||
-                support.LayerOffset != layerOffset - 1)
+            if (!SameStructuralSpace(tile, support) || support.LayerOffset != layerOffset - 1)
                 continue;
             if (Overlaps(tile, support)) return true;
         }
@@ -61,6 +60,19 @@ public partial class WorldBuilderStudio
         var layer = Math.Max(0, requestedLayer);
         while (layer > 0 && !HasLayerSupport(tile, layer, ignoreIndex)) layer--;
         return layer;
+    }
+
+    int NextSupportedLayerAt(TileItem tile, int ignoreIndex = -1)
+    {
+        var highest = -1;
+        for (var i = 0; i < Session.PlacedTiles.Count; i++)
+        {
+            if (i == ignoreIndex) continue;
+            var other = Session.PlacedTiles[i];
+            if (!SameStructuralSpace(tile, other) || !Overlaps(tile, other)) continue;
+            highest = Math.Max(highest, other.LayerOffset);
+        }
+        return ResolveSupportedLayer(tile, Math.Max(1, highest + 1), ignoreIndex);
     }
 
     TileItem CreateViewerTile(AtlasTile tile, int column, int row, double footprint, string treatment = "normal")
@@ -87,16 +99,13 @@ public partial class WorldBuilderStudio
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
         if (upperTier)
         {
-            // Tier is independent structural elevation: it does not require a
-            // filled layer stack beneath it and begins on that tier's base layer.
             placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
             Session.AddPlacedTileStacked(placed, false);
             return;
         }
         if (upperLayer)
         {
-            var requested = Math.Max(1, Session.LayerOffset + 1);
-            placed = placed with { LayerOffset = ResolveSupportedLayer(placed, requested) };
+            placed = placed with { LayerOffset = NextSupportedLayerAt(placed) };
             Session.AddPlacedTileStacked(placed, false);
             return;
         }
@@ -131,18 +140,32 @@ public partial class WorldBuilderStudio
         PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(_quickTiles[quickIndex],cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await Session.SaveAsync();return true;
     }
 
-    [JSInvokable]
-    public async Task<int[]> MovePlacedTileFromJs(int index,double clientX,double clientY)
+    async Task<int[]> MovePlacedTileCore(int index,double clientX,double clientY,bool upperLayer,bool upperTier,string treatment)
     {
         if(index<0||index>=Session.PlacedTiles.Count)return _selectedPlacedTileIndices.Order().ToArray();
         var tile=Session.PlacedTiles[index];var cell=await ViewerCell(clientX,clientY,FootprintFor(tile));if(cell is null)return _selectedPlacedTileIndices.Order().ToArray();
         PushWorldBuilderUndo();
-        var moved=tile with { X=cell.Value.Column/(double)WorldSession.GridColumns,Y=cell.Value.Row/(double)WorldSession.GridRows };
-        // Moving a layered tile off its support degrades only that tile to the
-        // highest valid lower layer. Tier elevation remains unchanged.
-        moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
+        var moved=tile with
+        {
+            X=cell.Value.Column/(double)WorldSession.GridColumns,
+            Y=cell.Value.Row/(double)WorldSession.GridRows,
+            PlacementTreatment=NormalizeTreatment(treatment)
+        };
+        if(upperTier)
+            moved=moved with { TierIndex=tile.TierIndex+1,LayerOffset=0 };
+        else if(upperLayer)
+            moved=moved with { LayerOffset=NextSupportedLayerAt(moved,index) };
+        else
+            moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
+
         Session.PlacedTiles[index]=moved;ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();
     }
+
+    [JSInvokable] public Task<int[]> MovePlacedTileFromJs(int index,double clientX,double clientY)=>MovePlacedTileCore(index,clientX,clientY,false,false,"normal");
+
+    [JSInvokable]
+    public Task<int[]> MovePlacedTileWithPlacementFromJs(int index,double clientX,double clientY,bool upperLayer,bool upperTier,string treatment)=>
+        MovePlacedTileCore(index,clientX,clientY,upperLayer,upperTier,treatment);
 
     [JSInvokable] public async Task<int[]> RotateSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];Session.PlacedTiles[index]=tile with {RotationQuarterTurns=(tile.RotationQuarterTurns+1)%4};}Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();}
     [JSInvokable] public async Task<int[]> ResizeSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];var resized=tile with {PlacementZoom=1.0/footprint};resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};Session.PlacedTiles[index]=resized;}Session.Notify();await Session.SaveAsync();return _selectedPlacedTileIndices.Order().ToArray();}
