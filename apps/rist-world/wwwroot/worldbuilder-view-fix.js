@@ -4,8 +4,8 @@ let style=null;
 let pointers=new Map();
 let panX=0;
 let panY=0;
-let navigationMode=false;
-let explicitMode=null;
+let navigationMode=true;
+let explicitMode=true;
 let syncQueued=false;
 
 function studio(){return document.querySelector('.worldbuilder-studio');}
@@ -16,10 +16,6 @@ function zLockButton(){
  if(!root)return null;
  return [...root.querySelectorAll('.studio-command-rail button')]
   .find(node=>node.querySelector('strong')?.textContent?.trim()==='Z-Lock')||null;
-}
-function uiNavigationMode(){
- const button=zLockButton();
- return button?.querySelector('small')?.textContent?.trim()==='Unlocked';
 }
 
 function queueSync(){
@@ -63,12 +59,12 @@ function ensureSelectButton(){
  button.type='button';
  button.className='wb-select-command';
  button.dataset.wbSelect='true';
- button.innerHTML='<strong>Select</strong><small>Tile Edit</small>';
+ button.setAttribute('aria-pressed','false');
+ button.innerHTML='<strong>Select</strong><small>Tap to Edit</small>';
  button.addEventListener('click',()=>{
-  const lock=zLockButton();
-  if(lock?.querySelector('small')?.textContent?.trim()==='Unlocked')lock.click();
-  explicitMode=null;
-  queueSync();
+  explicitMode=!navigationMode;
+  pointers.clear();
+  syncMode();
  });
  const library=rail.querySelector('button');
  if(library)library.insertAdjacentElement('afterend',button);else rail.prepend(button);
@@ -76,7 +72,7 @@ function ensureSelectButton(){
 }
 
 function syncMode(){
- navigationMode=explicitMode??uiNavigationMode();
+ navigationMode=explicitMode!==false;
  const root=studio();
  if(!root)return;
  root.classList.toggle('wb-z-unlocked',navigationMode);
@@ -84,8 +80,9 @@ function syncMode(){
  const select=ensureSelectButton();
  select?.classList.toggle('active',!navigationMode);
  if(select){
+  select.setAttribute('aria-pressed',String(!navigationMode));
   const small=select.querySelector('small');
-  const next=navigationMode?'Tap to Edit':'Tile Edit';
+  const next=navigationMode?'Tap to Edit':'Editing Tiles';
   if(small&&small.textContent!==next)small.textContent=next;
  }
  const s=stage();
@@ -209,5 +206,5 @@ export function dispose(){
  observer?.disconnect();observer=null;pointers.clear();syncQueued=false;
  document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
  document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked','wb-select-mode');
- style?.remove();style=null;bridge=null;explicitMode=null;
+ style?.remove();style=null;bridge=null;explicitMode=true;navigationMode=true;
 }
