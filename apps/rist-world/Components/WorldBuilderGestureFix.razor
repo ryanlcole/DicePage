@@ -14,7 +14,7 @@
         if (Disposed) return;
         if (firstRender)
         {
-            Module = await JS.InvokeAsync<IJSObjectReference>("import", "./worldbuilder-view-fix.js?v=20260909-zmerge-1");
+            Module = await JS.InvokeAsync<IJSObjectReference>("import", "./worldbuilder-view-fix.js?v=20260910-freeze-fix-1");
             await Module.InvokeVoidAsync("attach");
         }
 
