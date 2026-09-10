@@ -32,25 +32,27 @@
   const {panX,panY}=panPixels();
   window.dispatchEvent(new CustomEvent('rist:viewer-pan',{detail:{x:viewX,y:viewY,panX,panY}}));
  }
- function setPosition(x,y){
+ function setPosition(x,y,force=false){
+  if(!force&&!isUnlocked())return getState();
   viewX=asInt(x);viewY=asInt(y);
   localStorage.setItem('rist.world.viewX',String(viewX));
   localStorage.setItem('rist.world.viewY',String(viewY));
   applyPan();publish();
   return getState();
  }
- function setPan(x,y,snapToGrid=true){
+ function setPan(x,y,snapToGrid=true,force=false){
+  if(!force&&!isUnlocked())return getState();
   const [cw,ch]=cellSize();
   const nextX=snapToGrid?Math.round((Number(x)||0)/Math.max(cw,1)):(Number(x)||0)/Math.max(cw,1);
   const nextY=snapToGrid?Math.round((Number(y)||0)/Math.max(ch,1)):(Number(y)||0)/Math.max(ch,1);
-  return setPosition(nextX,nextY);
+  return setPosition(nextX,nextY,force);
  }
  function getState(){const {panX,panY}=panPixels();return {x:viewX,y:viewY,panX,panY,unlocked:isUnlocked()};}
  window.ristViewerNavigation={
   get:getState,
   setPosition,
   setPan,
-  nudge(axis,steps){return axis==='x'?setPosition(viewX+asInt(steps),viewY):setPosition(viewX,viewY+asInt(steps));}
+  nudge(axis,steps){if(!isUnlocked())return getState();return axis==='x'?setPosition(viewX+asInt(steps),viewY):setPosition(viewX,viewY+asInt(steps));}
  };
 
  function syncMode(){
@@ -91,7 +93,7 @@
   const root=studio();if(!root)return setTimeout(start,100);
   const view=canvas();view?.addEventListener('pointerdown',onDown,{passive:true});view?.addEventListener('pointermove',onMove,{passive:false});view?.addEventListener('pointerup',release,{passive:true});view?.addEventListener('pointercancel',release,{passive:true});
   observer=new MutationObserver(()=>requestAnimationFrame(syncMode));observer.observe(root,{attributes:true,attributeFilter:['class'],subtree:false});syncMode();
-  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-3');axisBinding=module.attachAxisRulers(view);}catch{}
+  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-4');axisBinding=module.attachAxisRulers(view);}catch{}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
