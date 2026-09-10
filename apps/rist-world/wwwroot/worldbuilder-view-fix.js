@@ -6,6 +6,7 @@ let panX=0;
 let panY=0;
 let navigationMode=false;
 let explicitMode=null;
+let syncQueued=false;
 
 function studio(){return document.querySelector('.worldbuilder-studio');}
 function viewer(){return studio()?.querySelector('.studio-viewer-canvas');}
@@ -19,6 +20,12 @@ function zLockButton(){
 function uiNavigationMode(){
  const button=zLockButton();
  return button?.querySelector('small')?.textContent?.trim()==='Unlocked';
+}
+
+function queueSync(){
+ if(syncQueued)return;
+ syncQueued=true;
+ requestAnimationFrame(()=>{syncQueued=false;syncMode();});
 }
 
 function ensureStyle(){
@@ -60,8 +67,8 @@ function ensureSelectButton(){
  button.addEventListener('click',()=>{
   const lock=zLockButton();
   if(lock?.querySelector('small')?.textContent?.trim()==='Unlocked')lock.click();
-  explicitMode=false;
-  syncMode();
+  explicitMode=null;
+  queueSync();
  });
  const library=rail.querySelector('button');
  if(library)library.insertAdjacentElement('afterend',button);else rail.prepend(button);
@@ -76,7 +83,11 @@ function syncMode(){
  root.classList.toggle('wb-select-mode',!navigationMode);
  const select=ensureSelectButton();
  select?.classList.toggle('active',!navigationMode);
- if(select)select.querySelector('small').textContent=navigationMode?'Tap to Edit':'Tile Edit';
+ if(select){
+  const small=select.querySelector('small');
+  const next=navigationMode?'Tap to Edit':'Tile Edit';
+  if(small&&small.textContent!==next)small.textContent=next;
+ }
  const s=stage();
  if(s){
   s.style.setProperty('--wb-pan-x',`${panX}px`);
@@ -184,7 +195,8 @@ export function attach(dotnet){
  document.addEventListener('pointerup',release,true);
  document.addEventListener('pointercancel',release,true);
  document.addEventListener('wheel',onWheel,{capture:true,passive:false});
- observer=new MutationObserver(syncMode);observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+ observer=new MutationObserver(queueSync);
+ observer.observe(document.body,{childList:true,subtree:true});
  return true;
 }
 
@@ -194,7 +206,7 @@ export function dispose(){
  document.removeEventListener('pointerup',release,true);
  document.removeEventListener('pointercancel',release,true);
  document.removeEventListener('wheel',onWheel,true);
- observer?.disconnect();observer=null;pointers.clear();
+ observer?.disconnect();observer=null;pointers.clear();syncQueued=false;
  document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
  document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked','wb-select-mode');
  style?.remove();style=null;bridge=null;explicitMode=null;
