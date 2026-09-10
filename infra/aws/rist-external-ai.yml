@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: RIST external-AI defensive fiction, Life Token, rumor, and human review authority
+Description: RIST external-AI defensive fiction, Life Token, policy, registration, login, and human review authority
 
 Parameters:
   IdentityTableName:
@@ -45,6 +45,9 @@ Resources:
       KeySchema:
         - { AttributeName: pk, KeyType: HASH }
         - { AttributeName: sk, KeyType: RANGE }
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
       SSESpecification:
         SSEEnabled: true
       PointInTimeRecoverySpecification:
@@ -97,6 +100,29 @@ Resources:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/npc/review, Method: POST }
 
+  ExternalAiGatewayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_external_ai_gateway.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref IdentityTableName }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
+      Events:
+        Policy:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/policy, Method: GET }
+        Register:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/register, Method: POST }
+        Login:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/login, Method: POST }
+        RegistrationReview:
+          Type: HttpApi
+          Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/registration/review, Method: POST }
+
   ExternalAiSecurityFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -108,7 +134,7 @@ Resources:
 
 Outputs:
   ExternalAiHumanApiBaseUrl:
-    Description: Human-authenticated external-AI operator API
+    Description: Human-authenticated operator API plus owner-locked external-AI policy/registration/login gateway
     Value: !Sub https://${ExternalAiHumanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   ExternalAiSecurityFunctionArn:
     Description: Internal-only classified security-event conversion Lambda; intentionally has no public route
