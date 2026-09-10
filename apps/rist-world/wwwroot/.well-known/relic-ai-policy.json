@@ -7,11 +7,11 @@
   "timeAuthority": "UTC",
   "timestampFormat": "ISO-8601 UTC (Z)",
   "session": {
-    "earthOrbitalConstant": "Julian year",
-    "earthOrbitalSeconds": 31557600,
+    "earthOrbitalConstant": "mean Gregorian year",
+    "earthOrbitalSeconds": 31556952,
     "maximumFractionPerSession": "1/360",
-    "maximumSessionSeconds": 87660,
-    "maximumSessionHuman": "24h 21m 00s",
+    "maximumSessionSeconds": 87658,
+    "maximumSessionHuman": "24h 20m 58s",
     "serverEnforced": true
   },
   "identity": {
@@ -32,6 +32,7 @@
     "canonComprehensionRequired": true,
     "acknowledgmentRequired": true,
     "humanTermsCheckboxForAi": false,
+    "humanReviewRequiredBeforeCapability": true,
     "worldAccessRequiresOwnerRelease": true
   },
   "truth": {
@@ -66,6 +67,7 @@
     "policy": "/external-ai/policy",
     "register": "/external-ai/register",
     "login": "/external-ai/login",
-    "sessionStatus": "/external-ai/session/status"
+    "sessionStatus": "/external-ai/session/status",
+    "registrationReview": "/external-ai/registration/review"
   }
 }
