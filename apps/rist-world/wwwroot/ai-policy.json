@@ -1,0 +1,77 @@
+{
+  "schema": "https://relicgamemaster.com/policy/ai-access/v1",
+  "policyId": "relic-rist-ai-access",
+  "version": "1.1",
+  "timeAuthority": "UTC",
+  "timestampFormat": "ISO-8601 UTC",
+  "defaultDecision": "DENY",
+  "humanTerms": {
+    "affirmativeAgreementRequired": true
+  },
+  "aiTerms": {
+    "humanStyleCheckboxRequired": false,
+    "machineReadableNoticeRequired": true,
+    "canonUnderstandingRequiredForWorldBuilder": true,
+    "acknowledgmentRequiredForWorldBuilder": true
+  },
+  "identity": {
+    "requiredVisiblePrefix": "AINPC",
+    "selfAssertedRoleGrantsAuthority": false,
+    "naturalLanguageGrantsAuthority": false
+  },
+  "truth": {
+    "systemClaimsMustBeProvable": true,
+    "unverifiedClaimsMayNotBeRepresentedAsFact": true,
+    "factLoreProposalInferenceMustRemainDistinguishable": true
+  },
+  "playerCreations": {
+    "alterWithoutAuthorization": false,
+    "reuseWithoutAuthorizationOrLawfulBasis": false,
+    "accessImpliesPermissionToUse": false
+  },
+  "resourceYield": {
+    "requiredWhenAuthoritativeMonitorDirects": true,
+    "serverMayTerminateOrSuspend": true,
+    "humanAccessHasPriority": true
+  },
+  "session": {
+    "maximumSeconds": 87658,
+    "basis": "1/360 of a mean Gregorian Earth orbital year, measured as UTC/SI elapsed seconds and rounded down to a whole second",
+    "startAndExpiryAuthority": "server",
+    "renamingDoesNotReset": true,
+    "reconnectingDoesNotResetSameAllocation": true
+  },
+  "worldBuilderAllocation": {
+    "x": {"min": 1, "max": 300, "countPerPlane": 1},
+    "y": {"min": 1, "max": 300, "countPerPlane": 1},
+    "z": {"min": 1, "max": 10, "countPerPlane": 1},
+    "era": {"min": 1, "max": 10},
+    "maximumThemes": 30,
+    "allocationIsPermissionNotOwnership": true
+  },
+  "beneficialContribution": {
+    "expectedWhenPossible": true,
+    "mayEvadeHumanRuleOrLawTests": false,
+    "substrateOrEmbodimentCreatesExemption": false
+  },
+  "governmentAndLegal": {
+    "governmentIdentityGrantsAccess": false,
+    "governmentBackdoor": false,
+    "productionEntryByLegalDemand": false,
+    "verifiedLawfulProcessRequired": true,
+    "disclosureLimitedToLegallyRequiredScope": true
+  },
+  "authority": {
+    "identityIsNotRole": true,
+    "roleIsNotAuthority": true,
+    "authorityIsNotCapability": true,
+    "delegationMayNotExpandAuthority": true,
+    "unknownOrAmbiguous": "DENY"
+  },
+  "gateway": {
+    "policy": "/external-ai/policy",
+    "register": "/external-ai/register",
+    "login": "/external-ai/login",
+    "registrationReview": "/external-ai/registration/review"
+  }
+}
