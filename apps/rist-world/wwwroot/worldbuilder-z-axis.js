@@ -27,7 +27,8 @@ export function attach(element,dotnet){
  const tiles=()=>studio?[...studio.querySelectorAll('.world-stage .tile-cell')]:[];
  const rail=()=>studio?.querySelector('.studio-command-rail');
  const byText=text=>[...(rail()?.querySelectorAll('button')||[])].find(b=>(b.querySelector('strong')?.textContent||'').trim()===text);
- const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal,.wb-z-ruler');
+ const blocked=t=>!!t?.closest?.('.studio-mini-panel,.studio-load-panel,.studio-library-shade,.recursion-cockpit,.locked-tile-menu,.recursive-region-actions,.wb-modal');
+ const viewerControl=t=>!!t?.closest?.('.wb-z-ruler,.wb-x-ruler,.wb-y-ruler,.desktop-map-zoom,.map-frame-controls');
  const tileAt=(x,y)=>{const list=tiles();for(let i=list.length-1;i>=0;i--){const r=list[i].getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return list[i];}return null;};
  const point=(x,y)=>{const s=stage();if(!s)return null;const r=s.getBoundingClientRect();if(r.width<1||r.height<1)return null;const px=(x-r.left)/r.width,py=(y-r.top)/r.height;return px<0||px>1||py<0||py>1?null:[px,py];};
  const applySelection=selected=>{const set=new Set((selected||[]).map(Number));tiles().forEach((t,i)=>t.classList.toggle('wb-selected',set.has(i)));for(const n of ['rotate','remove']){const b=studio?.querySelector(`[data-wb-command="${n}"]`);if(b)b.disabled=set.size<1;}const small=studio?.querySelector('[data-wb-command="remove"] small');if(small)small.textContent=`${set.size} Selected`;return [...set];};
@@ -66,15 +67,24 @@ export function attach(element,dotnet){
  }
  const scheduleUi=()=>queueMicrotask(syncUi);
 
- const down=e=>{if(disposed||!studio||blocked(e.target))return;const s=stage();if(!s||(!s.contains(e.target)&&!element.contains(e.target)))return;const tile=tileAt(e.clientX,e.clientY);if(tile){const r=tile.getBoundingClientRect(),additive=!!(e.shiftKey||e.ctrlKey||e.metaKey);active={id:e.pointerId,tile,startX:e.clientX,startY:e.clientY,grabX:e.clientX-r.left,grabY:e.clientY-r.top,moved:false,index:-1,pickPromise:null};active.pickPromise=pick(e.clientX,e.clientY,additive).then(sel=>{if(active&&active.id===e.pointerId)active.index=sel.length?sel[sel.length-1]:-1;return sel;});e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();return;}if(viewerLocked){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const move=e=>{if(active&&e.pointerId===active.id){if(Math.abs(e.clientX-active.startX)+Math.abs(e.clientY-active.startY)>8){active.moved=true;active.tile.classList.add('wb-moving');}e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();return;}if(viewerLocked&&element.contains(e.target)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const finish=async(e,cancel)=>{if(!active||e.pointerId!==active.id)return;const cur=active;active=null;cur.tile.classList.remove('wb-moving');e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(cancel)return;const sel=await cur.pickPromise,index=cur.index>=0?cur.index:(sel?.length?sel[sel.length-1]:-1);if(cur.moved&&index>=0){try{applySelection(await dotnet.invokeMethodAsync('MovePlacedTileFromJs',index,e.clientX-cur.grabX+.5,e.clientY-cur.grabY+.5)||[]);}catch{}}};
- const up=e=>{if(active&&e.pointerId===active.id){void finish(e,false);return;}if(viewerLocked&&element.contains(e.target)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const cancel=e=>{if(active&&e.pointerId===active.id){void finish(e,true);return;}if(viewerLocked&&element.contains(e.target)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const wheel=e=>{if(viewerLocked&&element.contains(e.target)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const cameraClick=e=>{if(!viewerLocked)return;const control=e.target?.closest?.('.desktop-map-zoom button');if(control&&element.contains(control)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const keydown=e=>{if(!viewerLocked||!element.contains(e.target))return;const key=(e.key||'').toLowerCase();if(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s','+','=','-','_','0'].includes(key)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
- const context=e=>{if(tileAt(e.clientX,e.clientY)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}};
+ const stop=e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();};
+ const down=e=>{
+  if(disposed||!studio)return;
+  if(viewerLocked&&viewerControl(e.target)){stop(e);return;}
+  if(blocked(e.target))return;
+  const s=stage();if(!s||(!s.contains(e.target)&&!element.contains(e.target)))return;
+  const tile=tileAt(e.clientX,e.clientY);
+  if(tile){const r=tile.getBoundingClientRect(),additive=!!(e.shiftKey||e.ctrlKey||e.metaKey);active={id:e.pointerId,tile,startX:e.clientX,startY:e.clientY,grabX:e.clientX-r.left,grabY:e.clientY-r.top,moved:false,index:-1,pickPromise:null};active.pickPromise=pick(e.clientX,e.clientY,additive).then(sel=>{if(active&&active.id===e.pointerId)active.index=sel.length?sel[sel.length-1]:-1;return sel;});stop(e);return;}
+  if(viewerLocked)stop(e);
+ };
+ const move=e=>{if(active&&e.pointerId===active.id){if(Math.abs(e.clientX-active.startX)+Math.abs(e.clientY-active.startY)>8){active.moved=true;active.tile.classList.add('wb-moving');}stop(e);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
+ const finish=async(e,cancel)=>{if(!active||e.pointerId!==active.id)return;const cur=active;active=null;cur.tile.classList.remove('wb-moving');stop(e);if(cancel)return;const sel=await cur.pickPromise,index=cur.index>=0?cur.index:(sel?.length?sel[sel.length-1]:-1);if(cur.moved&&index>=0){try{applySelection(await dotnet.invokeMethodAsync('MovePlacedTileFromJs',index,e.clientX-cur.grabX+.5,e.clientY-cur.grabY+.5)||[]);}catch{}}};
+ const up=e=>{if(active&&e.pointerId===active.id){void finish(e,false);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
+ const cancel=e=>{if(active&&e.pointerId===active.id){void finish(e,true);return;}if(viewerLocked&&element.contains(e.target))stop(e);};
+ const wheel=e=>{if(viewerLocked&&element.contains(e.target))stop(e);};
+ const cameraClick=e=>{if(!viewerLocked)return;const control=e.target?.closest?.('.desktop-map-zoom button,.wb-z-ruler,.wb-x-ruler,.wb-y-ruler');if(control&&element.contains(control))stop(e);};
+ const keydown=e=>{if(!viewerLocked||!element.contains(e.target))return;const key=(e.key||'').toLowerCase();if(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s','+','=','-','_','0'].includes(key))stop(e);};
+ const context=e=>{if(tileAt(e.clientX,e.clientY))stop(e);};
  const dragstart=e=>{if(e.target?.closest?.('.world-stage .tile-cell')){e.preventDefault();e.stopPropagation();}};
  document.addEventListener('pointerdown',down,{capture:true,passive:false});document.addEventListener('pointermove',move,{capture:true,passive:false});document.addEventListener('pointerup',up,{capture:true,passive:false});document.addEventListener('pointercancel',cancel,{capture:true,passive:false});document.addEventListener('click',cameraClick,true);document.addEventListener('keydown',keydown,true);document.addEventListener('contextmenu',context,true);document.addEventListener('dragstart',dragstart,true);element.addEventListener('wheel',wheel,{capture:true,passive:false});
  const coreBinding=core.attach(element,dotnet);
