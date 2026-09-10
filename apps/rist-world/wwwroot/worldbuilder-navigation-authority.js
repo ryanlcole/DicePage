@@ -4,6 +4,7 @@
  let panX=Number(localStorage.getItem('rist.world.panX'))||0;
  let panY=Number(localStorage.getItem('rist.world.panY'))||0;
  let observer=null;
+ let axisBinding=null;
 
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const canvas=()=>studio()?.querySelector('.studio-viewer-canvas');
@@ -68,10 +69,11 @@
   html.rist-wb-z-unlocked .worldbuilder-studio .studio-viewer-canvas{touch-action:none!important;cursor:grab!important}
   html.rist-wb-z-unlocked .worldbuilder-studio .studio-viewer-canvas:active{cursor:grabbing!important}
  `;document.head.appendChild(style);
- function start(){
+ async function start(){
   const root=studio();if(!root)return setTimeout(start,100);
   const view=canvas();view?.addEventListener('pointerdown',onDown,{passive:true});view?.addEventListener('pointermove',onMove,{passive:false});view?.addEventListener('pointerup',release,{passive:true});view?.addEventListener('pointercancel',release,{passive:true});
   observer=new MutationObserver(()=>requestAnimationFrame(syncMode));observer.observe(root,{attributes:true,attributeFilter:['class'],subtree:false});syncMode();
+  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-2');axisBinding=module.attachAxisRulers(view);}catch{}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
