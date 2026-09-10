@@ -5,7 +5,8 @@ let pointers=new Map();
 let panX=0;
 let panY=0;
 let navigationMode=true;
-let explicitMode=true;
+let requestedNavigationMode=true;
+let selectMode=false;
 let syncQueued=false;
 
 function studio(){return document.querySelector('.worldbuilder-studio');}
@@ -35,10 +36,13 @@ function ensureStyle(){
   }
   .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
+  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell{pointer-events:auto!important;cursor:pointer!important;touch-action:none!important}
+  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell img,
+  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell .tile-image-crop{-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;touch-action:none!important}
   .worldbuilder-studio .studio-command-rail .wb-select-command{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}
   .worldbuilder-studio .studio-command-rail .wb-select-command strong{font:900 12px/1 system-ui;color:#f0ddb0}
   .worldbuilder-studio .studio-command-rail .wb-select-command small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}
-  .worldbuilder-studio .studio-command-rail .wb-select-command.active{border-color:#d0aa56;background:#201b10}
+  .worldbuilder-studio .studio-command-rail .wb-select-command.active{border-color:#d0aa56;background:#201b10;box-shadow:inset 0 0 0 1px rgba(242,207,114,.35)}
   .wb-underlay-host{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
   .wb-underlay-tile{position:absolute;box-sizing:border-box;overflow:hidden;pointer-events:none;border:0;outline:0}
   .wb-underlay-tile>.wb-underlay-crop{position:absolute;inset:0;display:block;overflow:hidden;line-height:0}
@@ -61,8 +65,10 @@ function ensureSelectButton(){
  button.dataset.wbSelect='true';
  button.setAttribute('aria-pressed','false');
  button.innerHTML='<strong>Select</strong><small>Tap to Edit</small>';
- button.addEventListener('click',()=>{
-  explicitMode=!navigationMode;
+ button.addEventListener('click',event=>{
+  event.preventDefault();
+  event.stopPropagation();
+  selectMode=!selectMode;
   pointers.clear();
   syncMode();
  });
@@ -72,17 +78,19 @@ function ensureSelectButton(){
 }
 
 function syncMode(){
- navigationMode=explicitMode!==false;
+ // Select is a user-owned edit latch. External Z/navigation synchronization may
+ // request navigation, but it cannot silently cancel an active tile-edit session.
+ navigationMode=selectMode?false:requestedNavigationMode;
  const root=studio();
  if(!root)return;
  root.classList.toggle('wb-z-unlocked',navigationMode);
- root.classList.toggle('wb-select-mode',!navigationMode);
+ root.classList.toggle('wb-select-mode',selectMode);
  const select=ensureSelectButton();
- select?.classList.toggle('active',!navigationMode);
+ select?.classList.toggle('active',selectMode);
  if(select){
-  select.setAttribute('aria-pressed',String(!navigationMode));
+  select.setAttribute('aria-pressed',String(selectMode));
   const small=select.querySelector('small');
-  const next=navigationMode?'Tap to Edit':'Editing Tiles';
+  const next=selectMode?'Editing Tiles':'Tap to Edit';
   if(small&&small.textContent!==next)small.textContent=next;
  }
  const s=stage();
@@ -93,8 +101,7 @@ function syncMode(){
 }
 
 export function setNavigationMode(enabled){
- explicitMode=!!enabled;
- navigationMode=explicitMode;
+ requestedNavigationMode=!!enabled;
  if(!navigationMode)pointers.clear();
  syncMode();
 }
@@ -206,5 +213,5 @@ export function dispose(){
  observer?.disconnect();observer=null;pointers.clear();syncQueued=false;
  document.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
  document.querySelector('.worldbuilder-studio')?.classList.remove('wb-z-unlocked','wb-select-mode');
- style?.remove();style=null;bridge=null;explicitMode=true;navigationMode=true;
+ style?.remove();style=null;bridge=null;requestedNavigationMode=true;selectMode=false;navigationMode=true;
 }
