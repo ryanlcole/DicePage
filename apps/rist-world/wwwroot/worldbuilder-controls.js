@@ -1,3 +1,5 @@
+import './worldbuilder-projection.js';
+
 window.ristWorld=window.ristWorld||{};
 
 window.ristWorld.exportCurrentWorld=()=>{
