@@ -39,7 +39,12 @@ public partial class WorldBuilderStudio
                 continue;
 
             var sceneZ = WorldSession.SceneZOf(tile);
-            if (sceneZ > viewerSceneZ)
+
+            // Composite Z view renders the whole visible stack, including tiles
+            // above the viewer's current Z. Those rendered tiles must remain
+            // directly selectable/movable. In a single-Z view, preserve the
+            // normal viewer-depth cutoff.
+            if (!Session.CompositeZView && sceneZ > viewerSceneZ)
                 continue;
 
             var footprint = FootprintFor(tile);
