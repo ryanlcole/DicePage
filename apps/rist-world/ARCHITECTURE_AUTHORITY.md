@@ -21,6 +21,7 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 | Map renderer | `Components/WorldMap.razor` | Semantic render order: ocean → viewer grid → authored terrain → labels/dice/pieces. |
 | Base map geometry / Ocean 071 | `Components/WorldMap.razor.css` | Square map surface and actual Ocean 071 rendering. |
 | World Building visual authority | `wwwroot/css/worldbuilding-p0-authority.css` | Workspace-scoped presentation only. Must not redefine terrain identity. |
+| Immersion presentation authority | `Components/ImmersionBuilderWorkspace.razor` | Dedicated studio boundary for Parallax, AR, Spatial Audio, High Resolution Assets, and Haptic Feedback. |
 | World coordinate transforms / tile snapping | `wwwroot/world-coordinate-authority.js` | Canonical client→world transform and grid snapping. Legacy `ristWorld.tileDropPoint` delegates to this authority. |
 | Coordinate frame labels | `wwwroot/grid-coordinate-system.js` | Viewer coordinate decoration; does not own placement. |
 | Map visibility compatibility | `wwwroot/map-visibility-recovery.js` | Legacy recovery behavior; World Building is explicitly protected from old geometry recovery. |
@@ -43,6 +44,22 @@ The P0 worldbuilder must satisfy all of these simultaneously:
 - landscape uses surplus horizontal space for World Controls;
 - portrait keeps the map usable without changing world geometry;
 - save/reload preserves authored state without changing the implicit ocean identity.
+
+## ImmersionBuilder Contract
+
+WorldBuilder defines **what exists**. ImmersionBuilder defines **how the world is experienced**.
+
+The canonical ImmersionBuilder domains are:
+
+1. **Parallax** — derives visual depth from existing world Tier/Layer/Z information without changing spatial identity.
+2. **Augmented Reality** — anchors compatible world representations into physical space while preserving world identity and scale.
+3. **Spatial Audio** — places ambience, voices, effects, and environmental sound using existing world position and distance.
+4. **High Resolution Assets** — selects higher-detail representations for capable devices and viewing conditions without replacing asset identity.
+5. **Haptic Feedback** — translates supported boundaries, materials, events, and accessibility cues into touch/controller feedback.
+
+Authority rule: **ImmersionBuilder may read World ID, regions, coordinates, tiers, layers, objects, assets, and events, but it may never redefine them.** Immersion settings attach to the world as presentation data. They do not become world-coordinate authority.
+
+For the first alpha, Parallax is the first functional ImmersionBuilder module. The remaining domains may exist as planned workspace modules until implementation reaches them.
 
 ## Refactor Strategy
 
