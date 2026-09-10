@@ -10,14 +10,16 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 4. **World state belongs to `WorldSession`.** UI code does not invent world identity.
 5. **Production only receives release-gated changes.** Build branches and backup refs remain recoverable.
 6. **Third-party code must be license-compatible and attributable.** Shaelvien may optimize open-source/freeware components, but proprietary code is not copied.
+7. **World identity is the persistence boundary.** Account ownership and world identity are related, but they are not the same thing.
 
 ## Current Authorities
 
 | Responsibility | Canonical authority | Notes |
 | --- | --- | --- |
-| World identity / runtime state | `WorldSession*.cs` | Plane, Tier, Layer, role, grid state, pieces, authored terrain, persistence. |
+| World identity | `WorldSession.WorldIdentity.cs` | Stable World ID, account relationship, world storage root, and world-scoped browser persistence. |
+| World runtime state | `WorldSession*.cs` | Plane, Tier, Layer, role, grid state, pieces, authored terrain, and active world state. |
 | Default world cube | `WorldSession.DefaultCube.cs` | 30×30 one-mile cells; Ocean 071 implicit terrain. |
-| Save / load | `WorldSession.Persistence.cs` | Local/private persistence payload and canonical reset. |
+| Save / load | `WorldSession.Persistence.cs` | World-scoped local/private persistence payload, legacy migration, and canonical reset. |
 | Map renderer | `Components/WorldMap.razor` | Semantic render order: ocean → viewer grid → authored terrain → labels/dice/pieces. |
 | Base map geometry / Ocean 071 | `Components/WorldMap.razor.css` | Square map surface and actual Ocean 071 rendering. |
 | World Building visual authority | `wwwroot/css/worldbuilding-p0-authority.css` | Workspace-scoped presentation only. Must not redefine terrain identity. |
@@ -29,6 +31,29 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 | Public launch shell | `Components/PublicAlphaShell.razor` | Product workspace entry surface. |
 | Build/release checks | `.github/workflows/public-alpha-ci.yml` | Release gate for functional launcher/worldbuilder and coordinate authority. |
 | AWS production deployment | `.github/workflows/deploy-rist-frontend-aws.yml` | Deploys only from `live-alpha-rist-blazor-world`. |
+
+## World Relationship Contract
+
+The live cloud model is authoritative. A package is an optional snapshot/export representation, not the runtime database.
+
+The canonical relationship is:
+
+`Account → Worlds → World → Plane → Cube → Tier → Layer → Region/Spatial Content`
+
+For the single-world alpha, `WorldSession.CurrentWorldId` identifies the first proof world. Future multi-world support changes which World ID is selected; it does not change the hierarchy beneath a world.
+
+Persistence rules:
+
+- every serialized world save contains its `WorldId`;
+- every private AWS world checkpoint lives beneath `worlds/{WorldId}/` inside the authenticated account's private storage;
+- browser saves and reset markers are also scoped by World ID;
+- legacy single-world account saves may be adopted only when no world-scoped save exists;
+- a save naming a different World ID must never be loaded into the active world;
+- the legacy AWS object is retained during alpha as a recovery copy after migration;
+- world-owned objects inherit world identity through their spatial parent and do not independently redefine World ID;
+- account identity answers **who may own/access the world**; World ID answers **which world the data belongs to**.
+
+This structure allows one account to own many worlds later without changing the renderer, coordinate model, Region model, or world-building tools.
 
 ## World Building Contract
 
