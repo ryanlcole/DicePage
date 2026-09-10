@@ -50,28 +50,31 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
 
-    // Canonical world geometry: every X/Y/Z cell is exactly 1 km. These compatibility
-    // endpoints intentionally ignore attempts by older cached clients to redefine scale.
-    [JSInvokable]
-    public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
+    [JSInvokable] public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
+    [JSInvokable] public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(CanonicalKilometersPerCell);
+    [JSInvokable] public Task<double> SetTileSizeKmAtOriginFromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
+    [JSInvokable] public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(CanonicalKilometersPerCell);
 
+    // Save creates/updates the private account-owned map card. Browser storage remains
+    // a recovery cache; logged-in users also receive the AWS card record immediately.
     [JSInvokable]
-    public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(CanonicalKilometersPerCell);
+    public async Task SaveWorldFromJs()
+    {
+        await Session.SaveAsync();
+        await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id));
+    }
 
-    [JSInvokable]
-    public Task<double> SetTileSizeKmAtOriginFromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
-
-    [JSInvokable]
-    public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(CanonicalKilometersPerCell);
-
-    [JSInvokable]
-    public async Task SaveWorldFromJs() => await SaveAsync();
-
+    // Load prefers the account-owned card, then falls back to the older world snapshot.
     [JSInvokable]
     public async Task LoadWorldFromJs()
     {
-        if (Session.IsLoggedIn) await Session.LoadPrivateCheckpointAsync();
-        else await Session.LoadAsync();
+        var loaded = await Session.LoadActiveMapCardAsync();
+        if (!loaded)
+        {
+            if (Session.IsLoggedIn) await Session.LoadPrivateCheckpointAsync();
+            else await Session.LoadAsync();
+        }
+        RestoreQuickTilesFromActiveCard();
     }
 
     [JSInvokable]
@@ -84,11 +87,29 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public Task<bool> GetAutoSaveFromJs() => Task.FromResult(_autoSave);
 
+    // Publish promotes the current map card into account inventory and writes the
+    // published representation. Unpublish changes availability without deleting
+    // the inventory identity.
     [JSInvokable]
-    public Task<bool> SetPublishModeFromJs(bool published)
+    public async Task<bool> SetPublishModeFromJs(bool published)
     {
         _publishMode = published;
-        return Task.FromResult(_publishMode);
+        if (published)
+            await Session.PublishActiveMapCardAsync(_quickTiles.Select(x => x.Id));
+        else
+            await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id), false);
+        return _publishMode;
+    }
+
+    void RestoreQuickTilesFromActiveCard()
+    {
+        _quickTiles.Clear();
+        foreach (var id in Session.ActiveMapCardQuickSlotTileIds)
+        {
+            var tile = Session.AtlasTiles.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.Ordinal));
+            if (tile is not null && _quickTiles.All(x => !string.Equals(x.Id, tile.Id, StringComparison.Ordinal)))
+                _quickTiles.Add(tile);
+        }
     }
 }
 
