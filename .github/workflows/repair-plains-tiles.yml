@@ -35,7 +35,7 @@ jobs:
       - name: Prepare image tooling
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.3.2
 
-      # Analyze every canonical source and stage both families before AWS
+      # Analyze every canonical source and stage all families before AWS
       # credentials exist. No production object changes on a partial failure.
       - name: Rebuild and validate all terrain pieces
         run: python apps/rist-world/terrain_asset_repair.py
@@ -52,18 +52,22 @@ jobs:
           root='build/terrain-repair/tilesets/world/terrain'
           aws s3 sync "$root/plains/" "s3://${ASSET_BUCKET}/tilesets/world/terrain/plains/" --delete --only-show-errors
           aws s3 sync "$root/ocean/" "s3://${ASSET_BUCKET}/tilesets/world/terrain/ocean/" --delete --only-show-errors
+          aws s3 sync "$root/ice/" "s3://${ASSET_BUCKET}/tilesets/world/terrain/ice/" --delete --only-show-errors
 
           local_plains=$(find "$root/plains" -type f -name '*.jpg' | wc -l)
           local_ocean=$(find "$root/ocean" -type f -name '*.jpg' | wc -l)
+          local_ice=$(find "$root/ice" -type f -name '*.jpg' | wc -l)
           remote_plains=$(aws s3 ls "s3://${ASSET_BUCKET}/tilesets/world/terrain/plains/" --recursive | awk '$4 ~ /\.jpg$/ { count++ } END { print count + 0 }')
           remote_ocean=$(aws s3 ls "s3://${ASSET_BUCKET}/tilesets/world/terrain/ocean/" --recursive | awk '$4 ~ /\.jpg$/ { count++ } END { print count + 0 }')
+          remote_ice=$(aws s3 ls "s3://${ASSET_BUCKET}/tilesets/world/terrain/ice/" --recursive | awk '$4 ~ /\.jpg$/ { count++ } END { print count + 0 }')
           test "$local_plains" -eq "$remote_plains"
           test "$local_ocean" -eq "$remote_ocean"
+          test "$local_ice" -eq "$remote_ice"
 
       - name: Refresh terrain CDN paths
         run: |
           set -euo pipefail
-          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/tilesets/world/terrain/plains/*' '/tilesets/world/terrain/ocean/*' --query 'Invalidation.Id' --output text)
+          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/tilesets/world/terrain/plains/*' '/tilesets/world/terrain/ocean/*' '/tilesets/world/terrain/ice/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID"
 
       - name: Verify repaired terrain samples
@@ -97,6 +101,18 @@ jobs:
           vertical = np.mean(np.abs(pixels[0] - pixels[-1]))
           assert (horizontal + vertical) / 2 < 4.0, (horizontal, vertical)
           PY
+
+          for tile in 01-01 01-04 02-01 05-06; do
+            target="/tmp/ice-${tile}.jpg"
+            curl --fail --location --retry 6 --retry-delay 5 --output "$target" "${ASSET_BASE_URL}tilesets/world/terrain/ice/ice-021/tile-${tile}.jpg"
+            test "$(stat -c%s "$target")" -gt 1000
+            python - "$target" <<'PY'
+          import sys
+          from PIL import Image
+          with Image.open(sys.argv[1]) as im:
+              assert min(im.size) >= 140, im.size
+          PY
+          done
 
       # The catalog must describe the actual geometry-derived counts. Commit only
       # after CDN verification so the live frontend never points at missing cuts.

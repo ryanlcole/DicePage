@@ -41,6 +41,21 @@ class TerrainAssetRepairTests(unittest.TestCase):
             boxes,
         )
 
+    def test_non_square_ice_grid_uses_detected_6_by_5_geometry(self) -> None:
+        source = np.full((1254, 1254, 3), 180, dtype=np.uint8)
+        column_bands = ((0, 5), (210, 213), (418, 421), (626, 630), (834, 838), (1043, 1047), (1249, 1254))
+        row_bands = ((0, 5), (273, 278), (539, 544), (793, 797), (1015, 1020), (1248, 1254))
+        for start, end in column_bands:
+            source[:, start:end] = 0
+        for start, end in row_bands:
+            source[start:end, :] = 0
+
+        boxes = repair._separator_grid_boxes(Image.fromarray(source), 6, 5, 0.08)
+
+        self.assertEqual(30, len(boxes))
+        self.assertEqual((21, 21, 194, 257), boxes[0])
+        self.assertEqual((1063, 1036, 1233, 1232), boxes[-1])
+
     def test_saved_ocean_texture_wraps_after_jpeg_encoding(self) -> None:
         size = 159
         yy, xx = np.mgrid[0:size, 0:size]

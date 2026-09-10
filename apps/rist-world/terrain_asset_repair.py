@@ -30,11 +30,17 @@ OCEAN_DRIVE_FILE_IDS = {
     70: "1LAC_7T9DRwD-CYnIM6nP7bua18KMkjJP",
     71: "114QASi-hXViwU7KDXPobMv_ZoeAiAi_3",
 }
+ICE_DRIVE_FILE_IDS = {
+    21: "1TjEeQZh67r32wPd_UwmGQ2RgIjLmWF8F",
+}
 
 MIN_DIMENSION = 28
 MIN_OUTPUT_BYTES = 1_000
 REGULAR_GRID_SIZE = 6
 REGULAR_INSET_FRACTION = 0.12
+ICE_COLUMNS = 6
+ICE_ROWS = 5
+ICE_INSET_FRACTION = 0.08
 
 
 def download_drive_image(file_id: str) -> bytes:
@@ -171,6 +177,47 @@ def _regular_grid_boxes(width: int, height: int) -> list[tuple[int, int, int, in
             x1 = round((column + 1) * width / REGULAR_GRID_SIZE)
             inset = max(8, round(min(x1 - x0, y1 - y0) * REGULAR_INSET_FRACTION))
             boxes.append((x0 + inset, y0 + inset, x1 - inset, y1 - inset))
+    return boxes
+
+
+def _separator_grid_boxes(
+    image: Image.Image,
+    expected_columns: int,
+    expected_rows: int,
+    inset_fraction: float,
+) -> list[tuple[int, int, int, int]]:
+    """Extract a uniform grid whose row count cannot be inferred from aspect ratio."""
+    luminance = np.asarray(image.convert("RGB"), dtype=np.uint16).mean(axis=2)
+    dark = luminance < 55.0
+    column_bands = _bands(dark.mean(axis=0), 0.90)
+    row_bands = _bands(dark.mean(axis=1), 0.90)
+    height, width = dark.shape
+
+    def intervals(
+        length: int,
+        bands: list[tuple[int, int, float]],
+        expected: int,
+        axis: str,
+    ) -> list[tuple[int, int]]:
+        if len(bands) != expected + 1:
+            raise RuntimeError(f"Expected {expected + 1} {axis} separator bands, found {len(bands)}")
+        if bands[0][0] > 8 or bands[-1][1] < length - 8:
+            raise RuntimeError(f"{axis.capitalize()} grid boundary is incomplete")
+        gaps = [(bands[index][1], bands[index + 1][0]) for index in range(expected)]
+        if any(end - start < MIN_DIMENSION for start, end in gaps):
+            raise RuntimeError(f"{axis.capitalize()} grid contains a tiny panel")
+        return gaps
+
+    columns = intervals(width, column_bands, expected_columns, "column")
+    rows = intervals(height, row_bands, expected_rows, "row")
+    boxes: list[tuple[int, int, int, int]] = []
+    for y0, y1 in rows:
+        for x0, x1 in columns:
+            inset = max(8, round(min(x1 - x0, y1 - y0) * inset_fraction))
+            box = (x0 + inset, y0 + inset, x1 - inset, y1 - inset)
+            if box[2] - box[0] < MIN_DIMENSION or box[3] - box[1] < MIN_DIMENSION:
+                raise RuntimeError("Frame removal produced a tiny panel")
+            boxes.append(box)
     return boxes
 
 
@@ -338,14 +385,43 @@ def rebuild_ocean() -> tuple[dict[int, int], dict[int, float], dict[int, float]]
     return counts, edge_errors, seam_band_errors
 
 
-def rewrite_catalog(plains_counts: dict[int, int], ocean_counts: dict[int, int]) -> None:
+def rebuild_ice() -> dict[int, int]:
+    counts: dict[int, int] = {}
+    for index, (number, file_id) in enumerate(sorted(ICE_DRIVE_FILE_IDS.items()), 1):
+        print(f"Ice [{index}/{len(ICE_DRIVE_FILE_IDS)}] {number:03d}", flush=True)
+        with Image.open(io.BytesIO(download_drive_image(file_id))) as opened:
+            source = opened.convert("RGB")
+        boxes = _separator_grid_boxes(source, ICE_COLUMNS, ICE_ROWS, ICE_INSET_FRACTION)
+        expected = ICE_COLUMNS * ICE_ROWS
+        if len(boxes) != expected:
+            raise RuntimeError(f"Ice {number:03d} produced {len(boxes)} panels instead of {expected}")
+        target = STAGE / "tilesets" / "world" / "terrain" / "ice" / f"ice-{number:03d}"
+        for sequence, box in enumerate(boxes, 1):
+            row = math.ceil(sequence / ICE_COLUMNS)
+            column = ((sequence - 1) % ICE_COLUMNS) + 1
+            clean = _square_crop(source.crop(box))
+            output = target / f"tile-{row:02d}-{column:02d}.jpg"
+            save_jpeg(clean, output)
+            with Image.open(output) as encoded:
+                if min(encoded.size) < 140:
+                    raise RuntimeError(f"Ice {number:03d} generated an undersized panel: {encoded.size}")
+        print(f"  -> {len(boxes)} whole panels ({ICE_COLUMNS}x{ICE_ROWS})", flush=True)
+        counts[number] = len(boxes)
+    return counts
+
+
+def rewrite_catalog(
+    plains_counts: dict[int, int],
+    ocean_counts: dict[int, int],
+    ice_counts: dict[int, int],
+) -> None:
     rows = json.loads(CURRENT_CATALOG.read_text(encoding="utf-8"))
-    repair_folders = {"plains", "ocean"}
+    repair_folders = {"plains", "ocean", "ice"}
     old = [row for row in rows if str(row.get("folder", "")).casefold() in repair_folders]
     keep = [row for row in rows if str(row.get("folder", "")).casefold() not in repair_folders]
     rebuilt: list[dict] = []
 
-    for folder, counts in (("Plains", plains_counts), ("Ocean", ocean_counts)):
+    for folder, counts in (("Plains", plains_counts), ("Ocean", ocean_counts), ("Ice", ice_counts)):
         slug = folder.casefold()
         for number, count in sorted(counts.items()):
             needle = f"/{slug}-{number:03d}/"
@@ -354,9 +430,10 @@ def rewrite_catalog(plains_counts: dict[int, int], ocean_counts: dict[int, int])
                 raise RuntimeError(f"Catalog metadata unavailable for {folder} {number:03d}")
             base = str(source["image"]).rsplit("/", 1)[0]
             for sequence in range(1, count + 1):
-                if folder == "Ocean":
-                    row_number = math.ceil(sequence / 6)
-                    column = ((sequence - 1) % 6) + 1
+                if folder in {"Ocean", "Ice"}:
+                    columns = 6 if folder == "Ocean" else ICE_COLUMNS
+                    row_number = math.ceil(sequence / columns)
+                    column = ((sequence - 1) % columns) + 1
                 else:
                     row_number = sequence
                     column = 1
@@ -380,10 +457,12 @@ def main() -> None:
     STAGE.mkdir(parents=True)
     plains_counts = rebuild_plains()
     ocean_counts, edge_errors, seam_band_errors = rebuild_ocean()
-    rewrite_catalog(plains_counts, ocean_counts)
+    ice_counts = rebuild_ice()
+    rewrite_catalog(plains_counts, ocean_counts, ice_counts)
     print(
         f"Validated terrain repair: Plains {sum(plains_counts.values())} pieces; "
         f"Ocean {sum(ocean_counts.values())} seamless pieces; "
+        f"Ice {sum(ice_counts.values())} whole pieces; "
         + ", ".join(
             f"Ocean {number:03d} edge={edge_errors[number]:.2f} band={seam_band_errors[number]:.2f}"
             for number in edge_errors
