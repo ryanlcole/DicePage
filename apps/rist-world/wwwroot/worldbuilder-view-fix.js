@@ -31,6 +31,7 @@ function ensureStyle(){
   }
   .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
+  .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell::after{box-shadow:none!important;border:0!important;outline:0!important}
   .worldbuilder-studio.wb-select-mode .world-stage .tile-cell{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .worldbuilder-studio.wb-select-mode .world-stage .tile-cell img,
   .worldbuilder-studio.wb-select-mode .world-stage .tile-cell .tile-image-crop{pointer-events:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;touch-action:manipulation!important}
