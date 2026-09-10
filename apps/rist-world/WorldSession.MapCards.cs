@@ -7,7 +7,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     const string MapCardFormat = "RISTMAPCARD";
-    const int MapCardVersion = 1;
+    const int MapCardVersion = 2;
     readonly List<string> _activeMapCardQuickSlotTileIds = [];
 
     public string ActiveMapCardId => $"{WorldId}-truth-map-001";
@@ -21,7 +21,12 @@ public sealed partial class WorldSession
     {
         var isPublished = published ?? ActiveMapCardPublished;
         var tiles = PlacedTiles.ToList();
-        return new MapCardDocument
+        var requiredAssets = tiles.Select(x => x.Id)
+            .Concat(_activeMapCardQuickSlotTileIds)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        var card = new MapCardDocument
         {
             Format = MapCardFormat,
             Version = MapCardVersion,
@@ -36,13 +41,16 @@ public sealed partial class WorldSession
             UpdatedAtUtc = DateTimeOffset.UtcNow,
             Tiles = tiles,
             QuickSlotTileIds = _activeMapCardQuickSlotTileIds.ToList(),
-            RequiredAssetIds = tiles.Select(x => x.Id)
-                .Concat(_activeMapCardQuickSlotTileIds)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct(StringComparer.Ordinal)
-                .ToList(),
+            RequiredAssetIds = requiredAssets,
             PreviewSvg = BuildMapCardPreviewSvg(tiles)
         };
+        card.ManifestHash = ComputeCardManifestHash(new
+        {
+            card.CardId, card.WorldId, card.MapName, card.Cartographer, card.Published,
+            card.Tiles, card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
+        });
+        card.ArtDataMark = ComputeArtDataMark(card.CardId, RistCardType.World, card.ManifestHash);
+        return card;
     }
 
     string BuildMapCardPreviewSvg(IReadOnlyList<TileItem> tiles)
@@ -66,6 +74,8 @@ public sealed partial class WorldSession
         return sb.ToString();
     }
 
+    public string ExportActiveMapCardJson() => JsonSerializer.Serialize(BuildActiveMapCard(), MapWriteOptions);
+
     public async Task SaveActiveMapCardAsync(IEnumerable<string>? quickSlotTileIds = null, bool? published = null)
     {
         if (quickSlotTileIds is not null)
@@ -84,6 +94,51 @@ public sealed partial class WorldSession
         await auth.UploadTextAsync(ActiveMapCardPrivateKey, json, "application/json");
         if (card.Published)
             await auth.UploadTextAsync(ActiveMapCardPublishedKey, json, "application/json");
+    }
+
+    public async Task PublishActiveMapCardAsync(IEnumerable<string>? quickSlotTileIds = null)
+    {
+        await SaveActiveMapCardAsync(quickSlotTileIds, true);
+        var mapCard = BuildActiveMapCard(true);
+        var payload = JsonSerializer.SerializeToElement(mapCard, MapWriteOptions);
+        await SaveCardEnvelopeAsync(new RistCardEnvelope
+        {
+            CardId = mapCard.CardId,
+            CardType = RistCardType.World,
+            OwnerAccountId = mapCard.OwnerAccountId,
+            WorldId = mapCard.WorldId,
+            Name = mapCard.MapName,
+            Visibility = "published",
+            Published = true,
+            ArtAssetId = mapCard.CardId + ":preview",
+            References = mapCard.RequiredAssetIds.Select(id => new RistCardReference(id, "asset")).ToList(),
+            AssetPackIds = mapCard.AssetPackIds.ToList(),
+            Payload = payload
+        });
+    }
+
+    public async Task<bool> ImportActiveMapCardJsonAsync(string json)
+    {
+        try
+        {
+            var card = JsonSerializer.Deserialize<MapCardDocument>(json, MapReadOptions);
+            if (card is null || !string.Equals(card.Format, MapCardFormat, StringComparison.Ordinal) ||
+                !string.Equals(card.WorldId, WorldId, StringComparison.Ordinal)) return false;
+            ApplyMapCard(card);
+            await SaveActiveMapCardAsync(card.QuickSlotTileIds, card.Published);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    void ApplyMapCard(MapCardDocument card)
+    {
+        PlacedTiles.Clear();
+        PlacedTiles.AddRange(card.Tiles ?? []);
+        _activeMapCardQuickSlotTileIds.Clear();
+        _activeMapCardQuickSlotTileIds.AddRange((card.QuickSlotTileIds ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).Take(12));
+        ActiveMapCardPublished = card.Published;
+        Notify();
     }
 
     public async Task<bool> LoadActiveMapCardAsync()
@@ -111,15 +166,9 @@ public sealed partial class WorldSession
         }
 
         if (card is null || !string.Equals(card.Format, MapCardFormat, StringComparison.Ordinal) ||
-            !string.Equals(card.WorldId, WorldId, StringComparison.Ordinal))
-            return false;
+            !string.Equals(card.WorldId, WorldId, StringComparison.Ordinal)) return false;
 
-        PlacedTiles.Clear();
-        PlacedTiles.AddRange(card.Tiles ?? []);
-        _activeMapCardQuickSlotTileIds.Clear();
-        _activeMapCardQuickSlotTileIds.AddRange((card.QuickSlotTileIds ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).Take(12));
-        ActiveMapCardPublished = card.Published;
-        Notify();
+        ApplyMapCard(card);
         return true;
     }
 }
@@ -127,7 +176,7 @@ public sealed partial class WorldSession
 public sealed class MapCardDocument
 {
     public string Format { get; set; } = "RISTMAPCARD";
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
     public string CardId { get; set; } = "";
     public string OwnerAccountId { get; set; } = "";
     public string WorldId { get; set; } = "";
@@ -138,6 +187,8 @@ public sealed class MapCardDocument
     public bool Published { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public string PreviewSvg { get; set; } = "";
+    public string ManifestHash { get; set; } = "";
+    public string ArtDataMark { get; set; } = "";
     public List<string> QuickSlotTileIds { get; set; } = [];
     public List<string> RequiredAssetIds { get; set; } = [];
     public List<string> AssetPackIds { get; set; } = [];
