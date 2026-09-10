@@ -13,6 +13,16 @@ function studio(){return document.querySelector('.worldbuilder-studio');}
 function viewer(){return studio()?.querySelector('.studio-viewer-canvas');}
 function stage(){return studio()?.querySelector('.world-stage');}
 function tileList(){return [...(stage()?.querySelectorAll(':scope > .tile-cell')||[])];}
+function tileAtPoint(x,y){
+ const root=stage();
+ if(!root||!Number.isFinite(x)||!Number.isFinite(y))return null;
+ const stack=document.elementsFromPoint?.(x,y)||[];
+ for(const node of stack){
+  const tile=node?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
+  if(tile&&root.contains(tile))return tile;
+ }
+ return null;
+}
 
 function queueSync(){
  if(syncQueued)return;
@@ -32,9 +42,9 @@ function ensureStyle(){
   .worldbuilder-studio.wb-z-unlocked .world-stage .tile-cell{pointer-events:none!important;cursor:default!important}
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
   .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell::after{box-shadow:none!important;border:0!important;outline:0!important}
-  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell{pointer-events:auto!important;cursor:pointer!important;touch-action:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .worldbuilder-studio.wb-select-mode .world-stage .tile-cell img,
-  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell .tile-image-crop{pointer-events:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;touch-action:manipulation!important}
+  .worldbuilder-studio.wb-select-mode .world-stage .tile-cell .tile-image-crop{pointer-events:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important;-webkit-touch-callout:none!important;touch-action:none!important}
   .worldbuilder-studio .studio-command-rail .wb-select-command{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}
   .worldbuilder-studio .studio-command-rail .wb-select-command strong{font:900 12px/1 system-ui;color:#f0ddb0}
   .worldbuilder-studio .studio-command-rail .wb-select-command small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}
@@ -103,7 +113,7 @@ async function selectTile(tile,additive=false){
 
 function onSelectClick(event){
  if(!selectMode)return;
- const tile=event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
+ const tile=tileAtPoint(event.clientX,event.clientY)||event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
  if(!tile)return;
  event.preventDefault();
  event.stopPropagation();
@@ -113,7 +123,7 @@ function onSelectClick(event){
 
 function onSelectContextMenu(event){
  if(!selectMode)return;
- const tile=event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
+ const tile=tileAtPoint(event.clientX,event.clientY)||event.target?.closest?.('.worldbuilder-studio .world-stage .tile-cell');
  if(!tile)return;
  event.preventDefault();
  event.stopPropagation();
@@ -157,6 +167,19 @@ function shouldHandle(event){
 
 function onPointerDown(event){
  syncMode();
+ if(selectMode){
+  const v=viewer();
+  if(v&&v.contains(event.target)){
+   const tile=tileAtPoint(event.clientX,event.clientY);
+   if(tile){
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    selectTile(tile,!!(event.shiftKey||event.ctrlKey||event.metaKey));
+    return;
+   }
+  }
+ }
  if(!shouldHandle(event))return;
  pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
  event.preventDefault();
