@@ -2,7 +2,7 @@ using System.Text.Json;
 namespace RistWorld;
 public sealed partial class WorldSession
 {
- const string PrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
+ const string LegacyPrivateWorldCheckpointKey="maps/Shaelvien-current.ristmap";
  const string OceanResetVersion="2026-08-28-topology-v2";
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
@@ -16,7 +16,8 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=5,
+   Version=6,
+   WorldId,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,
@@ -40,7 +41,7 @@ public sealed partial class WorldSession
   };
  }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());}
+ public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());}
  public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
@@ -52,10 +53,10 @@ public sealed partial class WorldSession
   try
   {
    var json=snapshot??ExportMapJson();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
-   await auth.UploadTextAsync(PrivateWorldCheckpointKey,json,"application/json");
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,json);
+   await auth.UploadTextAsync(WorldCheckpointKey,json,"application/json");
    _lastPrivateSnapshot=json;
-   if(showSuccess)PrivateStorageStatus="Shaelvien progress synced to your private AWS storage.";
+   if(showSuccess)PrivateStorageStatus=$"{WorldDisplayName} progress synced to your private AWS storage.";
   }
   catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
   if(showSuccess)Notify();
@@ -65,25 +66,48 @@ public sealed partial class WorldSession
   if(!IsLoggedIn)return;
   try
   {
-   var saved=await auth.DownloadJsonAsync<SavedWorld>(PrivateWorldCheckpointKey);
-   if(saved is null || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
+   var saved=await auth.DownloadJsonAsync<SavedWorld>(WorldCheckpointKey);
+   var migratedLegacy=false;
+
+   // First-world migration only: older alpha builds stored one unscoped map per account.
+   // Adopt that save only when no world-scoped checkpoint exists.
+   if(saved is null)
+   {
+    saved=await auth.DownloadJsonAsync<SavedWorld>(LegacyPrivateWorldCheckpointKey);
+    migratedLegacy=saved is not null && OwnsSavedWorld(saved);
+   }
+
+   if(saved is null || !OwnsSavedWorld(saved) || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
    {
     ResetToCanonicalOrigin();
     await SavePrivateCheckpointAsync(showSuccess:false);
-    await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
     PrivateStorageStatus=saved is null
-      ?"Private AWS storage initialized with the canonical origin."
-      :"Private Shaelvien world reset once to the canonical World/Plane/Tier origin.";
+      ?$"Private AWS storage initialized for {WorldDisplayName}."
+      :!OwnsSavedWorld(saved)
+        ?"Stored world identity did not match the active world; the active world was initialized safely."
+        :$"Private {WorldDisplayName} world reset once to the canonical World/Plane/Tier origin.";
     Notify();
     return;
    }
 
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,json);
-   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
    _lastPrivateSnapshot=ExportMapJson();
-   PrivateStorageStatus="Shaelvien progress restored from your private AWS storage.";
+
+   if(migratedLegacy)
+   {
+    // Write the adopted legacy save into the canonical world namespace. The legacy
+    // object is deliberately left untouched as a recovery copy during alpha.
+    await SavePrivateCheckpointAsync(showSuccess:false,snapshot:_lastPrivateSnapshot);
+    PrivateStorageStatus=$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage.";
+   }
+   else
+   {
+    PrivateStorageStatus=$"{WorldDisplayName} progress restored from private AWS storage.";
+   }
   }
   catch(Exception ex){PrivateStorageStatus="Private restore failed; using local world: "+ex.Message;}
   Notify();
@@ -95,26 +119,48 @@ public sealed partial class WorldSession
   if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
   await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
  }
- public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
- public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
-  var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",OceanResetMarkerKey);
+  var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",WorldResetMarkerKey);
   if(resetApplied!="1")
   {
+   var legacyJson=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
+   if(!string.IsNullOrWhiteSpace(legacyJson))
+   {
+    var legacy=JsonSerializer.Deserialize<SavedWorld>(legacyJson,MapReadOptions);
+    if(OwnsSavedWorld(legacy))
+    {
+     LoadMapJson(legacyJson);
+     await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+     await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
+     return true;
+    }
+   }
+
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
-   await js.InvokeVoidAsync("localStorage.setItem",OceanResetMarkerKey,"1");
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
    return true;
   }
 
-  var json=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
+  var json=await js.InvokeAsync<string?>("localStorage.getItem",WorldLocalSaveKey);
   if(string.IsNullOrWhiteSpace(json))
   {
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",SaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
    return true;
   }
+
+  var saved=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);
+  if(!OwnsSavedWorld(saved))
+  {
+   ResetToCanonicalOrigin();
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   return true;
+  }
+
   LoadMapJson(json);return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
@@ -140,7 +186,7 @@ public sealed partial class WorldSession
 
  public void LoadMapJson(string json)
  {
-  var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null)return;
+  var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null||!OwnsSavedWorld(save))return;
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
   var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
