@@ -1,49 +1,81 @@
+using Microsoft.JSInterop;
+
 namespace RistWorld.Components;
 
 public partial class WorldBuilderStudio
 {
-    bool _saveMenuOpen;
-    bool _loadMenuOpen;
-    bool _publishMenuOpen;
-    bool _zFrameMenuOpen;
     bool _autoSave = true;
-    double _zFrameDraft;
     double _tileSizeKmAtOrigin = 1.0;
 
-    void OpenSaveMenu(){_saveMenuOpen=true;_loadMenuOpen=false;_publishMenuOpen=false;}
-    void CloseSaveMenu()=>_saveMenuOpen=false;
-    void OpenLoadMenu(){_loadMenuOpen=true;_saveMenuOpen=false;_publishMenuOpen=false;}
-    void CloseLoadMenu()=>_loadMenuOpen=false;
-    void OpenPublishMenu(){_publishMenuOpen=true;_saveMenuOpen=false;_loadMenuOpen=false;}
-    void ClosePublishMenu()=>_publishMenuOpen=false;
-    void ToggleAutoSave()=>_autoSave=!_autoSave;
+    [JSInvokable]
+    public Task<WorldBuilderDepthState> GetWorldBuilderDepthState() =>
+        Task.FromResult(new WorldBuilderDepthState(Session.SceneZ, Session.TierIndex, Session.LayerOffset, _zLocked));
 
-    void OpenZFrameMenu(double sceneZ){_zFrameDraft=sceneZ;_zFrameMenuOpen=true;}
-    void CloseZFrameMenu()=>_zFrameMenuOpen=false;
-    void AddLayerAtDraft()
+    [JSInvokable]
+    public Task<bool> ToggleViewerLockFromJs()
     {
-        var target=(int)Math.Round(_zFrameDraft);
-        while(Session.SceneZ<target)Session.MoveLayer(1);
-        while(Session.SceneZ>target)Session.MoveLayer(-1);
-        _zFrameMenuOpen=false;
-    }
-    void AddTierAtDraft()
-    {
-        var target=Math.Max(0,(int)Math.Floor(_zFrameDraft/10.0));
-        while(Session.TierIndex<target)Session.MoveTier(1);
-        while(Session.TierIndex>target)Session.MoveTier(-1);
-        _zFrameMenuOpen=false;
-    }
-    void SetTileSizeKmAtOrigin(ChangeEventArgs e)
-    {
-        if(double.TryParse(e.Value?.ToString(),out var value)&&double.IsFinite(value)&&value>0)
-            _tileSizeKmAtOrigin=value;
+        _zLocked = !_zLocked;
+        return Task.FromResult(_zLocked);
     }
 
-    async Task SaveMenuSaveAsync(){await SaveAsync();_saveMenuOpen=false;}
-    async Task LoadMenuLoadAsync(){await LoadLocalAsync();_loadMenuOpen=false;}
-    Task ExportWorldAsync()=>JS.InvokeVoidAsync("ristWorld.exportCurrentWorld").AsTask();
-    Task ImportWorldAsync()=>JS.InvokeVoidAsync("ristWorld.importCurrentWorld").AsTask();
-    void PublishCurrent(){_publishMode=true;_publishMenuOpen=false;}
-    void UnpublishCurrent(){_publishMode=false;_publishMenuOpen=false;}
+    [JSInvokable]
+    public Task<bool> SetViewerLockFromJs(bool locked)
+    {
+        _zLocked = locked;
+        return Task.FromResult(_zLocked);
+    }
+
+    [JSInvokable]
+    public Task<WorldBuilderDepthState> SetViewerSceneZFromJs(int sceneZ)
+    {
+        sceneZ = Math.Clamp(sceneZ, -500, 500);
+        var guard = 0;
+        while (Session.SceneZ < sceneZ && guard++ < 1100) Session.MoveLayer(1);
+        guard = 0;
+        while (Session.SceneZ > sceneZ && guard++ < 1100) Session.MoveLayer(-1);
+        return GetWorldBuilderDepthState();
+    }
+
+    [JSInvokable]
+    public Task<WorldBuilderDepthState> AddTierAtSceneZFromJs(int sceneZ)
+    {
+        var targetTier = Math.Max(0, (int)Math.Floor(sceneZ / 10.0));
+        var guard = 0;
+        while (Session.TierIndex < targetTier && guard++ < 100) Session.MoveTier(1);
+        guard = 0;
+        while (Session.TierIndex > targetTier && guard++ < 100) Session.MoveTier(-1);
+        return GetWorldBuilderDepthState();
+    }
+
+    [JSInvokable]
+    public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
+
+    [JSInvokable]
+    public Task<double> SetTileSizeKmAtOriginFromJs(double km)
+    {
+        if (double.IsFinite(km) && km > 0 && km <= 1_000_000)
+            _tileSizeKmAtOrigin = km;
+        return Task.FromResult(_tileSizeKmAtOrigin);
+    }
+
+    [JSInvokable]
+    public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(_tileSizeKmAtOrigin);
+
+    [JSInvokable]
+    public async Task SaveWorldFromJs() => await SaveAsync();
+
+    [JSInvokable]
+    public async Task LoadWorldFromJs() => await Session.LoadAsync();
+
+    [JSInvokable]
+    public Task<bool> SetAutoSaveFromJs(bool enabled)
+    {
+        _autoSave = enabled;
+        return Task.FromResult(_autoSave);
+    }
+
+    [JSInvokable]
+    public Task<bool> GetAutoSaveFromJs() => Task.FromResult(_autoSave);
 }
+
+public sealed record WorldBuilderDepthState(int SceneZ, int TierIndex, int LayerOffset, bool ViewerLocked);
