@@ -5,7 +5,7 @@ namespace RistWorld.Components;
 public partial class WorldBuilderStudio
 {
     bool _autoSave = true;
-    double _distancePerSquareKmAtZ0 = 1.0;
+    const double CanonicalKilometersPerCell = 1.0;
 
     [JSInvokable]
     public Task<WorldBuilderDepthState> GetWorldBuilderDepthState() =>
@@ -50,23 +50,19 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public Task<WorldBuilderDepthState> AddLayerAtSceneZFromJs(int sceneZ) => SetViewerSceneZFromJs(sceneZ);
 
+    // Canonical world geometry: every X/Y/Z cell is exactly 1 km. These compatibility
+    // endpoints intentionally ignore attempts by older cached clients to redefine scale.
     [JSInvokable]
-    public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km)
-    {
-        if (double.IsFinite(km) && km > 0 && km <= 1_000_000)
-            _distancePerSquareKmAtZ0 = km;
-        return Task.FromResult(_distancePerSquareKmAtZ0);
-    }
+    public Task<double> SetDistancePerSquareKmAtZ0FromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
 
     [JSInvokable]
-    public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(_distancePerSquareKmAtZ0);
-
-    // Compatibility aliases for older cached clients. These now mean distance per viewer square at Z=0.
-    [JSInvokable]
-    public Task<double> SetTileSizeKmAtOriginFromJs(double km) => SetDistancePerSquareKmAtZ0FromJs(km);
+    public Task<double> GetDistancePerSquareKmAtZ0FromJs() => Task.FromResult(CanonicalKilometersPerCell);
 
     [JSInvokable]
-    public Task<double> GetTileSizeKmAtOriginFromJs() => GetDistancePerSquareKmAtZ0FromJs();
+    public Task<double> SetTileSizeKmAtOriginFromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
+
+    [JSInvokable]
+    public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(CanonicalKilometersPerCell);
 
     [JSInvokable]
     public async Task SaveWorldFromJs() => await SaveAsync();
