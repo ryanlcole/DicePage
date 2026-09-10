@@ -12,6 +12,7 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 6. **Third-party code must be license-compatible and attributable.** Shaelvien may optimize open-source/freeware components, but proprietary code is not copied.
 7. **World identity is the persistence boundary.** Account ownership and world identity are related, but they are not the same thing.
 8. **World math is absolute; viewer projection is contextual.** One cell is always 1 km × 1 km × 1 km. Parallax, zoom, and cartographic representation never redefine geometric scale.
+9. **Layers require support; Tiers establish elevation.** Layer 1 is the base surface of a Tier. Higher Layers are supported stacks inside that Tier. A moved/resized tile that loses its immediate lower-Layer support degrades to the highest valid lower Layer. A Tier is an independent elevation band and does not require a filled Layer stack from lower Tiers.
 
 ## Current Authorities
 
@@ -26,6 +27,7 @@ This file defines ownership boundaries for the current RIST WORLD runtime. The g
 | Map renderer | `Components/WorldMap.razor` | Semantic render order: ocean → viewer grid → authored terrain → labels/dice/pieces. |
 | Base map geometry / Ocean 071 | `Components/WorldMap.razor.css` | Square map surface and actual Ocean 071 rendering. |
 | World Building visual authority | `wwwroot/css/worldbuilding-p0-authority.css` | Workspace-scoped presentation only. Must not redefine terrain identity. |
+| WorldBuilder layer support | `Components/WorldBuilderStudio.Interactions.cs` | Layer support/degradation and independent Tier placement semantics. |
 | Immersion presentation authority | `Components/ImmersionBuilderWorkspace.razor` | Dedicated studio boundary for Parallax, AR, Spatial Audio, High Resolution Assets, and Haptic Feedback. |
 | World coordinate transforms / tile snapping | `wwwroot/world-coordinate-authority.js` | Canonical client→world transform and grid snapping. Legacy `ristWorld.tileDropPoint` delegates to this authority. |
 | Coordinate frame labels | `wwwroot/grid-coordinate-system.js` | Viewer coordinate decoration; does not own placement. |
@@ -71,6 +73,9 @@ The P0 worldbuilder must satisfy all of these simultaneously:
 - tile placement snaps in **world coordinates after pan/zoom inversion**;
 - tile footprint is measured in world cells and does not change with altitude;
 - Plane/Tier/Layer remain world-state coordinates, not viewport tricks;
+- **Layer 1 is the base working surface of each Tier; Layer 2+ must be supported by overlapping content on the immediately lower Layer of the same Tier;**
+- **when a tile moves or changes footprint and loses Layer support, only that tile degrades downward until it reaches the highest supported Layer;**
+- **a Tier establishes independent structural elevation and therefore does not require a continuous Layer stack from a lower Tier;**
 - close views may use presentation-only parallax so higher-Z objects appear nearer;
 - cartographic zoom progressively removes parallax so equal true distances map to equal displayed distances;
 - landscape uses surplus horizontal space for World Controls;
