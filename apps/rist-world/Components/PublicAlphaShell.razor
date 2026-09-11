@@ -33,6 +33,7 @@
    <button type="button" class="launcher-card campaign" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
+   <button type="button" class="launcher-card assets" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
@@ -65,9 +66,21 @@
        <small>@(_fullscreen?"Return to browser window":"Use the maximum available display area")</small>
       </button>
       @if(!_fullscreenSupported){<p class="launcher-settings-note">This browser does not expose programmable full screen. Platform/browser display controls may still provide it.</p>}
+      <button type="button" class="launcher-fullscreen" @onclick="ToggleParallaxAsync" disabled="@(!_parallaxSupported)">
+       <strong>PARALLAX @(_parallaxEnabled?"ON":"OFF")</strong>
+       <small>@ParallaxStatusText</small>
+      </button>
      </section>
      <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY SETTINGS</button>
     </div>
+   </section>
+  }
+
+  @if(_cardIndexOpen)
+  {
+   <section class="card-index-overlay" role="dialog" aria-modal="true" aria-label="Card Index">
+    <header><button type="button" @onclick="CloseCardIndex">← BACK</button><strong>CARD INDEX</strong></header>
+    <CardIndexWorkspace />
    </section>
   }
 
@@ -97,7 +110,8 @@ else
  .launcher-settings-backdrop{position:fixed;inset:0;z-index:2147482500;display:grid;place-items:center;padding:18px;background:rgba(2,6,10,.78);backdrop-filter:blur(5px)}
  .launcher-settings{box-sizing:border-box;width:min(92vw,520px);max-height:88dvh;overflow:auto;padding:18px;border:1px solid #806a38;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 20px 60px #000c;font-family:system-ui,-apple-system,sans-serif}
  .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
- .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
+ .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen+.launcher-fullscreen{margin-top:8px}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
+ .card-index-overlay{position:fixed;inset:0;z-index:2147482400;display:grid;grid-template-rows:34px minmax(0,1fr);background:#03080c}.card-index-overlay>header{display:flex;align-items:center;gap:12px;padding:0 10px;border-bottom:1px solid #715b2d;background:#081017;color:#e8dec5}.card-index-overlay>header button{height:26px;border:1px solid #53636b;border-radius:6px;background:#0d171e;color:#e4c97d;font-weight:900}.card-index-overlay>header strong{font-size:10px;letter-spacing:.12em;color:#e5c878}
 </style>
 
 @code {
@@ -105,9 +119,12 @@ else
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
+ bool _cardIndexOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
+ bool _parallaxEnabled=true;
+ bool _parallaxSupported=true;
  string _motionStatus="unknown";
  string _workspaceMode = "world";
  string _workspaceLabel = "WORLDBUILDER";
@@ -121,12 +138,16 @@ else
   "unsupported" => "Not available on this device",
   _ => "Enable device movement for layered world depth"
  };
+ string ParallaxStatusText => _parallaxSupported
+  ? (_parallaxEnabled?"Device parallax is enabled":"Device parallax is disabled")
+  : "Parallax controls are not available in this browser";
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
   if(!firstRender||_workspaceRestored)return;
   _workspaceRestored=true;
   await RefreshMotionStateAsync();
+  await RefreshParallaxStateAsync();
   await PersistWorkspaceAsync("hub");
  }
 
@@ -152,6 +173,7 @@ else
   _workspaceHint=hint;
   _workspaceOpen=true;
   _settingsOpen=false;
+  _cardIndexOpen=false;
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -190,8 +212,38 @@ else
   await InvokeAsync(StateHasChanged);
  }
 
- void OpenSettings(){_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();}
+ async Task RefreshParallaxStateAsync()
+ {
+  try
+  {
+   _parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.isEnabled");
+   _parallaxSupported=true;
+  }
+  catch
+  {
+   _parallaxSupported=false;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ToggleParallaxAsync()
+ {
+  if(!_parallaxSupported)return;
+  try
+  {
+   _parallaxEnabled=await JS.InvokeAsync<bool>("ristParallax.setEnabled",!_parallaxEnabled);
+  }
+  catch
+  {
+   _parallaxSupported=false;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void OpenSettings(){_cardIndexOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
  void CloseSettings()=>_settingsOpen=false;
+ void OpenCardIndex(){_settingsOpen=false;_cardIndexOpen=true;}
+ void CloseCardIndex()=>_cardIndexOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
  void OpenWorldbuilding()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
@@ -215,5 +267,5 @@ else
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_cardIndexOpen=false;_=PersistWorkspaceAsync("hub");}
 }
