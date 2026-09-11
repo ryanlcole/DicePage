@@ -1,4 +1,4 @@
-name: Deploy EIOS Lab
+name: Keep EIOS Lab Unpublished
 
 on:
   workflow_dispatch:
@@ -6,7 +6,6 @@ on:
     branches:
       - live-alpha-rist-blazor-world
     paths:
-      - 'site/relic-home/eios-lab/**'
       - '.github/workflows/deploy-eios-lab.yml'
 
 concurrency:
@@ -23,18 +22,16 @@ env:
   FRONTEND_STACK: rist-frontend
 
 jobs:
-  deploy:
+  unpublish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Publish isolated EIOS lab
+      - name: Remove EIOS lab from public origin
         shell: bash
         run: |
           set -euo pipefail
@@ -47,23 +44,25 @@ jobs:
           test -n "$DIST"
           test "$DIST" != "None"
 
-          aws s3 sync site/relic-home/eios-lab/ "s3://${BUCKET}/eios-lab/" \
-            --cache-control 'no-cache,no-store,must-revalidate' \
-            --only-show-errors
+          aws s3 rm "s3://${BUCKET}/eios-lab/" --recursive --only-show-errors
 
           INVALIDATION=$(aws cloudfront create-invalidation \
             --distribution-id "$DIST" \
-            --paths '/eios-lab/*' \
+            --paths '/eios-lab' '/eios-lab/*' \
             --query 'Invalidation.Id' \
             --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
-      - name: Verify hidden EIOS surface
+      - name: Verify EIOS page is no longer published
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --location --retry 6 --retry-delay 3 --output /tmp/eios.html \
-            https://relicgamemaster.com/eios-lab/index.html
-          grep -q 'EIOS LAB' /tmp/eios.html
-          grep -q 'semantic agent' /tmp/eios.html
-          grep -q 'noindex,nofollow' /tmp/eios.html
+          BODY=$(curl --silent --location --retry 6 --retry-delay 3 --write-out '\n%{http_code}' \
+            https://relicgamemaster.com/eios-lab/index.html)
+          STATUS=$(printf '%s' "$BODY" | tail -n 1)
+          CONTENT=$(printf '%s' "$BODY" | sed '$d')
+          if printf '%s' "$CONTENT" | grep -q 'EIOS LAB'; then
+            echo 'EIOS LAB is still publicly served.' >&2
+            exit 1
+          fi
+          echo "EIOS public page removed; current HTTP status: $STATUS"
