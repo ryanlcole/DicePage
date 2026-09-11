@@ -62,11 +62,23 @@ public partial class WorldBuilderStudio
         return Task.CompletedTask;
     }
 
+    async Task CaptureActiveCardLanguageAsync()
+    {
+        try
+        {
+            var language = await JS.InvokeAsync<PhysicalCardLanguageProfile>("ristCardTiff.languageProfile");
+            if (language is not null)
+                Session.SetActiveMapCardLanguage(language.Mode, language.LanguageTag, language.InGameLanguage, language.TextDirection);
+        }
+        catch { }
+    }
+
     // Save creates/updates the private account-owned map card. Browser storage remains
     // a recovery cache; logged-in users also receive the AWS card record immediately.
     [JSInvokable]
     public async Task SaveWorldFromJs()
     {
+        await CaptureActiveCardLanguageAsync();
         await Session.SaveAsync();
         await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id));
     }
@@ -100,6 +112,7 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public async Task<bool> SetPublishModeFromJs(bool published)
     {
+        await CaptureActiveCardLanguageAsync();
         _publishMode = published;
         if (published)
             await Session.PublishActiveMapCardAsync(_quickTiles.Select(x => x.Id));
@@ -121,3 +134,4 @@ public partial class WorldBuilderStudio
 }
 
 public sealed record WorldBuilderDepthState(int SceneZ, int TierIndex, int LayerOffset, bool ViewerLocked);
+public sealed record PhysicalCardLanguageProfile(string Mode, string LanguageTag, string InGameLanguage, string TextDirection);
