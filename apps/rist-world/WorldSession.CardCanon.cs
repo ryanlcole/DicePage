@@ -50,10 +50,14 @@ public sealed class RistCardFace
 public sealed class RistCardEnvelope
 {
     public string Format { get; set; } = "RISTCARD";
-    public int Version { get; set; } = 2;
+    public int Version { get; set; } = 3;
     public string CardId { get; set; } = "";
     public RistCardType CardType { get; set; }
     public string OwnerAccountId { get; set; } = "";
+    // Public/persisted provenance identifier. This is derived from account identity so
+    // printed/exported cards can be traced back to the authenticated creator without
+    // exposing the raw account identifier on the physical card.
+    public string CreatorProvenanceId { get; set; } = "";
     public string WorldId { get; set; } = "";
     public string Name { get; set; } = "";
     public string Visibility { get; set; } = "private";
@@ -85,9 +89,6 @@ public sealed partial class WorldSession
         _ => type.ToString().ToLowerInvariant()
     };
 
-    // Cards belong to the account, not to a browser or a single world. WorldId in
-    // the envelope links a card into a world when appropriate, but ownership stays
-    // at the account boundary so cards can move between campaigns and future devices.
     public string PrivateCardKey(RistCardType type, string cardId) =>
         $"{CardStoragePrefix}/{CardTypeSlug(type)}/{cardId}.json";
 
@@ -100,10 +101,16 @@ public sealed partial class WorldSession
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
     }
 
+    public static string ComputeCreatorProvenanceId(string ownerAccountId)
+    {
+        if (string.IsNullOrWhiteSpace(ownerAccountId)) return "anonymous";
+        var material = "RIST-CREATOR|" + ownerAccountId.Trim();
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(material))).ToLowerInvariant();
+        return "rc-" + hash[..20];
+    }
+
     // Shaelvien's machine-readable art mark is derived from canonical identity and
-    // reconstruction data, not from another trading-card layout. A renderer can
-    // encode this value into Shaelvien artwork metadata/patterns or a future physical
-    // marker without changing card identity.
+    // reconstruction data, not from another trading-card layout.
     public static string ComputeArtDataMark(string cardId, RistCardType type, string manifestHash)
     {
         var material = $"RIST|{cardId}|{CardTypeSlug(type)}|{manifestHash}";
@@ -114,6 +121,7 @@ public sealed partial class WorldSession
     {
         if (string.IsNullOrWhiteSpace(card.CardId)) throw new ArgumentException("Card ID is required.", nameof(card));
         card.OwnerAccountId = string.IsNullOrWhiteSpace(card.OwnerAccountId) ? WorldOwnerAccountId : card.OwnerAccountId;
+        card.CreatorProvenanceId = ComputeCreatorProvenanceId(card.OwnerAccountId);
         card.UpdatedAtUtc = DateTimeOffset.UtcNow;
         card.Language ??= new RistCardLanguage();
         card.Face ??= new RistCardFace();
@@ -122,6 +130,7 @@ public sealed partial class WorldSession
             card.CardId,
             card.CardType,
             card.OwnerAccountId,
+            card.CreatorProvenanceId,
             card.WorldId,
             card.Name,
             card.Visibility,
