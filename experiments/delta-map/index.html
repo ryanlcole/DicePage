@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RIST Delta Map Experiment</title>
+<style>
+  :root{color-scheme:dark;--bg:#080b10;--panel:#111722;--line:#596574;--text:#eef3f7;--muted:#9aa8b5;--accent:#d3ae6d;--ok:#8bc58b;--warn:#e8c178}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#18202b 0,#090d13 46%,#05070a 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{padding:14px}
+  .app{max-width:1180px;margin:auto;border:1px solid #6d7781;background:#0a0e14;box-shadow:0 20px 60px #000a}
+  header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #727b83;background:linear-gradient(#1b242f,#10161e)}
+  header b{letter-spacing:.12em;font-size:13px;color:var(--accent)}
+  header .title{text-align:center;font-weight:800;letter-spacing:.06em}
+  header .tag{font-size:12px;color:var(--muted)}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 310px;min-height:720px}
+  .mapwrap{position:relative;display:grid;place-items:center;padding:14px;background:#05070a;overflow:hidden}
+  canvas{width:min(100%,780px);aspect-ratio:1/1;border:1px solid #717b85;background:#000;image-rendering:auto;touch-action:none}
+  .grid{position:absolute;inset:14px;pointer-events:none;background-image:linear-gradient(#ffffff12 1px,transparent 1px),linear-gradient(90deg,#ffffff12 1px,transparent 1px);background-size:10% 10%;display:none}
+  .grid.on{display:block}
+  aside{border-left:1px solid #68727c;background:var(--panel);padding:14px;overflow:auto}
+  h2{font-size:14px;margin:2px 0 10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .metric{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-bottom:1px solid #ffffff12;font-size:13px}
+  .metric span:first-child{color:var(--muted)}
+  .buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+  button{border:1px solid #7d8791;background:linear-gradient(#283440,#18212b);color:white;padding:10px 8px;border-radius:4px;font-weight:700;cursor:pointer}
+  button:active{transform:translateY(1px)}
+  button.primary{border-color:#b99760;color:#ffe7b7}
+  .command,.log{font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#070a0f;border:1px solid #46505b;padding:9px;white-space:pre-wrap;word-break:break-word;color:#d9e2eb}
+  .command{min-height:92px}
+  .log{height:170px;overflow:auto;color:#a9d0a9}
+  .note{font-size:12px;line-height:1.45;color:var(--muted);margin-top:10px}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:8px 0 12px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:var(--ok)}
+  .dot.warn{background:var(--warn)}
+  @media(max-width:800px){body{padding:0}.app{border-left:0;border-right:0}main{grid-template-columns:1fr}.mapwrap{padding:8px}.grid{inset:8px}aside{border-left:0;border-top:1px solid #68727c}header{grid-template-columns:1fr auto}.title{text-align:left!important}.tag{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <b>RIST LAB</b>
+    <div class="title">SERVER TRUTH → CLIENT PERCEPTION</div>
+    <div class="tag">isolated transport experiment</div>
+  </header>
+  <main>
+    <section class="mapwrap">
+      <canvas id="map" width="1000" height="1000" aria-label="Client perceived map"></canvas>
+      <div id="grid" class="grid"></div>
+    </section>
+    <aside>
+      <h2>Retained Client</h2>
+      <div class="legend"><span><i class="dot"></i>canonical revision matched</span><span><i class="dot warn"></i>patch changes only dirty region</span></div>
+      <div class="metric"><span>Canonical world</span><strong>1,000,000,000 px</strong></div>
+      <div class="metric"><span>Client viewport</span><strong>1,000,000 px</strong></div>
+      <div class="metric"><span>Client revision</span><strong id="rev">1</strong></div>
+      <div class="metric"><span>Full raw RGBA viewport</span><strong id="rawBytes">4,000,000 B</strong></div>
+      <div class="metric"><span>Last instruction</span><strong id="cmdBytes">0 B</strong></div>
+      <div class="metric"><span>Pixels redrawn</span><strong id="dirty">1,000,000</strong></div>
+      <div class="metric"><span>Retained untouched</span><strong id="retained">0%</strong></div>
+
+      <div class="buttons">
+        <button class="primary" id="patch">Apply Delta</button>
+        <button id="reset">Reset Truth</button>
+        <button id="full">Full Redraw</button>
+        <button id="gridBtn">Toggle Grid</button>
+      </div>
+
+      <h2>Instruction</h2>
+      <div id="command" class="command"></div>
+      <p class="note">The canvas intentionally stays resident in the client. A delta changes only the described columns; <b>_</b> means inherit the prior perceived state. This is a browser simulation of the transport concept, not the production protocol.</p>
+
+      <h2>Event Log</h2>
+      <div id="log" class="log"></div>
+    </aside>
+  </main>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('map');
+  const ctx = canvas.getContext('2d', { alpha:false });
+  const revEl = document.getElementById('rev');
+  const cmdEl = document.getElementById('command');
+  const bytesEl = document.getElementById('cmdBytes');
+  const dirtyEl = document.getElementById('dirty');
+  const retainedEl = document.getElementById('retained');
+  const logEl = document.getElementById('log');
+  const gridEl = document.getElementById('grid');
+  const W = canvas.width, H = canvas.height;
+  let revision = 1;
+
+  const enc = new TextEncoder();
+  const size = s => enc.encode(s).length;
+  const log = msg => {
+    const t = new Date().toLocaleTimeString();
+    logEl.textContent += `[${t}] ${msg}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+  const gradient = (x0,x1,c0,c1) => {
+    const g = ctx.createLinearGradient(x0,0,x1,0); g.addColorStop(0,c0); g.addColorStop(1,c1); return g;
+  };
+  const fill = (x0,x1,paint) => { ctx.fillStyle=paint; ctx.fillRect(x0,0,x1-x0,H); };
+  const initialCommand = 'map.Blue>lblue.1.25.red==red26.75.lblue<blue76.100';
+  const deltaCommand = 'map._.26.50.Red>lred.51.75.lred<Red._.';
+  const fullChangedCommand = 'map.Blue>lblue.1.25.Red>lred.26.50.lred<Red.51.75.lblue<blue.76.100';
+
+  function metrics(command, dirtyPixels){
+    cmdEl.textContent = command;
+    bytesEl.textContent = size(command).toLocaleString() + ' B';
+    dirtyEl.textContent = dirtyPixels.toLocaleString();
+    retainedEl.textContent = Math.round((1-dirtyPixels/(W*H))*100) + '%';
+    revEl.textContent = revision;
+  }
+
+  function renderInitial(){
+    fill(0,250,gradient(0,250,'#0057d9','#83d7ff'));
+    fill(250,750,'#d00024');
+    fill(750,1000,gradient(750,1000,'#83d7ff','#0057d9'));
+    revision = 1;
+    metrics(initialCommand,W*H);
+    log('revision 1: full client perception constructed from canonical instruction');
+    log(`instruction=${size(initialCommand)} B vs raw viewport=${(W*H*4).toLocaleString()} B`);
+  }
+
+  function applyDelta(){
+    if(revision >= 2){ log('delta ignored: client already holds revision 2'); return; }
+    // Only x=250..750 is dirty. The outer 50% of the client image remains untouched in memory.
+    fill(250,500,gradient(250,500,'#d00024','#ff8a8a'));
+    fill(500,750,gradient(500,750,'#ff8a8a','#d00024'));
+    revision = 2;
+    const dirty = 500*H;
+    metrics(deltaCommand,dirty);
+    log(`revision 2: applied ${size(deltaCommand)} B semantic patch`);
+    log(`dirty=${dirty.toLocaleString()} pixels; retained=${(W*H-dirty).toLocaleString()} pixels`);
+  }
+
+  function fullRedraw(){
+    fill(0,250,gradient(0,250,'#0057d9','#83d7ff'));
+    fill(250,500,gradient(250,500,'#d00024','#ff8a8a'));
+    fill(500,750,gradient(500,750,'#ff8a8a','#d00024'));
+    fill(750,1000,gradient(750,1000,'#83d7ff','#0057d9'));
+    revision = 2;
+    metrics(fullChangedCommand,W*H);
+    log(`revision 2: forced full redraw; all ${W*H} client pixels touched`);
+  }
+
+  document.getElementById('patch').onclick = applyDelta;
+  document.getElementById('reset').onclick = () => { logEl.textContent=''; renderInitial(); };
+  document.getElementById('full').onclick = fullRedraw;
+  document.getElementById('gridBtn').onclick = () => gridEl.classList.toggle('on');
+  renderInitial();
+})();
+</script>
+</body>
+</html>
