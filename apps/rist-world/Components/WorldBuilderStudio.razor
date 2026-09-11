@@ -22,22 +22,29 @@
   </button>
  </header>
 
- <section class="studio-workbench @(_libraryRailOpen?"library-target":"")" aria-label="World Builder quick tools" @ondragover:preventDefault="true" @ondrop="PinDraggedAsset">
+ <section class="studio-workbench @(_libraryRailOpen?"library-target":"")" aria-label="World Builder quick assets" @ondragover:preventDefault="true" @ondrop="PinDraggedAsset">
   <div class="studio-top-slider">
    @if(_toolsOpen){<button type="button" class="slider-back" @onclick="()=>_toolsOpen=false" aria-label="Back">‹</button>}
-   <button type="button" class="tools-button @(_toolsOpen?"active":"")" @onclick="()=>_toolsOpen=!_toolsOpen" aria-label="@_toolMode toolset. Tap for more toolsets."><strong>@_toolMode</strong><small>Toolset</small><span>More…</span></button>
+   <button type="button" class="tools-button @(_toolsOpen?"active":"")" @onclick="()=>_toolsOpen=!_toolsOpen" aria-label="@_toolMode asset filter. Tap for more filters."><strong>@_toolMode</strong><small>Filter</small><span>More…</span></button>
    @if(_toolsOpen)
    {
     @foreach(var mode in Modes){<button type="button" class="tool-choice @(_toolMode==mode?"active":"")" @onclick="()=>SelectTool(mode)">@mode</button>}
    }
    else
    {
-    @foreach(var tile in _quickTiles)
+    @foreach(var tile in VisibleQuickTiles)
     {
      <button type="button" class="quick-slot filled" draggable="true" @ondragstart="()=>BeginQuickAssetDrag(tile)" @ondragend="EndQuickAssetDrag" @onclick="()=>Session.StageTile(tile)" @ondblclick="()=>RemoveQuickTile(tile)" title="Drag to the viewer to place; double click to remove"><img src="@tile.Image" alt="" draggable="false" /><span>@tile.Name</span></button>
     }
-    @for(var i=_quickTiles.Count;i<QuickSlotCount;i++){<span class="quick-slot empty" aria-label="Empty quick asset slot"></span>}
-    <button type="button" class="quick-clear" @onclick="ClearQuickTiles" disabled="@(_quickTiles.Count==0)" aria-label="Clear quick asset rail"><strong>Clear</strong><small>Quick Slots</small></button>
+    @for(var i=VisibleQuickTiles.Count;i<QuickSlotCount;i++){<span class="quick-slot empty" aria-label="Empty matching quick asset slot"></span>}
+    @if(_toolMode=="Uploads")
+    {
+     <button type="button" class="quick-upload-open" @onclick="OpenUploadsLibrary" disabled="@(!Session.IsLoggedIn)"><strong>Uploads</strong><small>@(Session.IsLoggedIn?"Add · Organize":"Sign in required")</small></button>
+    }
+    else
+    {
+     <button type="button" class="quick-clear" @onclick="ClearQuickTiles" disabled="@(_quickTiles.Count==0)" aria-label="Clear quick asset rail"><strong>Clear</strong><small>Quick Slots</small></button>
+    }
    }
   </div>
  </section>
@@ -45,6 +52,7 @@
  <main class="studio-viewer @(_libraryRailOpen?"library-muted":"")" aria-label="World map viewer">
   <div class="studio-viewer-canvas" @ref="_viewerElement" @ondragover:preventDefault="true" @ondrop="DropQuickAsset">
    <WorldMap />
+   <AssetLibrary />
    <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
    @if(_libraryRailOpen){<div class="studio-library-shade" aria-hidden="true"></div>}
    @if(_loadOpen)
@@ -85,7 +93,7 @@
 <style>
  .worldbuilder-studio{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:20px 62px minmax(0,1fr) 62px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}
  .studio-header{min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr) 26px;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017;overflow:hidden}.studio-home,.studio-profile{min-width:0;border:0;background:#0c151d;color:#e4c97d;font-size:12px;font-weight:900;display:grid;place-items:center;padding:0}.studio-home{border-right:1px solid #715b2d}.studio-profile{border-left:1px solid #715b2d;overflow:hidden}.studio-profile img{width:100%;height:100%;object-fit:cover;display:block}.studio-profile span{font-size:8px;color:#7ca5bf}.studio-context-strip{min-width:0;display:block;overflow:hidden}.studio-context-strip::-webkit-scrollbar{display:none}.studio-context-strip button{box-sizing:border-box;width:100%;height:19px;padding:0;border:0;background:transparent;color:#aeb9be;font:700 7px/19px system-ui;white-space:nowrap}.studio-ticker{color:#e4c97d!important;font-size:7px!important;font-weight:900!important;letter-spacing:.08em!important}.studio-ticker-full{display:block!important;min-width:100%!important;text-align:left!important;overflow:hidden!important}
- .studio-workbench{min-width:0;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);padding:6px}.studio-workbench.library-target{box-shadow:inset 0 0 0 1px #d0aa56}.studio-top-slider{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-top-slider::-webkit-scrollbar{display:none}.studio-top-slider button,.quick-slot{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:72px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 10px/1 system-ui;touch-action:manipulation}.studio-top-slider button.active{border-color:#d0aa56;color:#f4d98d;background:#202015}.slider-back{width:48px;min-width:48px!important;font-size:25px!important}.tools-button{min-width:92px!important;padding:4px 10px!important;display:grid!important;grid-template-rows:auto auto auto!important;place-items:center!important;gap:1px!important;line-height:1!important;white-space:normal!important}.tools-button>strong{font:900 13px/1 system-ui!important;color:#f2dfac!important}.tools-button>small{font:800 7px/1 system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#94a7b2!important}.tools-button>span{font:800 8px/1 system-ui!important;color:#63aef1!important}.quick-slot.empty{display:block;width:64px;min-width:64px;border-style:dashed;opacity:.45}.quick-slot.filled{position:relative;overflow:hidden;padding:0;cursor:grab;touch-action:none}.quick-slot.filled:active{cursor:grabbing}.quick-slot.filled img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.quick-slot.filled span{position:absolute;z-index:2;inset:auto 0 0;padding:4px;background:#000b;color:#fff1bd;font-size:8px;overflow:hidden;text-overflow:ellipsis}.quick-clear{min-width:78px!important;display:grid!important;place-items:center!important;gap:2px!important}.quick-clear strong{color:#e8c58f}.quick-clear small{font-size:7px;color:#8fa5b0;text-transform:uppercase}.quick-clear:disabled{opacity:.35}.tool-choice{min-width:96px!important}
+ .studio-workbench{min-width:0;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);padding:6px}.studio-workbench.library-target{box-shadow:inset 0 0 0 1px #d0aa56}.studio-top-slider{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-top-slider::-webkit-scrollbar{display:none}.studio-top-slider button,.quick-slot{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:72px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;font:800 10px/1 system-ui;touch-action:manipulation}.studio-top-slider button.active{border-color:#d0aa56;color:#f4d98d;background:#202015}.slider-back{width:48px;min-width:48px!important;font-size:25px!important}.tools-button{min-width:92px!important;padding:4px 10px!important;display:grid!important;grid-template-rows:auto auto auto!important;place-items:center!important;gap:1px!important;line-height:1!important;white-space:normal!important}.tools-button>strong{font:900 13px/1 system-ui!important;color:#f2dfac!important}.tools-button>small{font:800 7px/1 system-ui!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#94a7b2!important}.tools-button>span{font:800 8px/1 system-ui!important;color:#63aef1!important}.quick-slot.empty{display:block;width:64px;min-width:64px;border-style:dashed;opacity:.45}.quick-slot.filled{position:relative;overflow:hidden;padding:0;cursor:grab;touch-action:none}.quick-slot.filled:active{cursor:grabbing}.quick-slot.filled img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.quick-slot.filled span{position:absolute;z-index:2;inset:auto 0 0;padding:4px;background:#000b;color:#fff1bd;font-size:8px;overflow:hidden;text-overflow:ellipsis}.quick-clear,.quick-upload-open{min-width:78px!important;display:grid!important;place-items:center!important;gap:2px!important}.quick-clear strong,.quick-upload-open strong{color:#e8c58f}.quick-clear small,.quick-upload-open small{font-size:7px;color:#8fa5b0;text-transform:uppercase}.quick-clear:disabled,.quick-upload-open:disabled{opacity:.35}.tool-choice{min-width:96px!important}
  .studio-viewer{box-sizing:border-box;min-width:0;min-height:0;overflow:hidden;background:#020609;padding:0}.studio-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#03090d;touch-action:none;container-type:size;--viewer-frame:24px}.studio-viewer-canvas>.table-workspace,.studio-viewer-canvas>.map-shell{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.studio-viewer-canvas .table-workspace{position:absolute!important;inset:0!important}.studio-viewer-canvas .table-workspace>.staging-tray,.studio-viewer-canvas .table-workspace>.tile-browser,.studio-viewer-canvas .table-workspace>.card-browser{display:none!important}.studio-viewer-canvas .map-shell{position:absolute!important;inset:0!important;display:block!important}.studio-viewer-canvas .map{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.studio-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:auto!important;transform:none!important}.studio-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.studio-viewer-canvas .base.ocean-world{background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30)!important;background-repeat:repeat!important;background-position:var(--viewer-frame) var(--viewer-frame)!important}.studio-viewer-canvas .status,.studio-viewer-canvas .coordinate-system,.studio-viewer-canvas .grid-coordinates{display:none!important}.studio-viewer-canvas .rist-coordinate-frame{z-index:35!important;pointer-events:none!important}.studio-viewer-canvas .rist-coordinate-axis{background:#071015!important}.studio-viewer-grid{position:absolute;inset:var(--viewer-frame);z-index:30;pointer-events:none;border:1px solid rgba(215,199,145,.64);background-image:linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px);background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30);background-position:0 0;background-repeat:repeat}.studio-viewer-grid.off{display:none}.studio-library-shade{position:absolute;inset:0;z-index:55;pointer-events:auto;background:rgba(2,7,11,.58);backdrop-filter:grayscale(.65) brightness(.58);-webkit-backdrop-filter:grayscale(.65) brightness(.58)}
  .studio-command-slider{position:relative;z-index:60;min-width:0;overflow:hidden;border-top:1px solid #715b2d;background:#0a1117;padding:6px;transform:translateY(-4px)}.studio-command-rail{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-command-rail::-webkit-scrollbar{display:none}.studio-command-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}.studio-command-rail button strong{font:900 12px/1 system-ui;color:#f0ddb0}.studio-command-rail button small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}.studio-command-rail button.active{border-color:#d0aa56;background:#201b10}.studio-command-rail button.publish{border-color:#7e6a43}.studio-command-rail button:disabled{opacity:.38}.studio-command-slider.library-open{padding:0}.studio-command-slider.library-open .studio-library-deck{height:100%}
  .studio-mini-panel,.studio-load-panel{position:absolute;z-index:80;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #846c39;border-radius:10px;background:#081117;box-shadow:0 8px 26px #000b}.studio-mini-panel button,.studio-load-panel button{min-height:34px;border:1px solid #536771;border-radius:7px;background:#0e1a21;color:#e7d39a;font-weight:800}.studio-load-panel{width:min(92%,520px);display:grid}.studio-load-panel header{display:flex;align-items:center;justify-content:space-between}.studio-load-panel header button{min-width:34px}.studio-load-panel>button{display:grid;text-align:left;padding:8px 10px}.studio-load-panel small{color:#9babb3}.studio-publish-banner{position:absolute;z-index:75;left:50%;top:8px;transform:translateX(-50%);padding:5px 10px;border:1px solid #836c3f;border-radius:10px;background:#0a1117;color:#f0d69a;font:800 8px/1 system-ui;letter-spacing:.05em;white-space:nowrap}
@@ -94,7 +102,7 @@
 
 @code {
  const int QuickSlotCount=6;
- static readonly string[] Modes=["Tiles","Tokens","Minis","Scenery","Pawns","Bits"];
+ static readonly string[] Modes=["All","Uploads","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"];
  readonly List<AtlasTile> _quickTiles=[];
  bool _toolsOpen;
  bool _libraryRailOpen;
@@ -104,7 +112,7 @@
  bool _tierOpen;
  bool _publishMode;
  bool _loadOpen;
- string _toolMode="Tiles";
+ string _toolMode="All";
  int _tileFootprint=1;
  ElementReference _viewerElement;
  AtlasTile? _draggingLibraryTile;
@@ -113,10 +121,12 @@
  IJSObjectReference? _zBinding;
  DotNetObjectReference<WorldBuilderStudio>? _self;
  [Parameter] public EventCallback OnStartMenu{get;set;}
+ IReadOnlyList<AtlasTile> VisibleQuickTiles=>_quickTiles.Where(ToolModeMatch).ToList();
  void OpenStartMenu()=>OnStartMenu.InvokeAsync();
- void SelectTool(string mode){_toolMode=mode;_toolsOpen=false;}
- void OpenLibraryRail(){_libraryRailOpen=true;_toolsOpen=false;}
+ void SelectTool(string mode){_toolMode=Modes.Contains(mode,StringComparer.Ordinal)?mode:"All";_toolsOpen=false;}
+ void OpenLibraryRail(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();_libraryRailOpen=true;_toolsOpen=false;}
  void CloseLibraryRail()=>_libraryRailOpen=false;
+ void OpenUploadsLibrary(){if(!Session.IsLoggedIn)return;_libraryRailOpen=false;_toolsOpen=false;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
  async Task PersistQuickSlotsAsync()=>await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
  async Task RemoveQuickTile(AtlasTile tile){_quickTiles.RemoveAll(x=>x.Id==tile.Id);await PersistQuickSlotsAsync();}
  async Task ClearQuickTiles(){_quickTiles.Clear();await PersistQuickSlotsAsync();}
@@ -156,13 +166,43 @@
  async Task SaveAsync(){if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));}
  async Task LoadLocalAsync(){await Session.LoadAsync();await RestoreMapCardAsync();_loadOpen=false;}
  async Task LoadPrivateAsync(){await Session.LoadPrivateCheckpointAsync();await RestoreMapCardAsync();_loadOpen=false;}
+ AtlasTile? FindAsset(string id)=>Session.UserAssetTiles.Concat(Session.AtlasTiles).FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
+ bool ToolModeMatch(AtlasTile tile)
+ {
+  if(_toolMode=="All")return true;
+  if(_toolMode=="Uploads")return tile.Id.StartsWith("private:",StringComparison.Ordinal);
+  var category=AssetCategory(tile);
+  return _toolMode switch
+  {
+   "Tiles"=>category=="Tiles",
+   "Tokens"=>category=="Tokens & Chits",
+   "Minis"=>category=="Miniatures",
+   "Scenery"=>category=="Scenery & Terrain",
+   "Pawns"=>category=="Pawns & Meeples",
+   "Rolling Stock"=>category=="Rolling Stock",
+   "Bits"=>category=="Bits",
+   _=>true
+  };
+ }
+ static string AssetCategory(AtlasTile asset)
+ {
+  if(asset.Id.StartsWith("private:",StringComparison.Ordinal))return WorldSession.NormalizeAssetCategory(asset.Directory);
+  var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
+  if(text.Contains("mini"))return "Miniatures";
+  if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock";
+  if(text.Contains("pawn")||text.Contains("meeple"))return "Pawns & Meeples";
+  if(text.Contains("token")||text.Contains("chit")||text.Contains("marker")||text.Contains("pin"))return "Tokens & Chits";
+  if(text.Contains("scenery")||text.Contains("terrain")||text.Contains("building")||text.Contains("tree"))return "Scenery & Terrain";
+  if(text.Contains("bit"))return "Bits";
+  return "Tiles";
+ }
  async Task RestoreMapCardAsync()
  {
   await Session.LoadActiveMapCardAsync();
   _quickTiles.Clear();
   foreach(var id in Session.ActiveMapCardQuickSlotTileIds)
   {
-   var tile=Session.AtlasTiles.FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
+   var tile=FindAsset(id);
    if(tile is not null&&_quickTiles.All(x=>x.Id!=tile.Id)&&_quickTiles.Count<QuickSlotCount)_quickTiles.Add(tile);
   }
   await InvokeAsync(StateHasChanged);
@@ -190,7 +230,7 @@
    _quickTiles.Clear();
    foreach(var id in Session.ActiveMapCardQuickSlotTileIds)
    {
-    var tile=Session.AtlasTiles.FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
+    var tile=FindAsset(id);
     if(tile is not null&&_quickTiles.All(x=>x.Id!=tile.Id)&&_quickTiles.Count<QuickSlotCount)_quickTiles.Add(tile);
    }
    await InvokeAsync(StateHasChanged);
