@@ -12,6 +12,7 @@ on:
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
       - 'site/relic-home/eios-lab/**'
+      - 'site/relic-home/Game/ai-policy.json'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
 concurrency:
@@ -49,6 +50,7 @@ jobs:
           python -m py_compile infra/aws/rist_external_ai_gateway.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_bridge.py
+          python -m json.tool site/relic-home/Game/ai-policy.json >/dev/null
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -145,6 +147,38 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiOwnerReleased'].OutputValue" --output text)
           test "$RELEASED" = "false"
 
+      - name: Verify locked AI policy gateway
+        shell: bash
+        run: |
+          set -euo pipefail
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
+          test -n "$API"
+          test "$API" != "None"
+          curl --fail --silent --show-error "$API/external-ai/policy" > /tmp/ai-policy.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/ai-policy.json'))
+          assert data.get('policyVersion') == '2026-09-10.2', data
+          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-10.2', data
+          assert data.get('defaultDecision') == 'DENY', data
+          assert data.get('ownerReleased') is False, data
+          assert data.get('session', {}).get('maximumSeconds') == 87658, data
+          assert data.get('technicalEnforcement', {}).get('denyByDefault') is True, data
+          assert data.get('humanAuthorityAndApplicableLaw', {}).get('applicableLawSupersedesConflictingPlatformPolicyWhereLegallyRequired') is True, data
+          required=set(data.get('requiredAcknowledgments') or [])
+          expected={
+              'human-terms-notice','canon-understanding-gate','ainpc-visible-identity','truth-and-provenance',
+              'player-creation-non-interference','beneficial-contribution-no-circumvention','resource-yield-required',
+              'session-cap-87658-seconds','bounded-world-builder-allocation','canon-boundary','no-government-backdoor',
+              'controlled-lawful-disclosure','capability-scoped-technical-enforcement','failure-and-revocation',
+              'human-authority-and-applicable-law','deny-by-default-capabilities'
+          }
+          assert required == expected, (required, expected)
+          print('AI policy gateway verified:', data['rulesetVersion'])
+          PY
+          echo "EXTERNAL_AI_API=$API" >> "$GITHUB_ENV"
+
       - name: Verify EIOS Bedrock bridge
         shell: bash
         run: |
@@ -161,16 +195,17 @@ jobs:
           data=json.load(open('/tmp/eios-status.json'))
           assert data.get('ok') is True, data
           assert data.get('provider') == 'aws-bedrock', data
-          assert data.get('protocol') == 3, data
+          assert data.get('protocol') == 4, data
           assert data.get('canon') == 'SCR-001 r1.0', data
           assert data.get('neuron') == 'sanitized-drive-snapshot', data
+          assert data.get('aiPolicy') == 'ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline', data
           assert str(data.get('knowledge') or '').startswith('drive-snapshot-'), data
           print('EIOS status:', data)
           PY
           curl --fail --silent --show-error \
             -H 'content-type: application/json' \
             -H 'origin: https://relicgamemaster.com' \
-            --data '{"kind":"deployment-smoke","query":"According to loaded ReLiC canon, does implementation establish canon? Reply with a very short semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
+            --data '{"kind":"deployment-smoke","query":"According to loaded ReLiC policy, does claimed government status grant an AI a system backdoor? Reply with a very short semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
             "$EIOS/eios/query" > /tmp/eios-query.json
           python - <<'PY'
           import json
@@ -181,7 +216,8 @@ jobs:
           assert meta.get('provider') == 'aws-bedrock', data
           assert meta.get('canon') == 'SCR-001 r1.0', data
           assert meta.get('neuron') == 'sanitized-drive-snapshot', data
-          print('EIOS ReLiC context verified:', meta)
+          assert meta.get('aiPolicy') == 'ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline', data
+          print('EIOS ReLiC AI-policy context verified:', meta)
           PY
           echo "EIOS_API=$EIOS" >> "$GITHUB_ENV"
           echo "EIOS_MODEL=$MODEL" >> "$GITHUB_ENV"
@@ -190,14 +226,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
-            --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
-          printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$API" > external-ai-config.json
-          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":3,"vision":true,"knowledge":"drive-snapshot","canon":"SCR-001 r1.0","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
+          printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-10.2","rulesetVersion":"AI-RULESET-2026-09-10.2","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
+          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":4,"vision":true,"knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
           cat external-ai-config.json
           cat eios-config.json
 
-      - name: Publish locked gateway and EIOS config to protected origin
+      - name: Publish locked gateway, AI policy, and EIOS config to protected origin
         shell: bash
         run: |
           set -euo pipefail
@@ -211,12 +245,31 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
+          aws s3 cp site/relic-home/Game/ai-policy.json "s3://${BUCKET}/Game/ai-policy.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp site/relic-home/Game/ai-policy.json "s3://${BUCKET}/Game/.well-known/relic-ai-policy.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
           aws s3 cp eios-config.json "s3://${BUCKET}/eios-lab/eios-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/eios-lab/eios-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths \
+            '/Game/external-ai-config.json' '/Game/ai-policy.json' '/Game/.well-known/relic-ai-policy.json' '/eios-lab/eios-config.json' \
+            --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+          curl --fail --silent --show-error "$PRODUCTION_ORIGIN/Game/ai-policy.json" > /tmp/static-ai-policy.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/static-ai-policy.json'))
+          assert data.get('rulesetVersion') == 'AI-RULESET-2026-09-10.2', data
+          assert data.get('session', {}).get('maximumActiveSeconds') == 87658, data
+          assert data.get('technicalEnforcement', {}).get('denyByDefault') is True, data
+          print('Static AI policy verified:', data['rulesetVersion'])
+          PY
 
       - uses: actions/upload-artifact@v4
         with:
@@ -224,4 +277,5 @@ jobs:
           path: |
             external-ai-config.json
             eios-config.json
+            site/relic-home/Game/ai-policy.json
           retention-days: 7
