@@ -8,6 +8,7 @@ on:
     paths:
       - 'infra/aws/rist-translation.yml'
       - 'infra/aws/translation/**'
+      - 'infra/aws/relic-sam-transform-authority.yml'
       - '.github/workflows/deploy-rist-translation.yml'
 
 permissions:
@@ -38,6 +39,18 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure scoped SAM transform authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws cloudformation deploy \
+            --template-file infra/aws/relic-sam-transform-authority.yml \
+            --stack-name relic-sam-transform-authority \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
 
       - name: Resolve Discord identity table
         shell: bash
