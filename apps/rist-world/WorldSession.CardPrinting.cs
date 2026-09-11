@@ -12,8 +12,9 @@ public enum RistCardPrintTarget
 public sealed class RistCardPrintManifest
 {
     public string Format { get; set; } = "RISTCARDPRINT";
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
     public RistCardPrintTarget Target { get; set; }
+    public string OutputFormat { get; set; } = "tiff";
     public string CardId { get; set; } = "";
     public string CreatorProvenanceId { get; set; } = "";
     public string ManifestHash { get; set; } = "";
@@ -21,9 +22,10 @@ public sealed class RistCardPrintManifest
     public RistCardLanguage Language { get; set; } = new();
     public RistCardFace Face { get; set; } = new();
     public string RasterQuality { get; set; } = "standard";
-    public bool VisibleGlyphCode { get; set; }
+    public string GlyphPresentation { get; set; } = "visible";
     public bool EmbedFullResolutionArtwork { get; set; }
     public bool EmbedCreatorProvenance { get; set; } = true;
+    public bool PreserveTierLayerGeometry { get; set; }
     public List<RistPrintLayer> Layers { get; set; } = [];
 }
 
@@ -71,6 +73,7 @@ public sealed partial class WorldSession
         return new RistCardPrintManifest
         {
             Target = target,
+            OutputFormat = target == RistCardPrintTarget.ThreeDimensional ? "3mf" : "tiff",
             CardId = card.CardId,
             CreatorProvenanceId = creator,
             ManifestHash = card.ManifestHash,
@@ -84,9 +87,16 @@ public sealed partial class WorldSession
                 RistCardPrintTarget.ThreeDimensional => "source",
                 _ => "standard"
             },
-            VisibleGlyphCode = target == RistCardPrintTarget.StandardPrinter,
+            GlyphPresentation = target switch
+            {
+                RistCardPrintTarget.StandardPrinter => "visible-code",
+                RistCardPrintTarget.CardMaker => "integrated-art-mark",
+                RistCardPrintTarget.ThreeDimensional => "physical-mark",
+                _ => "visible-code"
+            },
             EmbedFullResolutionArtwork = target != RistCardPrintTarget.StandardPrinter,
             EmbedCreatorProvenance = true,
+            PreserveTierLayerGeometry = target == RistCardPrintTarget.ThreeDimensional,
             Layers = layers
         };
     }
