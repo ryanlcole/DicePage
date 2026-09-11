@@ -16,6 +16,11 @@ public sealed partial class WorldSession
         if (accountId.Length == 0)
             throw new InvalidOperationException("The authenticated RIST account has no Account ID.");
 
+        // The configured developer account is the only account allowed to establish
+        // Geonaph ownership. Opening My Worlds is enough to materialize the canonical
+        // descriptor and, when no prior checkpoint exists, the sparse z=0 Ocean 071 seed.
+        await EnsureGeonaphOwnerBootstrapAsync(accountId);
+
         var directory = await auth.DownloadJsonAsync<AccountWorldDirectory>(WorldDirectoryKey);
         if (directory is not null &&
             !string.IsNullOrWhiteSpace(directory.AccountId) &&
@@ -48,7 +53,7 @@ public sealed partial class WorldSession
                 worlds.Add(new AccountWorldReference(
                     GeonaphWorldId,
                     name!,
-                    "owner",
+                    auth.IsOwnerDiscordAccount ? "owner" : "participant",
                     $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
                     $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
                     legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
@@ -128,6 +133,8 @@ public sealed partial class WorldSession
         var accountId = WorldOwnerAccountId?.Trim() ?? "";
         if (accountId.Length == 0)
             throw new InvalidOperationException("The authenticated RIST account has no Account ID.");
+        if (IsGeonaphWorld && !auth.IsOwnerDiscordAccount)
+            throw new InvalidOperationException("Geonaph owner authority is reserved for the configured developer account.");
 
         var now = DateTimeOffset.UtcNow;
         var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(WorldDescriptorKey);
@@ -135,13 +142,16 @@ public sealed partial class WorldSession
         {
             if (!string.Equals(descriptor.WorldId, WorldId, StringComparison.Ordinal))
                 throw new InvalidOperationException("World descriptor identity does not match the active World ID.");
-            if (!string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal))
+            if (!string.IsNullOrWhiteSpace(descriptor.OwnerAccountId) &&
+                !string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal))
                 throw new InvalidOperationException("World ownership does not match the authenticated account.");
         }
 
         var extentMode = IsWorldExtentUnbounded ? "unbounded" : "bounded";
         var maxTilesX = IsWorldExtentUnbounded ? null : WorldTileLimit;
         var maxTilesY = IsWorldExtentUnbounded ? null : WorldTileLimit;
+        var authoritySpatialAddress = IsGeonaphWorld ? GeonaphOriginAuthoritySpatialAddress : descriptor?.AuthoritySpatialAddress ?? "";
+        var authorityRole = IsGeonaphWorld ? GeonaphOriginAuthorityRole : descriptor?.AuthorityRole ?? "";
         descriptor = descriptor is null
             ? new WorldRelationshipDescriptor(
                 WorldId,
@@ -153,14 +163,19 @@ public sealed partial class WorldSession
                 now,
                 extentMode,
                 maxTilesX,
-                maxTilesY)
+                maxTilesY,
+                authoritySpatialAddress,
+                authorityRole)
             : descriptor with
             {
+                OwnerAccountId = accountId,
                 DisplayName = WorldDisplayName,
                 UpdatedAtUtc = now,
                 ExtentMode = extentMode,
                 MaxTilesX = maxTilesX,
-                MaxTilesY = maxTilesY
+                MaxTilesY = maxTilesY,
+                AuthoritySpatialAddress = authoritySpatialAddress,
+                AuthorityRole = authorityRole
             };
 
         await auth.UploadTextAsync(
@@ -198,6 +213,70 @@ public sealed partial class WorldSession
         await auth.UploadTextAsync(
             WorldDirectoryKey,
             JsonSerializer.Serialize(nextDirectory, MapWriteOptions),
+            "application/json");
+    }
+
+    async Task EnsureGeonaphOwnerBootstrapAsync(string accountId)
+    {
+        if (!auth.IsOwnerDiscordAccount) return;
+
+        var descriptorKey = $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json";
+        var checkpointKey = $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap";
+        var now = DateTimeOffset.UtcNow;
+        var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(descriptorKey);
+
+        if (descriptor is not null)
+        {
+            if (!string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Geonaph descriptor identity does not match the canonical World ID.");
+            if (!string.IsNullOrWhiteSpace(descriptor.OwnerAccountId) &&
+                !string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Geonaph is already bound to a different RIST account.");
+        }
+
+        descriptor = descriptor is null
+            ? new WorldRelationshipDescriptor(
+                GeonaphWorldId,
+                accountId,
+                GeonaphDisplayName,
+                "Shaelvien",
+                "active",
+                now,
+                now,
+                "unbounded",
+                null,
+                null,
+                GeonaphOriginAuthoritySpatialAddress,
+                GeonaphOriginAuthorityRole)
+            : descriptor with
+            {
+                OwnerAccountId = accountId,
+                DisplayName = GeonaphDisplayName,
+                Domain = "Shaelvien",
+                Status = "active",
+                UpdatedAtUtc = now,
+                ExtentMode = "unbounded",
+                MaxTilesX = null,
+                MaxTilesY = null,
+                AuthoritySpatialAddress = GeonaphOriginAuthoritySpatialAddress,
+                AuthorityRole = GeonaphOriginAuthorityRole
+            };
+
+        await auth.UploadTextAsync(
+            descriptorKey,
+            JsonSerializer.Serialize(descriptor, MapWriteOptions),
+            "application/json");
+
+        // Never overwrite an existing world. Only create the canonical sparse sea-level
+        // seed when neither the World-ID checkpoint nor the legacy migration checkpoint exists.
+        var checkpoint = await auth.DownloadJsonAsync<SavedWorld>(checkpointKey);
+        if (checkpoint is not null) return;
+        var legacyCheckpoint = await auth.DownloadJsonAsync<SavedWorld>(LegacyPrivateWorldCheckpointKey);
+        if (legacyCheckpoint is not null) return;
+
+        await auth.UploadTextAsync(
+            checkpointKey,
+            JsonSerializer.Serialize(CreateGeonaphOriginSeed(), MapWriteOptions),
             "application/json");
     }
 
@@ -245,4 +324,6 @@ public sealed record WorldRelationshipDescriptor(
     DateTimeOffset UpdatedAtUtc,
     string ExtentMode = "bounded",
     int? MaxTilesX = null,
-    int? MaxTilesY = null);
+    int? MaxTilesY = null,
+    string AuthoritySpatialAddress = "",
+    string AuthorityRole = "");
