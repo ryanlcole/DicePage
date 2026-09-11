@@ -10,6 +10,7 @@ on:
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
       - 'infra/aws/rist_eios_bridge.py'
+      - 'site/relic-home/eios-lab/**'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
 concurrency:
