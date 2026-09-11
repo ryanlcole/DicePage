@@ -26,10 +26,31 @@ public enum RistCardType
 
 public sealed record RistCardReference(string CardId, string Relation, RistCardType? Type = null);
 
+// A physical card must remain useful without a computer. The face therefore stores
+// the exact human-visible text that was printed/exported, not merely translation keys.
+// User-language cards may be localized before they are saved/exported. In-game-language
+// cards deliberately contain only the in-world wording so an export cannot leak a
+// translated version of restricted information.
+public sealed class RistCardLanguage
+{
+    public string Mode { get; set; } = "user"; // user | in-game
+    public string LanguageTag { get; set; } = "und";
+    public string InGameLanguage { get; set; } = "";
+    public string TextDirection { get; set; } = "ltr";
+}
+
+public sealed class RistCardFace
+{
+    public string Title { get; set; } = "";
+    public string Subtitle { get; set; } = "";
+    public string Body { get; set; } = "";
+    public string Footer { get; set; } = "";
+}
+
 public sealed class RistCardEnvelope
 {
     public string Format { get; set; } = "RISTCARD";
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
     public string CardId { get; set; } = "";
     public RistCardType CardType { get; set; }
     public string OwnerAccountId { get; set; } = "";
@@ -41,6 +62,8 @@ public sealed class RistCardEnvelope
     public string ArtAssetId { get; set; } = "";
     public string ArtDataMark { get; set; } = "";
     public string ManifestHash { get; set; } = "";
+    public RistCardLanguage Language { get; set; } = new();
+    public RistCardFace Face { get; set; } = new();
     public List<RistCardReference> References { get; set; } = [];
     public List<string> AssetPackIds { get; set; } = [];
     public JsonElement Payload { get; set; }
@@ -92,6 +115,8 @@ public sealed partial class WorldSession
         if (string.IsNullOrWhiteSpace(card.CardId)) throw new ArgumentException("Card ID is required.", nameof(card));
         card.OwnerAccountId = string.IsNullOrWhiteSpace(card.OwnerAccountId) ? WorldOwnerAccountId : card.OwnerAccountId;
         card.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        card.Language ??= new RistCardLanguage();
+        card.Face ??= new RistCardFace();
         card.ManifestHash = ComputeCardManifestHash(new
         {
             card.CardId,
@@ -101,6 +126,9 @@ public sealed partial class WorldSession
             card.Name,
             card.Visibility,
             card.Published,
+            card.ArtAssetId,
+            card.Language,
+            card.Face,
             card.References,
             card.AssetPackIds,
             card.Payload
