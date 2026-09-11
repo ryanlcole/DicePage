@@ -10,6 +10,7 @@ on:
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
       - 'infra/aws/rist_eios_bridge.py'
+      - 'infra/aws/rist_eios_context.py'
       - 'site/relic-home/eios-lab/**'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
@@ -46,6 +47,7 @@ jobs:
         run: |
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
+          python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_bridge.py
 
       - name: Configure AWS through GitHub OIDC
@@ -159,12 +161,16 @@ jobs:
           data=json.load(open('/tmp/eios-status.json'))
           assert data.get('ok') is True, data
           assert data.get('provider') == 'aws-bedrock', data
+          assert data.get('protocol') == 3, data
+          assert data.get('canon') == 'SCR-001 r1.0', data
+          assert data.get('neuron') == 'sanitized-drive-snapshot', data
+          assert str(data.get('knowledge') or '').startswith('drive-snapshot-'), data
           print('EIOS status:', data)
           PY
           curl --fail --silent --show-error \
             -H 'content-type: application/json' \
             -H 'origin: https://relicgamemaster.com' \
-            --data '{"kind":"deployment-smoke","query":"Reply with a very short EIOS greeting as semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
+            --data '{"kind":"deployment-smoke","query":"According to loaded ReLiC canon, does implementation establish canon? Reply with a very short semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
             "$EIOS/eios/query" > /tmp/eios-query.json
           python - <<'PY'
           import json
@@ -173,7 +179,9 @@ jobs:
           assert str(scene.get('caption') or '').strip(), data
           meta=data.get('meta') or {}
           assert meta.get('provider') == 'aws-bedrock', data
-          print('EIOS model verified:', meta)
+          assert meta.get('canon') == 'SCR-001 r1.0', data
+          assert meta.get('neuron') == 'sanitized-drive-snapshot', data
+          print('EIOS ReLiC context verified:', meta)
           PY
           echo "EIOS_API=$EIOS" >> "$GITHUB_ENV"
           echo "EIOS_MODEL=$MODEL" >> "$GITHUB_ENV"
@@ -185,7 +193,7 @@ jobs:
           API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
           printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$API" > external-ai-config.json
-          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":2,"vision":true}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
+          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":3,"vision":true,"knowledge":"drive-snapshot","canon":"SCR-001 r1.0","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
           cat external-ai-config.json
           cat eios-config.json
 
