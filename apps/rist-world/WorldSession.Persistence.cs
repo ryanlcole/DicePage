@@ -11,6 +11,7 @@ public sealed partial class WorldSession
 
  object SavePayload()
  {
+  if(!HasActiveWorld)throw new InvalidOperationException("Choose or create a world before saving.");
   var terrain=ExportSpatialTerrain();
   var pieces=ExportSpatialPieces();
   return new
@@ -18,6 +19,7 @@ public sealed partial class WorldSession
    Format="RISTMAP",
    Version=6,
    WorldId,
+   WorldName=WorldDisplayName,
    Reset=OceanResetVersion,
    OperatingMode,
    Role,
@@ -41,15 +43,17 @@ public sealed partial class WorldSession
   };
  }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync(){await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());}
- public async Task SaveAndToggleExportAsync(){await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
+ public async Task SaveAsync(){if(!HasActiveWorld)return;await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());}
+ public async Task SaveAndToggleExportAsync(){if(!HasActiveWorld)return;await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
+  if(!HasActiveWorld){PrivateStorageStatus="Choose or create a world before saving.";Notify();return;}
   if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
   await SavePrivateCheckpointAsync(showSuccess:true);
  }
  async Task SavePrivateCheckpointAsync(bool showSuccess,string? snapshot=null)
  {
+  if(!HasActiveWorld)return;
   try
   {
    await EnsureWorldRelationshipAsync();
@@ -64,16 +68,15 @@ public sealed partial class WorldSession
  }
  public async Task LoadPrivateCheckpointAsync()
  {
-  if(!IsLoggedIn)return;
+  if(!IsLoggedIn||!HasActiveWorld)return;
   try
   {
    await EnsureWorldRelationshipAsync();
    var saved=await auth.DownloadJsonAsync<SavedWorld>(WorldCheckpointKey);
    var migratedLegacy=false;
 
-   // First-world migration only: older alpha builds stored one unscoped map per account.
-   // Adopt that save only when no world-scoped checkpoint exists.
-   if(saved is null)
+   // Original-world migration only: older alpha builds stored one unscoped map per account.
+   if(saved is null&&string.Equals(WorldId,LegacyAlphaWorldId,StringComparison.Ordinal))
    {
     saved=await auth.DownloadJsonAsync<SavedWorld>(LegacyPrivateWorldCheckpointKey);
     migratedLegacy=saved is not null && OwnsSavedWorld(saved);
@@ -101,8 +104,6 @@ public sealed partial class WorldSession
 
    if(migratedLegacy)
    {
-    // Write the adopted legacy save into the canonical world namespace. The legacy
-    // object is deliberately left untouched as a recovery copy during alpha.
     await SavePrivateCheckpointAsync(showSuccess:false,snapshot:_lastPrivateSnapshot);
     PrivateStorageStatus=$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage.";
    }
@@ -116,28 +117,32 @@ public sealed partial class WorldSession
  }
  public async Task AutoSavePrivateAsync()
  {
-  if(!IsLoggedIn)return;
+  if(!IsLoggedIn||!HasActiveWorld)return;
   var json=ExportMapJson();
   if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
   await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
  }
- public async Task DownloadMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
- public async Task ShareMapAsync(){var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task DownloadMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task ShareMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
+  if(!HasActiveWorld)return false;
   var resetApplied=await js.InvokeAsync<string?>("localStorage.getItem",WorldResetMarkerKey);
   if(resetApplied!="1")
   {
-   var legacyJson=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
-   if(!string.IsNullOrWhiteSpace(legacyJson))
+   if(string.Equals(WorldId,LegacyAlphaWorldId,StringComparison.Ordinal))
    {
-    var legacy=JsonSerializer.Deserialize<SavedWorld>(legacyJson,MapReadOptions);
-    if(OwnsSavedWorld(legacy))
+    var legacyJson=await js.InvokeAsync<string?>("localStorage.getItem",SaveKey);
+    if(!string.IsNullOrWhiteSpace(legacyJson))
     {
-     LoadMapJson(legacyJson);
-     await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
-     await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
-     return true;
+     var legacy=JsonSerializer.Deserialize<SavedWorld>(legacyJson,MapReadOptions);
+     if(OwnsSavedWorld(legacy))
+     {
+      LoadMapJson(legacyJson);
+      await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+      await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
+      return true;
+     }
     }
    }
 
@@ -189,6 +194,7 @@ public sealed partial class WorldSession
  public void LoadMapJson(string json)
  {
   var save=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);if(save is null||!OwnsSavedWorld(save))return;
+  if(string.IsNullOrWhiteSpace(_worldDisplayName)&&!string.IsNullOrWhiteSpace(save.WorldName)){_worldDisplayName=save.WorldName.Trim();MapName=_worldDisplayName;}
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
   var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
