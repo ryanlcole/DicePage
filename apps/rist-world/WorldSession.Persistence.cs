@@ -9,7 +9,7 @@ public sealed partial class WorldSession
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
  string _lastPrivateSnapshot="";
 
- object SavePayload()
+ object SavePayload(long? revision=null)
  {
   if(!HasActiveWorld)throw new InvalidOperationException("Choose or create a world before saving.");
   var terrain=ExportSpatialTerrain();
@@ -17,7 +17,8 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=6,
+   Version=7,
+   Revision=revision??_worldRevision,
    WorldId,
    WorldName=WorldDisplayName,
    Reset=OceanResetVersion,
@@ -42,14 +43,14 @@ public sealed partial class WorldSession
    NpcBoundaryExchanges
   };
  }
- public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync(){if(!HasActiveWorld)return;await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());}
+ public string ExportMapJson(long? revision=null)=>JsonSerializer.Serialize(SavePayload(revision),MapWriteOptions);
+ public async Task SaveAsync(){if(!HasActiveWorld)return;await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));}
  public async Task SaveAndToggleExportAsync(){if(!HasActiveWorld)return;await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
   if(!HasActiveWorld){PrivateStorageStatus="Choose or create a world before saving.";Notify();return;}
   if(!IsLoggedIn){PrivateStorageStatus="Log in with Discord to use private AWS storage.";Notify();return;}
-  await SavePrivateCheckpointAsync(showSuccess:true);
+  await SavePrivateDeltaAsync(showSuccess:true);
  }
  async Task SavePrivateCheckpointAsync(bool showSuccess,string? snapshot=null)
  {
@@ -57,11 +58,19 @@ public sealed partial class WorldSession
   try
   {
    await EnsureWorldRelationshipAsync();
-   var json=snapshot??ExportMapJson();
+   var json=snapshot??ExportMapJson(_worldRevision);
+   var saved=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);
+   if(saved is null||!OwnsSavedWorld(saved))
+    throw new InvalidOperationException("The canonical checkpoint does not match the active world.");
+
+   // A checkpoint is a materialized revision, never a silent revision change.
+   _worldRevision=Math.Max(0,saved.Revision);
+   if(saved.Revision!=_worldRevision)json=ExportMapJson(_worldRevision);
+
    await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,json);
-   await auth.UploadTextAsync(WorldCheckpointKey,json,"application/json");
+   await CommitCheckpointHeadAsync(json);
    _lastPrivateSnapshot=json;
-   if(showSuccess)PrivateStorageStatus=$"{WorldDisplayName} progress synced to your private AWS storage.";
+   if(showSuccess)PrivateStorageStatus=$"{WorldDisplayName} canonical checkpoint synced at revision {_worldRevision}.";
   }
   catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
   if(showSuccess)Notify();
@@ -84,6 +93,7 @@ public sealed partial class WorldSession
 
    if(saved is null || !OwnsSavedWorld(saved) || !string.Equals(saved.Reset,OceanResetVersion,StringComparison.Ordinal))
    {
+    ResetDeltaPersistenceState();
     ResetToCanonicalOrigin();
     await SavePrivateCheckpointAsync(showSuccess:false);
     await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
@@ -96,23 +106,28 @@ public sealed partial class WorldSession
     return;
    }
 
-   var json=JsonSerializer.Serialize(saved);
+   // current.ristmap is the latest complete checkpoint. delta-head.json names any
+   // immutable revisions after it. Materialize those before exposing the world to the client.
+   saved=await LoadPrivateDeltaChainAsync(saved);
+   var json=JsonSerializer.Serialize(saved,MapWriteOptions);
    LoadMapJson(json);
+   _worldRevision=Math.Max(0,saved.Revision);
    var geonaphAuthorityNormalized=EnsureGeonaphOriginLayerInvariant();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   var materialized=ExportMapJson(_worldRevision);
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,materialized);
    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
-   _lastPrivateSnapshot=ExportMapJson();
+   _lastPrivateSnapshot=materialized;
 
    if(migratedLegacy||geonaphAuthorityNormalized)
    {
     await SavePrivateCheckpointAsync(showSuccess:false,snapshot:_lastPrivateSnapshot);
     PrivateStorageStatus=migratedLegacy
-      ?$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage."
-      :$"{WorldDisplayName} origin authority was normalized and restored from private AWS storage.";
+      ?$"{WorldDisplayName} migrated to revisioned World ID storage and was restored from private AWS storage."
+      :$"{WorldDisplayName} origin authority was normalized at canonical revision {_worldRevision}.";
    }
    else
    {
-    PrivateStorageStatus=$"{WorldDisplayName} progress restored from private AWS storage.";
+    PrivateStorageStatus=$"{WorldDisplayName} canonical revision {_worldRevision} restored from private AWS storage.";
    }
   }
   catch(Exception ex){PrivateStorageStatus="Private restore failed; using local world: "+ex.Message;}
@@ -121,12 +136,11 @@ public sealed partial class WorldSession
  public async Task AutoSavePrivateAsync()
  {
   if(!IsLoggedIn||!HasActiveWorld)return;
-  var json=ExportMapJson();
-  if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
-  await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
+  try{await SavePrivateDeltaAsync(showSuccess:false);}
+  catch(Exception ex){PrivateStorageStatus="Private autosave failed: "+ex.Message;Notify();}
  }
- public async Task DownloadMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
- public async Task ShareMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task DownloadMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson(_worldRevision);await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
+ public async Task ShareMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson(_worldRevision);await js.InvokeVoidAsync("ristWorld.shareTextFile",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
  public async Task<bool> TryLoadSavedMapAsync()
  {
   if(!HasActiveWorld)return false;
@@ -142,16 +156,18 @@ public sealed partial class WorldSession
      if(OwnsSavedWorld(legacy))
      {
       LoadMapJson(legacyJson);
+      _worldRevision=Math.Max(0,legacy?.Revision??0);
       EnsureGeonaphOriginLayerInvariant();
-      await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+      await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));
       await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
       return true;
      }
     }
    }
 
+   ResetDeltaPersistenceState();
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));
    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
    return true;
   }
@@ -159,22 +175,25 @@ public sealed partial class WorldSession
   var json=await js.InvokeAsync<string?>("localStorage.getItem",WorldLocalSaveKey);
   if(string.IsNullOrWhiteSpace(json))
   {
+   ResetDeltaPersistenceState();
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));
    return true;
   }
 
   var saved=JsonSerializer.Deserialize<SavedWorld>(json,MapReadOptions);
   if(!OwnsSavedWorld(saved))
   {
+   ResetDeltaPersistenceState();
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));
    return true;
   }
 
+  _worldRevision=Math.Max(0,saved?.Revision??0);
   LoadMapJson(json);
   if(EnsureGeonaphOriginLayerInvariant())
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson(_worldRevision));
   return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
