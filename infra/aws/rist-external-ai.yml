@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: RIST external-AI defensive fiction, Life Token, policy, registration, login, and human review authority
+Description: RIST external-AI defensive runtime plus isolated EIOS semantic perception bridge
 
 Parameters:
   IdentityTableName:
@@ -18,6 +18,10 @@ Parameters:
     Default: 'false'
     AllowedValues: ['false', 'true']
     Description: Master external-agent release. Deployment workflow intentionally pins this false.
+  EiosModelId:
+    Type: String
+    Default: us.amazon.nova-lite-v1:0
+    Description: Bedrock model or inference profile used only by the isolated EIOS lab bridge
 
 Globals:
   Function:
@@ -80,6 +84,18 @@ Resources:
         ThrottlingBurstLimit: 20
         ThrottlingRateLimit: 10
 
+  EiosLabApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref FrontendOrigin]
+        AllowHeaders: [content-type]
+        AllowMethods: [GET, POST, OPTIONS]
+        MaxAge: 300
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 3
+        ThrottlingRateLimit: 2
+
   ExternalAiHumanFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -126,6 +142,30 @@ Resources:
           Type: HttpApi
           Properties: { ApiId: !Ref ExternalAiHumanApi, Path: /external-ai/registration/review, Method: POST }
 
+  EiosLabFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: rist_eios_bridge.handler
+      Timeout: 20
+      MemorySize: 512
+      Environment:
+        Variables:
+          EIOS_MODEL_ID: !Ref EiosModelId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+      Events:
+        Status:
+          Type: HttpApi
+          Properties: { ApiId: !Ref EiosLabApi, Path: /eios/status, Method: GET }
+        Query:
+          Type: HttpApi
+          Properties: { ApiId: !Ref EiosLabApi, Path: /eios/query, Method: POST }
+
   ExternalAiSecurityFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -157,3 +197,15 @@ Outputs:
   ExternalAiOwnerReleased:
     Description: Effective deployment-time master external-agent release flag
     Value: !Ref OwnerReleased
+  EiosLabApiBaseUrl:
+    Description: Isolated EIOS semantic perception bridge API
+    Value: !Sub https://${EiosLabApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  EiosLabQueryPath:
+    Description: EIOS semantic query endpoint
+    Value: /eios/query
+  EiosLabStatusPath:
+    Description: EIOS bridge status endpoint
+    Value: /eios/status
+  EiosLabModelId:
+    Description: Bedrock model configured for EIOS lab
+    Value: !Ref EiosModelId
