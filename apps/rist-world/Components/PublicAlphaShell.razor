@@ -28,25 +28,23 @@
    <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the world map, tiers and layers.":"Choose, create or import a world first.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span class="card-icon">♟</span><strong>CAMPAIGNS</strong><small>Plan and organize campaigns for this world.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
-   <button type="button" class="launcher-card rules" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize setting knowledge and canon.</small></button>
+   <button type="button" class="launcher-card rules" disabled="@(!WorldReady)" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize this world's setting knowledge and canon.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Open systems, rules and reference books.</small></button>
    <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET DESIGNER</strong><small>Create tiles, tokens, sprites and other assets.</small></button>
    <button type="button" class="launcher-card assets card-index-primary" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
+   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenDiceTools"><span class="card-icon">◆</span><strong>DICE &amp; TOOLS</strong><small>Open dice, cards and play tools for the active world.</small></button>
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
-   <button type="button" @onclick="OpenManage"><span>◎</span>MY WORLDS</button>
-   <button type="button" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span>♙</span>CHARACTERS</button>
-   <button type="button" disabled="@(!WorldReady)" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
-   <button type="button" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
-   <button type="button" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
+   <button type="button" @onclick="OpenCharacters"><span>♙</span>CHARACTERS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
@@ -274,9 +272,11 @@ else
  void OpenAstronomy()=>OpenWorkspace("world","ASTRONOMY","STARS → SKY → CELESTIAL STRUCTURE");
  void OpenGameMaster()=>OpenWorkspace("campaign","GAMEMASTER","BUILD → MANAGE → RUN → REPLAY");
  void OpenViewer()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD → REGION → LOCAL");
- void OpenCampaign()=>OpenWorkspace("campaign","GAMEMASTER","PLAN → PLACE → RUN → REPLAY");
+ void OpenCampaign()=>OpenWorkspace("campaign","CAMPAIGNS","WORLD → CAMPAIGN → SESSION → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
+ void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
+ void OpenDiceTools()=>OpenWorkspace("roleplay","DICE & TOOLS","DICE → CARDS → TOOLS");
  void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
