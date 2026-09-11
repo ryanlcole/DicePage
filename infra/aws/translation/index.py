@@ -9,8 +9,8 @@ cache = ddb.Table(os.environ['CACHE_TABLE'])
 origin = os.environ['FRONTEND_ORIGIN'].rstrip('/')
 
 # Anonymous UI translation is intentionally limited to text shipped by ReLiC.
-# This prevents the public homepage endpoint from becoming a free arbitrary
-# translation proxy. Authenticated roleplay uses /chat/translate instead.
+# This endpoint powers the public-site language selector as well as the game UI;
+# it must remain usable before authentication while refusing arbitrary proxy text.
 UI_TEXT = {
     # Shared navigation / controls
     'About','Shaelvien','RIST','Game Now','Enter Shaelvien','Discover ReLiC','GAME NOW',
