@@ -1,0 +1,168 @@
+@using Microsoft.AspNetCore.Components.Forms
+@inject WorldSession Session
+
+@if(Open)
+{
+ <section class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
+  <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
+   <header>
+    <span><small>SHAELVIEN · RIST</small><strong>@(Session.HasActiveWorld&&_ready?"WORLD LOADED":"CHOOSE A WORLD")</strong></span>
+    <button type="button" @onclick="CloseAsync" aria-label="Close world chooser">×</button>
+   </header>
+
+   @if(_ready && Session.HasActiveWorld)
+   {
+    <section class="world-gate-ready">
+     <span class="world-gate-glyph">◈</span>
+     <h2>@Session.WorldDisplayName</h2>
+     <p>The world is loaded. World-specific sections are now available from the landing page.</p>
+     <button type="button" class="world-gate-primary" @onclick="ContinueAsync">CONTINUE TO WORLDBUILDER</button>
+     <button type="button" class="world-gate-secondary" @onclick="ReturnAsync">RETURN TO LANDING PAGE</button>
+    </section>
+   }
+   else
+   {
+    <section class="world-gate-create">
+     <label for="world-name">WORLD NAME</label>
+     <input id="world-name" maxlength="80" placeholder="Enter a World Name" @bind="_worldName" @bind:event="oninput" autocomplete="off" />
+     <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="CreateAsync">CREATE NEW WORLD</button>
+    </section>
+
+    <div class="world-gate-divider"><span>CURRENT WORLDS</span></div>
+    <section class="world-gate-worlds" aria-live="polite">
+     @if(_loading)
+     {
+      <p class="world-gate-note">Loading your worlds…</p>
+     }
+     else if(_worlds.Count==0)
+     {
+      <p class="world-gate-note">No saved worlds yet. Create a new world or import a RIST world file.</p>
+     }
+     else
+     {
+      @foreach(var world in _worlds)
+      {
+       <button type="button" class="world-gate-world" disabled="@_busy" @onclick="()=>LoadAsync(world)">
+        <span><strong>@world.DisplayName</strong><small>@world.Relationship · @world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
+       </button>
+      }
+     }
+    </section>
+
+    <div class="world-gate-divider"><span>OR IMPORT</span></div>
+    <label class="world-gate-import @(_busy?"disabled":"")">
+     <strong>IMPORT RIST WORLD</strong>
+     <small>Choose a .ristmap file. World Name above overrides the imported name when provided.</small>
+     <InputFile OnChange="ImportAsync" accept=".ristmap,application/json" disabled="@_busy" />
+    </label>
+   }
+
+   @if(!string.IsNullOrWhiteSpace(_status))
+   {
+    <p class="world-gate-status" role="status">@_status</p>
+   }
+  </div>
+ </section>
+}
+
+<style>
+ .world-gate-backdrop{position:fixed;inset:0;z-index:2147482550;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+ .world-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:auto;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
+ .world-gate>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5}.world-gate>header span{display:grid;gap:4px}.world-gate>header small{color:#769db7;font-size:8px;font-weight:900;letter-spacing:.13em}.world-gate>header strong{color:#ecd48f;font-size:15px;letter-spacing:.08em}.world-gate>header button{width:38px;height:38px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
+ .world-gate-create,.world-gate-ready{display:grid;gap:9px;padding:16px}.world-gate-create label{color:#86acc3;font-size:9px;font-weight:900;letter-spacing:.12em}.world-gate-create input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid #596d76;border-radius:8px;background:#0d171e;color:#fff2c7;font-size:16px;outline:none}.world-gate-create input:focus{border-color:#d0aa56;box-shadow:0 0 0 1px #d0aa56}
+ .world-gate-primary,.world-gate-secondary{min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.world-gate-secondary{border-color:#50636c;background:#0e1920;color:#cdd9de}.world-gate button:disabled,.world-gate-import.disabled{opacity:.4}
+ .world-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.world-gate-divider::before,.world-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}.world-gate-worlds{display:grid;gap:7px;padding:10px 16px 16px}.world-gate-world{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 11px;border:1px solid #465963;border-radius:8px;background:#0d171e;color:#e8dec5;text-align:left}.world-gate-world span{min-width:0;display:grid;gap:4px}.world-gate-world strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.world-gate-world small{color:#8299a4;font-size:8px}.world-gate-world b{color:#71b8e5;font-size:9px;letter-spacing:.08em}
+ .world-gate-note{margin:2px 0;color:#9ba8ad;font-size:11px;line-height:1.4}.world-gate-import{position:relative;display:grid;gap:4px;margin:10px 16px 16px;padding:12px;border:1px dashed #7a6536;border-radius:9px;background:#0d171e;color:#e5cc88;text-align:center;overflow:hidden}.world-gate-import small{color:#93a4ab;font-size:9px;line-height:1.35}.world-gate-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.world-gate-status{margin:0;padding:0 16px 16px;color:#e5ba70;font-size:10px;line-height:1.4}.world-gate-ready{text-align:center;place-items:center;padding:30px 20px}.world-gate-ready .world-gate-primary,.world-gate-ready .world-gate-secondary{width:min(100%,380px)}.world-gate-ready h2{margin:0;color:#f2d990;font-size:24px}.world-gate-ready p{max-width:430px;margin:0 0 10px;color:#aebbc0;font-size:12px;line-height:1.5}.world-gate-glyph{font-size:42px;color:#d0aa56}
+ @@media(max-width:600px){.world-gate-backdrop{padding:8px}.world-gate{width:100%;max-height:94dvh}.world-gate>header{padding:11px 12px}.world-gate-create,.world-gate-ready{padding:13px}.world-gate-worlds{padding:8px 12px 13px}.world-gate-import{margin:8px 12px 13px}}
+</style>
+
+@code {
+ const long MaxImportBytes=10*1024*1024;
+ [Parameter] public bool Open{get;set;}
+ [Parameter] public EventCallback OnClose{get;set;}
+ [Parameter] public EventCallback OnContinue{get;set;}
+ readonly List<AccountWorldReference> _worlds=[];
+ bool _wasOpen;
+ bool _loading;
+ bool _busy;
+ bool _ready;
+ string _worldName="";
+ string _status="";
+
+ protected override async Task OnParametersSetAsync()
+ {
+  if(Open&&!_wasOpen)
+  {
+   _ready=false;
+   _status="";
+   _worldName="";
+   await RefreshWorldsAsync();
+  }
+  _wasOpen=Open;
+ }
+
+ async Task RefreshWorldsAsync()
+ {
+  _loading=true;
+  try
+  {
+   var directory=await Session.LoadWorldDirectoryAsync();
+   _worlds.Clear();
+   _worlds.AddRange(directory.Worlds);
+  }
+  catch(Exception ex){_status="World list could not be loaded: "+ex.Message;}
+  finally{_loading=false;}
+ }
+
+ async Task CreateAsync()
+ {
+  if(_busy||string.IsNullOrWhiteSpace(_worldName))return;
+  _busy=true;_status="Creating world…";
+  try
+  {
+   await Session.CreateWorldAsync(_worldName);
+   _ready=true;_status=$"{Session.WorldDisplayName} created and loaded.";
+   await RefreshWorldsAsync();
+  }
+  catch(Exception ex){_status="World creation failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task LoadAsync(AccountWorldReference world)
+ {
+  if(_busy)return;
+  _busy=true;_status=$"Loading {world.DisplayName}…";
+  try
+  {
+   await Session.LoadWorldAsync(world);
+   _ready=true;_status=$"{Session.WorldDisplayName} loaded.";
+   await RefreshWorldsAsync();
+  }
+  catch(Exception ex){_status="World load failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task ImportAsync(InputFileChangeEventArgs e)
+ {
+  if(_busy)return;
+  var file=e.File;
+  if(file.Size>MaxImportBytes){_status="World import is limited to 10 MB.";return;}
+  _busy=true;_status=$"Importing {file.Name}…";
+  try
+  {
+   await using var stream=file.OpenReadStream(MaxImportBytes);
+   using var reader=new StreamReader(stream);
+   var json=await reader.ReadToEndAsync();
+   var preferred=string.IsNullOrWhiteSpace(_worldName)?Path.GetFileNameWithoutExtension(file.Name):_worldName;
+   await Session.ImportWorldAsync(json,preferred);
+   _ready=true;_status=$"{Session.WorldDisplayName} imported and loaded.";
+   await RefreshWorldsAsync();
+  }
+  catch(Exception ex){_status="World import failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task ContinueAsync(){if(Session.HasActiveWorld)await OnContinue.InvokeAsync();}
+ async Task ReturnAsync(){if(Session.HasActiveWorld)await OnClose.InvokeAsync();}
+ async Task CloseAsync(){if(!_busy)await OnClose.InvokeAsync();}
+}
