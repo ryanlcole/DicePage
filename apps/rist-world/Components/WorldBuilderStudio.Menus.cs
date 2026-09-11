@@ -55,6 +55,13 @@ public partial class WorldBuilderStudio
     [JSInvokable] public Task<double> SetTileSizeKmAtOriginFromJs(double km) => Task.FromResult(CanonicalKilometersPerCell);
     [JSInvokable] public Task<double> GetTileSizeKmAtOriginFromJs() => Task.FromResult(CanonicalKilometersPerCell);
 
+    [JSInvokable]
+    public Task SetActiveCardLanguageFromJs(string mode, string displayLanguage, string inGameLanguage, string textDirection)
+    {
+        Session.SetActiveMapCardLanguage(mode, displayLanguage, inGameLanguage, textDirection);
+        return Task.CompletedTask;
+    }
+
     // Save creates/updates the private account-owned map card. Browser storage remains
     // a recovery cache; logged-in users also receive the AWS card record immediately.
     [JSInvokable]
