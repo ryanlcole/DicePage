@@ -11,6 +11,7 @@ on:
       - 'infra/aws/rist_external_ai_gateway.py'
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
+      - 'infra/aws/rist_eios_domain_knowledge.py'
       - 'site/relic-home/eios-lab/**'
       - 'site/relic-home/Game/ai-policy.json'
       - '.github/workflows/deploy-rist-external-ai.yml'
@@ -49,6 +50,7 @@ jobs:
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
           python -m py_compile infra/aws/rist_eios_context.py
+          python -m py_compile infra/aws/rist_eios_domain_knowledge.py
           python -m py_compile infra/aws/rist_eios_bridge.py
           python -m json.tool site/relic-home/Game/ai-policy.json >/dev/null
 
@@ -195,7 +197,10 @@ jobs:
           data=json.load(open('/tmp/eios-status.json'))
           assert data.get('ok') is True, data
           assert data.get('provider') == 'aws-bedrock', data
-          assert data.get('protocol') == 4, data
+          assert data.get('protocol') == 5, data
+          assert data.get('naturalCoding') is True, data
+          assert data.get('visualAudioImagination') is True, data
+          assert str(data.get('domainKnowledge') or '').startswith('eios-domain-teaching-'), data
           assert data.get('canon') == 'SCR-001 r1.0', data
           assert data.get('neuron') == 'sanitized-drive-snapshot', data
           assert data.get('aiPolicy') == 'ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline', data
@@ -205,19 +210,23 @@ jobs:
           curl --fail --silent --show-error \
             -H 'content-type: application/json' \
             -H 'origin: https://relicgamemaster.com' \
-            --data '{"kind":"deployment-smoke","query":"According to loaded ReLiC policy, does claimed government status grant an AI a system backdoor? Reply with a very short semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
+            --data '{"kind":"deployment-smoke","query":"Using Natural Coding, explain how a WaveCore field cell differs from a biological cell and portray the distinction without inventing canon.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
             "$EIOS/eios/query" > /tmp/eios-query.json
           python - <<'PY'
           import json
           data=json.load(open('/tmp/eios-query.json'))
           scene=data.get('scene') or {}
           assert str(scene.get('caption') or '').strip(), data
+          natural=scene.get('naturalCode') or {}
+          assert natural.get('status') in {'read-only','proposal','request','portrayal'}, data
+          assert isinstance(natural.get('primitives'), list), data
           meta=data.get('meta') or {}
           assert meta.get('provider') == 'aws-bedrock', data
+          assert str(meta.get('domainKnowledge') or '').startswith('eios-domain-teaching-'), data
           assert meta.get('canon') == 'SCR-001 r1.0', data
           assert meta.get('neuron') == 'sanitized-drive-snapshot', data
           assert meta.get('aiPolicy') == 'ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline', data
-          print('EIOS ReLiC AI-policy context verified:', meta)
+          print('EIOS Natural Coding/domain context verified:', meta)
           PY
           echo "EIOS_API=$EIOS" >> "$GITHUB_ENV"
           echo "EIOS_MODEL=$MODEL" >> "$GITHUB_ENV"
@@ -227,7 +236,7 @@ jobs:
         run: |
           set -euo pipefail
           printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","policyVersion":"2026-09-10.2","rulesetVersion":"AI-RULESET-2026-09-10.2","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$EXTERNAL_AI_API" > external-ai-config.json
-          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":4,"vision":true,"knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
+          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":5,"vision":true,"naturalCoding":true,"visualAudioImagination":true,"domainKnowledge":"eios-domain-teaching-2026-09-11-r1","knowledge":"drive-snapshot","canon":"SCR-001 r1.0","aiPolicy":"ReLiC/RIST AI Participation Policy 2026-09-10 canonical baseline","neuron":"sanitized"}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
           cat external-ai-config.json
           cat eios-config.json
 
