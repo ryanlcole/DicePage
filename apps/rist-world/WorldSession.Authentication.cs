@@ -6,7 +6,7 @@ public sealed partial class WorldSession
     // is rendered. Adopt that already-verified identity here so launcher-only surfaces
     // (especially My Worlds / WorldGate) do not behave like an anonymous visitor until
     // a gameplay workspace happens to initialize the full WorldSession.
-    public void AdoptAuthentication(AuthProfile? profile)
+    public void AdoptAuthentication(DiscordAuthClient.AuthProfile? profile)
     {
         IsLoggedIn = profile is not null;
         DiscordDisplayName = profile?.DisplayName ?? "";
