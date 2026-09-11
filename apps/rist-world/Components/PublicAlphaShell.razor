@@ -1,5 +1,6 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject WorldSession Session
 
 @if (!_workspaceOpen)
 {
@@ -10,38 +11,42 @@
    <h1>SHAELVIEN</h1>
    <p class="launcher-subtitle">A LIVING WORLD AWAITS</p>
    <p class="launcher-tagline">BUILD THE WORLD.<br />THEN STEP INSIDE IT.</p>
+   @if(WorldReady)
+   {
+    <p class="launcher-world-loaded">WORLD LOADED · @Session.WorldDisplayName</p>
+   }
    @if(MotionSetupNeeded)
    {
     <button type="button" class="launcher-device-setup" @onclick="RequestMotionAsync"><strong>ENABLE MOTION &amp; TILT</strong><small>@MotionStatusText</small></button>
    }
-   <button type="button" class="launcher-enter" @onclick="OpenRoleplay">ENTER SHAELVIEN</button>
+   <button type="button" class="launcher-enter" disabled="@(!WorldReady)" @onclick="OpenRoleplay">ENTER SHAELVIEN</button>
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
-   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>Build the world map, tiers and layers.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
-   <button type="button" class="launcher-card campaign" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
-   <button type="button" class="launcher-card roleplay" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
-   <button type="button" class="launcher-card campaign" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
+   <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the world map, tiers and layers.":"Choose, create or import a world first.")</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenTabletop"><span class="card-icon">▱</span><strong>TABLETOP</strong><small>Arrange the playable tabletop and campaign space.</small></button>
+   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize setting knowledge and canon.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Open systems, rules and reference books.</small></button>
    <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET DESIGNER</strong><small>Create tiles, tokens, sprites and other assets.</small></button>
-   <button type="button" class="launcher-card roleplay" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
-   <button type="button" class="launcher-card campaign" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
-   <button type="button" class="launcher-card world" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
+   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
    <button type="button" class="launcher-card assets" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
    <button type="button" @onclick="OpenManage"><span>◎</span>MY WORLDS</button>
-   <button type="button" @onclick="OpenRoleplay"><span>♙</span>CHARACTERS</button>
-   <button type="button" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
-   <button type="button" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
-   <button type="button" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
+   <button type="button" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span>♙</span>CHARACTERS</button>
+   <button type="button" disabled="@(!WorldReady)" @onclick="OpenViewer"><span>▱</span>MAP VIEWER</button>
+   <button type="button" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span>◆</span>DICE &amp; TOOLS</button>
+   <button type="button" disabled="@(!WorldReady)" @onclick="OpenCampaign"><span>♟</span>CAMPAIGNS</button>
    <button type="button" @onclick="OpenStore"><span>◇</span>STORE</button>
    <button type="button" @onclick="OpenFeedback"><span>···</span>FEEDBACK</button>
    <button type="button" @onclick="OpenSettings"><span>⚙</span>SETTINGS</button>
@@ -84,6 +89,8 @@
    </section>
   }
 
+  <WorldGate Open="@_worldGateOpen" OnClose="CloseWorldGate" OnContinue="ContinueWorldbuildingFromGate" />
+
   <footer class="launcher-footer">
    <span>BUILT WITH ReLiC</span>
    <strong>MORE THAN A GAME. A PLACE TO BELONG.</strong>
@@ -112,6 +119,8 @@ else
  .launcher-settings>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3e4e55;padding-bottom:12px}.launcher-settings>header strong{color:#e5c878;letter-spacing:.12em}.launcher-settings>header button{width:40px;height:40px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
  .launcher-settings-group{padding:16px 0}.launcher-settings-group h2{margin:0 0 10px;color:#8fb8d3;font-size:11px;letter-spacing:.14em}.launcher-fullscreen,.launcher-accessibility,.launcher-device-setup{box-sizing:border-box;width:100%;min-height:54px;border:1px solid #6e5c31;border-radius:9px;background:#111c22;color:#f1ddb0;display:grid;place-items:center;gap:4px;font-weight:900}.launcher-fullscreen+.launcher-fullscreen{margin-top:8px}.launcher-fullscreen small,.launcher-device-setup small{color:#9daeb7;font-size:9px;font-weight:700}.launcher-accessibility{margin-top:8px}.launcher-settings-note{margin:10px 0 0;color:#a8b3b8;font-size:11px;line-height:1.4}.launcher-device-setup{width:min(88vw,360px);margin:0 auto 10px;padding:7px 12px;background:#0e1820;border-color:#8e7440}.launcher-device-setup strong{font-size:11px;letter-spacing:.06em}
  .card-index-overlay{position:fixed;inset:0;z-index:2147482400;display:grid;grid-template-rows:34px minmax(0,1fr);background:#03080c}.card-index-overlay>header{display:flex;align-items:center;gap:12px;padding:0 10px;border-bottom:1px solid #715b2d;background:#081017;color:#e8dec5}.card-index-overlay>header button{height:26px;border:1px solid #53636b;border-radius:6px;background:#0d171e;color:#e4c97d;font-weight:900}.card-index-overlay>header strong{font-size:10px;letter-spacing:.12em;color:#e5c878}
+ .launcher-world-loaded{width:max-content;max-width:88vw;margin:0 auto 10px;padding:5px 10px;border:1px solid #6c5b35;border-radius:999px;background:#0b161c;color:#d8c17f;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
 </style>
 
 @code {
@@ -120,6 +129,7 @@ else
  bool _workspaceRestored;
  bool _settingsOpen;
  bool _cardIndexOpen;
+ bool _worldGateOpen;
  bool _fullscreen;
  bool _fullscreenSupported=true;
  bool _motionSupported=true;
@@ -130,6 +140,7 @@ else
  string _workspaceLabel = "WORLDBUILDER";
  string _workspaceHint = "WORLD → TIER → LAYER → CUBE";
 
+ bool WorldReady=>Session.HasActiveWorld;
  bool MotionSetupNeeded => _motionSupported && _motionStatus != "granted";
  string MotionStatusText => _motionStatus switch
  {
@@ -174,6 +185,7 @@ else
   _workspaceOpen=true;
   _settingsOpen=false;
   _cardIndexOpen=false;
+  _worldGateOpen=false;
   _=PersistWorkspaceAsync(mode);
  }
 
@@ -240,13 +252,15 @@ else
   await InvokeAsync(StateHasChanged);
  }
 
- void OpenSettings(){_cardIndexOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
+ void OpenSettings(){_cardIndexOpen=false;_worldGateOpen=false;_settingsOpen=true;_=RefreshFullscreenStateAsync();_=RefreshMotionStateAsync();_=RefreshParallaxStateAsync();}
  void CloseSettings()=>_settingsOpen=false;
- void OpenCardIndex(){_settingsOpen=false;_cardIndexOpen=true;}
+ void OpenCardIndex(){_settingsOpen=false;_worldGateOpen=false;_cardIndexOpen=true;}
  void CloseCardIndex()=>_cardIndexOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
- void OpenWorldbuilding()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
+ void OpenWorldbuilding(){if(!WorldReady){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;return;}OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
+ void ContinueWorldbuildingFromGate()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
+ void CloseWorldGate()=>_worldGateOpen=false;
  void OpenImmersionBuilder()=>OpenWorkspace("immersion","IMMERSIONBUILDER","WORLD → IMMERSION PROFILE → EXPERIENCE");
  void OpenRegionDefiner()=>OpenWorkspace("viewer","REGIONDEFINER","WORLD TILE → REGION → LOCAL");
  void OpenTabletop()=>OpenWorkspace("campaign","TABLETOP","LOCAL → TABLETOP → PIECES");
@@ -262,10 +276,10 @@ else
  void OpenCampaign()=>OpenWorkspace("campaign","GAMEMASTER","PLAN → PLACE → RUN → REPLAY");
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
- void OpenManage()=>OpenWorkspace("manage","MY WORLDS","SAVE → SYNC → SHARE → EXPORT");
+ void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
  void OpenRulebooks()=>Navigation.NavigateTo("/relicquery/",forceLoad:true);
  void OpenAccessibility()=>Navigation.NavigateTo("accessibility.html",forceLoad:true);
- void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_cardIndexOpen=false;_=PersistWorkspaceAsync("hub");}
+ void ReturnToHub(){_workspaceOpen=false;_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=false;_=PersistWorkspaceAsync("hub");}
 }
