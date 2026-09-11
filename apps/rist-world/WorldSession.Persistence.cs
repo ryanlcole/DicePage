@@ -98,14 +98,17 @@ public sealed partial class WorldSession
 
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
+   var geonaphAuthorityNormalized=EnsureGeonaphOriginLayerInvariant();
    await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
    _lastPrivateSnapshot=ExportMapJson();
 
-   if(migratedLegacy)
+   if(migratedLegacy||geonaphAuthorityNormalized)
    {
     await SavePrivateCheckpointAsync(showSuccess:false,snapshot:_lastPrivateSnapshot);
-    PrivateStorageStatus=$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage.";
+    PrivateStorageStatus=migratedLegacy
+      ?$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage."
+      :$"{WorldDisplayName} origin authority was normalized and restored from private AWS storage.";
    }
    else
    {
@@ -139,6 +142,7 @@ public sealed partial class WorldSession
      if(OwnsSavedWorld(legacy))
      {
       LoadMapJson(legacyJson);
+      EnsureGeonaphOriginLayerInvariant();
       await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
       await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
       return true;
@@ -168,7 +172,10 @@ public sealed partial class WorldSession
    return true;
   }
 
-  LoadMapJson(json);return true;
+  LoadMapJson(json);
+  if(EnsureGeonaphOriginLayerInvariant())
+   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+  return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
 
@@ -186,6 +193,7 @@ public sealed partial class WorldSession
   Pieces=[];
   PlacedTiles=[];
   ResetTopologyToCanonicalOrigin();
+  EnsureGeonaphOriginLayerInvariant();
   MapLocked=true;
   CloseHeaderMenus();
   Notify();
