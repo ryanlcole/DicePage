@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Shaelvien/RIST IP and novelty ledger. Append-only assessment history for
+  potentially novel mechanisms, prior art, FTO risk, disclosure state, and
+  attorney review status.
+
+Parameters:
+  TableName:
+    Type: String
+    Default: rist-ip-novelty-ledger-prod
+    Description: DynamoDB table name for the production IP/novelty ledger.
+
+Resources:
+  IpNoveltyLedgerTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: mechanismId
+          AttributeType: S
+        - AttributeName: revisionAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: mechanismId
+          KeyType: HASH
+        - AttributeName: revisionAt
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      DeletionProtectionEnabled: true
+      Tags:
+        - Key: Project
+          Value: Shaelvien
+        - Key: System
+          Value: RIST
+        - Key: Purpose
+          Value: IPNoveltyLedger
+        - Key: Environment
+          Value: Production
+        - Key: DataClass
+          Value: InternalLegalResearch
+
+Outputs:
+  TableName:
+    Description: DynamoDB IP/novelty ledger table name.
+    Value: !Ref IpNoveltyLedgerTable
+  TableArn:
+    Description: DynamoDB IP/novelty ledger table ARN.
+    Value: !GetAtt IpNoveltyLedgerTable.Arn
