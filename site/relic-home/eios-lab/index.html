@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta name="color-scheme" content="dark">
+<title>EIOS Lab</title>
+<style>
+:root{--bg:#050705;--panel:#0a0e0a;--line:#203620;--fg:#ddffdd;--muted:#7ea37e;--hot:#9dff9d;--warn:#ffd889;--bad:#ff9d9d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}
+button,input,select{font:inherit}
+button{background:#0f170f;color:var(--fg);border:1px solid #315331;border-radius:8px;padding:.72rem .85rem}
+button:active{transform:translateY(1px)}
+input,select{width:100%;background:#020402;color:var(--hot);border:1px solid #315331;border-radius:8px;padding:.75rem;outline:none}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr auto}
+header{display:flex;gap:.6rem;align-items:center;padding:max(.55rem,env(safe-area-inset-top)) .7rem .55rem;border-bottom:1px solid var(--line);background:#070a07}
+.brand{font-weight:700;letter-spacing:.08em}.sub{color:var(--muted);font-size:.8rem}.spacer{flex:1}.pill{font-size:.72rem;border:1px solid var(--line);padding:.25rem .45rem;border-radius:999px;color:var(--muted)}
+main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px}
+#stageWrap{position:relative;overflow:hidden;background:#000}
+#stage{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#camera{position:absolute;right:.7rem;top:.7rem;width:min(31vw,220px);max-height:28vh;object-fit:cover;border:1px solid var(--line);border-radius:10px;background:#020402;display:none;transform:scaleX(-1)}
+#caption{position:absolute;left:.7rem;right:.7rem;bottom:.7rem;max-width:760px;margin:auto;background:rgba(0,0,0,.76);border:1px solid var(--line);border-radius:10px;padding:.65rem .75rem;min-height:2.4rem;backdrop-filter:blur(4px)}
+#side{border-left:1px solid var(--line);background:var(--panel);padding:.7rem;overflow:auto}
+section{border:1px solid var(--line);border-radius:10px;padding:.65rem;margin-bottom:.65rem}.title{color:var(--hot);margin-bottom:.5rem}.kv{display:grid;grid-template-columns:1fr auto;gap:.22rem .6rem;font-size:.78rem}.k{color:var(--muted)}
+#results{display:grid;gap:.45rem}.result{border:1px solid #294329;border-radius:8px;padding:.55rem;background:#070b07}.result b{color:var(--hot)}.result small{color:var(--muted)}
+#log{white-space:pre-wrap;font-size:.72rem;color:#a4c3a4;max-height:160px;overflow:auto;margin:0}
+.row{display:flex;gap:.45rem}.row>*{min-width:0}.grow{flex:1}
+footer{display:grid;grid-template-columns:1fr auto;gap:.45rem;padding:.55rem .65rem max(.55rem,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#070a07}
+#query{font-size:16px}
+#ioMeter{height:5px;background:#132013;border-radius:999px;overflow:hidden;margin-top:.45rem}#ioBar{height:100%;width:0;background:var(--hot)}
+.hidden{display:none!important}.warn{color:var(--warn)}.bad{color:var(--bad)}
+@media(max-width:760px){main{grid-template-columns:1fr}#side{position:absolute;z-index:5;right:.55rem;top:3.3rem;width:min(88vw,360px);max-height:70vh;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 40px #000;display:none}#side.open{display:block}header .sub{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div><div class="brand">EIOS LAB</div><div class="sub">semantic I/O endpoint · experimental</div></div>
+  <span class="pill" id="modePill">LOCAL</span>
+  <span class="pill" id="netPill">0 B ↕</span>
+  <div class="spacer"></div>
+  <button id="ioBtn">Start I/O</button>
+  <button id="panelBtn">Panel</button>
+</header>
+<main>
+  <div id="stageWrap">
+    <canvas id="stage"></canvas>
+    <video id="camera" autoplay muted playsinline></video>
+    <div id="caption">EIOS ready. Start I/O, then ask a question or tilt/touch the phone.</div>
+  </div>
+  <aside id="side">
+    <section>
+      <div class="title">INPUT / OUTPUT</div>
+      <div class="kv">
+        <span class="k">orientation</span><span id="orient">—</span>
+        <span class="k">touch</span><span id="touch">—</span>
+        <span class="k">camera</span><span id="camState">off</span>
+        <span class="k">microphone</span><span id="micState">off</span>
+        <span class="k">updates</span><span id="updates">0</span>
+      </div>
+      <div id="ioMeter"><div id="ioBar"></div></div>
+    </section>
+    <section>
+      <div class="title">SOURCE</div>
+      <select id="source">
+        <option value="public">Public search · live now</option>
+        <option value="bridge">AI bridge · OpenAI/Gemini/AWS</option>
+        <option value="local">Local EI only</option>
+      </select>
+      <div id="bridgeSettings" class="hidden" style="margin-top:.55rem">
+        <input id="bridgeUrl" placeholder="HTTPS agent bridge URL">
+        <div class="sub" style="margin-top:.4rem">No API key is stored in this page. The bridge keeps provider credentials server-side.</div>
+      </div>
+    </section>
+    <section>
+      <div class="title">PERCEPTION</div>
+      <div id="results"><div class="result"><small>Waiting for semantic input.</small></div></div>
+    </section>
+    <section>
+      <div class="title">PACKETS</div>
+      <pre id="log"></pre>
+    </section>
+  </aside>
+</main>
+<footer>
+  <input id="query" autocomplete="off" enterkeyhint="send" placeholder="Ask EIOS…">
+  <button id="sendBtn">Send</button>
+</footer>
+</div>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const canvas=$('stage'),ctx=canvas.getContext('2d',{alpha:false});
+let dpr=Math.min(devicePixelRatio||1,2), tilt={a:0,b:0,g:0}, pointer={x:.5,y:.5,down:false};
+let bytesOut=0,bytesIn=0,updates=0,stream=null,audioCtx=null,analyser=null,meterRAF=0;
+let scene={title:'EIOS',subtitle:'semantic I/O endpoint',accent:'#9dff9d',cards:[],dot:{x:.5,y:.5}};
+const encoder=new TextEncoder();
+function bytes(v){try{return encoder.encode(typeof v==='string'?v:JSON.stringify(v)).length}catch{return 0}}
+function packet(dir,obj){const n=bytes(obj);if(dir==='>')bytesOut+=n;else bytesIn+=n;$('netPill').textContent=`${fmt(bytesOut+bytesIn)} ↕`;const line=`${new Date().toISOString().slice(11,23)} ${dir} ${typeof obj==='string'?obj:JSON.stringify(obj)}`;$('log').textContent=(line+'\n'+$('log').textContent).slice(0,6500)}
+function fmt(n){return n<1024?`${n} B`:n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(1)} MB`}
+function resize(){const r=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));draw()}
+function draw(){const w=canvas.width,h=canvas.height;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#020302';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#132213';ctx.lineWidth=dpr;const gap=44*dpr;for(let x=0;x<w;x+=gap){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=gap){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ const ox=(tilt.g/90)*w*.16, oy=(tilt.b/90)*h*.16;const x=Math.max(22*dpr,Math.min(w-22*dpr,(scene.dot?.x??pointer.x)*w+ox)),y=Math.max(22*dpr,Math.min(h-22*dpr,(scene.dot?.y??pointer.y)*h+oy));ctx.shadowBlur=20*dpr;ctx.shadowColor=scene.accent||'#9dff9d';ctx.fillStyle=scene.accent||'#9dff9d';ctx.beginPath();ctx.arc(x,y,8*dpr,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle='#a9cca9';ctx.font=`${12*dpr}px ui-monospace,monospace`;ctx.fillText(`β ${tilt.b.toFixed(1)}°  γ ${tilt.g.toFixed(1)}°`,12*dpr,20*dpr)}
+function setCaption(t){$('caption').textContent=t||''}
+function speak(t){if(!t||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).slice(0,500));u.rate=1;u.pitch=1;speechSynthesis.speak(u)}catch{}}
+function renderScene(s){if(!s)return;scene={...scene,...s};updates++;$('updates').textContent=updates;if(s.caption)setCaption(s.caption);if(s.speak)speak(s.speak);if(Array.isArray(s.cards)){scene.cards=s.cards;$('results').innerHTML=s.cards.length?s.cards.slice(0,6).map(c=>`<div class="result"><b>${esc(c.title||'Result')}</b><div>${esc(c.text||'')}</div>${c.url?`<small>${esc(c.url)}</small>`:''}</div>`).join(''):'<div class="result"><small>No results.</small></div>'}draw()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function sensorSnapshot(){return{orientation:{alpha:+tilt.a.toFixed(2),beta:+tilt.b.toFixed(2),gamma:+tilt.g.toFixed(2)},pointer:{x:+pointer.x.toFixed(4),y:+pointer.y.toFixed(4),down:pointer.down},viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1}}}
+async function startIO(){
+ const statuses=[];
+ try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const p=await DeviceOrientationEvent.requestPermission();statuses.push('orientation:'+p)}else statuses.push('orientation:available')}catch(e){statuses.push('orientation:denied')}
+ window.addEventListener('deviceorientation',e=>{tilt={a:e.alpha||0,b:e.beta||0,g:e.gamma||0};$('orient').textContent=`${tilt.b.toFixed(1)}, ${tilt.g.toFixed(1)}`;draw()},{passive:true});
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:true});$('camera').srcObject=stream;$('camera').style.display='block';$('camState').textContent='live';$('micState').textContent='live';statuses.push('av:live');startMeter(stream)}catch(e){statuses.push('av:unavailable');$('camState').textContent='unavailable';$('micState').textContent='unavailable'}
+ $('ioBtn').textContent='I/O Live';$('ioBtn').disabled=true;packet('<',{kind:'io-ready',status:statuses});setCaption('I/O live. Tilt, touch, speak with iPhone dictation, or send a query.');
+}
+function startMeter(s){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();analyser=audioCtx.createAnalyser();analyser.fftSize=256;const src=audioCtx.createMediaStreamSource(s);src.connect(analyser);const data=new Uint8Array(analyser.frequencyBinCount);const tick=()=>{analyser.getByteFrequencyData(data);let sum=0;for(const v of data)sum+=v;const avg=sum/data.length;$('ioBar').style.width=Math.min(100,avg*1.4)+'%';meterRAF=requestAnimationFrame(tick)};tick()}catch{}}
+async function publicSearch(q){const payload={kind:'query',source:'wikipedia-public-api',query:q,sensor:sensorSnapshot()};packet('>',payload);setCaption(`Searching public knowledge for “${q}”…`);const u='https://en.wikipedia.org/w/api.php?origin=*&action=query&generator=search&gsrsearch='+encodeURIComponent(q)+'&gsrlimit=5&prop=extracts|info&exintro=1&explaintext=1&inprop=url&format=json';const r=await fetch(u,{cache:'no-store'});const data=await r.json();packet('<',{kind:'search-result',count:Object.keys(data.query?.pages||{}).length});const pages=Object.values(data.query?.pages||{}).sort((a,b)=>(a.index||0)-(b.index||0));const cards=pages.map(p=>({title:p.title,text:(p.extract||'').slice(0,380),url:p.fullurl||''}));const first=cards[0];renderScene({accent:'#9dff9d',caption:first?`${first.title}: ${first.text.slice(0,240)}`:`No public result for ${q}`,speak:first?`${first.title}. ${first.text.slice(0,320)}`:`I found no public result for ${q}`,cards});}
+async function bridgeCall(kind,body){const url=$('bridgeUrl').value.trim();if(!/^https:\/\//i.test(url))throw new Error('Enter an HTTPS AI bridge URL.');sessionStorage.setItem('eios.bridge',url);const payload={kind,...body,sensor:sensorSnapshot(),client:{name:'EIOS-Lab',protocol:1}};packet('>',payload);const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),cache:'no-store'});const text=await r.text();bytesIn+=bytes(text);$('netPill').textContent=`${fmt(bytesOut+bytesIn)} ↕`;if(!r.ok)throw new Error(`bridge ${r.status}: ${text.slice(0,180)}`);let data;try{data=JSON.parse(text)}catch{data={caption:text,speak:text,cards:[{title:'Agent',text}]}};packet('<',{kind:'bridge-result',status:r.status,bytes:bytes(text)});renderScene(data.scene||data);return data}
+async function localEI(q){packet('>',{kind:'local-intent',query:q,sensor:sensorSnapshot()});const lc=q.toLowerCase();let caption;if(lc.includes('tilt'))caption=`Current tilt β ${tilt.b.toFixed(1)}°, γ ${tilt.g.toFixed(1)}°.`;else if(lc.includes('touch'))caption=`Last touch normalized ${pointer.x.toFixed(3)}, ${pointer.y.toFixed(3)}.`;else caption=`Local EI received: ${q}`;packet('<',{kind:'local-result',caption});renderScene({caption,speak:caption,cards:[{title:'Local EI',text:caption}]})}
+async function send(){const q=$('query').value.trim();if(!q)return;$('query').value='';const source=$('source').value;$('modePill').textContent=source.toUpperCase();try{if(source==='public')await publicSearch(q);else if(source==='bridge')await bridgeCall('query',{query:q});else await localEI(q)}catch(e){setCaption('ERROR: '+e.message);packet('<',{kind:'error',message:e.message})}}
+function interaction(kind,extra={}){const p={kind,at:Date.now(),...extra,sensor:sensorSnapshot()};packet('>',p);if($('source').value==='bridge'&&$('bridgeUrl').value.trim())bridgeCall('interaction',{interaction:p}).catch(e=>packet('<',{kind:'interaction-error',message:e.message}))}
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture?.(e.pointerId);pointer.down=true;point(e);interaction('pointer-down',{x:pointer.x,y:pointer.y});draw()});canvas.addEventListener('pointermove',e=>{if(pointer.down){point(e);draw()}});canvas.addEventListener('pointerup',e=>{point(e);pointer.down=false;interaction('pointer-up',{x:pointer.x,y:pointer.y});draw()});
+function point(e){const r=canvas.getBoundingClientRect();pointer.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));pointer.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));$('touch').textContent=`${pointer.x.toFixed(2)}, ${pointer.y.toFixed(2)}`;scene.dot={x:pointer.x,y:pointer.y}}
+$('source').addEventListener('change',()=>{$('bridgeSettings').classList.toggle('hidden',$('source').value!=='bridge');$('modePill').textContent=$('source').value.toUpperCase()});$('ioBtn').onclick=startIO;$('sendBtn').onclick=send;$('query').addEventListener('keydown',e=>{if(e.key==='Enter')send()});$('panelBtn').onclick=()=>{$('side').classList.toggle('open')};
+$('bridgeUrl').value=sessionStorage.getItem('eios.bridge')||'';addEventListener('resize',resize);resize();packet('<',{kind:'boot',protocol:1,mode:'semantic-io'});renderScene({cards:[{title:'EIOS',text:'Public search works now. AI Bridge accepts any HTTPS adapter that returns a scene JSON object.'}]});
+})();
+</script>
+</body>
+</html>
