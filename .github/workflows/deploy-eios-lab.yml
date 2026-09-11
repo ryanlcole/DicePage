@@ -1,0 +1,69 @@
+name: Deploy EIOS Lab
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'site/relic-home/eios-lab/**'
+      - '.github/workflows/deploy-eios-lab.yml'
+
+concurrency:
+  group: deploy-eios-lab
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  FRONTEND_STACK: rist-frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish isolated EIOS lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
+          test -n "$BUCKET"
+          test "$BUCKET" != "None"
+          test -n "$DIST"
+          test "$DIST" != "None"
+
+          aws s3 sync site/relic-home/eios-lab/ "s3://${BUCKET}/eios-lab/" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --only-show-errors
+
+          INVALIDATION=$(aws cloudfront create-invalidation \
+            --distribution-id "$DIST" \
+            --paths '/eios-lab/*' \
+            --query 'Invalidation.Id' \
+            --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+
+      - name: Verify hidden EIOS surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 6 --retry-delay 3 --output /tmp/eios.html \
+            https://relicgamemaster.com/eios-lab/index.html
+          grep -q 'EIOS LAB' /tmp/eios.html
+          grep -q 'semantic agent' /tmp/eios.html
+          grep -q 'noindex,nofollow' /tmp/eios.html
