@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Scoped permission allowing the ReLiC CloudFormation execution role to expand AWS SAM templates
+
+Resources:
+  SamTransformPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ReLiCSamTransformAuthority
+      Roles:
+        - ReLiC-CloudFormation-Execution
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSamTransformExpansion
+            Effect: Allow
+            Action: cloudformation:CreateChangeSet
+            Resource: !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31
