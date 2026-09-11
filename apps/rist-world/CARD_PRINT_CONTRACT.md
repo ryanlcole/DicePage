@@ -24,6 +24,20 @@ A card-production device receives the high-resolution artwork representation. Th
 
 A 3D-print target does not flatten a recursive map into one image. World/Region/Local/Instance/Encounter map cards expose their ordered image/asset, Tier, Layer, X/Y, footprint, rotation, and treatment manifest so the 3D renderer can build physical depth from the same authored structure. Tier establishes independent elevation; Layer is supported depth inside the Tier. The intended production interchange format is 3MF. Generation of printer-ready 3MF geometry is a renderer responsibility; it may not modify canonical X/Y/Z/Tier/Layer state.
 
+## Card stacks and in-game mesh assembly
+
+A physical table does not need every card spread flat. Players may place multiple physical cards in one pile to conserve table space. Shaelvien treats that pile as a compact physical representation of an ordered digital `RistCardStack`.
+
+Cards are scanned individually. Each scan resolves the card's own Card ID, manifest identity, card type, and creator provenance. The game then adds that card identity to the active stack in bottom-to-top order. Stacking does not merge, destroy, or rewrite the source cards; every card remains independently addressable and removable.
+
+The game assembles the visual/3D composition from the cards in the stack. Each card contributes its own recursive artwork, geometry, references, Tier/Layer information, and permitted language. Stack order controls composition precedence where representations overlap, but does not silently rewrite a card's canonical world coordinates or Tier/Layer values.
+
+The canonical flow is:
+
+`physical cards → individual glyph scans → ordered in-game card stack → assembled digital mesh/scene → optional 3D-print representation`
+
+A saved stack stores only the ordered card identities and composition metadata needed to reconstruct the scene. AWS stores the authenticated stack for logged-in users while the individual cards remain separate inventory objects.
+
 ## Creator provenance and rights
 
 Every exported or printed card carries a public `CreatorProvenanceId` derived from the authenticated account identity. AWS retains the authenticated ownership relationship so Shaelvien can resolve that provenance back to the account that created or published the card without printing the raw private account ID on the object itself.
@@ -40,6 +54,7 @@ The same card can therefore be rendered as:
 - ordinary printed card;
 - production-quality trading card;
 - scanner-readable physical artifact;
-- 3D physical representation of its Tier/Layer structure.
+- an element in an ordered table/card stack;
+- 3D physical representation of its Tier/Layer structure or an assembled stack.
 
 Identity remains constant across every representation.
