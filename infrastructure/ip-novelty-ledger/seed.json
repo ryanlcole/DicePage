@@ -1,0 +1,109 @@
+{
+  "RequestItems": {
+    "rist-ip-novelty-ledger-prod": [
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "physical-transparent-card-stacking"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Transparent physical trading-card stacking"},
+            "knownPriorArt": {"S": "Known prior art includes transparent/overlaid collectible or trading-card systems, including WO2006081176A2 / US9616323B2. Do not claim transparent card stacking itself as novel without attorney review."},
+            "shaelvienMechanism": {"S": "Transparent RIST cards may contribute semantic, optical, identity, equipment, or instruction layers when physically composed."},
+            "noveltyStatus": {"S": "PARTIAL_PRIOR_ART_FOUND"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["WO2006081176A2", "US9616323B2"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"},
+            "notes": {"S": "Separate the broad transparent-overlay concept from potentially distinct RIST identity, grammar, cryptography, provenance, and physical/digital-state combinations."}
+          }
+        }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "physical-programming-language"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Physical card-based programming language"},
+            "knownPriorArt": {"S": "Prior-art search pending across tangible programming languages, tangible user interfaces, educational programming systems, and card-based programming systems. Do not claim novelty yet."},
+            "shaelvienMechanism": {"S": "Physical cards function as identity-bearing language tokens whose spatial composition can express semantic instructions compiled through RIST."},
+            "noveltyStatus": {"S": "SEARCH_REQUIRED"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["SHAELVIEN_PROJECT_RECORD_2026-09-10"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"}
+          }
+        }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "optical-visual-cryptography"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Transparent-card optical and visual cryptography"},
+            "knownPriorArt": {"S": "Visual cryptography and optical secret-sharing are established fields. Prior-art and FTO review is required for any specific implementation."},
+            "shaelvienMechanism": {"S": "Transparent physical card shares may reveal or reconstruct protected RIST information only when valid layers are physically aligned or composed."},
+            "noveltyStatus": {"S": "KNOWN_CATEGORY_COMBINATION_UNASSESSED"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["SHAELVIEN_PROJECT_RECORD_2026-09-10"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"}
+          }
+        }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "persistent-physical-digital-identity"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Persistent physical-to-digital semantic identity"},
+            "knownPriorArt": {"S": "Prior-art search pending across RFID/NFC objects, digital twins, collectible authentication, physical-digital game pieces, and provenance systems."},
+            "shaelvienMechanism": {"S": "A physical card, digital card, game entity, and changing representations may resolve to the same persistent Rune/provenance identity without treating any representation as semantic truth."},
+            "noveltyStatus": {"S": "SEARCH_REQUIRED"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["RELIC_CORE_DOCTRINE", "RULE-COMPILER-REPRESENTATION-001", "SHAELVIEN_PROJECT_RECORD_2026-09-10"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"}
+          }
+        }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "composable-equipment-card-stacks"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Composable physical equipment/card stacks"},
+            "knownPriorArt": {"S": "Prior-art search pending across modular card games, equipment sets, transparent overlays, and physical composition mechanics."},
+            "shaelvienMechanism": {"S": "Physical component cards such as helmet, breastplate, gauntlets, greaves, and boots can compose an equipment set whose resulting semantic state changes when components are added, removed, or replaced."},
+            "noveltyStatus": {"S": "SEARCH_REQUIRED"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["SHAELVIEN_PROJECT_RECORD_2026-09-10"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"}
+          }
+        }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "mechanismId": {"S": "semantic-identity-provenance-layer"},
+            "revisionAt": {"S": "2026-09-10T20:20:00-04:00"},
+            "mechanism": {"S": "Semantic identity and provenance separated from representation"},
+            "knownPriorArt": {"S": "Prior-art search pending across content-addressable identity, provenance graphs, digital twins, persistent object identity, semantic systems, and game-object architectures."},
+            "shaelvienMechanism": {"S": "RIST separates persistent entity identity, semantic state, representation, and observation while retaining provenance across transformations and physical/digital manifestations."},
+            "noveltyStatus": {"S": "SEARCH_REQUIRED"},
+            "ftoRisk": {"S": "REVIEW_REQUIRED"},
+            "publicDisclosureStatus": {"S": "DISCUSSED_IN_PROJECT"},
+            "evidenceSources": {"SS": ["RELIC_CORE_DOCTRINE", "RULE-COMPILER-REPRESENTATION-001", "SHAELVIEN_PROJECT_RECORD_2026-09-10"]},
+            "firstKnownProjectDate": {"S": "2026-09-10"},
+            "attorneyReviewStatus": {"S": "REQUIRED_BEFORE_COMMERCIAL_PHYSICAL_PRODUCTION"}
+          }
+        }
+      }
+    ]
+  }
+}
