@@ -39,7 +39,7 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public Task<WorldBuilderDepthState> AddTierAtSceneZFromJs(int sceneZ)
     {
-        var targetTier = Math.Max(0, (int)Math.Floor(sceneZ / 10.0));
+        var (targetTier, _) = WorldSession.SplitSceneZ(sceneZ);
         var guard = 0;
         while (Session.TierIndex < targetTier && guard++ < 100) Session.MoveTier(1);
         guard = 0;

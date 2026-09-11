@@ -5,6 +5,9 @@
  let viewY=Number(localStorage.getItem('rist.world.viewY'))||0;
  let observer=null;
  let axisBinding=null;
+ const touchPointers=new Map();
+ const rulerZPointers=new Map();
+ let fallbackPinch=false,fallbackPinchDistance=0,rulerZPinchDistance=0,rulerPointer=null;
 
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const canvas=()=>studio()?.querySelector('.studio-viewer-canvas');
@@ -67,6 +70,67 @@
   return setPosition(nextX,nextY,force);
  }
  function getState(){normalizeExtent();const {panX,panY}=panPixels();return {x:viewX,y:viewY,panX,panY,unlocked:isUnlocked(),extent:worldExtentCells()};}
+ function pointDistance(points){const v=[...points.values()];if(v.length<2)return 0;return Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y);}
+ function sendZWheel(deltaY){const view=canvas();if(!view)return;view.dispatchEvent(new WheelEvent('wheel',{deltaY,bubbles:true,cancelable:true}));}
+ function rulerAxis(target){const ruler=target?.closest?.('.wb-axis-ruler,.wb-z-ruler,.wb-x-ruler,.wb-y-ruler');if(!ruler)return null;if(ruler.dataset.axis)return {ruler,axis:ruler.dataset.axis};if(ruler.classList.contains('wb-z-ruler'))return {ruler,axis:'z'};if(ruler.classList.contains('wb-x-ruler'))return {ruler,axis:'x'};if(ruler.classList.contains('wb-y-ruler'))return {ruler,axis:'y'};return null;}
+ function captureDown(e){
+  if(isLocked())return;
+  const axisHit=rulerAxis(e.target);
+  if(axisHit){
+   if(axisHit.axis==='z'){
+    rulerZPointers.set(e.pointerId,{x:e.clientX,y:e.clientY,lastY:e.clientY});
+    if(rulerZPointers.size===2)rulerZPinchDistance=pointDistance(rulerZPointers);
+   }else{
+    rulerPointer={id:e.pointerId,axis:axisHit.axis,startX:e.clientX,startY:e.clientY,startViewX:viewX,startViewY:viewY};
+   }
+   e.preventDefault();e.stopImmediatePropagation();return;
+  }
+  if(e.pointerType!=='touch'||!e.target?.closest?.('.studio-viewer-canvas'))return;
+  touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY,blocked:!!e.target?.closest?.('.world-stage .tile-cell')});
+  if(touchPointers.size===2&&[...touchPointers.values()].some(p=>p.blocked)){
+   fallbackPinch=true;fallbackPinchDistance=pointDistance(touchPointers);
+   e.preventDefault();e.stopImmediatePropagation();
+  }
+ }
+ function captureMove(e){
+  if(isLocked())return;
+  if(rulerZPointers.has(e.pointerId)){
+   const p=rulerZPointers.get(e.pointerId);p.x=e.clientX;p.y=e.clientY;
+   if(rulerZPointers.size===2){
+    const next=pointDistance(rulerZPointers);
+    if(rulerZPinchDistance){const ratio=next/rulerZPinchDistance;if(Math.abs(ratio-1)>.012){sendZWheel(ratio>1?-340:340);rulerZPinchDistance=next;}}
+    else rulerZPinchDistance=next;
+   }else{
+    const dy=e.clientY-p.lastY;
+    if(Math.abs(dy)>=14){sendZWheel(dy>0?340:-340);p.lastY=e.clientY;}
+   }
+   e.preventDefault();e.stopImmediatePropagation();return;
+  }
+  if(rulerPointer&&rulerPointer.id===e.pointerId){
+   const [cw,ch]=gridCellSize(),dx=e.clientX-rulerPointer.startX,dy=e.clientY-rulerPointer.startY;
+   if(rulerPointer.axis==='x')setPosition(rulerPointer.startViewX+Math.round(dx/Math.max(cw,1)),rulerPointer.startViewY);
+   else setPosition(rulerPointer.startViewX,rulerPointer.startViewY+Math.round(dy/Math.max(ch,1)));
+   e.preventDefault();e.stopImmediatePropagation();return;
+  }
+  if(!touchPointers.has(e.pointerId))return;
+  const p=touchPointers.get(e.pointerId);p.x=e.clientX;p.y=e.clientY;
+  if(!fallbackPinch||touchPointers.size<2)return;
+  const next=pointDistance(touchPointers);
+  if(fallbackPinchDistance){const ratio=next/fallbackPinchDistance;if(Math.abs(ratio-1)>.012){sendZWheel(ratio>1?-340:340);fallbackPinchDistance=next;}}
+  else fallbackPinchDistance=next;
+  e.preventDefault();e.stopImmediatePropagation();
+ }
+ function captureRelease(e){
+  if(rulerZPointers.has(e.pointerId)){rulerZPointers.delete(e.pointerId);if(rulerZPointers.size<2)rulerZPinchDistance=0;e.preventDefault();e.stopImmediatePropagation();return;}
+  if(rulerPointer?.id===e.pointerId){rulerPointer=null;e.preventDefault();e.stopImmediatePropagation();return;}
+  if(!touchPointers.has(e.pointerId))return;
+  touchPointers.delete(e.pointerId);
+  if(touchPointers.size<2){fallbackPinch=false;fallbackPinchDistance=0;}
+ }
+ document.addEventListener('pointerdown',captureDown,{capture:true,passive:false});
+ document.addEventListener('pointermove',captureMove,{capture:true,passive:false});
+ document.addEventListener('pointerup',captureRelease,{capture:true,passive:false});
+ document.addEventListener('pointercancel',captureRelease,{capture:true,passive:false});
  window.ristViewerNavigation={
   get:getState,
   setPosition,
@@ -80,7 +144,7 @@
   const root=studio();if(root)root.classList.toggle('viewer-locked',locked);
   document.documentElement.classList.toggle('rist-wb-z-unlocked',unlocked);
   const view=canvas();if(view)view.dataset.zUnlocked=unlocked?'true':'false';
-  if(locked)pointer=null;
+  if(locked){pointer=null;touchPointers.clear();rulerZPointers.clear();rulerPointer=null;fallbackPinch=false;fallbackPinchDistance=0;rulerZPinchDistance=0;}
   applyPan();
  }
  function resume(){
@@ -91,7 +155,7 @@
   localStorage.setItem('rist.world.viewY',String(viewY));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{syncMode();applyPan();publish();}));
  }
- function suspend(){pointer=null;}
+ function suspend(){pointer=null;touchPointers.clear();rulerZPointers.clear();rulerPointer=null;fallbackPinch=false;fallbackPinchDistance=0;rulerZPinchDistance=0;}
  function onDown(e){
   if(isLocked()||(e.pointerType==='mouse'&&e.button!==0))return;
   if(e.target?.closest?.('.studio-command-slider,.studio-top-slider,.map-frame-controls,.desktop-map-zoom,.wb-z-ruler,.wb-x-ruler,.wb-y-ruler,.wb-modal,.world-stage .tile-cell'))return;
@@ -124,7 +188,7 @@
   const root=studio();if(!root)return setTimeout(start,100);
   const view=canvas();view?.addEventListener('pointerdown',onDown,{passive:true});view?.addEventListener('pointermove',onMove,{passive:false});view?.addEventListener('pointerup',release,{passive:true});view?.addEventListener('pointercancel',release,{passive:true});
   observer=new MutationObserver(()=>requestAnimationFrame(syncMode));observer.observe(root,{attributes:true,attributeFilter:['class'],subtree:false});syncMode();
-  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260910-rulers-7');axisBinding=module.attachAxisRulers(view);}catch{}
+  try{const module=await import('./worldbuilder-axis-rulers.js?v=20260911-rulers-8');axisBinding=module.attachAxisRulers(view);}catch{}
   window.addEventListener('pageshow',resume);
   window.addEventListener('pagehide',suspend);
   window.addEventListener('resize',()=>requestAnimationFrame(applyPan));

@@ -2,7 +2,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    public const int LayersPerTier = 9;
+    public const int LayersPerTier = 10;
     public const int GuestTierCount = 2;
 
     readonly Dictionary<SpatialAddress,List<TileItem>> _terrainByAddress = [];

@@ -63,7 +63,7 @@ public partial class WorldBuilderStudio
 
     int ResolveSupportedLayer(TileItem tile, int requestedLayer, int ignoreIndex = -1)
     {
-        var layer = Math.Max(0, requestedLayer);
+        var layer = Math.Clamp(requestedLayer, 0, WorldSession.LayersPerTier - 1);
         while (layer > 0 && !HasLayerSupport(tile, layer, ignoreIndex)) layer--;
         return layer;
     }
