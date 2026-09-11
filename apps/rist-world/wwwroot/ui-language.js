@@ -19,7 +19,7 @@
  function roots(){
   const list=[];
   const menu=document.querySelector('.rist-start-overlay');if(menu)list.push(menu);
-  const home=document.querySelector('.site-header');if(home){for(const selector of ['.site-header','.hero','.overview','.feature-grid','.ecosystem','.audience-line','.final-cta','footer']){const el=document.querySelector(selector);if(el)list.push(el)}}
+  const home=document.querySelector('.site-header');if(home){for(const selector of ['.site-header','.relic-story-banner','.hero','.overview','.feature-grid','.ecosystem','.audience-line','.final-cta','footer']){const el=document.querySelector(selector);if(el)list.push(el)}}
   return list;
  }
  function textNodes(root){
@@ -31,7 +31,7 @@
   if(apiBase)return apiBase;
   if(configPromise)return configPromise;
   configPromise=(async()=>{
-   const urls=location.pathname.startsWith('/Game/')?['translation-config.json','/translation-config.json']:['/translation-config.json','/Game/translation-config.json'];
+   const urls=location.pathname.startsWith('/Game/')?['translation-config.json','/Game/translation-config.json','/translation-config.json']:['/Game/translation-config.json','/translation-config.json'];
    for(const url of urls){
     try{const res=await fetch(url,{cache:'no-store'});if(!res.ok)continue;const cfg=await res.json();const candidate=String(cfg.apiBaseUrl||'').replace(/\/$/,'');if(candidate){apiBase=candidate;break}}catch{}
    }
