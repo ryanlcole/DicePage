@@ -11,17 +11,22 @@
   <div class="map-asset-title"><strong>Assets</strong><span>@FilteredTiles.Count asset@(FilteredTiles.Count==1?"":"s")</span></div>
   <input class="map-asset-search" type="search" placeholder="Search assets…" @bind="_query" @bind:event="oninput" aria-label="Search assets" />
   <button type="button" class="map-asset-filter-toggle @(_filtersOpen?"active":"")" @onclick="()=>_filtersOpen=!_filtersOpen" aria-expanded="@_filtersOpen">Filters</button>
-  <button type="button" class="map-asset-upload @(!Session.IsLoggedIn?"disabled":"")" disabled="@(!Session.IsLoggedIn||_uploading)" @onclick="OpenUploadRating" title="@(Session.IsLoggedIn?"Rate and upload assets":"Log in to upload assets")">+ Upload</button>
+  <button type="button" class="map-asset-upload @(!Session.IsLoggedIn?"disabled":"")" disabled="@(!Session.IsLoggedIn||_uploading)" @onclick="OpenUploadRating" title="@(Session.IsLoggedIn?"Upload to your private Uploads folders":"Log in to upload assets")">+ Upload</button>
   <button type="button" class="map-asset-close" @onclick="Close" aria-label="Close asset library">×</button>
  </header>
 
  @if(_filtersOpen)
  {
   <div class="map-asset-filters" aria-label="Asset filters">
-   <select @bind="_source"><option value="all">All assets</option><option value="public">Shaelvien</option>@if(Session.IsLoggedIn){<option value="mine">My uploads</option>}</select>
+   <select @bind="_source"><option value="all">All assets</option><option value="public">Shaelvien</option>@if(Session.IsLoggedIn){<option value="mine">Uploads</option>}</select>
    <select @bind="_category"><option value="all">All categories</option>@foreach(var item in CategoryChoices){<option value="@item">@item</option>}</select>
    <select @bind="_folder"><option value="all">All folders</option>@foreach(var item in FolderChoices){<option value="@item">@item</option>}</select>
    <button type="button" @onclick="ClearFilters">Clear</button>
+   @if(_source=="mine"&&_category!="all"&&_folder!="all")
+   {
+    <input class="folder-rename-input" placeholder="Rename custom folder" maxlength="48" @bind="_renameFolder" @bind:event="oninput" />
+    <button type="button" disabled="@(string.IsNullOrWhiteSpace(_renameFolder)||_uploading)" @onclick="RenameCurrentFolderAsync">Rename Folder</button>
+   }
   </div>
  }
 
@@ -40,7 +45,7 @@
      <strong>@tile.Name</strong>
     </button>
     <div class="asset-rating-row">
-     <span>@RatingLabel(rating)</span>
+     <span>@(IsPrivate(tile)?$"{CategoryFor(tile)} · {FolderFor(tile)}":RatingLabel(rating))</span>
      @if(Session.IsLoggedIn && rating is not null)
      {
       <button type="button" @onclick="()=>OpenReport(tile,rating)">Report rating</button>
@@ -50,7 +55,7 @@
   }
   @if(FilteredTiles.Count==0)
   {
-   <div class="map-asset-empty">@(_loadingPrivate?"Loading your assets…":"No matching assets are allowed by your content settings.")</div>
+   <div class="map-asset-empty">@(_loadingPrivate?"Loading your uploads…":"No matching assets are allowed by your content settings.")</div>
   }
  </div>
 </section>
@@ -58,9 +63,14 @@
 
 @if(_uploadRatingOpen)
 {
- <section class="asset-rating-modal" role="dialog" aria-modal="true" aria-label="Rate uploaded assets">
+ <section class="asset-rating-modal" role="dialog" aria-modal="true" aria-label="Upload private assets">
   <div class="asset-rating-dialog">
-   <header><strong>Rate assets before upload</strong><button type="button" @onclick="CloseUploadRating">×</button></header>
+   <header><strong>Upload Images</strong><button type="button" @onclick="CloseUploadRating">×</button></header>
+   <div class="upload-location-grid">
+    <label><span>Card Category</span><select @bind="_uploadCategory">@foreach(var category in UploadCategories){<option value="@category">@category</option>}</select></label>
+    <label><span>Custom Folder</span><input maxlength="48" @bind="_uploadFolder" @bind:event="oninput" placeholder="Custom" /></label>
+   </div>
+   <p class="upload-boundary-note">Uploads are stored only in your private <strong>Uploads</strong> namespace. User accounts never write into the Shaelvien system asset folder.</p>
    <p>The provider must describe the content before an asset enters the library. Choose <strong>General</strong> only when none of the mature-content reasons apply.</p>
    <label class="rating-choice general"><input type="checkbox" checked="@_providerGeneral" @onchange="e=>SetProviderGeneral(e.Value as bool?==true)" /><span><strong>General / none of these</strong><small>No mature-content descriptor applies.</small></span></label>
    <div class="rating-choices">
@@ -100,13 +110,14 @@
 <style>
 .table-workspace>.tile-browser:not(.card-browser){display:none!important}
 .map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{position:absolute!important;inset:8px!important;z-index:44!important;box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto auto minmax(0,1fr)!important;width:auto!important;height:auto!important;max-height:calc(100% - 16px)!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#071015f5!important;color:#eee6d2!important;overflow:hidden!important;box-shadow:0 8px 28px #000b!important;backdrop-filter:blur(8px)!important;pointer-events:auto!important}
-.map-asset-toolbar{display:grid!important;grid-template-columns:auto minmax(110px,1fr) auto auto 36px!important;align-items:center!important;gap:6px!important;padding:7px!important;border-bottom:1px solid #51452b!important;background:#0b141bf8!important}.map-asset-title{min-width:62px!important;display:flex!important;flex-direction:column!important;gap:2px!important}.map-asset-title strong{color:#e1c77f!important;font:800 15px/1 system-ui!important}.map-asset-title span{color:#9e9787!important;font:600 8px/1 system-ui!important;text-transform:uppercase!important}.map-asset-search{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:36px!important;padding:0 10px!important;border:1px solid #5d4e2e!important;border-radius:8px!important;background:#0d171e!important;color:#fff!important;font-size:16px!important}.map-asset-filter-toggle,.map-asset-upload,.map-asset-close{height:36px!important;border:1px solid #725d30!important;border-radius:8px!important;background:#111920!important;color:#e1c77f!important;font:750 11px/1 system-ui!important}.map-asset-filter-toggle{padding:0 10px!important}.map-asset-upload{padding:0 11px!important}.map-asset-upload.disabled{opacity:.45!important}.map-asset-close{width:36px!important;font-size:24px!important}.map-asset-filters{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;gap:6px!important;padding:6px 7px!important;border-bottom:1px solid #40371f!important;background:#0c151c!important}.map-asset-filters select,.map-asset-filters button{min-width:0!important;height:32px!important;padding:0 8px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111920!important;color:#ddd3bb!important}.map-asset-status{padding:5px 8px!important;border-bottom:1px solid #40371f!important;color:#cdbb8c!important;background:#0c151c!important;font-size:10px!important}.map-asset-grid{min-height:0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(122px,1fr))!important;gap:7px!important;padding:7px!important;overflow:auto!important}.map-asset-card{min-width:0!important;height:154px!important;display:grid!important;grid-template-rows:minmax(0,1fr) 24px!important;overflow:hidden!important;border:1px solid #4e432b!important;border-radius:9px!important;background:#0d171e!important}.map-asset-card.private{border-color:#526879!important}.map-asset-choose{min-width:0!important;display:grid!important;grid-template-rows:minmax(0,1fr) 27px!important;padding:0!important;border:0!important;background:transparent!important;color:#e8dcc0!important;text-align:left!important;overflow:hidden!important}.map-asset-preview{position:relative!important;display:block!important;overflow:hidden!important;background:#050b0f!important}.map-asset-preview img{position:absolute!important}.map-asset-choose strong{padding:7px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#e1c77f!important;font:700 9px/1 system-ui!important}.asset-rating-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:3px!important;padding:2px 5px!important;border-top:1px solid #342f25!important;font-size:7px!important;color:#aaa18d!important}.asset-rating-row button{border:0!important;background:transparent!important;color:#c9a85d!important;font-size:7px!important;padding:2px!important}.map-asset-empty{grid-column:1/-1!important;padding:30px!important;text-align:center!important;color:#9d9687!important}
-.asset-rating-modal{position:fixed!important;inset:0!important;z-index:120!important;display:grid!important;place-items:center!important;padding:12px!important;background:#000b!important}.asset-rating-dialog{width:min(720px,100%)!important;max-height:min(760px,92vh)!important;display:grid!important;gap:10px!important;padding:14px!important;overflow:auto!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#0b141b!important;color:#eee6d2!important}.asset-rating-dialog>header{display:flex!important;justify-content:space-between!important;align-items:center!important;color:#e1c77f!important}.asset-rating-dialog>header button{width:32px!important;height:32px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#111920!important;color:#e1c77f!important;font-size:20px!important}.asset-rating-dialog p{margin:0!important;color:#bbb09a!important;font-size:12px!important;line-height:1.45!important}.rating-choices{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}.rating-choice{display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;align-items:start!important;padding:9px!important;border:1px solid #403a2d!important;border-radius:7px!important;background:#0e1920!important}.rating-choice>span{display:grid!important;gap:2px!important}.rating-choice small{color:#9e9278!important;font-size:9px!important;line-height:1.35!important}.rating-choice.general{border-color:#6c5c35!important}.rating-upload-action{position:relative!important;height:42px!important;display:grid!important;place-items:center!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important;overflow:hidden!important}.rating-upload-action.disabled{opacity:.45!important}.rating-upload-action input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important}.rating-submit{height:42px!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important}
-@@media(max-width:600px){.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{inset:5px!important}.map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important;padding:5px!important}.map-asset-filter-toggle{width:34px!important;font-size:0!important}.map-asset-filter-toggle::after{content:"☰"!important;font-size:16px!important}.map-asset-upload{width:34px!important;padding:0!important;font-size:0!important}.map-asset-upload::after{content:"+"!important;font-size:22px!important}.map-asset-close{width:34px!important}.map-asset-filters{grid-template-columns:1fr 1fr!important}.map-asset-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important}.map-asset-card{height:132px!important}.rating-choices{grid-template-columns:1fr!important}}
+.map-asset-toolbar{display:grid!important;grid-template-columns:auto minmax(110px,1fr) auto auto 36px!important;align-items:center!important;gap:6px!important;padding:7px!important;border-bottom:1px solid #51452b!important;background:#0b141bf8!important}.map-asset-title{min-width:62px!important;display:flex!important;flex-direction:column!important;gap:2px!important}.map-asset-title strong{color:#e1c77f!important;font:800 15px/1 system-ui!important}.map-asset-title span{color:#9e9787!important;font:600 8px/1 system-ui!important;text-transform:uppercase!important}.map-asset-search{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:36px!important;padding:0 10px!important;border:1px solid #5d4e2e!important;border-radius:8px!important;background:#0d171e!important;color:#fff!important;font-size:16px!important}.map-asset-filter-toggle,.map-asset-upload,.map-asset-close{height:36px!important;border:1px solid #725d30!important;border-radius:8px!important;background:#111920!important;color:#e1c77f!important;font:750 11px/1 system-ui!important}.map-asset-filter-toggle{padding:0 10px!important}.map-asset-upload{padding:0 11px!important}.map-asset-upload.disabled{opacity:.45!important}.map-asset-close{width:36px!important;font-size:24px!important}.map-asset-filters{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;gap:6px!important;padding:6px 7px!important;border-bottom:1px solid #40371f!important;background:#0c151c!important}.map-asset-filters select,.map-asset-filters button,.map-asset-filters input{min-width:0!important;height:32px!important;padding:0 8px!important;border:1px solid #554a31!important;border-radius:7px!important;background:#111920!important;color:#ddd3bb!important}.folder-rename-input{grid-column:1/4!important}.map-asset-status{padding:5px 8px!important;border-bottom:1px solid #40371f!important;color:#cdbb8c!important;background:#0c151c!important;font-size:10px!important}.map-asset-grid{min-height:0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(122px,1fr))!important;gap:7px!important;padding:7px!important;overflow:auto!important}.map-asset-card{min-width:0!important;height:154px!important;display:grid!important;grid-template-rows:minmax(0,1fr) 24px!important;overflow:hidden!important;border:1px solid #4e432b!important;border-radius:9px!important;background:#0d171e!important}.map-asset-card.private{border-color:#526879!important}.map-asset-choose{min-width:0!important;display:grid!important;grid-template-rows:minmax(0,1fr) 27px!important;padding:0!important;border:0!important;background:transparent!important;color:#e8dcc0!important;text-align:left!important;overflow:hidden!important}.map-asset-preview{position:relative!important;display:block!important;overflow:hidden!important;background:#050b0f!important}.map-asset-preview img{position:absolute!important}.map-asset-choose strong{padding:7px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#e1c77f!important;font:700 9px/1 system-ui!important}.asset-rating-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:3px!important;padding:2px 5px!important;border-top:1px solid #342f25!important;font-size:7px!important;color:#aaa18d!important}.asset-rating-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-rating-row button{border:0!important;background:transparent!important;color:#c9a85d!important;font-size:7px!important;padding:2px!important}.map-asset-empty{grid-column:1/-1!important;padding:30px!important;text-align:center!important;color:#9d9687!important}
+.asset-rating-modal{position:fixed!important;inset:0!important;z-index:120!important;display:grid!important;place-items:center!important;padding:12px!important;background:#000b!important}.asset-rating-dialog{width:min(720px,100%)!important;max-height:min(760px,92vh)!important;display:grid!important;gap:10px!important;padding:14px!important;overflow:auto!important;border:1px solid #8d6a28!important;border-radius:12px!important;background:#0b141b!important;color:#eee6d2!important}.asset-rating-dialog>header{display:flex!important;justify-content:space-between!important;align-items:center!important;color:#e1c77f!important}.asset-rating-dialog>header button{width:32px!important;height:32px!important;border:1px solid #725d30!important;border-radius:7px!important;background:#111920!important;color:#e1c77f!important;font-size:20px!important}.asset-rating-dialog p{margin:0!important;color:#bbb09a!important;font-size:12px!important;line-height:1.45!important}.upload-location-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.upload-location-grid label{display:grid;gap:4px}.upload-location-grid span{color:#9fb2ba;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.upload-location-grid select,.upload-location-grid input{box-sizing:border-box;width:100%;height:38px;padding:0 9px;border:1px solid #554a31;border-radius:7px;background:#111920;color:#eee6d2}.upload-boundary-note{padding:8px!important;border:1px solid #344b58;border-radius:7px;background:#0d1a21!important}.rating-choices{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}.rating-choice{display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;align-items:start!important;padding:9px!important;border:1px solid #403a2d!important;border-radius:7px!important;background:#0e1920!important}.rating-choice>span{display:grid!important;gap:2px!important}.rating-choice small{color:#9e9278!important;font-size:9px!important;line-height:1.35!important}.rating-choice.general{border-color:#6c5c35!important}.rating-upload-action{position:relative!important;height:42px!important;display:grid!important;place-items:center!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important;overflow:hidden!important}.rating-upload-action.disabled{opacity:.45!important}.rating-upload-action input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important}.rating-submit{height:42px!important;border:1px solid #8d6a28!important;border-radius:8px!important;background:#2a2314!important;color:#e1c77f!important;font-weight:800!important}
+@@media(max-width:600px){.map-viewer-overlays>.map-asset-inventory,.map-asset-inventory{inset:5px!important}.map-asset-toolbar{grid-template-columns:auto minmax(90px,1fr) 34px 34px!important;padding:5px!important}.map-asset-filter-toggle{width:34px!important;font-size:0!important}.map-asset-filter-toggle::after{content:"☰"!important;font-size:16px!important}.map-asset-upload{width:34px!important;padding:0!important;font-size:0!important}.map-asset-upload::after{content:"+"!important;font-size:22px!important}.map-asset-close{width:34px!important}.map-asset-filters{grid-template-columns:1fr 1fr!important}.folder-rename-input{grid-column:1/2!important}.map-asset-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important}.map-asset-card{height:132px!important}.rating-choices,.upload-location-grid{grid-template-columns:1fr!important}}
 </style>
 
 @code {
  const long MaxAssetBytes=20*1024*1024;
+ static readonly string[] UploadCategories=["Tiles","Tokens & Chits","Miniatures","Scenery & Terrain","Pawns & Meeples","Rolling Stock","Bits"];
  readonly List<AtlasTile> _privateTiles=[];
  readonly Dictionary<string,AssetRatingClient.AssetRating> _ratings=new(StringComparer.Ordinal);
  readonly HashSet<string> _providerDescriptors=new(StringComparer.Ordinal);
@@ -115,6 +126,9 @@
  string _source="all";
  string _category="all";
  string _folder="all";
+ string _renameFolder="";
+ string _uploadCategory="Tiles";
+ string _uploadFolder="Custom";
  string _status="";
  bool _filtersOpen;
  bool _uploading;
@@ -127,7 +141,7 @@
  bool _reportGeneral;
  bool _reporting;
 
- IEnumerable<AtlasTile> PublicTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal));
+ IEnumerable<AtlasTile> PublicTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.Ordinal)&&!IsPrivate(x));
  IEnumerable<AtlasTile> AllTiles=>PublicTiles.Concat(_privateTiles);
  List<AtlasTile> FilteredTiles=>AllTiles
   .Where(ContentAllowed)
@@ -149,7 +163,7 @@
 
  void Close(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();}
  void Choose(AtlasTile tile){Session.StageTile(tile);}
- void ClearFilters(){_source="all";_category="all";_folder="all";_query="";}
+ void ClearFilters(){_source="all";_category="all";_folder="all";_renameFolder="";_query="";}
  bool SourceMatch(AtlasTile tile)=>_source switch{"mine"=>IsPrivate(tile),"public"=>!IsPrivate(tile),_=>true};
  bool SearchMatch(AtlasTile tile)=>string.IsNullOrWhiteSpace(_query)||$"{tile.Name} {tile.Directory} {tile.Folder} {CategoryFor(tile)}".Contains(_query.Trim(),StringComparison.OrdinalIgnoreCase);
  static bool IsPrivate(AtlasTile tile)=>tile.Id.StartsWith("private:",StringComparison.Ordinal);
@@ -167,7 +181,7 @@
   return labels.Length==0?"General / none":string.Join(", ",labels!);
  }
 
- void OpenUploadRating(){_providerDescriptors.Clear();_providerGeneral=false;_uploadRatingOpen=true;}
+ void OpenUploadRating(){_providerDescriptors.Clear();_providerGeneral=false;if(string.IsNullOrWhiteSpace(_uploadFolder))_uploadFolder="Custom";_uploadRatingOpen=true;}
  void CloseUploadRating(){if(!_uploading)_uploadRatingOpen=false;}
  void SetProviderGeneral(bool value){_providerGeneral=value;if(value)_providerDescriptors.Clear();}
  void ToggleProviderDescriptor(string id,bool value){_providerGeneral=false;if(value)_providerDescriptors.Add(id);else _providerDescriptors.Remove(id);}
@@ -176,9 +190,13 @@
  {
   if(!Session.IsLoggedIn){_status="Log in to upload private assets.";return;}
   if(!CanUploadRated){_status="Choose a content rating before uploading.";return;}
-  _uploading=true;_status="Uploading rated assets to your private AWS storage…";
+  _uploading=true;_status="Uploading rated images to your private Uploads folders…";
   try
   {
+   var category=WorldSession.NormalizeAssetCategory(_uploadCategory);
+   var folder=WorldSession.NormalizeAssetFolder(_uploadFolder);
+   var catalog=await Session.LoadUserAssetCatalogAsync();
+   var entries=(catalog.Items??[]).ToList();
    var uploaded=0;
    foreach(var file in e.GetMultipleFiles(24))
    {
@@ -189,20 +207,40 @@
     using var memory=new MemoryStream();
     await stream.CopyToAsync(memory);
     var safe=SafeFileName(file.Name);
-    var key=$"assets/{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid():N}-{safe}";
+    var key=$"uploads/{WorldSession.AssetPathSegment(category)}/{WorldSession.AssetPathSegment(folder)}/{Guid.NewGuid():N}-{safe}";
     await Auth.UploadBytesAsync(key,memory.ToArray(),contentType);
     var rating=await Ratings.RegisterAsync(key,_providerDescriptors,_providerGeneral);
     if(rating is null)throw new InvalidOperationException($"{file.Name} uploaded but its required content rating could not be registered.");
     _ratings[key]=rating;
+    entries.RemoveAll(x=>string.Equals(x.Key,key,StringComparison.Ordinal));
+    entries.Add(new UserAssetCatalogEntry(key,Path.GetFileNameWithoutExtension(file.Name),category,folder,DateTimeOffset.UtcNow));
     uploaded++;
    }
+   await Session.SaveUserAssetCatalogAsync(new UserAssetCatalog(entries,DateTimeOffset.UtcNow));
    _privateLoaded=false;
    await LoadPrivateAssetsAsync(force:true);
-   _source="mine";
+   _source="mine";_category=category;_folder=folder;
    _uploadRatingOpen=false;
-   _status=$"{uploaded} rated asset{(uploaded==1?"":"s")} added to your library.";
+   _status=$"{uploaded} rated asset{(uploaded==1?"":"s")} added to Uploads → {category} → {folder}.";
   }
   catch(Exception ex){_status="Upload failed: "+ex.Message;}
+  finally{_uploading=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ async Task RenameCurrentFolderAsync()
+ {
+  if(_source!="mine"||_category=="all"||_folder=="all"||string.IsNullOrWhiteSpace(_renameFolder))return;
+  _uploading=true;
+  try
+  {
+   var next=WorldSession.NormalizeAssetFolder(_renameFolder);
+   await Session.RenameUserAssetFolderAsync(_category,_folder,next);
+   _privateLoaded=false;
+   await LoadPrivateAssetsAsync(force:true);
+   _folder=next;_renameFolder="";
+   _status=$"Custom folder renamed to {next}.";
+  }
+  catch(Exception ex){_status="Folder rename failed: "+ex.Message;}
   finally{_uploading=false;await InvokeAsync(StateHasChanged);}
  }
 
@@ -212,8 +250,11 @@
   _loadingPrivate=true;
   try
   {
-   var listing=await Auth.ListAsync("assets/");
-   var files=listing?.Items?.Where(x=>IsImageKey(x.Key)).OrderByDescending(x=>x.LastModified).Take(300).ToList()??[];
+   var catalog=await Session.LoadUserAssetCatalogAsync();
+   var metadata=(catalog.Items??[]).GroupBy(x=>x.Key,StringComparer.Ordinal).ToDictionary(x=>x.Key,x=>x.Last(),StringComparer.Ordinal);
+   var uploadListing=await Auth.ListAsync("uploads/");
+   var legacyListing=await Auth.ListAsync("assets/");
+   var files=(uploadListing?.Items??[]).Concat(legacyListing?.Items??[]).Where(x=>IsImageKey(x.Key)).OrderByDescending(x=>x.LastModified).Take(500).ToList();
    var loaded=new List<AtlasTile>();
    var unrated=0;
    foreach(var item in files)
@@ -223,16 +264,20 @@
     _ratings[item.Key]=rating;
     var url=await Auth.DownloadUrlAsync(item.Key);
     if(string.IsNullOrWhiteSpace(url))continue;
+    metadata.TryGetValue(item.Key,out var meta);
     var file=Path.GetFileName(item.Key);
     var dash=file.IndexOf('-');
-    var display=dash>=0&&dash<file.Length-1?file[(dash+1)..]:file;
-    display=Path.GetFileNameWithoutExtension(display).Replace('_',' ').Replace('-',' ');
-    loaded.Add(new AtlasTile("private:"+item.Key,display,url,"PRIVATE","Uploads","My Assets","You"));
+    var fallback=dash>=0&&dash<file.Length-1?file[(dash+1)..]:file;
+    fallback=Path.GetFileNameWithoutExtension(fallback).Replace('_',' ').Replace('-',' ');
+    var display=string.IsNullOrWhiteSpace(meta?.Name)?fallback:meta!.Name;
+    var category=WorldSession.NormalizeAssetCategory(meta?.Category);
+    var folder=item.Key.StartsWith("assets/",StringComparison.OrdinalIgnoreCase)&&meta is null?"Legacy Uploads":WorldSession.NormalizeAssetFolder(meta?.Folder);
+    loaded.Add(new AtlasTile("private:"+item.Key,display,url,"PRIVATE",category,folder,"You"));
    }
-   _privateTiles.Clear();_privateTiles.AddRange(loaded);_privateLoaded=true;
+   _privateTiles.Clear();_privateTiles.AddRange(loaded);Session.ReplaceUserAssetTiles(loaded);_privateLoaded=true;
    if(unrated>0)_status=$"{unrated} older upload{(unrated==1?" is":"s are")} hidden until a provider content rating is assigned.";
   }
-  catch(Exception ex){_status="Your private assets could not be loaded: "+ex.Message;}
+  catch(Exception ex){_status="Your private uploads could not be loaded: "+ex.Message;}
   finally{_loadingPrivate=false;await InvokeAsync(StateHasChanged);}
  }
 
@@ -279,7 +324,7 @@
  }
  static string CategoryFor(AtlasTile asset)
  {
-  if(IsPrivate(asset))return "My Uploads";
+  if(IsPrivate(asset))return WorldSession.NormalizeAssetCategory(asset.Directory);
   var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
   if(text.Contains("mini"))return "Miniatures";
   if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock";
