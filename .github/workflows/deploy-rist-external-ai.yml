@@ -9,6 +9,7 @@ on:
       - 'infra/aws/rist-external-ai.yml'
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
+      - 'infra/aws/rist_eios_bridge.py'
       - '.github/workflows/deploy-rist-external-ai.yml'
 
 concurrency:
@@ -37,13 +38,14 @@ jobs:
 
       - uses: aws-actions/setup-sam@v2
 
-      - name: Validate disabled external AI stack
+      - name: Validate external AI stack
         run: sam validate --lint --template-file infra/aws/rist-external-ai.yml
 
-      - name: Compile defensive runtime and AI gateway
+      - name: Compile defensive runtime, AI gateway, and EIOS bridge
         run: |
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
+          python -m py_compile infra/aws/rist_eios_bridge.py
 
       - name: Configure AWS through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -106,7 +108,7 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy defensive runtime with external access locked
+      - name: Deploy defensive runtime with external access locked and EIOS isolated
         env:
           OWNER_USER_ID: ${{ vars.RIST_OWNER_USER_ID }}
         shell: bash
@@ -116,6 +118,7 @@ jobs:
             "IdentityTableName=$IDENTITY_TABLE"
             "FrontendOrigin=$PRODUCTION_ORIGIN"
             "OwnerReleased=false"
+            "EiosModelId=us.amazon.nova-lite-v1:0"
           )
           if [ -n "${OWNER_USER_ID:-}" ]; then
             PARAMS+=("OwnerUserId=$OWNER_USER_ID")
@@ -139,30 +142,77 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiOwnerReleased'].OutputValue" --output text)
           test "$RELEASED" = "false"
 
-      - name: Export human and AI gateway config
+      - name: Verify EIOS Bedrock bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          EIOS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='EiosLabApiBaseUrl'].OutputValue" --output text)
+          MODEL=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='EiosLabModelId'].OutputValue" --output text)
+          test -n "$EIOS"
+          test "$EIOS" != "None"
+          curl --fail --silent --show-error "$EIOS/eios/status" > /tmp/eios-status.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/eios-status.json'))
+          assert data.get('ok') is True, data
+          assert data.get('provider') == 'aws-bedrock', data
+          print('EIOS status:', data)
+          PY
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'origin: https://relicgamemaster.com' \
+            --data '{"kind":"deployment-smoke","query":"Reply with a very short EIOS greeting as semantic scene JSON.","sensor":{"orientation":{"alpha":0,"beta":0,"gamma":0}}}' \
+            "$EIOS/eios/query" > /tmp/eios-query.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/eios-query.json'))
+          scene=data.get('scene') or {}
+          assert str(scene.get('caption') or '').strip(), data
+          meta=data.get('meta') or {}
+          assert meta.get('provider') == 'aws-bedrock', data
+          print('EIOS model verified:', meta)
+          PY
+          echo "EIOS_API=$EIOS" >> "$GITHUB_ENV"
+          echo "EIOS_MODEL=$MODEL" >> "$GITHUB_ENV"
+
+      - name: Export human, AI gateway, and EIOS config
         shell: bash
         run: |
           set -euo pipefail
           API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue" --output text)
           printf '{"apiBaseUrl":"%s","ownerReleased":false,"timeAuthority":"UTC","policy":"/external-ai/policy","register":"/external-ai/register","login":"/external-ai/login","sessionStatus":"/external-ai/session/status"}\n' "$API" > external-ai-config.json
+          printf '{"apiBaseUrl":"%s","queryPath":"/eios/query","statusPath":"/eios/status","provider":"aws-bedrock","model":"%s","protocol":2,"vision":true}\n' "$EIOS_API" "$EIOS_MODEL" > eios-config.json
           cat external-ai-config.json
+          cat eios-config.json
 
-      - name: Publish locked gateway config to protected game origin
+      - name: Publish locked gateway and EIOS config to protected origin
         shell: bash
         run: |
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" \
             --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           test -n "$BUCKET"
           test "$BUCKET" != "None"
           aws s3 cp external-ai-config.json "s3://${BUCKET}/Game/external-ai-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json' \
             --only-show-errors
+          aws s3 cp eios-config.json "s3://${BUCKET}/eios-lab/eios-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/eios-lab/eios-config.json' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
       - uses: actions/upload-artifact@v4
         with:
           name: rist-external-ai-config
-          path: external-ai-config.json
+          path: |
+            external-ai-config.json
+            eios-config.json
           retention-days: 7
