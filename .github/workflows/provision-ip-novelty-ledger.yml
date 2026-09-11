@@ -1,0 +1,58 @@
+name: Provision IP Novelty Ledger
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infrastructure/ip-novelty-ledger/**'
+      - '.github/workflows/provision-ip-novelty-ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  STACK_NAME: rist-ip-novelty-ledger-prod
+  TABLE_NAME: rist-ip-novelty-ledger-prod
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout active RIST branch
+        uses: actions/checkout@v4
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate CloudFormation template
+        run: aws cloudformation validate-template --template-body file://infrastructure/ip-novelty-ledger/template.yaml
+
+      - name: Deploy ledger table
+        run: |
+          aws cloudformation deploy \
+            --stack-name "$STACK_NAME" \
+            --template-file infrastructure/ip-novelty-ledger/template.yaml \
+            --parameter-overrides TableName="$TABLE_NAME" \
+            --no-fail-on-empty-changeset \
+            --tags Project=Shaelvien System=RIST Purpose=IPNoveltyLedger Environment=Production
+
+      - name: Seed initial ledger records
+        run: aws dynamodb batch-write-item --request-items file://infrastructure/ip-novelty-ledger/seed.json
+
+      - name: Verify ledger table
+        run: |
+          aws dynamodb describe-table \
+            --table-name "$TABLE_NAME" \
+            --query 'Table.{Name:TableName,Status:TableStatus,Items:ItemCount,DeletionProtection:DeletionProtectionEnabled}'
+          aws dynamodb scan \
+            --table-name "$TABLE_NAME" \
+            --select COUNT \
+            --query '{Count:Count}'
