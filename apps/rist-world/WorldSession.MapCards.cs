@@ -7,7 +7,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     const string MapCardFormat = "RISTMAPCARD";
-    const int MapCardVersion = 3;
+    const int MapCardVersion = 4;
     readonly List<string> _activeMapCardQuickSlotTileIds = [];
     string _activeMapCardLanguageMode = "user";
     string _activeMapCardDisplayLanguage = "und";
@@ -59,6 +59,7 @@ public sealed partial class WorldSession
             Version = MapCardVersion,
             CardId = ActiveMapCardId,
             OwnerAccountId = WorldOwnerAccountId,
+            CreatorProvenanceId = ComputeCreatorProvenanceId(WorldOwnerAccountId),
             WorldId = WorldId,
             MapName = WorldDisplayName,
             Cartographer = cartographer,
@@ -75,7 +76,7 @@ public sealed partial class WorldSession
         };
         card.ManifestHash = ComputeCardManifestHash(new
         {
-            card.CardId, card.WorldId, card.MapName, card.Cartographer, card.Published,
+            card.CardId, card.CreatorProvenanceId, card.WorldId, card.MapName, card.Cartographer, card.Published,
             card.Language, card.Face, card.Tiles, card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
         });
         card.ArtDataMark = ComputeArtDataMark(card.CardId, RistCardType.World, card.ManifestHash);
@@ -135,6 +136,7 @@ public sealed partial class WorldSession
             CardId = mapCard.CardId,
             CardType = RistCardType.World,
             OwnerAccountId = mapCard.OwnerAccountId,
+            CreatorProvenanceId = mapCard.CreatorProvenanceId,
             WorldId = mapCard.WorldId,
             Name = mapCard.MapName,
             Visibility = "published",
@@ -212,9 +214,10 @@ public sealed partial class WorldSession
 public sealed class MapCardDocument
 {
     public string Format { get; set; } = "RISTMAPCARD";
-    public int Version { get; set; } = 3;
+    public int Version { get; set; } = 4;
     public string CardId { get; set; } = "";
     public string OwnerAccountId { get; set; } = "";
+    public string CreatorProvenanceId { get; set; } = "";
     public string WorldId { get; set; } = "";
     public string MapName { get; set; } = "";
     public string Cartographer { get; set; } = "";
