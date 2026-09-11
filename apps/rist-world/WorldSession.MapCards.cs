@@ -7,8 +7,12 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     const string MapCardFormat = "RISTMAPCARD";
-    const int MapCardVersion = 2;
+    const int MapCardVersion = 3;
     readonly List<string> _activeMapCardQuickSlotTileIds = [];
+    string _activeMapCardLanguageMode = "user";
+    string _activeMapCardDisplayLanguage = "und";
+    string _activeMapCardInGameLanguage = "";
+    string _activeMapCardTextDirection = "ltr";
 
     public string ActiveMapCardId => $"{WorldId}-truth-map-001";
     public string ActiveMapCardPrivateKey => $"{WorldStoragePrefix}/cards/{ActiveMapCardId}.json";
@@ -16,6 +20,14 @@ public sealed partial class WorldSession
     public string ActiveMapCardLocalKey => $"rist.mapcard.{ActiveMapCardId}";
     public IReadOnlyList<string> ActiveMapCardQuickSlotTileIds => _activeMapCardQuickSlotTileIds;
     public bool ActiveMapCardPublished { get; private set; }
+
+    public void SetActiveMapCardLanguage(string mode, string? displayLanguage, string? inGameLanguage, string? textDirection = null)
+    {
+        _activeMapCardLanguageMode = string.Equals(mode, "in-game", StringComparison.OrdinalIgnoreCase) ? "in-game" : "user";
+        _activeMapCardDisplayLanguage = string.IsNullOrWhiteSpace(displayLanguage) ? "und" : displayLanguage.Trim();
+        _activeMapCardInGameLanguage = inGameLanguage?.Trim() ?? "";
+        _activeMapCardTextDirection = string.Equals(textDirection, "rtl", StringComparison.OrdinalIgnoreCase) ? "rtl" : "ltr";
+    }
 
     MapCardDocument BuildActiveMapCard(bool? published = null)
     {
@@ -26,6 +38,21 @@ public sealed partial class WorldSession
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.Ordinal)
             .ToList();
+        var cartographer = string.IsNullOrWhiteSpace(DiscordDisplayName) ? "GameMaster" : DiscordDisplayName;
+        var language = new RistCardLanguage
+        {
+            Mode = _activeMapCardLanguageMode,
+            LanguageTag = _activeMapCardLanguageMode == "in-game" ? "x-rist-game" : _activeMapCardDisplayLanguage,
+            InGameLanguage = _activeMapCardInGameLanguage,
+            TextDirection = _activeMapCardTextDirection
+        };
+        var face = new RistCardFace
+        {
+            Title = WorldDisplayName,
+            Subtitle = cartographer,
+            Body = "",
+            Footer = ""
+        };
         var card = new MapCardDocument
         {
             Format = MapCardFormat,
@@ -34,7 +61,7 @@ public sealed partial class WorldSession
             OwnerAccountId = WorldOwnerAccountId,
             WorldId = WorldId,
             MapName = WorldDisplayName,
-            Cartographer = string.IsNullOrWhiteSpace(DiscordDisplayName) ? "GameMaster" : DiscordDisplayName,
+            Cartographer = cartographer,
             InGameCreationDate = "",
             Visibility = isPublished ? "published" : "private",
             Published = isPublished,
@@ -42,12 +69,14 @@ public sealed partial class WorldSession
             Tiles = tiles,
             QuickSlotTileIds = _activeMapCardQuickSlotTileIds.ToList(),
             RequiredAssetIds = requiredAssets,
-            PreviewSvg = BuildMapCardPreviewSvg(tiles)
+            PreviewSvg = BuildMapCardPreviewSvg(tiles),
+            Language = language,
+            Face = face
         };
         card.ManifestHash = ComputeCardManifestHash(new
         {
             card.CardId, card.WorldId, card.MapName, card.Cartographer, card.Published,
-            card.Tiles, card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
+            card.Language, card.Face, card.Tiles, card.QuickSlotTileIds, card.RequiredAssetIds, card.AssetPackIds
         });
         card.ArtDataMark = ComputeArtDataMark(card.CardId, RistCardType.World, card.ManifestHash);
         return card;
@@ -111,6 +140,8 @@ public sealed partial class WorldSession
             Visibility = "published",
             Published = true,
             ArtAssetId = mapCard.CardId + ":preview",
+            Language = mapCard.Language,
+            Face = mapCard.Face,
             References = mapCard.RequiredAssetIds.Select(id => new RistCardReference(id, "asset")).ToList(),
             AssetPackIds = mapCard.AssetPackIds.ToList(),
             Payload = payload
@@ -138,6 +169,11 @@ public sealed partial class WorldSession
         _activeMapCardQuickSlotTileIds.Clear();
         _activeMapCardQuickSlotTileIds.AddRange((card.QuickSlotTileIds ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).Take(12));
         ActiveMapCardPublished = card.Published;
+        var language = card.Language ?? new RistCardLanguage();
+        _activeMapCardLanguageMode = string.Equals(language.Mode, "in-game", StringComparison.OrdinalIgnoreCase) ? "in-game" : "user";
+        _activeMapCardDisplayLanguage = string.IsNullOrWhiteSpace(language.LanguageTag) ? "und" : language.LanguageTag;
+        _activeMapCardInGameLanguage = language.InGameLanguage ?? "";
+        _activeMapCardTextDirection = string.Equals(language.TextDirection, "rtl", StringComparison.OrdinalIgnoreCase) ? "rtl" : "ltr";
         Notify();
     }
 
@@ -176,7 +212,7 @@ public sealed partial class WorldSession
 public sealed class MapCardDocument
 {
     public string Format { get; set; } = "RISTMAPCARD";
-    public int Version { get; set; } = 2;
+    public int Version { get; set; } = 3;
     public string CardId { get; set; } = "";
     public string OwnerAccountId { get; set; } = "";
     public string WorldId { get; set; } = "";
@@ -189,6 +225,8 @@ public sealed class MapCardDocument
     public string PreviewSvg { get; set; } = "";
     public string ManifestHash { get; set; } = "";
     public string ArtDataMark { get; set; } = "";
+    public RistCardLanguage Language { get; set; } = new();
+    public RistCardFace Face { get; set; } = new();
     public List<string> QuickSlotTileIds { get; set; } = [];
     public List<string> RequiredAssetIds { get; set; } = [];
     public List<string> AssetPackIds { get; set; } = [];
