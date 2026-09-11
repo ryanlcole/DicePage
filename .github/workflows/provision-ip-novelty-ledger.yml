@@ -37,12 +37,20 @@ jobs:
 
       - name: Deploy ledger table
         run: |
-          aws cloudformation deploy \
+          if ! aws cloudformation deploy \
             --stack-name "$STACK_NAME" \
             --template-file infrastructure/ip-novelty-ledger/template.yaml \
             --parameter-overrides TableName="$TABLE_NAME" \
             --no-fail-on-empty-changeset \
-            --tags Project=Shaelvien System=RIST Purpose=IPNoveltyLedger Environment=Production
+            --tags Project=Shaelvien System=RIST Purpose=IPNoveltyLedger Environment=Production; then
+            echo 'CloudFormation deployment failed. Recent stack events:'
+            aws cloudformation describe-stack-events \
+              --stack-name "$STACK_NAME" \
+              --max-items 20 \
+              --query 'StackEvents[].{Time:Timestamp,Status:ResourceStatus,Type:ResourceType,LogicalId:LogicalResourceId,Reason:ResourceStatusReason}' \
+              --output table || true
+            exit 1
+          fi
 
       - name: Seed initial ledger records
         run: aws dynamodb batch-write-item --request-items file://infrastructure/ip-novelty-ledger/seed.json
