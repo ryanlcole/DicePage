@@ -88,3 +88,34 @@ jobs:
         run: |
           API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='TranslationApiBaseUrl'].OutputValue" --output text)
           echo "Translation API: $API"
+
+      - name: Verify Spanish UI translation
+        shell: bash
+        run: |
+          set -euo pipefail
+          API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='TranslationApiBaseUrl'].OutputValue" --output text)
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'origin: https://relicgamemaster.com' \
+            --data '{"sourceLanguageCode":"en","targetLanguageCode":"es","texts":["Build Worlds Together","Game Now","About"]}' \
+            "$API/ui/translate" > /tmp/translation-smoke.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('/tmp/translation-smoke.json').read_text())
+          expected={'Build Worlds Together','Game Now','About'}
+          items=data.get('items') or []
+          by_source={item.get('source'):item for item in items}
+          missing=expected-set(by_source)
+          if missing:
+              raise SystemExit(f'missing translation results: {sorted(missing)}')
+          bad=[]
+          for source in sorted(expected):
+              item=by_source[source]
+              text=str(item.get('text') or '').strip()
+              if item.get('translated') is not True or not text or text==source:
+                  bad.append({'source':source,'result':item})
+          if bad:
+              raise SystemExit(f'Spanish translation smoke test failed: {bad}')
+          print('Spanish UI translation verified:', {s:by_source[s]['text'] for s in sorted(expected)})
+          PY
