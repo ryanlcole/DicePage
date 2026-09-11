@@ -170,6 +170,7 @@ else
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
    case "assets":_workspaceMode="assets";_workspaceLabel="ASSET DESIGNER";_workspaceHint="BROWSE → CREATE → PLACE → SAVE";break;
    case "roleplay":_workspaceMode="roleplay";_workspaceLabel="ROLEPLAY";_workspaceHint="CHARACTER → DICE → ENCOUNTER → REPLAY";break;
+   case "tools":_workspaceMode="tools";_workspaceLabel="DICE & TOOLS";_workspaceHint="DICE → CARDS → TOOLS";break;
    case "manage":_workspaceMode="manage";_workspaceLabel="MY WORLDS";_workspaceHint="SAVE → SYNC → SHARE → EXPORT";break;
    case "feedback":_workspaceMode="feedback";_workspaceLabel="FEEDBACK";_workspaceHint="REPORT → CONTEXT → SEND";break;
    default:_workspaceMode="world";_workspaceLabel="WORLDBUILDER";_workspaceHint="WORLD → TIER → LAYER → CUBE";break;
@@ -276,7 +277,7 @@ else
  void OpenAssets()=>OpenWorkspace("assets","ASSET DESIGNER","BROWSE → CREATE → PLACE → SAVE");
  void OpenRoleplay()=>OpenWorkspace("roleplay","ROLEPLAY","CHARACTER → DICE → ENCOUNTER → REPLAY");
  void OpenCharacters()=>OpenWorkspace("roleplay","CHARACTERS","CHARACTER → SHEET → EQUIPMENT");
- void OpenDiceTools()=>OpenWorkspace("roleplay","DICE & TOOLS","DICE → CARDS → TOOLS");
+ void OpenDiceTools()=>OpenWorkspace("tools","DICE & TOOLS","DICE → CARDS → TOOLS");
  void OpenManage(){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;}
  void OpenFeedback()=>OpenWorkspace("feedback","FEEDBACK","REPORT → CONTEXT → SEND");
  void OpenStore()=>Navigation.NavigateTo("/store/",forceLoad:true);
