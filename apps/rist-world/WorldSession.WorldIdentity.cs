@@ -43,11 +43,11 @@ public sealed partial class WorldSession
         Notify();
     }
 
-    // Empty WorldId is accepted only for legacy alpha saves so they can be adopted
-    // into the original alpha world. A save naming another world is never loaded into
-    // the currently selected world.
+    // Empty WorldId belongs only to the original legacy alpha save. It must never be
+    // adopted into a newly created/imported world.
     public bool OwnsSavedWorld(SavedWorld? saved) =>
         saved is not null && HasActiveWorld &&
-        (string.IsNullOrWhiteSpace(saved.WorldId) ||
-         string.Equals(saved.WorldId, WorldId, StringComparison.Ordinal));
+        (string.Equals(saved.WorldId, WorldId, StringComparison.Ordinal) ||
+         (string.IsNullOrWhiteSpace(saved.WorldId) &&
+          string.Equals(WorldId, LegacyAlphaWorldId, StringComparison.Ordinal)));
 }
