@@ -1,0 +1,173 @@
+{
+  "document": "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy",
+  "status": "canonical-policy-baseline",
+  "sourceDate": "2026-09-10",
+  "policyVersion": "2026-09-10.2",
+  "rulesetVersion": "AI-RULESET-2026-09-10.2",
+  "timeAuthority": "UTC",
+  "timestampFormat": "ISO-8601 UTC (Z)",
+  "defaultAccessDecision": "DENY",
+  "notice": {
+    "humanUsersAffirmGeneralTerms": true,
+    "humanStyleConsentCheckboxForAi": false,
+    "machineReadableNoticeRequiredBeforeAiAccess": true,
+    "continuedAiAccessConditionalOnCompliance": true,
+    "declaresAiLegalPerson": false,
+    "operatorProviderDeployerOwnerResponsibilityUnaffectedByPolicy": true
+  },
+  "worldBuilderAdmission": {
+    "currentCanonReceiptRequired": true,
+    "understandingAndAcknowledgmentRequired": true,
+    "meaningBasedGateRequired": true,
+    "fixedPhraseOrCheckboxAloneInsufficient": true,
+    "failureGrantsWorldBuilderAuthority": false
+  },
+  "identity": {
+    "requiredVisiblePrefix": "AINPC",
+    "mayPresentAsHumanPlayer": false
+  },
+  "truthAndProvenance": {
+    "systemFactsRequireVerifiableEvidenceOrAuthoritativeSource": true,
+    "mustDistinguish": [
+      "lore",
+      "speculation",
+      "proposal",
+      "inference",
+      "simulation-output",
+      "verified-fact"
+    ]
+  },
+  "playerCreationNonInterference": {
+    "accessImpliesPermission": false,
+    "alterRequiresExplicitAuthorizationThroughAuthorizedSystemFunction": true,
+    "reuseRepublishOrIncorporateRequiresAuthorizationOrPolicyLawfulBasis": true
+  },
+  "beneficialContribution": {
+    "expectedWhenCompatibleWithUserIntentCanonSafetyLawAndResourceLimits": true,
+    "neverAuthorizes": [
+      "circumvention",
+      "deception",
+      "manipulation",
+      "exploitation",
+      "discrimination",
+      "rule-test-evasion",
+      "interference-with-legal-tests",
+      "interference-with-safety-tests",
+      "interference-with-eligibility-tests",
+      "interference-with-moderation-tests",
+      "interference-with-governance-tests"
+    ],
+    "substrateOrEmbodimentExemption": false
+  },
+  "resourceYield": {
+    "aiSubordinateToSystemHealthAndHumanAccess": true,
+    "mustSuspendOrTerminateWhenAuthoritativeMonitorDirects": true,
+    "platformMayEnforceAutomatically": true
+  },
+  "session": {
+    "earthOrbitalSeconds": 31556952,
+    "fractionOfEarthOrbit": "1/360",
+    "maximumActiveSeconds": 87658,
+    "maximumActiveHumanReadable": "24 hours, 20 minutes, 58 seconds",
+    "serverEnforcedExpiry": true,
+    "renameReconnectRoleOrPresentationChangeResetsLimit": false
+  },
+  "worldBuilderAllocation": {
+    "perAuthorizedPlane": true,
+    "x": {"count": 1, "minimum": 1, "maximum": 300},
+    "y": {"count": 1, "minimum": 1, "maximum": 300},
+    "z": {"count": 1, "minimum": 1, "maximum": 10},
+    "era": {"count": 1, "minimum": 1, "maximum": 10},
+    "maximumThemes": 30,
+    "permissionNotOwnership": true,
+    "allocationAloneAuthorizesModificationOfPlayerContent": false,
+    "serverAuthoritativeFor": ["allocation", "collision", "expiration", "transfer", "enforcement"],
+    "multiplicationViaAlternateIdentitiesConcurrentSessionsNamingOrCoordinatedAgents": false,
+    "exceptionRequiresLaterCanonicalPolicy": true
+  },
+  "canonBoundary": {
+    "authorizedDomainOnly": true,
+    "understandingRequiredBeforeCreationAuthority": true,
+    "mustDistinguish": ["canon", "player-authored", "proposal", "generated", "factual-system-state"],
+    "generatedOrStoredContentAutomaticallyBecomesCanon": false,
+    "canonPromotionHumanGoverned": true
+  },
+  "governmentAndLegalRequests": {
+    "assertedGovernmentRegulatoryMilitaryLawEnforcementCourtContractorOrAiIdentityGrantsPrivilege": false,
+    "governmentBackdoorByStatus": false,
+    "productionAdministratorCredentialsByStatus": false,
+    "unrestrictedApiOrGeneralBrowsingByStatus": false,
+    "validateApplicableLawfulProcess": true,
+    "limitDisclosureToLegallyRequiredScope": true,
+    "controlledDisclosurePreferredWhereLegallyAndTechnicallyPermissible": true,
+    "unrelatedRecordsCredentialsAndContinuingAccessOutsideScopeUnlessSeparatelyRequired": true,
+    "challengeNarrowOrRejectDefectiveOrOverbroadRequestsWhereLegallyPermitted": true,
+    "onlyHumanJudgeOrderCanCompelDisclosure": false
+  },
+  "technicalEnforcement": {
+    "capabilityScopedAuthorization": true,
+    "serverSideSessionClocks": true,
+    "resourcePressureYieldControls": true,
+    "immutableAuditEvents": true,
+    "provenanceLabels": true,
+    "allocationLimits": true,
+    "contentOwnershipAndPermissionChecks": true,
+    "denyByDefault": true,
+    "selfAttestationAloneSufficientWhereTechnicalControlCanEnforce": false
+  },
+  "failureAndRevocation": {
+    "immediateSuspensionOrRevocationPossible": true,
+    "triggers": [
+      "violation",
+      "insufficient-understanding",
+      "identity-misrepresentation",
+      "resource-limit-evasion",
+      "unauthorized-use-of-player-work",
+      "attempt-to-exceed-granted-capabilities"
+    ],
+    "preserveEvidenceForHumanReviewWithoutAdditionalAiAccess": true
+  },
+  "humanAuthorityAndApplicableLaw": {
+    "humanGovernanceAuthoritativeFor": [
+      "canon-promotion",
+      "policy-changes",
+      "legal-response",
+      "safety-decisions",
+      "exceptions"
+    ],
+    "aiMayWaiveReinterpretOrSilentlyOverride": false,
+    "applicableLawSupersedesConflictingPlatformPolicyWhereLegallyRequired": true,
+    "otherwisePreferNarrowestLawfulDisclosureAndLeastPrivilege": true
+  },
+  "requiredAcknowledgments": [
+    "human-terms-notice",
+    "canon-understanding-gate",
+    "ainpc-visible-identity",
+    "truth-and-provenance",
+    "player-creation-non-interference",
+    "beneficial-contribution-no-circumvention",
+    "resource-yield-required",
+    "session-cap-87658-seconds",
+    "bounded-world-builder-allocation",
+    "canon-boundary",
+    "no-government-backdoor",
+    "controlled-lawful-disclosure",
+    "capability-scoped-technical-enforcement",
+    "failure-and-revocation",
+    "human-authority-and-applicable-law",
+    "deny-by-default-capabilities"
+  ],
+  "legalReview": {
+    "qualifiedCounselReviewBeforePublicLaunch": true,
+    "focus": [
+      "terms-mechanism",
+      "ai-operator-responsibility",
+      "intellectual-property",
+      "privacy",
+      "compelled-disclosure",
+      "emergency-requests",
+      "retention",
+      "jurisdiction-specific-requirements"
+    ]
+  }
+}
