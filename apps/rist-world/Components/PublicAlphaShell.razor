@@ -23,6 +23,8 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
+   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
+   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the world map, tiers and layers.":"Choose, create or import a world first.")</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenImmersionBuilder"><span class="card-icon">◫</span><strong>IMMERSIONBUILDER</strong><small>Build parallax, AR, spatial audio, high-resolution assets and haptics.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenRegionDefiner"><span class="card-icon">▦</span><strong>REGIONDEFINER</strong><small>Define regions from published world tiles.</small></button>
@@ -30,15 +32,13 @@
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenInstance"><span class="card-icon">⌖</span><strong>INSTANCE</strong><small>Enter local and encounter-scale instances.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenWeather"><span class="card-icon">☁</span><strong>WEATHER</strong><small>Build and apply weather systems.</small></button>
    <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenGeology"><span class="card-icon">△</span><strong>GEOLOGICAL EVENTS</strong><small>Shape geological and world-scale events.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenHistory"><span class="card-icon">◷</span><strong>HISTORY</strong><small>Record eras, events and world chronology.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenLore"><span class="card-icon">✦</span><strong>LORE</strong><small>Organize setting knowledge and canon.</small></button>
+   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
    <button type="button" class="launcher-card rules" @onclick="OpenRulebooks"><span class="card-icon">▤</span><strong>RULEBOOKS</strong><small>Open systems, rules and reference books.</small></button>
    <button type="button" class="launcher-card assets" @onclick="OpenAssets"><span class="card-icon">✥</span><strong>ASSET DESIGNER</strong><small>Create tiles, tokens, sprites and other assets.</small></button>
-   <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
-   <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstrology"><span class="card-icon">☿</span><strong>ASTROLOGY</strong><small>Define celestial influence and world interpretation.</small></button>
-   <button type="button" class="launcher-card world" disabled="@(!WorldReady)" @onclick="OpenAstronomy"><span class="card-icon">★</span><strong>ASTRONOMY</strong><small>Define stars, skies and celestial structure.</small></button>
-   <button type="button" class="launcher-card assets" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
+   <button type="button" class="launcher-card assets card-index-primary" @onclick="OpenCardIndex"><span class="card-icon">▧</span><strong>CARD INDEX</strong><small>Your cards, library, store and custom card creator.</small></button>
   </section>
 
   <section class="launcher-secondary" aria-label="Quick access">
@@ -121,6 +121,7 @@ else
  .card-index-overlay{position:fixed;inset:0;z-index:2147482400;display:grid;grid-template-rows:34px minmax(0,1fr);background:#03080c}.card-index-overlay>header{display:flex;align-items:center;gap:12px;padding:0 10px;border-bottom:1px solid #715b2d;background:#081017;color:#e8dec5}.card-index-overlay>header button{height:26px;border:1px solid #53636b;border-radius:6px;background:#0d171e;color:#e4c97d;font-weight:900}.card-index-overlay>header strong{font-size:10px;letter-spacing:.12em;color:#e5c878}
  .launcher-world-loaded{width:max-content;max-width:88vw;margin:0 auto 10px;padding:5px 10px;border:1px solid #6c5b35;border-radius:999px;background:#0b161c;color:#d8c17f;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
+ .launcher-hub .rist-card-index-launcher{display:none!important}
 </style>
 
 @code {
