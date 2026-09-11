@@ -1,0 +1,34 @@
+@implements IDisposable
+@inject WorldSession Session
+
+<div class="site-ticker-root" data-world-limit="@WorldLimitValue" aria-label="Shaelvien site status ticker">
+ <div class="site-ticker-track">
+  <span>@TickerText</span>
+  <span aria-hidden="true">@TickerText</span>
+ </div>
+</div>
+
+<style>
+ .site-ticker-root{box-sizing:border-box;width:100%;height:20px;min-height:20px;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(90deg,#071018,#0b151d 48%,#151109);color:#e4c97d;font:900 7px/19px system-ui,-apple-system,sans-serif;letter-spacing:.08em;white-space:nowrap;position:relative;z-index:2147482000}
+ .site-ticker-track{display:flex;width:max-content;min-width:200%;will-change:transform;animation:rist-site-ticker 34s linear infinite}.site-ticker-track span{display:block;flex:0 0 auto;padding-right:72px}
+ @@keyframes rist-site-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+ @@media(prefers-reduced-motion:reduce){.site-ticker-track{animation:none;transform:none}.site-ticker-track span[aria-hidden="true"]{display:none}}
+</style>
+
+@code {
+ [Parameter] public string Context { get; set; } = "SHAELVIEN";
+ string WorldLimitValue => Session.IsWorldExtentUnbounded ? "unbounded" : (Session.WorldTileLimit ?? WorldSession.DefaultWorldWidthKm).ToString(System.Globalization.CultureInfo.InvariantCulture);
+ string TickerText
+ {
+  get
+  {
+   var world=Session.HasActiveWorld?Session.WorldDisplayName:"NO WORLD SELECTED";
+   var extent=Session.HasActiveWorld?Session.WorldExtentLabel:"SELECT A WORLD";
+   var coordinate=Session.HasActiveWorld?Session.WorldCoordinateLabel:"WORLD → PLANE → CUBE → TIER → LAYER";
+   return $"{Context.ToUpperInvariant()}  ·  WORLD: {world}  ·  {extent}  ·  {coordinate}  ·  ROLE: {Session.Role}  ·  MODE: {Session.OperatingMode.ToUpperInvariant()}  ·  STARS: EDIT  ·  SKY: EDIT  ·  CALENDAR: EDIT  ·  UGC: EDIT  ·  ReLiC ONLINE  ·  ";
+  }
+ }
+ protected override void OnInitialized()=>Session.Changed+=Refresh;
+ void Refresh()=>InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=Refresh;
+}

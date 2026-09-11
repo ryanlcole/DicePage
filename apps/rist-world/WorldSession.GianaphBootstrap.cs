@@ -3,7 +3,7 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     public const string OriginMapId = "MapU000X000Y000Z";
-    public const string OriginMapAlias = "Geanaph";
+    public const string OriginMapAlias = GeonaphDisplayName;
     bool _originMapApplied;
 
     public string MapId { get; private set; } = OriginMapId;
@@ -11,10 +11,10 @@ public sealed partial class WorldSession
     public string MapIdentityLabel => string.Equals(MapAlias, MapId, StringComparison.Ordinal)
         ? MapId
         : $"{MapId} · {MapAlias}";
-    public int GianaphWorldWidthMiles => DefaultCubeWidthMiles;
-    public int GianaphWorldHeightMiles => DefaultCubeHeightMiles;
-    public long GianaphWorldTileCapacity => DefaultCubeCellCount;
-    public string GianaphWorldExtentLabel => $"{DefaultCubeWidthMiles}×{DefaultCubeHeightMiles} mi · 1 mi/tile";
+    public int GianaphWorldWidthMiles => DefaultCubeWidthKm;
+    public int GianaphWorldHeightMiles => DefaultCubeHeightKm;
+    public long GianaphWorldTileCapacity => IsGeonaphWorld ? long.MaxValue : DefaultWorldTileCapacity;
+    public string GianaphWorldExtentLabel => IsGeonaphWorld ? "Unbounded · 1 km/tile" : $"{DefaultWorldWidthKm}×{DefaultWorldHeightKm} km · 1 km/tile";
 
     public void SetMapAlias(string? value)
     {
@@ -23,14 +23,14 @@ public sealed partial class WorldSession
         Notify();
     }
 
-    // Kept under the existing method name so the component partial does not need
-    // a migration-only patch. This initializes the public coordinate origin.
+    // Kept under the existing method name so legacy callers continue to initialize
+    // the Geonaph origin without changing its stable map identity.
     public void EnsureGianaphWorld()
     {
         MapId = OriginMapId;
-        MapName = OriginMapAlias;
+        MapName = GeonaphDisplayName;
         GridDistance = 1;
-        DistanceUnit = "mi";
+        DistanceUnit = "km";
         GridCalibrationZoom = 1;
         ViewZoom = 1;
 
@@ -38,7 +38,7 @@ public sealed partial class WorldSession
 
         _originMapApplied = true;
 
-        // New origin cubes are sparse. Ocean 071 is the implicit 1×1-mile base,
+        // New origin cubes are sparse. Ocean 071 is the implicit 1×1-km base,
         // so old campaign/import tiles must never be materialized as the default.
         PlacedTiles.Clear();
         Pieces.Clear();

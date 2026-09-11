@@ -28,26 +28,29 @@ public sealed partial class WorldSession
             .Select(group => group.OrderByDescending(x => x.UpdatedAtUtc).First())
             .ToList();
 
-        // Discovery/migration for accounts created before the world directory existed.
-        if (worlds.All(x => !string.Equals(x.WorldId, LegacyAlphaWorldId, StringComparison.Ordinal)))
+        // Geonaph is the developer-owned proof world. It is always discoverable in
+        // the configured owner account, even before the first world-directory write.
+        // Other accounts only discover the legacy ID when their own private storage
+        // already contains a matching migration artifact.
+        if (worlds.All(x => !string.Equals(x.WorldId, GeonaphWorldId, StringComparison.Ordinal)))
         {
             var legacyDescriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(
-                $"{WorldsStoragePrefix}/{LegacyAlphaWorldId}/world.json");
+                $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json");
             var legacySave = await auth.DownloadJsonAsync<SavedWorld>(
-                $"{WorldsStoragePrefix}/{LegacyAlphaWorldId}/current.ristmap");
+                $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap");
             legacySave ??= await auth.DownloadJsonAsync<SavedWorld>(LegacyPrivateWorldCheckpointKey);
 
-            if (legacyDescriptor is not null || legacySave is not null)
+            if (auth.IsOwnerDiscordAccount || legacyDescriptor is not null || legacySave is not null)
             {
-                var name = legacyDescriptor?.DisplayName;
+                var name = auth.IsOwnerDiscordAccount ? GeonaphDisplayName : legacyDescriptor?.DisplayName;
                 if (string.IsNullOrWhiteSpace(name)) name = legacySave?.WorldName;
-                if (string.IsNullOrWhiteSpace(name)) name = "Shaelvien";
+                if (string.IsNullOrWhiteSpace(name)) name = GeonaphDisplayName;
                 worlds.Add(new AccountWorldReference(
-                    LegacyAlphaWorldId,
+                    GeonaphWorldId,
                     name!,
                     "owner",
-                    $"{WorldsStoragePrefix}/{LegacyAlphaWorldId}/world.json",
-                    $"{WorldsStoragePrefix}/{LegacyAlphaWorldId}/current.ristmap",
+                    $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
+                    $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
                     legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
             }
         }
@@ -136,6 +139,9 @@ public sealed partial class WorldSession
                 throw new InvalidOperationException("World ownership does not match the authenticated account.");
         }
 
+        var extentMode = IsWorldExtentUnbounded ? "unbounded" : "bounded";
+        var maxTilesX = IsWorldExtentUnbounded ? null : WorldTileLimit;
+        var maxTilesY = IsWorldExtentUnbounded ? null : WorldTileLimit;
         descriptor = descriptor is null
             ? new WorldRelationshipDescriptor(
                 WorldId,
@@ -144,11 +150,17 @@ public sealed partial class WorldSession
                 "Shaelvien",
                 "active",
                 now,
-                now)
+                now,
+                extentMode,
+                maxTilesX,
+                maxTilesY)
             : descriptor with
             {
                 DisplayName = WorldDisplayName,
-                UpdatedAtUtc = now
+                UpdatedAtUtc = now,
+                ExtentMode = extentMode,
+                MaxTilesX = maxTilesX,
+                MaxTilesY = maxTilesY
             };
 
         await auth.UploadTextAsync(
@@ -230,4 +242,7 @@ public sealed record WorldRelationshipDescriptor(
     string Domain,
     string Status,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    string ExtentMode = "bounded",
+    int? MaxTilesX = null,
+    int? MaxTilesY = null);

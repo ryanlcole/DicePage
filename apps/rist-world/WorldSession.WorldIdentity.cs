@@ -2,9 +2,11 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Legacy alpha identity remains available only for migration/discovery. The active
-    // world is selected explicitly from the launcher and is never implied by startup.
+    // The original alpha World ID is now the permanent identity of Geonaph.
+    // It remains available for migration/discovery so existing saves keep identity.
     public const string LegacyAlphaWorldId = "shaelvien-geonaph-alpha-001";
+    public const string GeonaphWorldId = LegacyAlphaWorldId;
+    public const string GeonaphDisplayName = "Geonaph";
     public const string CurrentWorldId = LegacyAlphaWorldId;
 
     string _worldId = "";
@@ -14,6 +16,12 @@ public sealed partial class WorldSession
     public string WorldId => _worldId;
     public string WorldDisplayName => string.IsNullOrWhiteSpace(_worldDisplayName) ? MapName : _worldDisplayName;
     public string WorldOwnerAccountId => auth.RistAccountId;
+    public bool IsGeonaphWorld => string.Equals(WorldId, GeonaphWorldId, StringComparison.Ordinal);
+    public bool IsWorldExtentUnbounded => HasActiveWorld && IsGeonaphWorld;
+    public int? WorldTileLimit => IsWorldExtentUnbounded ? null : DefaultWorldWidthKm;
+    public string WorldExtentLabel => IsWorldExtentUnbounded
+        ? "UNBOUNDED WORLD · 1 km CELLS"
+        : $"{DefaultWorldWidthKm}×{DefaultWorldHeightKm} TILE WORLD · 1 km CELLS";
 
     // Account storage owns a collection of worlds. Every world-owned cloud artifact
     // resolves beneath this stable root so one account may safely own many worlds.
@@ -35,6 +43,7 @@ public sealed partial class WorldSession
         worldId = (worldId ?? "").Trim();
         displayName = (displayName ?? "").Trim();
         if (worldId.Length == 0) throw new InvalidOperationException("A World ID is required.");
+        if (string.Equals(worldId, GeonaphWorldId, StringComparison.Ordinal)) displayName = GeonaphDisplayName;
         if (displayName.Length == 0) throw new InvalidOperationException("A World Name is required.");
         _worldId = worldId;
         _worldDisplayName = displayName;

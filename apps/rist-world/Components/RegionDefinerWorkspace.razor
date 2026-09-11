@@ -1,0 +1,269 @@
+@using System.Globalization
+@using System.Net.Http.Json
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+<section class="region-definer" aria-label="Region Definer">
+ <header class="region-definer-header">
+  <button type="button" class="region-home" @onclick="OpenStartMenu" aria-label="Start menu">⌂</button>
+  <span class="region-source-label"><small>SOURCE WORLD · LOCKED</small><strong>@(Session.HasActiveWorld?Session.WorldDisplayName:"NO WORLD SELECTED")</strong></span>
+  <span class="region-angle-label">5° REGIONAL VIEW</span>
+ </header>
+
+ <section class="region-filter-rail" aria-label="Region filters and assets">
+  <button type="button" class="region-filter-main" @onclick="()=>_filtersOpen=!_filtersOpen"><strong>@_filter</strong><small>Region Filter</small><span>More…</span></button>
+  @if(_filtersOpen)
+  {
+   @foreach(var mode in FilterModes)
+   {
+    <button type="button" class="region-filter-choice @(_filter==mode?"active":"")" @onclick="()=>SelectFilter(mode)">@mode</button>
+   }
+  }
+  else if(_filter=="Regions")
+  {
+   @if(Session.Regions.Count==0){<span class="region-empty-rail">No regions yet</span>}
+   @foreach(var region in Session.Regions)
+   {
+    <button type="button" class="region-card @(Session.ActiveRegion?.RegionId==region.RegionId?"active":"")" @onclick="()=>SelectRegion(region)"><strong>@region.Name</strong><small>@region.Width×@region.Height world tiles</small></button>
+   }
+  }
+  else
+  {
+   @foreach(var asset in VisibleAssets)
+   {
+    <button type="button" class="region-asset @(_armedAsset?.Id==asset.Id?"armed":"")" draggable="true" @ondragstart="()=>BeginAssetDrag(asset)" @ondragend="EndAssetDrag" @onclick="()=>ArmAsset(asset)" title="Tap, then tap the regional map; or drag onto the map"><img src="@asset.Image" alt="" draggable="false"/><span>@asset.Name</span></button>
+   }
+   @if(!VisibleAssets.Any()){<span class="region-empty-rail">No matching regional assets</span>}
+  }
+ </section>
+
+ <main class="region-viewer" aria-label="Regional map viewer">
+  @if(!Session.HasActiveWorld)
+  {
+   <div class="region-message"><strong>Choose a world first.</strong><span>RegionDefiner always derives from the selected world.</span></div>
+  }
+  else
+  {
+   <div class="region-view-plane" @ref="_dropSurface" @ondragover:preventDefault="true" @ondrop="DropAssetAsync" @onclick="PlaceArmedAssetAsync">
+    @if(Session.ActiveRegion is null)
+    {
+     <div class="region-live-world region-live-full" aria-label="Non-editable selected world"><WorldMap /></div>
+     <div class="region-select-grid" style="@SelectionGridStyle" aria-label="Select world tiles for a region">
+      @for(var index=0;index<WorldSession.GridColumns*WorldSession.GridRows;index++)
+      {
+       var cell=index;
+       <button type="button" class="@(_selectedCells.Contains(cell)?"selected":"")" @onclick="()=>ToggleWorldCell(cell)" @onclick:stopPropagation="true" aria-pressed="@_selectedCells.Contains(cell)" aria-label="World tile @(cell%WorldSession.GridColumns),@(cell/WorldSession.GridColumns)"></button>
+      }
+     </div>
+     <div class="region-selection-note">SELECT WORLD TILES · @_selectedCells.Count SELECTED</div>
+    }
+    else
+    {
+     var region=Session.ActiveRegion;
+     <div class="region-live-world region-live-crop" style="@WorldCropStyle(region)" aria-label="@region.Name source-world crop"><WorldMap /></div>
+     <div class="region-grid" style="@RegionGridStyle(region)" aria-hidden="true"></div>
+     <div class="region-mask" style="@RegionGridStyle(region)" aria-hidden="true">
+      @for(var row=0;row<region.Height;row++)
+      {
+       @for(var column=0;column<region.Width;column++)
+       {
+        var original=(region.MinRow+row)*WorldSession.GridColumns+(region.MinColumn+column);
+        if(!region.SelectedCells.Contains(original))
+        {
+         <span style="grid-column:@(column+1);grid-row:@(row+1)"></span>
+        }
+       }
+      }
+     </div>
+     <div class="region-overlay-layer" aria-label="Editable regional tiles">
+      @foreach(var tile in region.OverlayTiles)
+      {
+       <button type="button" class="region-overlay-tile" style="@OverlayStyle(tile,region)" @ondblclick="()=>RemoveOverlayAsync(tile)" @onclick:stopPropagation="true" title="@tile.Name · double click to remove"><span class="region-image-crop"><img src="@tile.Image" style="@CropStyle(tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight)" alt="@tile.Name" draggable="false"/></span></button>
+      }
+     </div>
+     <div class="region-nameplate"><small>@Session.WorldDisplayName · NON-EDITABLE WORLD SOURCE</small><strong>@region.Name</strong><span>@region.Width×@region.Height world-tile crop · regional overlays editable</span></div>
+    }
+   </div>
+  }
+ </main>
+
+ <section class="region-command-rail" aria-label="Region commands">
+  @if(Session.ActiveRegion is null)
+  {
+   <button type="button" class="primary" disabled="@(_selectedCells.Count==0||!Session.HasActiveWorld)" @onclick="OpenNameDialog"><strong>Create Region</strong><small>Crop Selected Tiles</small></button>
+   <button type="button" disabled="@(_selectedCells.Count==0)" @onclick="ClearSelection"><strong>Clear</strong><small>Selection</small></button>
+  }
+  else
+  {
+   <button type="button" class="primary" @onclick="BeginNewRegion"><strong>New Region</strong><small>Select World Tiles</small></button>
+   <button type="button" @onclick="CycleFootprint"><strong>@_tileFootprint<sup>2</sup></strong><small>Regional Tile Size</small></button>
+   <button type="button" @onclick="ShowRegions"><strong>Regions</strong><small>@Session.Regions.Count Saved</small></button>
+   <button type="button" @onclick="SaveRegionsAsync"><strong>Save</strong><small>Region Definitions</small></button>
+  }
+  <span class="region-command-status">@StatusText</span>
+ </section>
+
+ @if(_nameDialogOpen)
+ {
+  <section class="region-name-backdrop" role="presentation" @onclick="CloseNameDialog">
+   <div class="region-name-dialog" role="dialog" aria-modal="true" aria-label="Name region" @onclick:stopPropagation="true">
+    <header><strong>CREATE REGION</strong><button type="button" @onclick="CloseNameDialog">×</button></header>
+    <label>REGION NAME<input maxlength="80" @bind="_pendingRegionName" @bind:event="oninput" placeholder="Name this region" /></label>
+    <p>@SelectionBoundsText</p>
+    <button type="button" class="primary" disabled="@string.IsNullOrWhiteSpace(_pendingRegionName)" @onclick="CreateRegionAsync">CREATE REGION</button>
+    <button type="button" @onclick="CloseNameDialog">CANCEL</button>
+   </div>
+  </section>
+ }
+</section>
+
+<style>
+ .region-definer{box-sizing:border-box;height:100%;min-height:0;width:100%;display:grid;grid-template-rows:30px 62px minmax(0,1fr) 62px;overflow:hidden;background:#03080c;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif}.region-definer-header{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:stretch;border-bottom:1px solid #715b2d;background:#081017}.region-home{border:0;border-right:1px solid #715b2d;background:#0c151d;color:#e4c97d;font-size:15px}.region-source-label{min-width:0;display:grid;align-content:center;padding:0 9px}.region-source-label small{color:#7798aa;font-size:7px;font-weight:900;letter-spacing:.11em}.region-source-label strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ead493;font:700 11px Georgia,serif}.region-angle-label{display:grid;place-items:center;padding:0 10px;border-left:1px solid #715b2d;color:#8fb2c7;font-size:7px;font-weight:900;letter-spacing:.1em}
+ .region-filter-rail{min-width:0;display:flex;align-items:center;gap:6px;padding:6px;overflow-x:auto;overflow-y:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(180deg,#101820,#091117);scrollbar-width:none}.region-filter-rail::-webkit-scrollbar{display:none}.region-filter-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:82px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1}.region-filter-main{min-width:100px!important;display:grid;place-items:center;gap:1px;padding:4px 10px}.region-filter-main strong{color:#f2dfac;font-size:12px}.region-filter-main small{color:#8fa5b0;font-size:7px;text-transform:uppercase}.region-filter-main span{color:#63aef1;font-size:8px;font-weight:800}.region-filter-choice{min-width:98px!important;font-weight:900}.region-filter-choice.active,.region-card.active{border-color:#d0aa56!important;background:#201b10!important;color:#f3dc99!important}.region-card{display:grid;padding:5px 9px;text-align:left;min-width:130px!important}.region-card strong{font:700 11px Georgia,serif}.region-card small{color:#8299a4;font-size:7px}.region-asset{position:relative;width:64px;min-width:64px!important;padding:0!important;overflow:hidden;touch-action:manipulation}.region-asset img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.region-asset span{position:absolute;z-index:2;inset:auto 0 0;padding:3px;background:#000c;color:#fff0bd;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.region-asset.armed{border-color:#f0c55e!important;box-shadow:0 0 0 1px #f0c55e,0 0 15px #f0c55e55}.region-empty-rail{display:grid;place-items:center;height:46px;padding:0 14px;border:1px dashed #40515a;border-radius:8px;color:#758995;font-size:9px}
+ .region-viewer{position:relative;min-width:0;min-height:0;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 42%,#0d1a21,#020609 74%);perspective:1500px;perspective-origin:50% 58%}.region-view-plane{position:relative;width:calc(100% - 26px);height:calc(100% - 18px);min-width:0;min-height:0;overflow:hidden;transform:rotateX(5deg) scale(.988);transform-origin:50% 62%;transform-style:preserve-3d;clip-path:polygon(1.2% 1.4%,98.8% 1.4%,100% 100%,0 100%);border:1px solid #8b7442;background:#061016;box-shadow:0 20px 45px #000c;touch-action:manipulation}.region-live-world{position:absolute;pointer-events:none;user-select:none;overflow:hidden}.region-live-full{inset:0}.region-live-crop{transform-origin:0 0}.region-live-world>.table-workspace{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.region-live-world .staging-tray,.region-live-world .tile-browser,.region-live-world .card-browser,.region-live-world .desktop-map-zoom,.region-live-world .status,.region-live-world .coordinate-system,.region-live-world .grid-coordinates,.region-live-world .rist-coordinate-frame,.region-live-world .locked-tile-menu,.region-live-world .region-player-picker,.region-live-world .recursive-region-actions{display:none!important}.region-live-world .map-shell,.region-live-world .map,.region-live-world .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;transform:none!important;margin:0!important}.region-select-grid,.region-grid,.region-mask{position:absolute;inset:0;display:grid}.region-select-grid{z-index:30}.region-select-grid button{min-width:0;min-height:0;padding:0;border:1px solid rgba(222,205,147,.24);background:transparent}.region-select-grid button.selected{background:rgba(221,178,67,.34);box-shadow:inset 0 0 0 1px rgba(255,224,133,.9)}.region-grid{z-index:18;pointer-events:none;background-image:linear-gradient(to right,rgba(226,211,156,.40) 1px,transparent 1px),linear-gradient(to bottom,rgba(226,211,156,.40) 1px,transparent 1px);background-size:var(--region-cell-x) var(--region-cell-y)}.region-mask{z-index:19;pointer-events:none}.region-mask span{background:#020609e8}.region-selection-note{position:absolute;z-index:40;left:50%;top:8px;transform:translateX(-50%);padding:5px 9px;border:1px solid #816b3a;border-radius:999px;background:#071017dd;color:#f0d795;font-size:8px;font-weight:900;letter-spacing:.06em;pointer-events:none}.region-overlay-layer{position:absolute;inset:0;z-index:24;pointer-events:none}.region-overlay-tile{position:absolute;padding:0;border:1px solid transparent;background:transparent;overflow:hidden;pointer-events:auto}.region-overlay-tile:hover{border-color:#f0c55e}.region-image-crop{position:absolute;inset:0;overflow:hidden;display:block}.region-image-crop img{position:absolute;display:block}.region-nameplate{position:absolute;z-index:40;left:10px;bottom:10px;max-width:min(72%,430px);display:grid;gap:2px;padding:7px 10px;border:1px solid #735f35;border-radius:8px;background:#061017df;pointer-events:none}.region-nameplate small{color:#7898aa;font-size:6px;font-weight:900;letter-spacing:.1em}.region-nameplate strong{color:#f1d995;font:700 15px Georgia,serif}.region-nameplate span{color:#9aabb3;font-size:7px}.region-message{display:grid;place-items:center;gap:6px;text-align:center;color:#d8c383}.region-message span{color:#8398a3;font-size:10px}
+ .region-command-rail{min-width:0;display:flex;align-items:center;gap:6px;padding:6px;border-top:1px solid #715b2d;background:#0a1117;overflow-x:auto}.region-command-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:112px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1}.region-command-rail button.primary{border-color:#967b3d;background:#211b0f}.region-command-rail button strong{color:#f0ddb0;font-size:11px}.region-command-rail button small{color:#8fa5b0;font-size:7px;text-transform:uppercase}.region-command-rail button:disabled{opacity:.35}.region-command-status{min-width:180px;color:#c9b57d;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .region-name-backdrop{position:fixed;inset:20px 0 0;z-index:2147482600;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px)}.region-name-dialog{box-sizing:border-box;width:min(92vw,440px);display:grid;gap:12px;padding:16px;border:1px solid #8a6d32;border-radius:12px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d}.region-name-dialog header{display:flex;align-items:center;justify-content:space-between}.region-name-dialog header strong{color:#ecd48f;letter-spacing:.08em}.region-name-dialog header button{width:36px;height:36px;border:1px solid #52636c;border-radius:7px;background:#101a20;color:#e8dec5;font-size:22px}.region-name-dialog label{display:grid;gap:5px;color:#84a8bd;font-size:8px;font-weight:900;letter-spacing:.1em}.region-name-dialog input{height:44px;padding:0 10px;border:1px solid #596d76;border-radius:7px;background:#0d171e;color:#fff0bd;font-size:15px}.region-name-dialog p{margin:0;color:#93a5ad;font-size:9px}.region-name-dialog>button{min-height:44px;border:1px solid #536771;border-radius:7px;background:#0e1a21;color:#e7d39a;font-weight:900}.region-name-dialog>button.primary{border-color:#9b7a34;background:#261f10}
+ @@media(max-width:760px){.region-definer{grid-template-rows:28px 58px minmax(0,1fr) 58px}.region-angle-label{display:none}.region-definer-header{grid-template-columns:32px minmax(0,1fr)}.region-filter-rail{padding:5px}.region-filter-rail button{height:44px}.region-command-rail{padding:5px}.region-command-rail button{height:44px;min-width:102px}.region-view-plane{width:calc(100% - 12px);height:calc(100% - 10px)}}
+</style>
+
+@code {
+ static readonly string[] FilterModes=["Regions","Terrain","Water","Roads","Settlements","Landmarks","Borders","Uploads"];
+ readonly HashSet<int> _selectedCells=[];
+ bool _filtersOpen;
+ bool _nameDialogOpen;
+ string _filter="Regions";
+ string _pendingRegionName="";
+ string _status="Select world tiles, then create a region.";
+ int _tileFootprint=1;
+ AtlasTile? _draggingAsset;
+ AtlasTile? _armedAsset;
+ ElementReference _dropSurface;
+ IJSObjectReference? _module;
+ [Parameter] public EventCallback OnStartMenu{get;set;}
+
+ string StatusText=>_armedAsset is not null&&Session.ActiveRegion is not null?$"{_armedAsset.Name} armed · tap the regional map to place":_status;
+ string SelectionGridStyle=>$"grid-template-columns:repeat({WorldSession.GridColumns},minmax(0,1fr));grid-template-rows:repeat({WorldSession.GridRows},minmax(0,1fr))";
+ string SelectionBoundsText
+ {
+  get
+  {
+   if(_selectedCells.Count==0)return "No world tiles selected.";
+   var cols=_selectedCells.Select(x=>x%WorldSession.GridColumns);var rows=_selectedCells.Select(x=>x/WorldSession.GridColumns);
+   return $"World crop: X {cols.Min()}–{cols.Max()} · Y {rows.Min()}–{rows.Max()} · {_selectedCells.Count} selected tile{(_selectedCells.Count==1?"":"s")}.";
+  }
+ }
+ IEnumerable<AtlasTile> AllAssets=>Session.UserAssetTiles.Concat(Session.AtlasTiles).GroupBy(x=>x.Id,StringComparer.Ordinal).Select(x=>x.First());
+ IReadOnlyList<AtlasTile> VisibleAssets=>AllAssets.Where(AssetMatchesFilter).Take(48).ToList();
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer.js?v=20260910-region-1");
+  await EnsureAssetsAsync();
+  await Session.LoadRegionsAsync();
+  await InvokeAsync(StateHasChanged);
+ }
+ async Task EnsureAssetsAsync()
+ {
+  if(Session.AtlasTiles.Any(x=>!x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase)))return;
+  try
+  {
+   var catalog=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json?v=20260909-worldbuilder-atlas-4");
+   if(catalog is null)return;
+   foreach(var tile in catalog)if(Session.AtlasTiles.All(x=>!string.Equals(x.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
+   Session.Notify();
+  }
+  catch{}
+ }
+ void OpenStartMenu()=>OnStartMenu.InvokeAsync();
+ void SelectFilter(string mode){_filter=FilterModes.Contains(mode,StringComparer.Ordinal)?mode:"Regions";_filtersOpen=false;_armedAsset=null;}
+ void ShowRegions()=>SelectFilter("Regions");
+ void SelectRegion(WorldRegion region){Session.SetActiveRegion(region.RegionId);_filter="Regions";_selectedCells.Clear();_status=$"{region.Name} loaded. World source is locked; regional overlays are editable.";}
+ void ToggleWorldCell(int cell){if(Session.ActiveRegion is not null)return;if(!_selectedCells.Add(cell))_selectedCells.Remove(cell);_status=$"{_selectedCells.Count} world tile{(_selectedCells.Count==1?"":"s")} selected.";}
+ void ClearSelection(){_selectedCells.Clear();_status="Selection cleared.";}
+ void OpenNameDialog(){if(_selectedCells.Count==0)return;_pendingRegionName="";_nameDialogOpen=true;}
+ void CloseNameDialog()=>_nameDialogOpen=false;
+ async Task CreateRegionAsync()
+ {
+  if(string.IsNullOrWhiteSpace(_pendingRegionName)||_selectedCells.Count==0)return;
+  try
+  {
+   var region=await Session.CreateRegionAsync(_pendingRegionName,_selectedCells);
+   _nameDialogOpen=false;_selectedCells.Clear();_filter="Terrain";_status=$"{region.Name} created from the selected world tiles. Add regional tiles on top.";
+  }
+  catch(Exception ex){_status=ex.Message;}
+ }
+ void BeginNewRegion(){_selectedCells.Clear();_armedAsset=null;_filter="Regions";Session.SetActiveRegion("");_status="Select world tiles, then create a region.";}
+ void CycleFootprint()=>_tileFootprint=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,_=>1};
+ void BeginAssetDrag(AtlasTile asset){_draggingAsset=asset;_armedAsset=asset;}
+ void EndAssetDrag()=>_draggingAsset=null;
+ void ArmAsset(AtlasTile asset){_armedAsset=asset;_status=$"{asset.Name} armed. Tap the regional map to place it.";}
+ async Task DropAssetAsync(DragEventArgs e)
+ {
+  var asset=_draggingAsset??_armedAsset;_draggingAsset=null;
+  if(asset is null)return;
+  await PlaceAssetAtAsync(asset,e.ClientX,e.ClientY);
+ }
+ async Task PlaceArmedAssetAsync(MouseEventArgs e)
+ {
+  if(_armedAsset is null||Session.ActiveRegion is null)return;
+  await PlaceAssetAtAsync(_armedAsset,e.ClientX,e.ClientY);
+ }
+ async Task PlaceAssetAtAsync(AtlasTile asset,double clientX,double clientY)
+ {
+  var region=Session.ActiveRegion;if(region is null||_module is null)return;
+  try
+  {
+   var point=await _module.InvokeAsync<double[]>("point",_dropSurface,clientX,clientY);
+   if(point.Length<2)return;
+   var placed=await Session.AddRegionOverlayTileAsync(region.RegionId,asset,point[0],point[1],_tileFootprint);
+   _status=placed?$"{asset.Name} placed on {region.Name}.":"That footprint crosses outside the selected world tiles.";
+  }
+  catch{_status="The regional placement point could not be resolved.";}
+ }
+ async Task RemoveOverlayAsync(RegionOverlayTile tile){var region=Session.ActiveRegion;if(region is null)return;await Session.RemoveRegionOverlayTileAsync(region.RegionId,tile.Id);_status=$"{tile.Name} removed from {region.Name}.";}
+ async Task SaveRegionsAsync(){try{await Session.SaveRegionsAsync();_status="Regions saved.";}catch(Exception ex){_status="Region save failed: "+ex.Message;}}
+
+ bool AssetMatchesFilter(AtlasTile asset)
+ {
+  if(_filter=="Uploads")return asset.Id.StartsWith("private:",StringComparison.Ordinal);
+  if(asset.Id.StartsWith("private:",StringComparison.Ordinal))return false;
+  var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
+  return _filter switch
+  {
+   "Terrain"=>text.Contains("terrain")||text.Contains("forest")||text.Contains("mountain")||text.Contains("hill")||text.Contains("plains")||text.Contains("grass")||text.Contains("desert")||text.Contains("snow")||text.Contains("ice"),
+   "Water"=>text.Contains("water")||text.Contains("ocean")||text.Contains("sea")||text.Contains("river")||text.Contains("lake")||text.Contains("coast")||text.Contains("shore")||text.Contains("swamp"),
+   "Roads"=>text.Contains("road")||text.Contains("path")||text.Contains("bridge")||text.Contains("rail")||text.Contains("track"),
+   "Settlements"=>text.Contains("city")||text.Contains("town")||text.Contains("village")||text.Contains("building")||text.Contains("farm")||text.Contains("house"),
+   "Landmarks"=>text.Contains("landmark")||text.Contains("ruin")||text.Contains("tower")||text.Contains("castle")||text.Contains("shrine")||text.Contains("monument"),
+   "Borders"=>text.Contains("border")||text.Contains("wall")||text.Contains("fence")||text.Contains("gate")||text.Contains("boundary"),
+   _=>false
+  };
+ }
+ static string WorldCropStyle(WorldRegion region)
+ {
+  var inv=CultureInfo.InvariantCulture;
+  var width=3000.0/region.Width;var height=3000.0/region.Height;
+  var left=-100.0*region.MinColumn/region.Width;var top=-100.0*region.MinRow/region.Height;
+  return $"width:{width.ToString("0.###",inv)}%;height:{height.ToString("0.###",inv)}%;left:{left.ToString("0.###",inv)}%;top:{top.ToString("0.###",inv)}%";
+ }
+ static string RegionGridStyle(WorldRegion region)
+ {
+  var inv=CultureInfo.InvariantCulture;
+  return $"grid-template-columns:repeat({region.Width},minmax(0,1fr));grid-template-rows:repeat({region.Height},minmax(0,1fr));--region-cell-x:{(100.0/region.Width).ToString("0.###",inv)}%;--region-cell-y:{(100.0/region.Height).ToString("0.###",inv)}%";
+ }
+ static string OverlayStyle(RegionOverlayTile tile,WorldRegion region)
+ {
+  var inv=CultureInfo.InvariantCulture;
+  return $"left:{(tile.X*100).ToString("0.###",inv)}%;top:{(tile.Y*100).ToString("0.###",inv)}%;width:{(tile.Footprint*100.0/region.Width).ToString("0.###",inv)}%;height:{(tile.Footprint*100.0/region.Height).ToString("0.###",inv)}%";
+ }
+ static string CropStyle(int sourceWidth,int sourceHeight,int cropX,int cropY,int cropWidth,int cropHeight)
+ {
+  if(sourceWidth<=0||sourceHeight<=0||cropWidth<=0||cropHeight<=0)return "width:100%;height:100%;object-fit:cover";
+  var inv=CultureInfo.InvariantCulture;
+  return $"width:{(sourceWidth*100.0/cropWidth).ToString("0.###",inv)}%;height:{(sourceHeight*100.0/cropHeight).ToString("0.###",inv)}%;left:{(-cropX*100.0/cropWidth).ToString("0.###",inv)}%;top:{(-cropY*100.0/cropHeight).ToString("0.###",inv)}%;max-width:none;max-height:none";
+ }
+ public async ValueTask DisposeAsync(){if(_module is not null)await _module.DisposeAsync();}
+}

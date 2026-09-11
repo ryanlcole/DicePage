@@ -17,8 +17,28 @@
   return r&&r.width>0&&r.height>0?[r.width/30,r.height/30]:[1,1];
  };
  const asInt=value=>Math.round(Number(value)||0);
+ const worldExtentCells=()=>{
+  const raw=document.querySelector('.site-ticker-root')?.dataset?.worldLimit;
+  if(raw==='unbounded')return null;
+  const parsed=Number(raw);
+  return Number.isFinite(parsed)&&parsed>=30?Math.round(parsed):300;
+ };
+ const clampAxis=value=>{
+  const next=asInt(value),extent=worldExtentCells();
+  if(extent===null)return next;
+  const maxOffset=Math.max(0,Math.floor((extent-30)/2));
+  return Math.max(-maxOffset,Math.min(maxOffset,next));
+ };
+ function normalizeExtent(){
+  const nextX=clampAxis(viewX),nextY=clampAxis(viewY);
+  if(nextX===viewX&&nextY===viewY)return;
+  viewX=nextX;viewY=nextY;
+  localStorage.setItem('rist.world.viewX',String(viewX));
+  localStorage.setItem('rist.world.viewY',String(viewY));
+ }
  function panPixels(){const [cw,ch]=gridCellSize();return {panX:viewX*cw,panY:viewY*ch};}
  function applyPan(){
+  normalizeExtent();
   const world=stage();if(!world)return;
   const panXPct=(viewX/30)*100,panYPct=(viewY/30)*100;
   const {panX,panY}=panPixels();
@@ -29,11 +49,11 @@
  }
  function publish(){
   const {panX,panY}=panPixels();
-  window.dispatchEvent(new CustomEvent('rist:viewer-pan',{detail:{x:viewX,y:viewY,panX,panY}}));
+  window.dispatchEvent(new CustomEvent('rist:viewer-pan',{detail:{x:viewX,y:viewY,panX,panY,extent:worldExtentCells()}}));
  }
  function setPosition(x,y,force=false){
   if(!force&&isLocked())return getState();
-  viewX=asInt(x);viewY=asInt(y);
+  viewX=clampAxis(x);viewY=clampAxis(y);
   localStorage.setItem('rist.world.viewX',String(viewX));
   localStorage.setItem('rist.world.viewY',String(viewY));
   applyPan();publish();
@@ -46,7 +66,7 @@
   const nextY=snapToGrid?Math.round((Number(y)||0)/Math.max(ch,1)):(Number(y)||0)/Math.max(ch,1);
   return setPosition(nextX,nextY,force);
  }
- function getState(){const {panX,panY}=panPixels();return {x:viewX,y:viewY,panX,panY,unlocked:isUnlocked()};}
+ function getState(){normalizeExtent();const {panX,panY}=panPixels();return {x:viewX,y:viewY,panX,panY,unlocked:isUnlocked(),extent:worldExtentCells()};}
  window.ristViewerNavigation={
   get:getState,
   setPosition,
@@ -65,8 +85,10 @@
  }
  function resume(){
   pointer=null;
-  viewX=asInt(localStorage.getItem('rist.world.viewX'));
-  viewY=asInt(localStorage.getItem('rist.world.viewY'));
+  viewX=clampAxis(localStorage.getItem('rist.world.viewX'));
+  viewY=clampAxis(localStorage.getItem('rist.world.viewY'));
+  localStorage.setItem('rist.world.viewX',String(viewX));
+  localStorage.setItem('rist.world.viewY',String(viewY));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{syncMode();applyPan();publish();}));
  }
  function suspend(){pointer=null;}
@@ -81,14 +103,14 @@
   const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;
   if(Math.abs(dx)+Math.abs(dy)<.5)return;
   const [cw,ch]=gridCellSize();
-  viewX=pointer.startX+Math.round(dx/Math.max(cw,1));
-  viewY=pointer.startY+Math.round(dy/Math.max(ch,1));
+  viewX=clampAxis(pointer.startX+Math.round(dx/Math.max(cw,1)));
+  viewY=clampAxis(pointer.startY+Math.round(dy/Math.max(ch,1)));
   applyPan();e.preventDefault();
  }
  function release(e){
   if(pointer?.id!==e.pointerId)return;
   if(isLocked()){pointer=null;return;}
-  pointer=null;
+  pointer=null;normalizeExtent();
   localStorage.setItem('rist.world.viewX',String(viewX));
   localStorage.setItem('rist.world.viewY',String(viewY));
   publish();

@@ -2,15 +2,23 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Canonical public-alpha world dimensions. One logical cell is one square kilometre.
-    // Ocean 071 is the implicit terrain layer; authored terrain remains sparse.
-    // A 30 x 30 world therefore exposes 900 addressable one-kilometre cells without
-    // materializing 900 DOM nodes or save records for the ocean itself.
+    // Canonical viewer/cube dimensions. The viewer always exposes a 30 x 30 grid of
+    // one-kilometre cells. Moving the viewer changes which part of the world is seen;
+    // it never changes the size of a world cell.
     public const int DefaultCubeWidthKm = 30;
     public const int DefaultCubeHeightKm = 30;
     public const int DefaultCubeCellCount = DefaultCubeWidthKm * DefaultCubeHeightKm;
     public const int DefaultCellWidthKm = 1;
     public const int DefaultCellHeightKm = 1;
+
+    // Ordinary authored worlds are limited to 300 x 300 world tiles (10 x 10 viewer
+    // cubes). Geonaph is the explicit exception and is unbounded; that capability is
+    // owned by WorldSession.WorldIdentity rather than by the renderer.
+    public const int DefaultWorldWidthKm = 300;
+    public const int DefaultWorldHeightKm = 300;
+    public const int DefaultWorldCubesAcross = DefaultWorldWidthKm / DefaultCubeWidthKm;
+    public const int DefaultWorldCubesDown = DefaultWorldHeightKm / DefaultCubeHeightKm;
+    public const long DefaultWorldTileCapacity = (long)DefaultWorldWidthKm * DefaultWorldHeightKm;
 
     // Compatibility aliases for older callers. Values are now metric; new code must use Km names.
     public const int DefaultCubeWidthMiles = DefaultCubeWidthKm;
