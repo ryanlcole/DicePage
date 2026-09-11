@@ -1,5 +1,6 @@
 @using System.Text.Json
 @inject DiscordAuthClient Auth
+@inject WorldSession Session
 @inject NavigationManager Navigation
 
 @if (!_ready)
@@ -30,6 +31,6 @@ else
 </style>
 @code {
  bool _ready; bool _canEnter; bool _authStarted; bool _termsRequired; bool _termsChecked; bool _savingTerms; string _termsError = "";
- protected override async Task OnAfterRenderAsync(bool firstRender){if(!firstRender||_authStarted)return;_authStarted=true;var profile=await Auth.InitializeAsync();_canEnter=profile is not null;_termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;_ready=true;await InvokeAsync(StateHasChanged);if(!_canEnter)Navigation.NavigateTo("/Play/index.html",forceLoad:true);}
+ protected override async Task OnAfterRenderAsync(bool firstRender){if(!firstRender||_authStarted)return;_authStarted=true;var profile=await Auth.InitializeAsync();Session.AdoptAuthentication(profile);_canEnter=profile is not null;_termsRequired=_canEnter&&Auth.Account is not null&&Auth.Account.TermsAcceptedAtUtc==DateTimeOffset.MinValue;_ready=true;await InvokeAsync(StateHasChanged);if(!_canEnter)Navigation.NavigateTo("/Play/index.html",forceLoad:true);}
  async Task AcceptTermsAsync(){_termsError="";if(!_termsChecked){_termsError="You must agree before continuing.";return;}if(Auth.Account is null){_termsError="Your account is not ready yet. Please reload and try again.";return;}_savingTerms=true;try{var updated=Auth.Account with{TermsAcceptedAtUtc=DateTimeOffset.UtcNow,TermsVersion="2026-08-30"};await Auth.UploadTextAsync("account/profile.json",JsonSerializer.Serialize(updated),"application/json");_termsRequired=false;}catch{_termsError="Your agreement could not be saved. Please try again.";}finally{_savingTerms=false;await InvokeAsync(StateHasChanged);}}
 }
