@@ -10,9 +10,10 @@ namespace RistWorld;
 public readonly record struct TruthConservationMetrics(
     long Comparisons,
     long SemanticNoOps,
-    long WritesAvoided,
+    long PersistenceWritesAvoided,
     long BytesAvoided,
-    long WritesCommitted);
+    long PersistenceWritesCommitted,
+    long PureStateCommits);
 
 public sealed partial class WorldSession
 {
@@ -24,13 +25,15 @@ public sealed partial class WorldSession
     long _truthWritesAvoided;
     long _truthBytesAvoided;
     long _truthWritesCommitted;
+    long _truthPureStateCommits;
 
     public TruthConservationMetrics TruthConservation => new(
         _truthComparisons,
         _truthSemanticNoOps,
         _truthWritesAvoided,
         _truthBytesAvoided,
-        _truthWritesCommitted);
+        _truthWritesCommitted,
+        _truthPureStateCommits);
 
     /// <summary>
     /// Content identity for an authoritative serialized representation. SHA-256 is used so
@@ -52,7 +55,7 @@ public sealed partial class WorldSession
 
     public void RecordPureStateCommit(int count = 1)
     {
-        if (count > 0) _truthWritesCommitted += count;
+        if (count > 0) _truthPureStateCommits += count;
     }
 
     string PersistedTruthKey(string scope, string identity) => $"{scope}\u001f{identity}";
