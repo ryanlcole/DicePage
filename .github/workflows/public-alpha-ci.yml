@@ -60,7 +60,7 @@ jobs:
           test -f apps/rist-world/Components/WorkspaceSurface.razor
           test -f apps/rist-world/Components/TaskWorkspaceRouter.razor
           test -f apps/rist-world/Components/WorldBuilderStudio.razor
-          test -f apps/rist-world/Components/ScaleViewerWorkspace.razor
+          test -f apps/rist-world/Components/RegionDefinerWorkspace.razor
           test -f apps/rist-world/Components/WorldManagementWorkspace.razor
           test -f apps/rist-world/Components/FeedbackWorkspace.razor
           test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
@@ -79,7 +79,7 @@ jobs:
           grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'TaskWorkspaceRouter Mode=' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'WorldBuilderStudio' apps/rist-world/Components/TaskWorkspaceRouter.razor
-          grep -q 'ScaleViewerWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'RegionDefinerWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
           grep -q 'WorldManagementWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
           grep -q 'FeedbackWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
           grep -q 'grid-template-columns:5% 90% 5%' apps/rist-world/Components/WorldBuilderStudio.razor
