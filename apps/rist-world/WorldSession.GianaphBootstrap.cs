@@ -34,18 +34,11 @@ public sealed partial class WorldSession
         GridCalibrationZoom = 1;
         ViewZoom = 1;
 
-        if (_originMapApplied) return;
-
-        // Register the current production chunk before seeding. This keeps the
-        // authored PNG stack authoritative while the general Pangea catalog
-        // continues to expose the reusable source sprites.
+        // The origin invariant can be established before the production sprite
+        // catalog is registered. Therefore _originMapApplied is not sufficient proof
+        // that the current v004 chunk is present. Registration + seeding are made
+        // idempotent and are safe to repeat whenever Geonaph is opened.
         RegisterGeonaphChunkCatalogV004();
-
-        PlacedTiles.Clear();
-        Pieces.Clear();
-        Rolls.Clear();
-        Gems.Clear();
-        StagedAssets.Clear();
         SeedRegisteredGeonaphChunk();
 
         _originMapApplied = true;
@@ -165,6 +158,22 @@ public sealed partial class WorldSession
 
         foreach (var tile in registeredLayers)
         {
+            var semanticKey = GeonaphChunkSemanticKey(tile.Id);
+            var version = GeonaphChunkVersion(tile.Id);
+            var existing = PlacedTiles
+                .Where(placed => placed.Id.StartsWith(chunkPrefix, StringComparison.Ordinal)
+                    && string.Equals(GeonaphChunkSemanticKey(placed.Id), semanticKey, StringComparison.Ordinal))
+                .OrderByDescending(placed => GeonaphChunkVersion(placed.Id))
+                .FirstOrDefault();
+
+            // Never duplicate a current/newer registered chunk. If an older version
+            // exists, retire only that semantic layer and replace it with the latest.
+            if (existing is not null && GeonaphChunkVersion(existing.Id) >= version)
+                continue;
+            if (existing is not null)
+                PlacedTiles.RemoveAll(placed => placed.Id.StartsWith(chunkPrefix, StringComparison.Ordinal)
+                    && string.Equals(GeonaphChunkSemanticKey(placed.Id), semanticKey, StringComparison.Ordinal));
+
             var footprint = Math.Max(1, tile.DefaultFootprint);
             PlacedTiles.Add(new TileItem(
                 tile.Id,
