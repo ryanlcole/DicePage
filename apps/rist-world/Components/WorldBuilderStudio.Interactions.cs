@@ -150,7 +150,6 @@ public partial class WorldBuilderStudio
     {
         if(index<0||index>=Session.PlacedTiles.Count)return _selectedPlacedTileIndices.Order().ToArray();
         var tile=Session.PlacedTiles[index];var cell=await ViewerCell(clientX,clientY,FootprintFor(tile));if(cell is null)return _selectedPlacedTileIndices.Order().ToArray();
-        PushWorldBuilderUndo();
         var moved=tile with
         {
             X=cell.Value.Column/(double)WorldSession.GridColumns,
@@ -164,7 +163,11 @@ public partial class WorldBuilderStudio
         else
             moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
 
-        Session.PlacedTiles[index]=moved;ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
+        ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);
+        if(Session.IsPureStateNoOp(tile,moved))return _selectedPlacedTileIndices.Order().ToArray();
+
+        PushWorldBuilderUndo();
+        Session.PlacedTiles[index]=moved;Session.RecordPureStateCommit();Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
     }
 
     [JSInvokable] public Task<int[]> MovePlacedTileFromJs(int index,double clientX,double clientY)=>MovePlacedTileCore(index,clientX,clientY,false,false,"normal");
@@ -174,7 +177,24 @@ public partial class WorldBuilderStudio
         MovePlacedTileCore(index,clientX,clientY,upperLayer,upperTier,treatment);
 
     [JSInvokable] public async Task<int[]> RotateSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];Session.PlacedTiles[index]=tile with {RotationQuarterTurns=(tile.RotationQuarterTurns+1)%4};}Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();}
-    [JSInvokable] public async Task<int[]> ResizeSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];var resized=tile with {PlacementZoom=1.0/footprint};resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};Session.PlacedTiles[index]=resized;}Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();}
+    [JSInvokable]
+    public async Task<int[]> ResizeSelectedTilesFromJs()
+    {
+        if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();
+        var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);
+        var changes=new List<(int Index,TileItem Tile)>();
+        foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count))
+        {
+            var tile=Session.PlacedTiles[index];
+            var resized=tile with {PlacementZoom=1.0/footprint};
+            resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};
+            if(!Session.IsPureStateNoOp(tile,resized))changes.Add((index,resized));
+        }
+        if(changes.Count==0)return _selectedPlacedTileIndices.Order().ToArray();
+        PushWorldBuilderUndo();
+        foreach(var change in changes)Session.PlacedTiles[change.Index]=change.Tile;
+        Session.RecordPureStateCommit(changes.Count);Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
+    }
     [JSInvokable] public async Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals(){var visuals=Session.PlacedTiles.Select((tile,index)=>new WorldBuilderTileVisual(index,tile.RotationQuarterTurns,tile.TierIndex,tile.LayerOffset)).ToArray();try{await JS.InvokeVoidAsync("ristDepth.set",visuals);}catch{}return visuals;}
     [JSInvokable] public Task<WorldBuilderCommandState> GetWorldBuilderCommandState()=>Task.FromResult(new WorldBuilderCommandState("Single",_worldBuilderUndo.Count>0,_selectedPlacedTileIndices.Count));
 }

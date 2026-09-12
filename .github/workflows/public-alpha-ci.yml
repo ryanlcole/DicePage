@@ -54,50 +54,56 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          set -x
           test -f apps/rist-world/Components/PublicAlphaShell.razor
           test -f apps/rist-world/Components/PublicAlphaShell.razor.css
           test -f apps/rist-world/Components/WorkspaceSurface.razor
           test -f apps/rist-world/Components/TaskWorkspaceRouter.razor
           test -f apps/rist-world/Components/WorldBuilderStudio.razor
-          test -f apps/rist-world/Components/ScaleViewerWorkspace.razor
+          test -f apps/rist-world/Components/RegionDefinerWorkspace.razor
           test -f apps/rist-world/Components/WorldManagementWorkspace.razor
           test -f apps/rist-world/Components/FeedbackWorkspace.razor
           test -f apps/rist-world/wwwroot/css/worldbuilding-p0-authority.css
           test -f apps/rist-world/wwwroot/world-coordinate-authority.js
           test -f apps/rist-world/wwwroot/shaelvien-navigation-authority.js
           test -f apps/rist-world/wwwroot/css/shaelvien-navigation-authority.css
-          grep -q 'BUILD YOUR WORLD' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ZOOM BETWEEN SCALES' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'PLAY YOUR STORY' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'SAVE · SHARE · RETURN' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'A LIVING WORLD AWAITS' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'BUILD THE WORLD' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ENTER SHAELVIEN' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'MORE THAN A GAME. A PLACE TO BELONG.' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'FEEDBACK' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'WORLDBUILDER' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'GAMEMASTER' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ASSET DESIGNER' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'RULEBOOKS' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'TaskWorkspaceRouter Mode=' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'WorldBuilderStudio' apps/rist-world/Components/TaskWorkspaceRouter.razor
-          grep -q 'ScaleViewerWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
+          grep -q 'RegionDefinerWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
           grep -q 'WorldManagementWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
           grep -q 'FeedbackWorkspace' apps/rist-world/Components/TaskWorkspaceRouter.razor
-          grep -q 'grid-template-columns:5% 90% 5%' apps/rist-world/Components/WorldBuilderStudio.razor
+          grep -q 'grid-template-columns:26px minmax(0,1fr) 26px' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-home' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-profile' apps/rist-world/Components/WorldBuilderStudio.razor
-          grep -q 'Tiles","Cartography","Lightboard","Image","Draw' apps/rist-world/Components/WorldBuilderStudio.razor
+          grep -q '"All","Uploads","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-viewer-grid' apps/rist-world/Components/WorldBuilderStudio.razor
-          grep -q 'studio-tile-slider' apps/rist-world/Components/WorldBuilderStudio.razor
+          grep -q 'studio-top-slider' apps/rist-world/Components/WorldBuilderStudio.razor
+          grep -q 'studio-command-slider' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'world-stage>.grid{display:none' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'ShareMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
           grep -q 'DownloadMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'Measureficts' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'SetMeasurefict' apps/rist-world/WorldSession.Measurements.cs
+          grep -q 'MeasurementKind' apps/rist-world/WorldSession.Persistence.cs
           grep -q 'relic.gamemaster@gmail.com' apps/rist-world/Components/FeedbackWorkspace.razor
           grep -q 'ws-world' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-campaign' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-assets' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-roleplay' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'DefaultCubeWidthMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
-          grep -q 'DefaultCubeHeightMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
-          grep -q 'DefaultCubeCellCount = DefaultCubeWidthMiles \* DefaultCubeHeightMiles' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeWidthCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeHeightCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeCellCount = DefaultCubeWidthCells \* DefaultCubeHeightCells' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeWidthMiles = DefaultCubeWidthCells' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultTerrainTilesetName = "Ocean 071"' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
           grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs

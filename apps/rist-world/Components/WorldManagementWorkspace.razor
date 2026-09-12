@@ -4,7 +4,7 @@
  <header class="task-workspace-hero">
   <p class="task-kicker">SHAELVIEN WORLD MANAGEMENT</p>
   <h2>Save. Share. Return.</h2>
-  <p>Your world persists independently from the viewer. Save locally, sync privately, share a portable RIST map, or export a recovery copy.</p>
+  <p>Your world persists independently from the viewer. Save locally, sync privately, define its measurement language, share a portable RIST map, or export a recovery copy.</p>
  </header>
 
  <div class="task-action-grid">
@@ -14,6 +14,9 @@
   <button type="button" @onclick="SyncPrivateAsync" disabled="@(Busy || !Session.IsLoggedIn)">
    <span aria-hidden="true">☁</span><strong>Sync Private</strong><small>@(Session.IsLoggedIn?"Sync your private checkpoint to AWS.":"Sign in to use private cloud storage.")</small>
   </button>
+  <button type="button" class="@(MeasurefictsOpen?"active":"")" @onclick="ToggleMeasureficts" disabled="@Busy" aria-expanded="@MeasurefictsOpen">
+   <span aria-hidden="true">↔</span><strong>Measureficts</strong><small>Create the fictional measurement system used by this world.</small>
+  </button>
   <button type="button" @onclick="ShareAsync" disabled="@Busy">
    <span aria-hidden="true">↗</span><strong>Share World</strong><small>Use the device share sheet when available.</small>
   </button>
@@ -22,21 +25,73 @@
   </button>
  </div>
 
+ @if(MeasurefictsOpen)
+ {
+  <section class="measurefict-editor" aria-label="Create a fictional measurement system">
+   <header><div><span>MEASUREFICT</span><strong>Define how this world speaks distance.</strong></div><button type="button" @onclick="ToggleMeasureficts" aria-label="Close Measureficts">×</button></header>
+   <p>Coordinates stay in canonical cells. This only defines their measurement representation—for example, <b>1 cell = 1 Giant's Leap</b>.</p>
+   <div class="measurefict-fields">
+    <label><span>Singular</span><input maxlength="48" @bind="MeasurefictSingular" placeholder="Giant's Leap" /></label>
+    <label><span>Plural</span><input maxlength="48" @bind="MeasurefictPlural" placeholder="Giant's Leaps" /></label>
+    <label><span>Abbreviation <em>optional</em></span><input maxlength="12" @bind="MeasurefictAbbreviation" placeholder="GL" /></label>
+    <label><span>Units per cell</span><input type="number" min="0.000001" max="1000000000" step="any" @bind="MeasurefictScale" /></label>
+   </div>
+   <div class="measurefict-example">Preview: 20 cells = @MeasurefictPreview</div>
+   <button type="button" class="measurefict-save" @onclick="SaveMeasurefictAsync" disabled="@Busy">Save Measurefict</button>
+  </section>
+ }
+
  <section class="task-status-card" aria-live="polite">
   <span>WORLD</span><strong>@Session.MapName</strong>
   <span>POSITION</span><strong>Plane @Session.PlaneIndex · Tier @Session.TierIndex · Layer @Session.LayerOffset</strong>
-  <span>GRID</span><strong>@Session.GridStyle · 30 × 30</strong>
+  <span>GRID</span><strong>@Session.GridStyle · @WorldSession.DefaultCubeWidthCells × @WorldSession.DefaultCubeHeightCells cells</strong>
+  <span>MEASURE</span><strong>@Session.MeasurementCellSummary</strong>
   <span>STATUS</span><strong>@Status</strong>
  </section>
 </section>
 
 <style>
- .task-workspace{box-sizing:border-box;height:100%;min-height:0;padding:clamp(18px,4vw,46px);overflow:auto;background:radial-gradient(circle at 12% 0,#12304a88,transparent 30%),linear-gradient(180deg,#07111a,#05090d);color:#e7e2d8;font-family:Inter,system-ui,sans-serif}.task-workspace-hero{max-width:900px;margin:0 auto 24px;text-align:center}.task-kicker{margin:0 0 8px;color:#8ea7b6;font-size:10px;font-weight:900;letter-spacing:.22em}.task-workspace-hero h2{margin:0;color:#e7c875;font:600 clamp(32px,5vw,64px)/1 Georgia,serif;letter-spacing:.04em}.task-workspace-hero>p:last-child{max-width:720px;margin:14px auto 0;color:#afbec6;line-height:1.55}.task-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1100px;margin:0 auto}.task-action-grid button{min-height:180px;padding:20px;border:1px solid #526a79;border-radius:10px;background:linear-gradient(180deg,#101c25,#091118);color:#e9e4d8;text-align:left;display:flex;flex-direction:column;gap:7px;box-shadow:0 14px 28px #0006;touch-action:manipulation}.task-action-grid button>span{color:#e0bb64;font-size:28px}.task-action-grid button strong{margin-top:auto;color:#f0d590;font:600 20px Georgia,serif}.task-action-grid button small{color:#97aab5;line-height:1.4}.task-action-grid button:disabled{opacity:.48}.task-status-card{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;max-width:760px;margin:18px auto 0;padding:16px 18px;border:1px solid #725d30;border-radius:9px;background:#09131bcc}.task-status-card span{color:#7f96a3;font-size:9px;font-weight:900;letter-spacing:.12em}.task-status-card strong{color:#e5d6ad;font-size:11px}@@media(max-width:760px){.task-workspace{padding:14px}.task-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.task-action-grid button{min-height:140px;padding:14px}.task-action-grid button strong{font-size:16px}}@@media(max-width:420px){.task-action-grid{grid-template-columns:1fr 1fr;gap:8px}.task-action-grid button{min-height:126px}.task-status-card{grid-template-columns:1fr;gap:4px}.task-status-card strong{margin-bottom:7px}}
+ .task-workspace{box-sizing:border-box;height:100%;min-height:0;padding:clamp(18px,4vw,46px);overflow:auto;background:radial-gradient(circle at 12% 0,#12304a88,transparent 30%),linear-gradient(180deg,#07111a,#05090d);color:#e7e2d8;font-family:Inter,system-ui,sans-serif}.task-workspace-hero{max-width:900px;margin:0 auto 24px;text-align:center}.task-kicker{margin:0 0 8px;color:#8ea7b6;font-size:10px;font-weight:900;letter-spacing:.22em}.task-workspace-hero h2{margin:0;color:#e7c875;font:600 clamp(32px,5vw,64px)/1 Georgia,serif;letter-spacing:.04em}.task-workspace-hero>p:last-child{max-width:720px;margin:14px auto 0;color:#afbec6;line-height:1.55}.task-action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;max-width:1100px;margin:0 auto}.task-action-grid button{min-height:170px;padding:20px;border:1px solid #526a79;border-radius:10px;background:linear-gradient(180deg,#101c25,#091118);color:#e9e4d8;text-align:left;display:flex;flex-direction:column;gap:7px;box-shadow:0 14px 28px #0006;touch-action:manipulation}.task-action-grid button>span{color:#e0bb64;font-size:28px}.task-action-grid button strong{margin-top:auto;color:#f0d590;font:600 20px Georgia,serif}.task-action-grid button small{color:#97aab5;line-height:1.4}.task-action-grid button:disabled{opacity:.48}.task-action-grid button.active{border-color:#d5ad54;background:linear-gradient(180deg,#202115,#11140d)}.measurefict-editor{box-sizing:border-box;max-width:900px;margin:18px auto 0;padding:18px;border:1px solid #846c39;border-radius:10px;background:#08131bcc;box-shadow:0 16px 34px #0008}.measurefict-editor header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.measurefict-editor header div{display:grid;gap:4px}.measurefict-editor header span{color:#8fa5b0;font-size:9px;font-weight:900;letter-spacing:.16em}.measurefict-editor header strong{color:#ecd28e;font:600 22px Georgia,serif}.measurefict-editor header>button{width:36px;height:36px;border:1px solid #536771;border-radius:8px;background:#0d171e;color:#e6d49f;font-size:20px}.measurefict-editor>p{margin:12px 0;color:#aab8bf;font-size:12px;line-height:1.5}.measurefict-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.measurefict-fields label{display:grid;gap:5px}.measurefict-fields label>span{color:#91a5af;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.measurefict-fields em{font-weight:600;text-transform:none;letter-spacing:0}.measurefict-fields input{box-sizing:border-box;width:100%;min-height:42px;padding:8px 10px;border:1px solid #4c626d;border-radius:7px;background:#071017;color:#f1e5c5;font:700 12px system-ui}.measurefict-example{margin-top:12px;padding:10px 12px;border:1px solid #344b57;border-radius:7px;background:#061018;color:#b9c8cf;font-size:11px}.measurefict-save{margin-top:12px;min-height:42px;padding:8px 16px;border:1px solid #9a7934;border-radius:8px;background:#1d1b0f;color:#f1d68f;font-weight:900}.task-status-card{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;max-width:760px;margin:18px auto 0;padding:16px 18px;border:1px solid #725d30;border-radius:9px;background:#09131bcc}.task-status-card span{color:#7f96a3;font-size:9px;font-weight:900;letter-spacing:.12em}.task-status-card strong{color:#e5d6ad;font-size:11px}@@media(max-width:760px){.task-workspace{padding:14px}.task-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.task-action-grid button{min-height:140px;padding:14px}.task-action-grid button strong{font-size:16px}.measurefict-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}@@media(max-width:420px){.task-action-grid{grid-template-columns:1fr 1fr;gap:8px}.task-action-grid button{min-height:126px}.measurefict-fields{grid-template-columns:1fr}.task-status-card{grid-template-columns:1fr;gap:4px}.task-status-card strong{margin-bottom:7px}}
 </style>
 
 @code {
  bool Busy;
+ bool MeasurefictsOpen;
  string Status="Ready";
+ string MeasurefictSingular="";
+ string MeasurefictPlural="";
+ string MeasurefictAbbreviation="";
+ double MeasurefictScale=1d;
+ string MeasurefictPreview
+ {
+  get
+  {
+   var amount=20d*Math.Max(.000001d,MeasurefictScale);
+   var unit=!string.IsNullOrWhiteSpace(MeasurefictAbbreviation)?MeasurefictAbbreviation.Trim():Math.Abs(amount-1d)<.0000001d?MeasurefictSingular.Trim():MeasurefictPlural.Trim();
+   if(string.IsNullOrWhiteSpace(unit))unit=MeasurefictSingular.Trim();
+   if(string.IsNullOrWhiteSpace(unit))unit="custom units";
+   return $"{WorldSession.FormatMeasurementNumber(amount)} {unit}";
+  }
+ }
+ void ToggleMeasureficts()
+ {
+  MeasurefictsOpen=!MeasurefictsOpen;
+  if(!MeasurefictsOpen)return;
+  MeasurefictSingular=Session.IsMeasurefict?Session.MeasurefictSingular:"";
+  MeasurefictPlural=Session.IsMeasurefict?Session.MeasurefictPlural:"";
+  MeasurefictAbbreviation=Session.IsMeasurefict?Session.MeasurefictAbbreviation:"";
+  MeasurefictScale=Session.IsMeasurefict?Session.GridDistance:1d;
+ }
+ async Task SaveMeasurefictAsync()
+ {
+  if(!Session.SetMeasurefict(MeasurefictSingular,MeasurefictPlural,MeasurefictAbbreviation,MeasurefictScale))
+  {
+   Status=Session.EncounterActive?"Measurement cannot change during an active encounter.":"Give the Measurefict a singular name.";
+   return;
+  }
+  MeasurefictsOpen=false;
+  await RunAsync(Session.SaveAsync,"Measurefict saved with this world.");
+ }
  async Task RunAsync(Func<Task> action,string success)
  {
   if(Busy)return;Busy=true;Status="Working…";

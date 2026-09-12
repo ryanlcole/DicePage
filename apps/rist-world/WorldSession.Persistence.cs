@@ -7,7 +7,6 @@ public sealed partial class WorldSession
  const string OceanResetMarkerKey="rist.world.reset.2026-08-28-topology-v2";
  static readonly JsonSerializerOptions MapWriteOptions=new(){WriteIndented=true};
  static readonly JsonSerializerOptions MapReadOptions=new(){PropertyNameCaseInsensitive=true};
- string _lastPrivateSnapshot="";
 
  object SavePayload()
  {
@@ -17,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=6,
+   Version=7,
    WorldId,
    WorldName=WorldDisplayName,
    Reset=OceanResetVersion,
@@ -26,6 +25,10 @@ public sealed partial class WorldSession
    Layer,
    GridStyle,
    DistanceUnit,
+   MeasurementKind,
+   MeasurefictSingular,
+   MeasurefictPlural,
+   MeasurefictAbbreviation,
    GridDiameter,
    GridDistance,
    GridCalibrationZoom,
@@ -43,7 +46,22 @@ public sealed partial class WorldSession
   };
  }
  public string ExportMapJson()=>JsonSerializer.Serialize(SavePayload(),MapWriteOptions);
- public async Task SaveAsync(){if(!HasActiveWorld)return;await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());}
+
+ async Task<bool> PersistLocalWorldIfChangedAsync(string json,string? fingerprint=null)
+ {
+  if(!HasActiveWorld)return false;
+  fingerprint??=ComputeTruthFingerprint(json);
+  if(IsKnownPersistedTruth("local-world",WorldId,fingerprint))return false;
+  await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,json);
+  RememberPersistedText("local-world",WorldId,json,fingerprint);
+  return true;
+ }
+
+ public async Task SaveAsync()
+ {
+  if(!HasActiveWorld)return;
+  await PersistLocalWorldIfChangedAsync(ExportMapJson());
+ }
  public async Task SaveAndToggleExportAsync(){if(!HasActiveWorld)return;await SaveAsync();SaveMenuOpen=!SaveMenuOpen;LoadMenuOpen=false;Notify();}
  public async Task SaveRistAsync()
  {
@@ -58,9 +76,10 @@ public sealed partial class WorldSession
   {
    await EnsureWorldRelationshipAsync();
    var json=snapshot??ExportMapJson();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,json);
+   var fingerprint=ComputeTruthFingerprint(json);
+   await PersistLocalWorldIfChangedAsync(json,fingerprint);
    await auth.UploadTextAsync(WorldCheckpointKey,json,"application/json");
-   _lastPrivateSnapshot=json;
+   RememberPersistedText("private-world",WorldId,json,fingerprint);
    if(showSuccess)PrivateStorageStatus=$"{WorldDisplayName} progress synced to your private AWS storage.";
   }
   catch(Exception ex){PrivateStorageStatus="Private save failed: "+ex.Message;}
@@ -99,19 +118,20 @@ public sealed partial class WorldSession
    var json=JsonSerializer.Serialize(saved);
    LoadMapJson(json);
    var geonaphAuthorityNormalized=EnsureGeonaphOriginLayerInvariant();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   var currentSnapshot=ExportMapJson();
+   await PersistLocalWorldIfChangedAsync(currentSnapshot);
    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
-   _lastPrivateSnapshot=ExportMapJson();
 
    if(migratedLegacy||geonaphAuthorityNormalized)
    {
-    await SavePrivateCheckpointAsync(showSuccess:false,snapshot:_lastPrivateSnapshot);
+    await SavePrivateCheckpointAsync(showSuccess:false,snapshot:currentSnapshot);
     PrivateStorageStatus=migratedLegacy
       ?$"{WorldDisplayName} migrated to its World ID storage and was restored from private AWS storage."
       :$"{WorldDisplayName} origin authority was normalized and restored from private AWS storage.";
    }
    else
    {
+    RememberPersistedText("private-world",WorldId,currentSnapshot,countWrite:false);
     PrivateStorageStatus=$"{WorldDisplayName} progress restored from private AWS storage.";
    }
   }
@@ -122,7 +142,7 @@ public sealed partial class WorldSession
  {
   if(!IsLoggedIn||!HasActiveWorld)return;
   var json=ExportMapJson();
-  if(string.Equals(json,_lastPrivateSnapshot,StringComparison.Ordinal))return;
+  if(IsKnownPersistedText("private-world",WorldId,json,out _))return;
   await SavePrivateCheckpointAsync(showSuccess:false,snapshot:json);
  }
  public async Task DownloadMapAsync(){if(!HasActiveWorld)return;var json=ExportMapJson();await js.InvokeVoidAsync("ristWorld.downloadText",$"rist-map-{WorldId}-{DateTime.UtcNow:yyyyMMdd-HHmm}.ristmap",json,"application/json");}
@@ -143,7 +163,7 @@ public sealed partial class WorldSession
      {
       LoadMapJson(legacyJson);
       EnsureGeonaphOriginLayerInvariant();
-      await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+      await PersistLocalWorldIfChangedAsync(ExportMapJson());
       await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
       return true;
      }
@@ -151,7 +171,7 @@ public sealed partial class WorldSession
    }
 
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await PersistLocalWorldIfChangedAsync(ExportMapJson());
    await js.InvokeVoidAsync("localStorage.setItem",WorldResetMarkerKey,"1");
    return true;
   }
@@ -160,7 +180,7 @@ public sealed partial class WorldSession
   if(string.IsNullOrWhiteSpace(json))
   {
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await PersistLocalWorldIfChangedAsync(ExportMapJson());
    return true;
   }
 
@@ -168,13 +188,15 @@ public sealed partial class WorldSession
   if(!OwnsSavedWorld(saved))
   {
    ResetToCanonicalOrigin();
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await PersistLocalWorldIfChangedAsync(ExportMapJson());
    return true;
   }
 
   LoadMapJson(json);
   if(EnsureGeonaphOriginLayerInvariant())
-   await js.InvokeVoidAsync("localStorage.setItem",WorldLocalSaveKey,ExportMapJson());
+   await PersistLocalWorldIfChangedAsync(ExportMapJson());
+  else
+   RememberPersistedText("local-world",WorldId,ExportMapJson(),countWrite:false);
   return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
@@ -185,9 +207,8 @@ public sealed partial class WorldSession
   RestoreOperatingMode("mmo");
   Layer="WORLD";
   GridStyle="square";
-  DistanceUnit="km";
+  RestorePhysicalMeasurement("km",1);
   GridDiameter=48;
-  GridDistance=1;
   GridCalibrationZoom=1;
   ViewZoom=1;
   Pieces=[];
@@ -205,9 +226,16 @@ public sealed partial class WorldSession
   if(string.IsNullOrWhiteSpace(_worldDisplayName)&&!string.IsNullOrWhiteSpace(save.WorldName)){_worldDisplayName=save.WorldName.Trim();MapName=_worldDisplayName;}
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
-  var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
-  DistanceUnit=metric.Unit;
-  GridDiameter=save.GridDiameter;GridDistance=metric.Distance;GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
+  if(string.Equals(save.MeasurementKind,"measurefict",StringComparison.OrdinalIgnoreCase)&&!string.IsNullOrWhiteSpace(save.MeasurefictSingular))
+  {
+   RestoreMeasurefict(save.MeasurefictSingular,save.MeasurefictPlural,save.MeasurefictAbbreviation,Math.Max(MinMeasurementPerCell,save.GridDistance));
+  }
+  else
+  {
+   var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
+   RestorePhysicalMeasurement(metric.Unit,metric.Distance);
+  }
+  GridDiameter=save.GridDiameter;GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
