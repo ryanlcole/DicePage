@@ -92,14 +92,18 @@ jobs:
           grep -q 'world-stage>.grid{display:none' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'ShareMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
           grep -q 'DownloadMapAsync' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'Measureficts' apps/rist-world/Components/WorldManagementWorkspace.razor
+          grep -q 'SetMeasurefict' apps/rist-world/WorldSession.Measurements.cs
+          grep -q 'MeasurementKind' apps/rist-world/WorldSession.Persistence.cs
           grep -q 'relic.gamemaster@gmail.com' apps/rist-world/Components/FeedbackWorkspace.razor
           grep -q 'ws-world' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-campaign' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-assets' apps/rist-world/Components/WorkspaceSurface.razor
           grep -q 'ws-roleplay' apps/rist-world/Components/WorkspaceSurface.razor
-          grep -q 'DefaultCubeWidthMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
-          grep -q 'DefaultCubeHeightMiles = 30' apps/rist-world/WorldSession.DefaultCube.cs
-          grep -q 'DefaultCubeCellCount = DefaultCubeWidthMiles \* DefaultCubeHeightMiles' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeWidthCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeHeightCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeCellCount = DefaultCubeWidthCells \* DefaultCubeHeightCells' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultCubeWidthMiles = DefaultCubeWidthCells' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultTerrainTilesetName = "Ocean 071"' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
           grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs
