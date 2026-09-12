@@ -14,10 +14,9 @@
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Geonaph owner authority", StringComparison.OrdinalIgnoreCase))
         {
-            // Do not crash startup for ordinary authenticated players when the
-            // configured developer account is the only identity allowed to mutate
-            // Geonaph. The launcher should still open normally; Geonaph edit authority
-            // remains enforced at the action boundary.
+            // Geonaph mutation authority is enforced where edits occur. A player who
+            // is not the configured developer account must still be able to enter the
+            // launcher and view the world instead of receiving a startup-wide failure.
         }
     }
 }
