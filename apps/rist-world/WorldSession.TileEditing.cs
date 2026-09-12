@@ -18,9 +18,9 @@ public sealed partial class WorldSession
         var tile = PlacedTiles[index];
         if (tile.Locked) return;
 
-        if (_editingTileIndex == index && rotateIfAlready)
+        if (_editingTileIndex == index)
         {
-            RotateEditingTileClockwise();
+            if (rotateIfAlready) RotateEditingTileClockwise();
             return;
         }
 
@@ -44,6 +44,7 @@ public sealed partial class WorldSession
     {
         if (!TryEditingTile(out var index, out var tile)) return;
         PlacedTiles[index] = tile with { RotationQuarterTurns = (tile.RotationQuarterTurns + 1) % 4 };
+        RecordPureStateCommit();
         _tileLockArmed = false;
         Notify();
     }
@@ -51,11 +52,14 @@ public sealed partial class WorldSession
     public void NudgeEditingTile(double deltaX, double deltaY)
     {
         if (!TryEditingTile(out var index, out var tile)) return;
-        PlacedTiles[index] = tile with
+        var next = tile with
         {
             X = Math.Clamp(tile.X + deltaX, 0, 1),
             Y = Math.Clamp(tile.Y + deltaY, 0, 1)
         };
+        if (IsPureStateNoOp(tile, next)) return;
+        PlacedTiles[index] = next;
+        RecordPureStateCommit();
         _tileLockArmed = false;
         Notify();
     }
@@ -64,14 +68,17 @@ public sealed partial class WorldSession
     {
         if (!TryEditingTile(out var index, out var tile) || visualFactor <= 0) return;
         var nextPlacementZoom = Math.Clamp(tile.PlacementZoom / visualFactor, 1.0 / 300.0, 300.0);
-        PlacedTiles[index] = tile with { PlacementZoom = nextPlacementZoom };
+        var next = tile with { PlacementZoom = nextPlacementZoom };
+        if (IsPureStateNoOp(tile, next)) return;
+        PlacedTiles[index] = next;
+        RecordPureStateCommit();
         _tileLockArmed = false;
         Notify();
     }
 
     public void ArmEditingTileLock()
     {
-        if (!HasEditingTile) return;
+        if (!HasEditingTile || _tileLockArmed) return;
         _tileLockArmed = true;
         Notify();
     }
@@ -81,12 +88,14 @@ public sealed partial class WorldSession
         if (!_tileLockArmed || !TryEditingTile(out var index, out var tile)) return;
 
         PlacedTiles[index] = tile with { Locked = true };
+        RecordPureStateCommit();
         _editingTileIndex = -1;
         _tileLockArmed = false;
         Notify();
 
         // Lock is the explicit commit point. Always persist locally, then mirror
-        // to private storage when the user is signed in.
+        // to private storage when the user is signed in. Truth conservation may
+        // skip only a target already confirmed to contain this exact truth.
         await SaveAsync();
         await AutoSavePrivateAsync();
     }
