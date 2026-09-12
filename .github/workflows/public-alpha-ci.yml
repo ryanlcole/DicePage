@@ -54,6 +54,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          set -x
           test -f apps/rist-world/Components/PublicAlphaShell.razor
           test -f apps/rist-world/Components/PublicAlphaShell.razor.css
           test -f apps/rist-world/Components/WorkspaceSurface.razor
