@@ -106,7 +106,7 @@
 
 @code {
  const int QuickSlotCount=6;
- static readonly string[] Modes=["All","Uploads","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"];
+ static readonly string[] Modes=["All","Uploads","Sprites","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"];
  readonly List<AtlasTile> _quickTiles=[];
  bool _toolsOpen;
  bool _libraryRailOpen;
@@ -169,7 +169,7 @@
   var tile=_draggingQuickTile;
   _draggingQuickTile=null;
   if(tile is null||_zModule is null||_libraryRailOpen)return;
-  var footprint=Math.Clamp(_tileFootprint,1,300);
+  var footprint=tile.DefaultFootprint>0?Math.Clamp(tile.DefaultFootprint,1,300):Math.Clamp(_tileFootprint,1,300);
   var cell=await ViewerCell(e.ClientX,e.ClientY,footprint);
   if(cell is null)return;
   Session.StageTile(tile);
@@ -194,6 +194,7 @@
   return _toolMode switch
   {
    "Tiles"=>category=="Tiles",
+   "Sprites"=>category=="Sprites",
    "Tokens"=>category=="Tokens & Chits",
    "Minis"=>category=="Miniatures",
    "Scenery"=>category=="Scenery & Terrain",
@@ -207,6 +208,7 @@
  {
   if(asset.Id.StartsWith("private:",StringComparison.Ordinal))return WorldSession.NormalizeAssetCategory(asset.Directory);
   var text=$"{asset.Directory} {asset.Folder} {asset.Name}".ToLowerInvariant();
+  if(asset.AssetKind.Equals("sprite",StringComparison.OrdinalIgnoreCase)||text.Contains("sprite"))return "Sprites";
   if(text.Contains("mini"))return "Miniatures";
   if(text.Contains("rolling stock")||text.Contains("locomotive")||text.Contains("train"))return "Rolling Stock";
   if(text.Contains("pawn")||text.Contains("meeple"))return "Pawns & Meeples";
@@ -235,6 +237,9 @@
    if(catalog is null)return;
    foreach(var tile in catalog)
     if(Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
+   var sprites=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/pangea/catalog.json?v=20260912-pangea-sprites-1");
+   if(sprites is not null)foreach(var tile in sprites)
+    if(Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
    Session.Notify();
   }
   catch{}
@@ -259,7 +264,7 @@
    await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
   }
   _self=DotNetObjectReference.Create(this);
-  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260910-mapcard-1");
+  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260912-pangea-sprites-1");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
  [JSInvokable] public Task StepZ(int delta){if(!_zLocked)Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}

@@ -1,0 +1,128 @@
+{
+  "schema": "rist.pangea-sprite-library.v1",
+  "coordinateSystem": {
+    "chunkId": "GEO_X00_Y00",
+    "canvasPixels": [
+      1200,
+      1200
+    ],
+    "worldCells": [
+      30,
+      30
+    ],
+    "pixelsPerCell": 40,
+    "origin": "top-left",
+    "edgePolicy": "exact"
+  },
+  "folders": [
+    {
+      "name": "01 Ocean Floor",
+      "tier": 0,
+      "layer": 0,
+      "sourceVocabulary": [
+        "Ocean"
+      ]
+    },
+    {
+      "name": "02 Ocean Surface",
+      "tier": 0,
+      "layer": 9,
+      "sourceVocabulary": [
+        "Ocean"
+      ]
+    },
+    {
+      "name": "03 Coast and Shallows",
+      "tier": 1,
+      "layer": 0,
+      "sourceVocabulary": [
+        "Coast",
+        "Beach"
+      ]
+    },
+    {
+      "name": "04 Low Plains",
+      "tier": 1,
+      "layer": 1,
+      "sourceVocabulary": [
+        "Plains"
+      ]
+    },
+    {
+      "name": "05 Valleys and Depressions",
+      "tier": 1,
+      "layer": 2,
+      "sourceVocabulary": [
+        "Canyons",
+        "Lakes",
+        "Pools and Basins"
+      ]
+    },
+    {
+      "name": "06 Forests and Wetlands",
+      "tier": 1,
+      "layer": 4,
+      "sourceVocabulary": [
+        "Forest",
+        "Jungle",
+        "Swamp"
+      ]
+    },
+    {
+      "name": "07 Hills and Uplands",
+      "tier": 2,
+      "layer": 1,
+      "sourceVocabulary": [
+        "Hills",
+        "Cliffs"
+      ]
+    },
+    {
+      "name": "08 Mountains and Peaks",
+      "tier": 2,
+      "layer": 5,
+      "sourceVocabulary": [
+        "Mountains"
+      ]
+    },
+    {
+      "name": "09 Waterways",
+      "tier": 1,
+      "layer": 6,
+      "sourceVocabulary": [
+        "Rivers",
+        "Streams and Small Watercourses",
+        "Rapids and Riffles",
+        "Springs and Water Sources"
+      ]
+    },
+    {
+      "name": "10 Special Terrain",
+      "tier": 2,
+      "layer": 8,
+      "sourceVocabulary": [
+        "Ice",
+        "Volcano",
+        "Vent Fields",
+        "Desert"
+      ]
+    }
+  ],
+  "catalog": "catalog.json",
+  "registeredAssets": [
+    "pangea-sprite-geo-x00-y00-ocean-floor-v001",
+    "pangea-sprite-geo-x00-y00-ocean-surface-v001"
+  ],
+  "spriteStrip": {
+    "path": "https://d2d6rnm6fnsp89.cloudfront.net/assets/sprites/pangea/registered/GEO_X00_Y00/pangea_ocean_foundation_sprite_strip_v001.png",
+    "frameWidth": 1200,
+    "frameHeight": 1200,
+    "columns": 2,
+    "rows": 1,
+    "frames": [
+      "ocean-floor",
+      "ocean-surface"
+    ]
+  },
+  "assetCount": 62
+}

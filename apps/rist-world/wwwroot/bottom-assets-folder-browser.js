@@ -1,6 +1,6 @@
 (()=>{
  'use strict';
- const CATALOG_URL='assets/drive-tiles/catalog.json';
+ const CATALOG_URLS=['assets/drive-tiles/catalog.json','assets/sprites/pangea/catalog.json'];
  const TYPES=new Map([
   ['cards','Cards'],['tokens','Tokens / Chits'],['minis','Minis'],['rolling-stock','Rolling Stock'],
   ['pawns','Pawns / Meeples'],['tiles','Tiles'],['terrain','Terrains'],['sprites','Sprites'],['bits','Bits'],['library','Library']
@@ -10,7 +10,7 @@
  const TREE={
   tiles:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
   terrain:{base:['Shaelvien','07_Media','Tiles'],children:{'':['Region_Map','World_Map'],'Region_Map':['Travel','Water'],'World_Map':['Landmarks','Overlays','Source','Terrain'],'World_Map/Terrain':TERRAIN_FOLDERS}},
-  sprites:{base:['Shaelvien','Sprites'],children:{'':[]}},
+  sprites:{base:['Shaelvien','Sprites'],children:{'':['Pangea'],'Pangea':['01 Ocean Floor','02 Ocean Surface','03 Coast and Shallows','04 Low Plains','05 Valleys and Depressions','06 Forests and Wetlands','07 Hills and Uplands','08 Mountains and Peaks','09 Waterways','10 Special Terrain']}},
   library:{base:['Library'],children:{'':['Shaelvien','Calforth'],'Shaelvien':['Manuals'],'Calforth':['Rule Books','Assets'],'Calforth/Rule Books':CALFORTH_GAMES,'Calforth/Assets':CALFORTH_GAMES}}
  };
  let catalog=[],loaded=false,loading=false,path=[],lastSection='',scanFrame=0;
@@ -26,9 +26,9 @@
   if(loaded||loading)return;
   loading=true;
   try{
-   const r=await fetch(CATALOG_URL,{cache:'no-store'});
-   if(!r.ok)throw new Error(`catalog ${r.status}`);
-   const v=await r.json();catalog=Array.isArray(v)?v:[];loaded=true;
+   const responses=await Promise.all(CATALOG_URLS.map(url=>fetch(url,{cache:'no-store'})));
+   const values=await Promise.all(responses.map(async(r,index)=>{if(!r.ok)throw new Error(`${CATALOG_URLS[index]} ${r.status}`);return await r.json()}));
+   catalog=values.flatMap(v=>Array.isArray(v)?v:[]);loaded=true;
   }catch(e){console.error('RIST asset catalog load failed',e);catalog=[]}
   finally{
    loading=false;

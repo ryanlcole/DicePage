@@ -83,6 +83,7 @@ public partial class WorldBuilderStudio
 
     TileItem CreateViewerTile(AtlasTile tile, int column, int row, double footprint, string treatment = "normal")
     {
+        if (tile.DefaultFootprint > 0) footprint = tile.DefaultFootprint;
         var x = column / (double)WorldSession.GridColumns;
         var y = row / (double)WorldSession.GridRows;
         var placementZoom = 1.0 / Math.Max(footprint, 0.001);
@@ -90,8 +91,11 @@ public partial class WorldBuilderStudio
         return new TileItem(tile.Id,tile.Name,tile.Image,x,y,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,placementZoom)
         {
             CubeX = Session.CubeX, CubeY = Session.CubeY, CubeZ = Session.CubeZ, PlaneIndex = Session.PlaneIndex,
-            TierIndex = Session.TierIndex, LayerOffset = Session.LayerOffset, RotationQuarterTurns = 0,
-            PlacementTreatment = NormalizeTreatment(treatment)
+            TierIndex = tile.AuthoredDepth ? tile.DefaultTierIndex : Session.TierIndex,
+            LayerOffset = tile.AuthoredDepth ? tile.DefaultLayerOffset : Session.LayerOffset,
+            RotationQuarterTurns = 0, PlacementTreatment = NormalizeTreatment(treatment),
+            AssetKind = tile.AssetKind, AuthoredDepth = tile.AuthoredDepth,
+            FrameCount = Math.Max(1, tile.FrameCount), FramesPerSecond = Math.Max(0, tile.FramesPerSecond)
         };
     }
 
@@ -103,6 +107,11 @@ public partial class WorldBuilderStudio
     void AddViewerTile(AtlasTile tile, int column, int row, double footprint = 1, bool upperLayer = false, bool upperTier = false, string treatment = "normal")
     {
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
+        if (placed.AuthoredDepth && !upperLayer && !upperTier)
+        {
+            Session.PlacedTiles.Add(placed);
+            return;
+        }
         if (upperTier)
         {
             placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
@@ -141,9 +150,10 @@ public partial class WorldBuilderStudio
     public async Task<bool> PlaceQuickTileFromJs(int quickIndex,double clientX,double clientY)
     {
         if(quickIndex<0||quickIndex>=_quickTiles.Count||_zModule is null||_libraryRailOpen)return false;
-        var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);var cell=await ViewerCell(clientX,clientY,footprint);if(cell is null)return false;
+        var asset=_quickTiles[quickIndex];
+        var footprint=asset.DefaultFootprint>0?Math.Clamp((double)asset.DefaultFootprint,1.0,WorldSession.GridColumns):Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);var cell=await ViewerCell(clientX,clientY,footprint);if(cell is null)return false;
         PlacementChoice choice;try{choice=await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume");}catch{choice=new(false,false,"normal");}
-        PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(_quickTiles[quickIndex],cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await PersistWorldBuilderAsync();return true;
+        PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(asset,cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await PersistWorldBuilderAsync();return true;
     }
 
     async Task<int[]> MovePlacedTileCore(int index,double clientX,double clientY,bool upperLayer,bool upperTier,string treatment)
@@ -160,7 +170,7 @@ public partial class WorldBuilderStudio
             moved=moved with { TierIndex=tile.TierIndex+1,LayerOffset=0 };
         else if(upperLayer)
             moved=moved with { LayerOffset=NextSupportedLayerAt(moved,index) };
-        else
+        else if (!tile.AuthoredDepth)
             moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
 
         ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);
@@ -187,7 +197,7 @@ public partial class WorldBuilderStudio
         {
             var tile=Session.PlacedTiles[index];
             var resized=tile with {PlacementZoom=1.0/footprint};
-            resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};
+            if (!tile.AuthoredDepth) resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};
             if(!Session.IsPureStateNoOp(tile,resized))changes.Add((index,resized));
         }
         if(changes.Count==0)return _selectedPlacedTileIndices.Order().ToArray();

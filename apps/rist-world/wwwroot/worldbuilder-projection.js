@@ -38,7 +38,8 @@
   const root=studio(),world=stage();
   if(!root||!world)return;
   const zoom=viewZoom();
-  const spatialWeight=smoothstep(.5,1,zoom);
+  const parallaxActive=window.ristParallax?.isEnabled?.()!==false&&window.ristParallax?.isWorldBuilderActive?.()===true;
+  const spatialWeight=parallaxActive?smoothstep(.5,1,zoom):0;
   root.dataset.projectionRepresentation=representationFor(zoom);
   root.style.setProperty('--wb-cartographic-blend',String(1-spatialWeight));
 
@@ -69,9 +70,7 @@
 
  const schedule=()=>{if(!raf)raf=requestAnimationFrame(apply);};
 
- window.ristDepth={
-  set(next){visuals=Array.isArray(next)?next:[];schedule();}
- };
+ window.ristDepth={...(window.ristDepth||{}),set(next){visuals=Array.isArray(next)?next:[];window.dispatchEvent(new CustomEvent('rist-depth-visuals',{detail:visuals}));schedule();}};
  window.ristProjection={
   apply:schedule,
   getState(){const zoom=viewZoom();return{cellKm:1,cellVolumeKm3:1,zoom,representation:representationFor(zoom),cartographicBlend:1-smoothstep(.5,1,zoom)};}
@@ -109,6 +108,7 @@
   observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['data-zoom','style']});
   window.addEventListener('resize',schedule,{passive:true});
   window.addEventListener('pageshow',schedule);
+  window.addEventListener('rist-parallax-settings',schedule);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule();});
   schedule();
  }

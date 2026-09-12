@@ -64,6 +64,7 @@ public sealed partial class WorldSession
             "Pawns & Meeples" or "Pawns" => "Pawns & Meeples",
             "Rolling Stock" or "Rolling Stock & Locomotives" => "Rolling Stock",
             "Bits" => "Bits",
+            "Sprites" => "Sprites",
             _ => "Tiles"
         };
     }

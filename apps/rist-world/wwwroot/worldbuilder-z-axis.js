@@ -1,5 +1,5 @@
 import * as core from './worldbuilder-z-axis-core.js';
-import './worldbuilder-controls.js';
+import './worldbuilder-controls.js?v=20260912-pangea-sprites-1';
 import './worldbuilder-controls-state.js';
 import './worldbuilder-drag-preview.js';
 

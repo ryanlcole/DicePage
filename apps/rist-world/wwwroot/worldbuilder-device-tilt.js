@@ -22,13 +22,10 @@
  const userParallaxEnabled=()=>window.ristParallax?.isEnabled?.()!==false;
  const worldBuilderParallaxActive=()=>window.ristParallax?.isWorldBuilderActive?.()===true;
 
- window.ristDepth={
-  set(visuals){
-   state.visuals=Array.isArray(visuals)?visuals:[];
-   window.dispatchEvent(new CustomEvent('rist-depth-visuals',{detail:state.visuals}));
-   schedule();
-  }
- };
+ const acceptVisuals=visuals=>{state.visuals=Array.isArray(visuals)?visuals:[];schedule();};
+ window.addEventListener('rist-depth-visuals',event=>acceptVisuals(event.detail));
+ window.ristDepth=window.ristDepth||{};
+ window.ristDepth.set=visuals=>{acceptVisuals(visuals);window.dispatchEvent(new CustomEvent('rist-depth-visuals',{detail:state.visuals}));};
 
  window.ristMotionPermission={
   state(){return state.permission;},
@@ -155,9 +152,21 @@
 
  function resetForOrientationChange(){state.baselineBeta=null;state.baselineGamma=null;state.targetX=0;state.targetY=0;schedule();}
 
+ function onPointerMove(event){
+  const canvas=event.target?.closest?.('.worldbuilder-studio .studio-viewer-canvas');
+  if(!canvas||!worldBuilderParallaxActive()||!userParallaxEnabled())return;
+  const rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;
+  state.targetX=clamp(((event.clientX-rect.left)/rect.width-.5)*18,-9,9);
+  state.targetY=clamp(((event.clientY-rect.top)/rect.height-.5)*14,-7,7);
+  schedule();
+ }
+ function onPointerOut(event){if(event.target?.closest?.('.studio-viewer-canvas')&&!event.relatedTarget?.closest?.('.studio-viewer-canvas')){state.targetX=0;state.targetY=0;schedule();}}
+
  window.addEventListener('orientationchange',resetForOrientationChange,{passive:true});
  screen.orientation?.addEventListener?.('change',resetForOrientationChange);
  window.addEventListener('rist-parallax-settings',schedule);
+ document.addEventListener('pointermove',onPointerMove,{passive:true});
+ document.addEventListener('pointerout',onPointerOut,{passive:true});
 
  if('DeviceOrientationEvent' in window&&typeof window.DeviceOrientationEvent?.requestPermission!=='function')enable();
  const observer=new MutationObserver(schedule);

@@ -1,4 +1,4 @@
-import './worldbuilder-projection.js';
+import './worldbuilder-projection.js?v=20260912-parallax-shared-depth-1';
 import './rist-card-tiff.js';
 
 window.ristWorld=window.ristWorld||{};
