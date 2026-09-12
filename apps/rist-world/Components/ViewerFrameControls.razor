@@ -9,7 +9,34 @@
      data-z-label="@Session.ViewerZDistanceLabel"
      data-grid-label="@Session.ViewerGridSizeLabel"
      data-physical-label="@Session.ViewerPhysicalSizeLabel"
-     aria-label="Viewer grid dimension and scale controls">
+     data-longitude="@Session.CubeX"
+     data-latitude="@Session.CubeY"
+     data-layer="@Session.LayerZ"
+     data-tier="@Session.TierIndex"
+     data-scene-z="@Session.SceneZ"
+     aria-label="Viewer grid dimension, scale, and world navigation controls">
+    <nav class="viewer-navigation-strip" aria-label="World coordinate navigation">
+        <span class="viewer-nav-group" title="Longitude @Session.CubeX">
+            <button type="button" @onclick="()=>MoveLongitude(-1)" disabled="@(!Session.IsLoggedIn)" aria-label="Decrease longitude">−</button>
+            <span class="viewer-nav-label">Longitude</span>
+            <button type="button" @onclick="()=>MoveLongitude(1)" disabled="@(!Session.IsLoggedIn)" aria-label="Increase longitude">+</button>
+        </span>
+        <span class="viewer-nav-group" title="Latitude @Session.CubeY">
+            <button type="button" @onclick="()=>MoveLatitude(-1)" disabled="@(!Session.IsLoggedIn)" aria-label="Decrease latitude">−</button>
+            <span class="viewer-nav-label">Latitude</span>
+            <button type="button" @onclick="()=>MoveLatitude(1)" disabled="@(!Session.IsLoggedIn)" aria-label="Increase latitude">+</button>
+        </span>
+        <span class="viewer-nav-group" title="Layer @Session.LayerZ • z=@Session.SceneZ">
+            <button type="button" @onclick="()=>Session.MoveLayer(-1)" aria-label="Move down one layer">−</button>
+            <span class="viewer-nav-label">Layer</span>
+            <button type="button" @onclick="()=>Session.MoveLayer(1)" aria-label="Move up one layer">+</button>
+        </span>
+        <span class="viewer-nav-group" title="Tier @Session.TierIndex • z=@Session.SceneZ • @WorldSession.LayersPerTier layers per tier">
+            <button type="button" @onclick="()=>Session.MoveTier(-1)" aria-label="Move down one tier, ten layers">−</button>
+            <span class="viewer-nav-label">Tier</span>
+            <button type="button" @onclick="()=>Session.MoveTier(1)" aria-label="Move up one tier, ten layers">+</button>
+        </span>
+    </nav>
     <label class="viewer-edge-control viewer-edge-x" aria-label="Grid width in squares">
         <span class="viewer-edge-readout">X @Session.ViewerGridColumns</span>
         <input type="range" min="1" max="100" step="1" value="@Session.ViewerGridColumns" @oninput="GridColumnsChanged" />
@@ -29,6 +56,18 @@
     protected override void OnInitialized() => Session.Changed += Refresh;
 
     void Refresh() => InvokeAsync(StateHasChanged);
+
+    void MoveLongitude(int delta)
+    {
+        if (delta == 0) return;
+        Session.SetWorldCube(checked(Session.CubeX + delta), Session.CubeY, Session.CubeZ, Session.CubeRole);
+    }
+
+    void MoveLatitude(int delta)
+    {
+        if (delta == 0) return;
+        Session.SetWorldCube(Session.CubeX, checked(Session.CubeY + delta), Session.CubeZ, Session.CubeRole);
+    }
 
     void GridColumnsChanged(ChangeEventArgs e)
     {
