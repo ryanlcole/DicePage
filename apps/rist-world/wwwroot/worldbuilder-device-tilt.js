@@ -49,11 +49,10 @@
   const visual=visualFor(index);
   return Math.max(0,Number(visual.layerOffset??visual.LayerOffset??0));
  }
- function depthFor(index){
-  const tier=tierFor(index);
-  const layer=layerFor(index);
-  const strength=Number(window.ristParallax?.depthForTier?.(tier)??1);
-  return Math.max(0,(tier+(layer/10))*Math.max(0,strength));
+ function structuralDepthFor(index){return tierFor(index)+(layerFor(index)/10);}
+ function depthStrengthFor(index){
+  const strength=Number(window.ristParallax?.depthForTier?.(tierFor(index))??1);
+  return clamp(Number.isFinite(strength)?strength:1,0,2);
  }
 
  function clearLandingParallax(root){
@@ -88,15 +87,16 @@
   if(!userParallaxEnabled()||!worldBuilderParallaxActive()){clearWorldBuilderParallax();return;}
   const list=tiles();
   if(list.length===0)return;
-  const depths=list.map((_,index)=>depthFor(index));
-  const maxDepth=Math.max(0,...depths);
+  const structuralDepths=list.map((_,index)=>structuralDepthFor(index));
+  const maxStructuralDepth=Math.max(0,...structuralDepths);
   list.forEach((tile,index)=>{
-   const depth=depths[index];
-   const elevation=maxDepth>0?Math.min(1,depth/maxDepth):0;
-   const dx=state.x*elevation;
-   const dy=state.y*elevation;
+   const structural=structuralDepths[index];
+   const relative=maxStructuralDepth>0?clamp(structural/maxStructuralDepth,0,1):0;
+   const depth=relative*depthStrengthFor(index);
+   const dx=state.x*depth;
+   const dy=state.y*depth;
    tile.style.translate=`${dx.toFixed(2)}px ${dy.toFixed(2)}px`;
-   tile.style.willChange=elevation>0?'translate':'';
+   tile.style.willChange=depth>0?'translate':'';
    tile.dataset.parallaxDepth=String(depth);
   });
  }
