@@ -48,7 +48,7 @@ public sealed partial class WorldSession
         _worldId = worldId;
         _worldDisplayName = displayName;
         MapName = displayName;
-        _lastPrivateSnapshot = "";
+        _persistedTruth.Clear();
         Notify();
     }
 
