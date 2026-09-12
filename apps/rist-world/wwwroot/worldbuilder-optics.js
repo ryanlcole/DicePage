@@ -170,7 +170,8 @@
   const depth=readDepth();
   const values={x:Math.round(Number(nav.x)||0),y:Math.round(Number(nav.y)||0),layer:depth.layer,tier:depth.tier,depth:parallaxDepth(depth.tier)};
   for(const [key,item] of Object.entries(ui.items)){
-   const value=values[key];item.value.textContent=key==='depth'?Number(value).toFixed(2):String(value);
+   const value=values[key];const text=key==='depth'?Number(value).toFixed(2):String(value);
+   if(item.value.textContent!==text)item.value.textContent=text;
    item.knob.style.setProperty('--dial-turn',dialTurns[key](value));
    const isLocked=key!=='depth'&&locked();item.host.classList.toggle('locked',isLocked);item.down.disabled=isLocked;item.up.disabled=isLocked;item.knob.setAttribute('aria-disabled',String(isLocked));
   }
