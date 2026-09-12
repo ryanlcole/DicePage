@@ -16,9 +16,8 @@ public sealed partial class WorldSession
         if (accountId.Length == 0)
             throw new InvalidOperationException("The authenticated RIST account has no Account ID.");
 
-        // The configured developer account is the only account allowed to establish
-        // Geonaph ownership. Opening My Worlds is enough to materialize the canonical
-        // descriptor and, when no prior checkpoint exists, the sparse z=0 Ocean 071 seed.
+        // Only the configured developer account, or an account already bound by a
+        // persisted Geonaph descriptor, may establish/refresh Geonaph ownership.
         await EnsureGeonaphOwnerBootstrapAsync(accountId);
 
         var directory = await auth.DownloadJsonAsync<AccountWorldDirectory>(WorldDirectoryKey);
@@ -33,10 +32,8 @@ public sealed partial class WorldSession
             .Select(group => group.OrderByDescending(x => x.UpdatedAtUtc).First())
             .ToList();
 
-        // Geonaph is the developer-owned proof world. It is always discoverable in
-        // the configured owner account, even before the first world-directory write.
-        // Other accounts only discover the legacy ID when their own private storage
-        // already contains a matching migration artifact.
+        // Geonaph remains discoverable to accounts that already possess a legacy
+        // migration artifact, but only the bound owner receives owner authority.
         if (worlds.All(x => !string.Equals(x.WorldId, GeonaphWorldId, StringComparison.Ordinal)))
         {
             var legacyDescriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(
@@ -45,15 +42,19 @@ public sealed partial class WorldSession
                 $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap");
             legacySave ??= await auth.DownloadJsonAsync<SavedWorld>(LegacyPrivateWorldCheckpointKey);
 
-            if (auth.IsOwnerDiscordAccount || legacyDescriptor is not null || legacySave is not null)
+            var ownsGeonaph = auth.IsOwnerDiscordAccount ||
+                              (legacyDescriptor is not null &&
+                               string.Equals(legacyDescriptor.OwnerAccountId, accountId, StringComparison.Ordinal));
+
+            if (ownsGeonaph || legacyDescriptor is not null || legacySave is not null)
             {
-                var name = auth.IsOwnerDiscordAccount ? GeonaphDisplayName : legacyDescriptor?.DisplayName;
+                var name = ownsGeonaph ? GeonaphDisplayName : legacyDescriptor?.DisplayName;
                 if (string.IsNullOrWhiteSpace(name)) name = legacySave?.WorldName;
                 if (string.IsNullOrWhiteSpace(name)) name = GeonaphDisplayName;
                 worlds.Add(new AccountWorldReference(
                     GeonaphWorldId,
                     name!,
-                    auth.IsOwnerDiscordAccount ? "owner" : "participant",
+                    ownsGeonaph ? "owner" : "participant",
                     $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json",
                     $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap",
                     legacyDescriptor?.UpdatedAtUtc ?? DateTimeOffset.UtcNow));
@@ -87,11 +88,31 @@ public sealed partial class WorldSession
         if (world is null || string.IsNullOrWhiteSpace(world.WorldId))
             throw new InvalidOperationException("Choose a valid world.");
         var displayName = NormalizeWorldName(world.DisplayName);
+        var accountId = WorldOwnerAccountId?.Trim() ?? "";
+
         if (HasActiveWorld && !string.Equals(WorldId, world.WorldId, StringComparison.Ordinal))
-            await AutoSavePrivateAsync();
+        {
+            // A participant may leave Geonaph without attempting an owner-only write.
+            var currentReadOnlyGeonaph = IsGeonaphWorld && !await HasGeonaphOwnerAuthorityAsync(accountId);
+            if (!currentReadOnlyGeonaph)
+                await AutoSavePrivateAsync();
+        }
 
         SetActiveWorldIdentity(world.WorldId, displayName);
+
+        if (IsGeonaphWorld && !await HasGeonaphOwnerAuthorityAsync(accountId))
+        {
+            // Geonaph is public/readable even when its mutation authority belongs to
+            // another account. Build the canonical production chunk locally rather
+            // than routing a participant through owner relationship writes.
+            ResetToCanonicalOrigin();
+            EnsureGianaphWorld();
+            return;
+        }
+
         await LoadPrivateCheckpointAsync();
+        if (IsGeonaphWorld)
+            EnsureGianaphWorld();
     }
 
     public async Task<AccountWorldReference> ImportWorldAsync(string json, string? preferredName = null)
@@ -133,11 +154,15 @@ public sealed partial class WorldSession
         var accountId = WorldOwnerAccountId?.Trim() ?? "";
         if (accountId.Length == 0)
             throw new InvalidOperationException("The authenticated RIST account has no Account ID.");
-        if (IsGeonaphWorld && !auth.IsOwnerDiscordAccount)
-            throw new InvalidOperationException("Geonaph owner authority is reserved for the configured developer account.");
 
         var now = DateTimeOffset.UtcNow;
         var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(WorldDescriptorKey);
+        var persistedGeonaphOwner = descriptor is not null &&
+                                    string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal) &&
+                                    string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal);
+        if (IsGeonaphWorld && !auth.IsOwnerDiscordAccount && !persistedGeonaphOwner)
+            throw new InvalidOperationException("Geonaph owner authority is reserved for the configured developer account.");
+
         if (descriptor is not null)
         {
             if (!string.Equals(descriptor.WorldId, WorldId, StringComparison.Ordinal))
@@ -216,14 +241,30 @@ public sealed partial class WorldSession
             "application/json");
     }
 
+    async Task<bool> HasGeonaphOwnerAuthorityAsync(string accountId)
+    {
+        if (!IsGeonaphWorld || accountId.Length == 0) return false;
+        if (auth.IsOwnerDiscordAccount) return true;
+
+        var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(WorldDescriptorKey);
+        return descriptor is not null &&
+               string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal) &&
+               string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal);
+    }
+
     async Task EnsureGeonaphOwnerBootstrapAsync(string accountId)
     {
-        if (!auth.IsOwnerDiscordAccount) return;
-
         var descriptorKey = $"{WorldsStoragePrefix}/{GeonaphWorldId}/world.json";
         var checkpointKey = $"{WorldsStoragePrefix}/{GeonaphWorldId}/current.ristmap";
         var now = DateTimeOffset.UtcNow;
         var descriptor = await auth.DownloadJsonAsync<WorldRelationshipDescriptor>(descriptorKey);
+        var persistedOwner = descriptor is not null &&
+                             string.Equals(descriptor.WorldId, GeonaphWorldId, StringComparison.Ordinal) &&
+                             string.Equals(descriptor.OwnerAccountId, accountId, StringComparison.Ordinal);
+
+        // A missing static owner ID must not lock an already-bound developer account
+        // out of its own world. Persisted ownership is authoritative for migration.
+        if (!auth.IsOwnerDiscordAccount && !persistedOwner) return;
 
         if (descriptor is not null)
         {
