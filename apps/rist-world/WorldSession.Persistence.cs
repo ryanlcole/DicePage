@@ -127,7 +127,7 @@ public sealed partial class WorldSession
    }
    else
    {
-    RememberPersistedText("private-world",WorldId,currentSnapshot);
+    RememberPersistedText("private-world",WorldId,currentSnapshot,countWrite:false);
     PrivateStorageStatus=$"{WorldDisplayName} progress restored from private AWS storage.";
    }
   }
@@ -192,7 +192,7 @@ public sealed partial class WorldSession
   if(EnsureGeonaphOriginLayerInvariant())
    await PersistLocalWorldIfChangedAsync(ExportMapJson());
   else
-   RememberPersistedText("local-world",WorldId,ExportMapJson());
+   RememberPersistedText("local-world",WorldId,ExportMapJson(),countWrite:false);
   return true;
  }
  public async Task LoadAsync(){await TryLoadSavedMapAsync();}
