@@ -39,6 +39,7 @@ Important invariants:
 6. A resource may enable `StopsInheritance`, creating a self/local authority boundary.
 7. Nested sets may each establish their own boundary.
 8. Containment cycles are forbidden.
+9. Creating an **inheriting** containment relationship requires permission-management authority over both the parent and child, because inherited containment can change who may access the child. This prevents a container owner from exposing another owner's private asset. A non-inheriting placement may be created with parent authority alone because it cannot grant parent permissions to the child.
 
 ### Multiple parents
 
@@ -75,9 +76,11 @@ Delegation requirements:
 - no implicit re-delegation;
 - validated again on every protected access.
 
+Delegation scope is recursive through the active permission-bearing containment path. A delegation scoped to a deck/realm may therefore cover contained resources while they are being accessed through that deck/realm, but the same multi-parent resource is not automatically authorized through a different container.
+
 A delegated action must satisfy **both**:
 
-1. the delegation permits the actor/capability/resource; and
+1. the delegation permits the actor/capability/resource or the resource's active containing scope; and
 2. the effective identity itself has authority to the resource.
 
 Delegation therefore cannot manufacture rights the effective identity does not possess.
@@ -130,7 +133,7 @@ A guardian link may:
 
 - require guardian co-presence;
 - approve permitted content descriptors within the platform's existing age/content rules;
-- block specific resources;
+- block specific resources or an entire containing scope recursively;
 - block interaction with specific users;
 - observe the juvenile's semantic activity feed.
 
@@ -148,6 +151,9 @@ Sensitive areas and operations may require M-of-N approval by separately authent
 
 Rules:
 
+- creation of a sensitive approval request requires a **direct authenticated requester session**;
+- every counted approval requires a **direct authenticated approver session**;
+- delegated/assumed identities do not count as an independent human approval;
 - sensitive requests require at least two approvals;
 - eligible approvers are explicit;
 - one identity counts once;
@@ -157,7 +163,7 @@ Rules:
 - approval is consumed after use;
 - every approval is audited.
 
-This supports future protections such as two-developer production access or approval of destructive migrations without turning ordinary work into a two-person process.
+This supports protections such as two-developer production access or approval of destructive migrations without turning ordinary work into a two-person process. It also prevents an attacker holding one delegated identity from satisfying a two-human gate by switching personas.
 
 ## Resolution order
 
