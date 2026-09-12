@@ -10,6 +10,7 @@ builder.Services.AddScoped<DiscordAuthClient>();
 builder.Services.AddScoped<AssetRatingClient>();
 builder.Services.AddScoped<AwsAuthorityClient>();
 builder.Services.AddScoped<PrivateCardLibrary>();
+builder.Services.AddScoped<RecursiveAuthorityService>();
 
 // External AI remains owner-locked. These registrations build the defensive runtime without
 // exposing a login or granting browser state authority over presence/security decisions.
