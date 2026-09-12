@@ -5,6 +5,20 @@ static void Check(bool condition, string message)
     if (!condition) throw new InvalidOperationException(message);
 }
 
+static void CheckThrows<T>(Action action, string message) where T : Exception
+{
+    try
+    {
+        action();
+    }
+    catch (T)
+    {
+        return;
+    }
+
+    throw new InvalidOperationException(message);
+}
+
 var authority = new RecursiveAuthorityService();
 
 const string owner = "owner";
@@ -22,6 +36,7 @@ authority.EnsureResource("card:c", owner);
 authority.EnsureResource("card:d", owner);
 authority.EnsureResource("card:public", owner);
 authority.EnsureResource("card:safe", owner);
+authority.EnsureResource("card:foreign", "other-owner");
 
 authority.SetPermission(owner, "deck:1", h, PermissionGrant.Edit);
 authority.SetPermission(owner, "deck:2", h, PermissionGrant.View);
@@ -33,6 +48,15 @@ authority.Attach(owner, "deck:1", "card:a");
 authority.Attach(owner, "deck:1", "card:b");
 authority.Attach(owner, "deck:1", "card:c");
 authority.Attach(owner, "deck:1", "card:d");
+
+// A container owner must not be able to expose another owner's private child through inherited authority.
+CheckThrows<UnauthorizedAccessException>(
+    () => authority.Attach(owner, "deck:1", "card:foreign", inheritPermissions: true),
+    "Inherited containment must require authority over both parent and child.");
+// Non-inheriting placement is allowed because it cannot manufacture access to the foreign child.
+authority.Attach(owner, "deck:1", "card:foreign", inheritPermissions: false);
+Check(!authority.Resolve("card:foreign", h, AuthorityResourceAction.View, ["deck:1"]).Allowed,
+    "Non-inheriting containment must not leak parent permissions into a foreign child.");
 
 var inheritedEdit = authority.Resolve("card:d", h, AuthorityResourceAction.Edit);
 Check(inheritedEdit.Allowed && inheritedEdit.EffectivePermission == PermissionGrant.Edit && inheritedEdit.Inherited,
@@ -73,7 +97,7 @@ Check(authority.Resolve("card:public", "stranger", AuthorityResourceAction.View)
 Check(!authority.Resolve("card:public", "stranger", AuthorityResourceAction.Edit).Allowed,
     "P must never imply edit.");
 
-// Delegation: the operator can act as h only inside the grant and can never exceed h's own resource authority.
+// Delegation: operator can act as h only inside the grant and can never exceed h's own authority.
 var delegation = authority.CreateDelegation(
     h,
     delegateUser,
@@ -94,6 +118,20 @@ Check(authority.CanPerformAccountAction(directH.SessionId, AccountSensitiveActio
 Check(!authority.CanPerformAccountAction(delegatedH.SessionId, AccountSensitiveAction.ChangeMfa),
     "Delegated session must not perform sensitive account actions.");
 
+// Delegation scoped to a container must recurse only through the active containment path.
+var scopedDelegation = authority.CreateDelegation(
+    h,
+    "delegate:scoped",
+    ["deck:1"],
+    DelegatedCapability.AssumeIdentity | DelegatedCapability.View,
+    DateTimeOffset.UtcNow.AddHours(1),
+    grantId: "grant:h-deck1-only");
+var scopedSession = authority.StartSession("delegate:scoped", h, scopedDelegation.GrantId, "session:delegate-scoped");
+Check(authority.EvaluateSessionAccess(scopedSession.SessionId, "card:b", AuthorityResourceAction.View, ["deck:1"]).Allowed,
+    "Deck-scoped delegation must recurse to a contained card on the explicit deck path.");
+Check(!authority.EvaluateSessionAccess(scopedSession.SessionId, "card:a", AuthorityResourceAction.View, ["deck:2"]).Allowed,
+    "Deck:1 delegation must not authorize the same multi-parent card through deck:2.");
+
 authority.PublishActivity(delegatedH.SessionId, "deck:1", "edit", "Editing deck metadata");
 var ownerPip = authority.GetObservableActivity(h, delegatedH.SessionId);
 Check(ownerPip is not null && ownerPip.ActorUserId == delegateUser && ownerPip.EffectiveUserId == h,
@@ -105,6 +143,7 @@ Check(!authority.EvaluateSessionAccess(delegatedH.SessionId, "deck:1", Authority
 
 // Guardian co-presence and platform content gating.
 authority.SetPermission(owner, "card:safe", juvenile, PermissionGrant.View);
+authority.Attach(owner, "deck:1", "card:safe");
 var guardianLink = authority.SetGuardianLink(
     guardian,
     juvenile,
@@ -112,48 +151,76 @@ var guardianLink = authority.SetGuardianLink(
     approvedContentDescriptors: ["violence-gore"]);
 var juvenileSession = authority.StartSession(juvenile, juvenile, sessionId: "session:juvenile");
 
-Check(!authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View).Allowed,
+Check(!authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View, ["deck:1"]).Allowed,
     "Required guardian co-presence must block the juvenile when guardian is absent.");
-var guardianSession = authority.StartSession(guardian, guardian, sessionId: "session:guardian");
-Check(authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View).Allowed,
+_ = authority.StartSession(guardian, guardian, sessionId: "session:guardian");
+Check(authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View, ["deck:1"]).Allowed,
     "Juvenile access should resume when the required guardian is directly present.");
 
 var allowedMinorContent = new ContentAccessContext(
     ContentAllowancePolicy.Minor,
     ["violence-gore"],
     ["violence-gore"]);
-Check(authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View, content: allowedMinorContent).Allowed,
+Check(authority.EvaluateSessionAccess(
+        juvenileSession.SessionId,
+        "card:safe",
+        AuthorityResourceAction.View,
+        ["deck:1"],
+        allowedMinorContent).Allowed,
     "Guardian-approved descriptor within the platform's minor allowance should pass.");
 
 var disallowedMinorContent = new ContentAccessContext(
     ContentAllowancePolicy.Minor,
     ["explicit-sexual-content"],
     ["explicit-sexual-content"]);
-Check(!authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View, content: disallowedMinorContent).Allowed,
+Check(!authority.EvaluateSessionAccess(
+        juvenileSession.SessionId,
+        "card:safe",
+        AuthorityResourceAction.View,
+        ["deck:1"],
+        disallowedMinorContent).Allowed,
     "Guardian permissions must not weaken the platform content floor.");
 
 authority.PublishActivity(juvenileSession.SessionId, "card:safe", "view", "Viewing supervised content");
 Check(authority.GetObservableActivity(guardian, juvenileSession.SessionId) is not null,
     "Linked guardian must be able to observe the juvenile semantic activity frame.");
 
-// A guardian can tighten access further even when recursive authority would otherwise permit it.
-guardianLink.BlockedResourceIds.Add("card:safe");
-Check(!authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View).Allowed,
-    "Guardian resource block must override an otherwise valid object permission.");
+// Guardian blocking is recursive: blocking a deck blocks a contained card even when the card itself grants V.
+guardianLink.BlockedResourceIds.Add("deck:1");
+Check(!authority.EvaluateSessionAccess(juvenileSession.SessionId, "card:safe", AuthorityResourceAction.View, ["deck:1"]).Allowed,
+    "Guardian container block must override an otherwise valid child permission.");
 
-// Sensitive operations require distinct, scoped, expiring M-of-N approval.
+// Sensitive operations require separately authenticated direct sessions, distinct approvers, scope, expiry, and one-time use.
+var requesterSession = authority.StartSession("developer-requester", "developer-requester", sessionId: "session:developer-requester");
+var devASession = authority.StartSession("dev:a", "dev:a", sessionId: "session:dev-a");
+var devBSession = authority.StartSession("dev:b", "dev:b", sessionId: "session:dev-b");
+
 var approval = authority.CreateApprovalRequest(
-    requestedByUserId: "developer-requester",
+    requesterSessionId: requesterSession.SessionId,
     operationKey: "production-migration",
     targetResourceId: "system:production",
     requiredApprovals: 2,
     eligibleApprovers: ["dev:a", "dev:b", "dev:c"],
     lifetime: TimeSpan.FromMinutes(10),
     requestId: "approval:production-migration");
-Check(authority.Approve(approval.RequestId, "dev:a"), "First eligible approval should count.");
-Check(!authority.Approve(approval.RequestId, "dev:a"), "One identity must not count twice.");
-Check(authority.Approve(approval.RequestId, "dev:b"), "Second distinct eligible approval should count.");
-Check(approval.IsSatisfied(DateTimeOffset.UtcNow), "2-of-3 approval should now be satisfied.");
+
+// A delegated session acting as dev:a is intentionally not accepted as a second-human approval.
+var devADelegation = authority.CreateDelegation(
+    "dev:a",
+    "approval-helper",
+    ["system:production"],
+    DelegatedCapability.AssumeIdentity | DelegatedCapability.Approve,
+    DateTimeOffset.UtcNow.AddMinutes(10),
+    grantId: "grant:dev-a-approval-helper");
+var delegatedApprover = authority.StartSession("approval-helper", "dev:a", devADelegation.GrantId, "session:approval-helper-as-dev-a");
+Check(!authority.Approve(approval.RequestId, delegatedApprover.SessionId),
+    "Delegated identity must not count as a separately authenticated sensitive-operation approver.");
+Check(!authority.Approve(approval.RequestId, "dev:a"),
+    "Supplying a user ID instead of an authenticated session ID must not approve anything.");
+Check(authority.Approve(approval.RequestId, devASession.SessionId), "First direct eligible approval should count.");
+Check(!authority.Approve(approval.RequestId, devASession.SessionId), "One identity must not count twice.");
+Check(authority.Approve(approval.RequestId, devBSession.SessionId), "Second distinct direct eligible approval should count.");
+Check(approval.IsSatisfied(DateTimeOffset.UtcNow), "2-of-3 direct-session approval should now be satisfied.");
 Check(authority.ConsumeApproval(approval.RequestId, "production-migration", "system:production"),
     "Satisfied approval should be consumable only for the exact operation and target.");
 Check(!authority.ConsumeApproval(approval.RequestId, "production-migration", "system:production"),
