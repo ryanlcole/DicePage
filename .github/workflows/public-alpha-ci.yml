@@ -67,14 +67,14 @@ jobs:
           test -f apps/rist-world/wwwroot/world-coordinate-authority.js
           test -f apps/rist-world/wwwroot/shaelvien-navigation-authority.js
           test -f apps/rist-world/wwwroot/css/shaelvien-navigation-authority.css
-          grep -q 'BUILD YOUR WORLD' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ZOOM BETWEEN SCALES' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'PLAY YOUR STORY' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'SAVE · SHARE · RETURN' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'A LIVING WORLD AWAITS' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'BUILD THE WORLD' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ENTER SHAELVIEN' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'MORE THAN A GAME. A PLACE TO BELONG.' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'FEEDBACK' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'WORLD BUILDING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'CAMPAIGN EDITING' apps/rist-world/Components/PublicAlphaShell.razor
-          grep -q 'ASSET CREATION' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'WORLDBUILDER' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'GAMEMASTER' apps/rist-world/Components/PublicAlphaShell.razor
+          grep -q 'ASSET DESIGNER' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'RULEBOOKS' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'ROLEPLAY' apps/rist-world/Components/PublicAlphaShell.razor
           grep -q 'TaskWorkspaceRouter Mode=' apps/rist-world/Components/PublicAlphaShell.razor
