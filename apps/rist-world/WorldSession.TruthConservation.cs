@@ -72,10 +72,10 @@ public sealed partial class WorldSession
         return true;
     }
 
-    void RememberPersistedTruth(string scope, string identity, string fingerprint, int bytes)
+    void RememberPersistedTruth(string scope, string identity, string fingerprint, int bytes, bool countWrite = true)
     {
         _persistedTruth[PersistedTruthKey(scope, identity)] = new(fingerprint, Math.Max(0, bytes));
-        _truthWritesCommitted++;
+        if (countWrite) _truthWritesCommitted++;
     }
 
     bool IsKnownPersistedText(string scope, string identity, string text, out string fingerprint)
@@ -84,9 +84,9 @@ public sealed partial class WorldSession
         return IsKnownPersistedTruth(scope, identity, fingerprint);
     }
 
-    void RememberPersistedText(string scope, string identity, string text, string? fingerprint = null)
+    void RememberPersistedText(string scope, string identity, string text, string? fingerprint = null, bool countWrite = true)
     {
         fingerprint ??= ComputeTruthFingerprint(text);
-        RememberPersistedTruth(scope, identity, fingerprint, Encoding.UTF8.GetByteCount(text));
+        RememberPersistedTruth(scope, identity, fingerprint, Encoding.UTF8.GetByteCount(text), countWrite);
     }
 }
