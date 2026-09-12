@@ -36,9 +36,11 @@ public sealed partial class WorldSession
 
         if (_originMapApplied) return;
 
-        // Geonaph is authored from registered chunk layers. The atlas is loaded
-        // before the world selector enters Geonaph, so seed the current registered
-        // chunk truth instead of clearing the map to an empty grid.
+        // Register the current production chunk before seeding. This keeps the
+        // authored PNG stack authoritative while the general Pangea catalog
+        // continues to expose the reusable source sprites.
+        RegisterGeonaphChunkCatalogV004();
+
         PlacedTiles.Clear();
         Pieces.Clear();
         Rolls.Clear();
@@ -49,6 +51,93 @@ public sealed partial class WorldSession
         _originMapApplied = true;
         MapLocked = true;
         Notify();
+    }
+
+    void RegisterGeonaphChunkCatalogV004()
+    {
+        const string root = "https://d2d6rnm6fnsp89.cloudfront.net/assets/sprites/pangea/registered/GEO_X00_Y00/";
+
+        AtlasTile[] layers =
+        [
+            new(
+                "pangea-sprite-geo-x00-y00-ocean-floor-v004",
+                "GEO X00 Y00 · Ocean Floor",
+                root + "geonaph_geo_x00_y00_t00_l00_ocean_floor_v004.png",
+                "WORLD", "Pangea", "01 Ocean Floor", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 0, DefaultLayerOffset: 0, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-ocean-surface-v004",
+                "GEO X00 Y00 · Ocean Surface",
+                root + "geonaph_geo_x00_y00_t00_l09_ocean_surface_v004.png",
+                "WORLD", "Pangea", "02 Ocean Surface", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 0, DefaultLayerOffset: 9, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-plains-v004",
+                "GEO X00 Y00 · Plains",
+                root + "geonaph_geo_x00_y00_t01_l01_plains_v004.png",
+                "WORLD", "Pangea", "04 Low Plains", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 1, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-coast-shallows-v004",
+                "GEO X00 Y00 · Coast & Shallows",
+                root + "geonaph_geo_x00_y00_t01_l00_coast_shallows_v004.png",
+                "WORLD", "Pangea", "03 Coast and Shallows", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 0, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-valleys-v004",
+                "GEO X00 Y00 · Valleys",
+                root + "geonaph_geo_x00_y00_t01_l02_valleys_v004.png",
+                "WORLD", "Pangea", "05 Valleys and Depressions", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 2, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-forests-v004",
+                "GEO X00 Y00 · Forests",
+                root + "geonaph_geo_x00_y00_t01_l03_forests_v004.png",
+                "WORLD", "Pangea", "06 Forests and Wetlands", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 3, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-waterways-v004",
+                "GEO X00 Y00 · Waterways",
+                root + "geonaph_geo_x00_y00_t01_l01_waterways_v004.png",
+                "WORLD", "Pangea", "09 Waterways", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 1, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-hills-v004",
+                "GEO X00 Y00 · Hills",
+                root + "geonaph_geo_x00_y00_t01_l06_hills_v004.png",
+                "WORLD", "Pangea", "07 Hills and Uplands", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 1, DefaultLayerOffset: 6, DefaultFootprint: 30),
+            new(
+                "pangea-sprite-geo-x00-y00-mountains-v004",
+                "GEO X00 Y00 · Mountains",
+                root + "geonaph_geo_x00_y00_t02_l00_mountains_v004.png",
+                "WORLD", "Pangea", "08 Mountains and Peaks", "Shaelvien",
+                SourceWidth: 1200, SourceHeight: 1200,
+                AssetKind: "sprite", AuthoredDepth: true,
+                DefaultTierIndex: 2, DefaultLayerOffset: 0, DefaultFootprint: 30)
+        ];
+
+        foreach (var layer in layers)
+        {
+            if (AtlasTiles.All(existing => !string.Equals(existing.Id, layer.Id, StringComparison.Ordinal)))
+                AtlasTiles.Add(layer);
+        }
     }
 
     void SeedRegisteredGeonaphChunk()
@@ -65,7 +154,11 @@ public sealed partial class WorldSession
                 .OrderByDescending(tile => GeonaphChunkVersion(tile.Id))
                 .ThenByDescending(tile => tile.Id, StringComparer.Ordinal)
                 .First())
-            .OrderBy(tile => tile.DefaultTierIndex)
+            // Draw order is intentionally separate from authored Z. For example,
+            // the coastline is Tier 1 / Layer 0 but must visually sit over the
+            // low-plains image when the composite world view is shown.
+            .OrderBy(tile => GeonaphChunkRenderOrder(tile.Id))
+            .ThenBy(tile => tile.DefaultTierIndex)
             .ThenBy(tile => tile.DefaultLayerOffset)
             .ThenBy(tile => tile.Id, StringComparer.Ordinal)
             .ToList();
@@ -100,6 +193,20 @@ public sealed partial class WorldSession
                 FrameCount: Math.Max(1, tile.FrameCount),
                 FramesPerSecond: Math.Max(0, tile.FramesPerSecond)));
         }
+    }
+
+    static int GeonaphChunkRenderOrder(string id)
+    {
+        if (id.Contains("ocean-floor", StringComparison.Ordinal)) return 0;
+        if (id.Contains("ocean-surface", StringComparison.Ordinal)) return 10;
+        if (id.Contains("-plains-", StringComparison.Ordinal)) return 20;
+        if (id.Contains("coast-shallows", StringComparison.Ordinal)) return 30;
+        if (id.Contains("-valleys-", StringComparison.Ordinal)) return 40;
+        if (id.Contains("-forests-", StringComparison.Ordinal)) return 50;
+        if (id.Contains("-waterways-", StringComparison.Ordinal)) return 60;
+        if (id.Contains("-hills-", StringComparison.Ordinal)) return 70;
+        if (id.Contains("-mountains-", StringComparison.Ordinal)) return 80;
+        return 1000;
     }
 
     static string GeonaphChunkSemanticKey(string id)
