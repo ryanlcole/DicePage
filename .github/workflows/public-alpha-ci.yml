@@ -85,7 +85,7 @@ jobs:
           grep -q 'grid-template-columns:26px minmax(0,1fr) 26px' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-home' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-profile' apps/rist-world/Components/WorldBuilderStudio.razor
-          grep -q '"All","Uploads","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"' apps/rist-world/Components/WorldBuilderStudio.razor
+          grep -q '"All","Uploads","Sprites","Tiles","Tokens","Minis","Scenery","Pawns","Rolling Stock","Bits"' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-viewer-grid' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-top-slider' apps/rist-world/Components/WorldBuilderStudio.razor
           grep -q 'studio-command-slider' apps/rist-world/Components/WorldBuilderStudio.razor
