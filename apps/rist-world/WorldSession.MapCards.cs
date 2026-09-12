@@ -116,14 +116,33 @@ public sealed partial class WorldSession
         if (published.HasValue) ActiveMapCardPublished = published.Value;
 
         var card = BuildActiveMapCard();
+
+        // The manifest excludes UpdatedAtUtc and other non-semantic representation details.
+        // Each target is therefore written only when its confirmed semantic truth changes.
+        var localKnown = IsKnownPersistedTruth("local-map-card", ActiveMapCardId, card.ManifestHash);
+        var privateKnown = !IsLoggedIn || IsKnownPersistedTruth("private-map-card", ActiveMapCardId, card.ManifestHash);
+        var publishedKnown = !IsLoggedIn || !card.Published || IsKnownPersistedTruth("published-map-card", ActiveMapCardId, card.ManifestHash);
+        if (localKnown && privateKnown && publishedKnown) return;
+
         var json = JsonSerializer.Serialize(card, MapWriteOptions);
-        await js.InvokeVoidAsync("localStorage.setItem", ActiveMapCardLocalKey, json);
+        if (!localKnown)
+        {
+            await js.InvokeVoidAsync("localStorage.setItem", ActiveMapCardLocalKey, json);
+            RememberPersistedText("local-map-card", ActiveMapCardId, json, card.ManifestHash);
+        }
 
         if (!IsLoggedIn) return;
         await EnsureWorldRelationshipAsync();
-        await auth.UploadTextAsync(ActiveMapCardPrivateKey, json, "application/json");
-        if (card.Published)
+        if (!privateKnown)
+        {
+            await auth.UploadTextAsync(ActiveMapCardPrivateKey, json, "application/json");
+            RememberPersistedText("private-map-card", ActiveMapCardId, json, card.ManifestHash);
+        }
+        if (card.Published && !publishedKnown)
+        {
             await auth.UploadTextAsync(ActiveMapCardPublishedKey, json, "application/json");
+            RememberPersistedText("published-map-card", ActiveMapCardId, json, card.ManifestHash);
+        }
     }
 
     public async Task PublishActiveMapCardAsync(IEnumerable<string>? quickSlotTileIds = null)
@@ -182,12 +201,14 @@ public sealed partial class WorldSession
     public async Task<bool> LoadActiveMapCardAsync()
     {
         MapCardDocument? card = null;
+        var loadedScope = "";
         if (IsLoggedIn)
         {
             try
             {
                 await EnsureWorldRelationshipAsync();
                 card = await auth.DownloadJsonAsync<MapCardDocument>(ActiveMapCardPrivateKey);
+                if (card is not null) loadedScope = "private-map-card";
             }
             catch { }
         }
@@ -198,7 +219,10 @@ public sealed partial class WorldSession
             {
                 var local = await js.InvokeAsync<string?>("localStorage.getItem", ActiveMapCardLocalKey);
                 if (!string.IsNullOrWhiteSpace(local))
+                {
                     card = JsonSerializer.Deserialize<MapCardDocument>(local, MapReadOptions);
+                    if (card is not null) loadedScope = "local-map-card";
+                }
             }
             catch { }
         }
@@ -207,6 +231,11 @@ public sealed partial class WorldSession
             !string.Equals(card.WorldId, WorldId, StringComparison.Ordinal)) return false;
 
         ApplyMapCard(card);
+        if (!string.IsNullOrWhiteSpace(card.ManifestHash) && !string.IsNullOrWhiteSpace(loadedScope))
+        {
+            var restoredJson = JsonSerializer.Serialize(card, MapWriteOptions);
+            RememberPersistedText(loadedScope, ActiveMapCardId, restoredJson, card.ManifestHash);
+        }
         return true;
     }
 }
