@@ -16,7 +16,7 @@ public sealed partial class WorldSession
   return new
   {
    Format="RISTMAP",
-   Version=6,
+   Version=7,
    WorldId,
    WorldName=WorldDisplayName,
    Reset=OceanResetVersion,
@@ -25,6 +25,10 @@ public sealed partial class WorldSession
    Layer,
    GridStyle,
    DistanceUnit,
+   MeasurementKind,
+   MeasurefictSingular,
+   MeasurefictPlural,
+   MeasurefictAbbreviation,
    GridDiameter,
    GridDistance,
    GridCalibrationZoom,
@@ -203,9 +207,8 @@ public sealed partial class WorldSession
   RestoreOperatingMode("mmo");
   Layer="WORLD";
   GridStyle="square";
-  DistanceUnit="km";
+  RestorePhysicalMeasurement("km",1);
   GridDiameter=48;
-  GridDistance=1;
   GridCalibrationZoom=1;
   ViewZoom=1;
   Pieces=[];
@@ -223,9 +226,16 @@ public sealed partial class WorldSession
   if(string.IsNullOrWhiteSpace(_worldDisplayName)&&!string.IsNullOrWhiteSpace(save.WorldName)){_worldDisplayName=save.WorldName.Trim();MapName=_worldDisplayName;}
   EncounterActive=false;RestoreOperatingMode(save.OperatingMode);Role=save.Role;Layer=NormalizeRecursionTier(save.Layer);
   GridStyle=save.GridStyle is "square" or "hex" or "none" ? save.GridStyle : "square";
-  var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
-  DistanceUnit=metric.Unit;
-  GridDiameter=save.GridDiameter;GridDistance=metric.Distance;GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
+  if(string.Equals(save.MeasurementKind,"measurefict",StringComparison.OrdinalIgnoreCase)&&!string.IsNullOrWhiteSpace(save.MeasurefictSingular))
+  {
+   RestoreMeasurefict(save.MeasurefictSingular,save.MeasurefictPlural,save.MeasurefictAbbreviation,Math.Max(MinMeasurementPerCell,save.GridDistance));
+  }
+  else
+  {
+   var metric=MetricDistance(save.DistanceUnit,Math.Max(.01,save.GridDistance));
+   RestorePhysicalMeasurement(metric.Unit,metric.Distance);
+  }
+  GridDiameter=save.GridDiameter;GridCalibrationZoom=Math.Max(.01,save.GridCalibrationZoom);
   CubeX=save.CubeX;CubeY=save.CubeY;CubeZ=save.CubeZ;CubeRole=save.CubeRole;PlaneIndex=save.PlaneIndex;TierIndex=save.TierIndex;LayerOffset=Math.Clamp(save.LayerOffset,0,LayersPerTier-1);
   NpcBoundaryExchanges=save.NpcBoundaryExchanges??[];
   var pieces=(save.Pieces??[]).Where(x=>x.Kind!="coin").ToList();
