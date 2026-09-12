@@ -1,0 +1,34 @@
+name: Recursive Authority CI
+
+on:
+  push:
+    branches:
+      - build/recursive-authority-2026-09-12
+    paths:
+      - 'apps/rist-world/RecursiveAuthority.cs'
+      - 'apps/rist-world/ContentAllowancePolicy.cs'
+      - 'apps/rist-world/tests/authority/**'
+      - '.github/workflows/recursive-authority-ci.yml'
+  pull_request:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/RecursiveAuthority.cs'
+      - 'apps/rist-world/ContentAllowancePolicy.cs'
+      - 'apps/rist-world/tests/authority/**'
+      - 'apps/rist-world/Program.cs'
+      - '.github/workflows/recursive-authority-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  authority-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run recursive authority contract tests
+        run: dotnet run --project apps/rist-world/tests/authority/AuthorityContractTests.csproj -c Release
