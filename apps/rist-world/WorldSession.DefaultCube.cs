@@ -2,57 +2,69 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Canonical viewer/cube dimensions. The viewer always exposes a 30 x 30 grid of
-    // one-kilometre cells. Moving the viewer changes which part of the world is seen;
-    // it never changes the size of a world cell.
-    public const int DefaultCubeWidthKm = 30;
-    public const int DefaultCubeHeightKm = 30;
-    public const int DefaultCubeCellCount = DefaultCubeWidthKm * DefaultCubeHeightKm;
-    public const int DefaultCellWidthKm = 1;
-    public const int DefaultCellHeightKm = 1;
+    // Canonical geometry is unitless. A world cube is a 30 x 30 addressable cell
+    // surface; measurement systems describe those cells but never redefine them.
+    public const int DefaultCubeWidthCells = 30;
+    public const int DefaultCubeHeightCells = 30;
+    public const int DefaultCubeCellCount = DefaultCubeWidthCells * DefaultCubeHeightCells;
+    public const int DefaultCellWidthCells = 1;
+    public const int DefaultCellHeightCells = 1;
 
-    // Ordinary authored worlds are limited to 300 x 300 world tiles (10 x 10 viewer
-    // cubes). Geonaph is the explicit exception and is unbounded; that capability is
-    // owned by WorldSession.WorldIdentity rather than by the renderer.
-    public const int DefaultWorldWidthKm = 300;
-    public const int DefaultWorldHeightKm = 300;
-    public const int DefaultWorldCubesAcross = DefaultWorldWidthKm / DefaultCubeWidthKm;
-    public const int DefaultWorldCubesDown = DefaultWorldHeightKm / DefaultCubeHeightKm;
-    public const long DefaultWorldTileCapacity = (long)DefaultWorldWidthKm * DefaultWorldHeightKm;
+    // Ordinary authored worlds are limited to 300 x 300 addressable world cells
+    // (10 x 10 viewer cubes). Geonaph is the explicit exception and is unbounded;
+    // that capability is owned by WorldSession.WorldIdentity rather than the renderer.
+    public const int DefaultWorldWidthCells = 300;
+    public const int DefaultWorldHeightCells = 300;
+    public const int DefaultWorldCubesAcross = DefaultWorldWidthCells / DefaultCubeWidthCells;
+    public const int DefaultWorldCubesDown = DefaultWorldHeightCells / DefaultCubeHeightCells;
+    public const long DefaultWorldTileCapacity = (long)DefaultWorldWidthCells * DefaultWorldHeightCells;
 
-    // Compatibility aliases for older callers. Values are now metric; new code must use Km names.
-    public const int DefaultCubeWidthMiles = DefaultCubeWidthKm;
-    public const int DefaultCubeHeightMiles = DefaultCubeHeightKm;
-    public const int DefaultCellWidthMiles = DefaultCellWidthKm;
-    public const int DefaultCellHeightMiles = DefaultCellHeightKm;
+    // Compatibility aliases for older callers. These names are representation-era
+    // artifacts only; new geometry code must use the Cell-named authority above.
+    public const int DefaultCubeWidthKm = DefaultCubeWidthCells;
+    public const int DefaultCubeHeightKm = DefaultCubeHeightCells;
+    public const int DefaultCellWidthKm = DefaultCellWidthCells;
+    public const int DefaultCellHeightKm = DefaultCellHeightCells;
+    public const int DefaultWorldWidthKm = DefaultWorldWidthCells;
+    public const int DefaultWorldHeightKm = DefaultWorldHeightCells;
+    public const int DefaultCubeWidthMiles = DefaultCubeWidthCells;
+    public const int DefaultCubeHeightMiles = DefaultCubeHeightCells;
+    public const int DefaultCellWidthMiles = DefaultCellWidthCells;
+    public const int DefaultCellHeightMiles = DefaultCellHeightCells;
 
     public const string DefaultTerrainTilesetName = "Ocean 071";
     public const string DefaultTerrainTilesetSlug = "ocean-071";
 
-    public int CubeWidthKm => DefaultCubeWidthKm;
-    public int CubeHeightKm => DefaultCubeHeightKm;
+    public int CubeWidthCells => DefaultCubeWidthCells;
+    public int CubeHeightCells => DefaultCubeHeightCells;
     public int CubeCellCount => DefaultCubeCellCount;
-    public int CellWidthKm => DefaultCellWidthKm;
-    public int CellHeightKm => DefaultCellHeightKm;
+    public int CellWidthCells => DefaultCellWidthCells;
+    public int CellHeightCells => DefaultCellHeightCells;
     public string DefaultTerrainTileset => DefaultTerrainTilesetName;
 
     // Compatibility accessors for legacy UI until all callers are renamed.
-    public int CubeWidthMiles => CubeWidthKm;
-    public int CubeHeightMiles => CubeHeightKm;
-    public int CellWidthMiles => CellWidthKm;
-    public int CellHeightMiles => CellHeightKm;
+    public int CubeWidthKm => CubeWidthCells;
+    public int CubeHeightKm => CubeHeightCells;
+    public int CellWidthKm => CellWidthCells;
+    public int CellHeightKm => CellHeightCells;
+    public int CubeWidthMiles => CubeWidthCells;
+    public int CubeHeightMiles => CubeHeightCells;
+    public int CellWidthMiles => CellWidthCells;
+    public int CellHeightMiles => CellHeightCells;
 
-    public static int KmCellX(double normalizedX) =>
-        Math.Clamp((int)Math.Floor(normalizedX * DefaultCubeWidthKm), 0, DefaultCubeWidthKm - 1);
+    public static int CellX(double normalizedX) =>
+        Math.Clamp((int)Math.Floor(normalizedX * DefaultCubeWidthCells), 0, DefaultCubeWidthCells - 1);
 
-    public static int KmCellY(double normalizedY) =>
-        Math.Clamp((int)Math.Floor(normalizedY * DefaultCubeHeightKm), 0, DefaultCubeHeightKm - 1);
+    public static int CellY(double normalizedY) =>
+        Math.Clamp((int)Math.Floor(normalizedY * DefaultCubeHeightCells), 0, DefaultCubeHeightCells - 1);
 
-    public static (int X, int Y) KmCell(double normalizedX, double normalizedY) =>
-        (KmCellX(normalizedX), KmCellY(normalizedY));
+    public static (int X, int Y) Cell(double normalizedX, double normalizedY) =>
+        (CellX(normalizedX), CellY(normalizedY));
 
-    // Legacy method names preserve binary/source compatibility while metric becomes canonical.
-    public static int MileCellX(double normalizedX) => KmCellX(normalizedX);
-    public static int MileCellY(double normalizedY) => KmCellY(normalizedY);
-    public static (int X, int Y) MileCell(double normalizedX, double normalizedY) => KmCell(normalizedX, normalizedY);
+    public static int KmCellX(double normalizedX) => CellX(normalizedX);
+    public static int KmCellY(double normalizedY) => CellY(normalizedY);
+    public static (int X, int Y) KmCell(double normalizedX, double normalizedY) => Cell(normalizedX, normalizedY);
+    public static int MileCellX(double normalizedX) => CellX(normalizedX);
+    public static int MileCellY(double normalizedY) => CellY(normalizedY);
+    public static (int X, int Y) MileCell(double normalizedX, double normalizedY) => Cell(normalizedX, normalizedY);
 }
