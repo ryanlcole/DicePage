@@ -94,17 +94,10 @@ public sealed class AuthorityResourcePolicy
     }
 
     public string ResourceId { get; }
-    public string OwnerUserId { get; private set; }
+    public string OwnerUserId { get; }
     public bool StopsInheritance { get; internal set; }
     public IReadOnlyDictionary<string, PermissionGrant> Permissions => Entries;
-
     internal Dictionary<string, PermissionGrant> Entries { get; } = new(StringComparer.Ordinal);
-
-    internal void ChangeOwner(string ownerUserId)
-    {
-        OwnerUserId = ownerUserId;
-        Entries[ownerUserId] = PermissionGrant.Edit;
-    }
 }
 
 public sealed record ContainmentEdge(
@@ -144,9 +137,6 @@ public sealed class DelegationGrant
 
     public bool IsActive(DateTimeOffset nowUtc)
         => RevokedUtc is null && (ExpiresUtc is null || ExpiresUtc > nowUtc);
-
-    public bool ScopeAllows(string resourceId)
-        => ResourceScope.Contains("*") || ResourceScope.Contains(resourceId);
 }
 
 public sealed class GuardianLink
@@ -197,7 +187,6 @@ public sealed class MultiPartyApprovalRequest
     public DateTimeOffset ExpiresUtc { get; }
     public bool AllowRequesterApproval { get; }
     public bool Consumed { get; internal set; }
-
     internal HashSet<string> ApprovalSet { get; } = new(StringComparer.Ordinal);
 
     public bool IsSatisfied(DateTimeOffset nowUtc)
@@ -205,10 +194,10 @@ public sealed class MultiPartyApprovalRequest
 }
 
 /// <summary>
-/// One authority evaluator for user-created resources, nested sets, delegated identity,
-/// guardian supervision, semantic PIP observation, and M-of-N sensitive-operation approval.
-/// Credentials are intentionally outside this class. Authentication proves the actor;
-/// this service decides what that authenticated actor may do or do on behalf of another user.
+/// Shared evaluator for recursive resource permissions, delegated identity, guardian supervision,
+/// semantic PIP observation, and direct-session M-of-N sensitive-operation approval.
+/// Authentication proves the actor; this service decides what that actor may do and whose
+/// explicitly delegated authority they may exercise. Credentials never flow through this service.
 /// </summary>
 public sealed class RecursiveAuthorityService
 {
@@ -233,16 +222,13 @@ public sealed class RecursiveAuthorityService
     {
         RequireId(resourceId, nameof(resourceId));
         RequireId(ownerUserId, nameof(ownerUserId));
+        if (resources.TryGetValue(resourceId, out var existing)) return existing;
 
-        if (!resources.TryGetValue(resourceId, out var policy))
+        var policy = new AuthorityResourcePolicy(resourceId, ownerUserId)
         {
-            policy = new AuthorityResourcePolicy(resourceId, ownerUserId)
-            {
-                StopsInheritance = stopsInheritance
-            };
-            resources.Add(resourceId, policy);
-        }
-
+            StopsInheritance = stopsInheritance
+        };
+        resources.Add(resourceId, policy);
         return policy;
     }
 
@@ -252,12 +238,11 @@ public sealed class RecursiveAuthorityService
         if (StringComparer.Ordinal.Equals(policy.OwnerUserId, actorUserId)) return true;
         if (delegationId is null || !delegations.TryGetValue(delegationId, out var grant)) return false;
 
-        var now = DateTimeOffset.UtcNow;
-        return grant.IsActive(now)
+        return grant.IsActive(DateTimeOffset.UtcNow)
             && StringComparer.Ordinal.Equals(grant.DelegateUserId, actorUserId)
-            && grant.ScopeAllows(resourceId)
+            && StringComparer.Ordinal.Equals(grant.OwnerUserId, policy.OwnerUserId)
             && grant.Capabilities.HasFlag(DelegatedCapability.ManagePermissions)
-            && StringComparer.Ordinal.Equals(grant.OwnerUserId, policy.OwnerUserId);
+            && ScopeMatches(grant.ResourceScope, resourceId, null);
     }
 
     public void SetPermission(
@@ -313,6 +298,17 @@ public sealed class RecursiveAuthorityService
             throw new InvalidOperationException("Both parent and child resources must exist before containment is created.");
         if (!CanManagePermissions(actorUserId, parentResourceId, delegationId))
             throw new UnauthorizedAccessException("Parent containment management denied.");
+
+        // Inheriting containment can change who may access the child. The actor therefore needs
+        // permission-management authority over both ends. Non-inheriting placement only needs
+        // authority over the parent container.
+        if (inheritPermissions && !CanManagePermissions(actorUserId, childResourceId, delegationId))
+        {
+            Record("containment-attach", actorUserId, resources[parentResourceId].OwnerUserId, childResourceId, delegationId, false,
+                "Inherited containment denied because child authority is not controlled by actor.");
+            throw new UnauthorizedAccessException("Inherited containment requires authority over both parent and child.");
+        }
+
         if (StringComparer.Ordinal.Equals(parentResourceId, childResourceId) || WouldCreateCycle(parentResourceId, childResourceId))
             throw new InvalidOperationException("Recursive authority containment cannot contain a cycle.");
 
@@ -451,7 +447,7 @@ public sealed class RecursiveAuthorityService
     public bool CanPerformAccountAction(string sessionId, AccountSensitiveAction action)
     {
         if (!sessions.TryGetValue(sessionId, out var session)) return false;
-        var direct = StringComparer.Ordinal.Equals(session.ActorUserId, session.EffectiveUserId) && session.DelegationId is null;
+        var direct = IsDirectSession(session);
         Record("account-sensitive-action", session.ActorUserId, session.EffectiveUserId, null, session.DelegationId, direct,
             action.ToString());
         return direct;
@@ -467,23 +463,23 @@ public sealed class RecursiveAuthorityService
         if (!sessions.TryGetValue(sessionId, out var session))
             return Denied(resourceId, PermissionGrant.None, null, false, "Unknown session.", [resourceId]);
 
-        var now = DateTimeOffset.UtcNow;
         if (session.DelegationId is not null)
         {
             if (!delegations.TryGetValue(session.DelegationId, out var grant)
-                || !grant.IsActive(now)
+                || !grant.IsActive(DateTimeOffset.UtcNow)
                 || !StringComparer.Ordinal.Equals(grant.OwnerUserId, session.EffectiveUserId)
                 || !StringComparer.Ordinal.Equals(grant.DelegateUserId, session.ActorUserId)
-                || !grant.ScopeAllows(resourceId)
+                || !ScopeMatches(grant.ResourceScope, resourceId, containmentPath)
                 || !DelegationAllows(grant, action))
             {
-                var denied = Denied(resourceId, PermissionGrant.Deny, resourceId, false, "Delegation is revoked, expired, out of scope, or lacks capability.", [resourceId]);
+                var denied = Denied(resourceId, PermissionGrant.Deny, resourceId, false,
+                    "Delegation is revoked, expired, out of recursive scope, or lacks capability.", [resourceId]);
                 RecordDecision(session, resourceId, denied);
                 return denied;
             }
         }
 
-        var safety = EvaluateSafety(session.EffectiveUserId, resourceId, content);
+        var safety = EvaluateSafety(session.EffectiveUserId, resourceId, content, containmentPath);
         if (!safety.Allowed)
         {
             var denied = Denied(resourceId, PermissionGrant.Deny, resourceId, false, safety.Reason, [resourceId]);
@@ -532,13 +528,17 @@ public sealed class RecursiveAuthorityService
         return true;
     }
 
-    public SafetyDecision EvaluateSafety(string effectiveUserId, string resourceId, ContentAccessContext? content)
+    public SafetyDecision EvaluateSafety(
+        string effectiveUserId,
+        string resourceId,
+        ContentAccessContext? content,
+        IReadOnlyList<string>? containmentPath = null)
     {
         guardiansByJuvenile.TryGetValue(effectiveUserId, out var guardian);
         if (guardian is not null)
         {
-            if (guardian.BlockedResourceIds.Contains(resourceId))
-                return new SafetyDecision(false, "Guardian policy blocks this resource.");
+            if (ResourceOrAncestorMatches(guardian.BlockedResourceIds, resourceId, containmentPath))
+                return new SafetyDecision(false, "Guardian policy blocks this resource or its containing scope.");
             if (content?.InteractingUserId is not null && guardian.BlockedUserIds.Contains(content.InteractingUserId))
                 return new SafetyDecision(false, "Guardian policy blocks interaction with this user.");
             if (guardian.RequireGuardianPresence && !HasDirectActiveSession(guardian.GuardianUserId))
@@ -559,11 +559,7 @@ public sealed class RecursiveAuthorityService
             : new SafetyDecision(false, "Platform/account/guardian content allowance denied access.");
     }
 
-    public ActivityFrame PublishActivity(
-        string sessionId,
-        string resourceId,
-        string action,
-        string summary)
+    public ActivityFrame PublishActivity(string sessionId, string resourceId, string action, string summary)
     {
         if (!sessions.TryGetValue(sessionId, out var session))
             throw new InvalidOperationException("Cannot publish activity for an unknown session.");
@@ -598,7 +594,7 @@ public sealed class RecursiveAuthorityService
     }
 
     public MultiPartyApprovalRequest CreateApprovalRequest(
-        string requestedByUserId,
+        string requesterSessionId,
         string operationKey,
         string targetResourceId,
         int requiredApprovals,
@@ -607,6 +603,9 @@ public sealed class RecursiveAuthorityService
         bool allowRequesterApproval = false,
         string? requestId = null)
     {
+        if (!sessions.TryGetValue(requesterSessionId, out var requester) || !IsDirectSession(requester))
+            throw new UnauthorizedAccessException("Sensitive approval requests require a direct authenticated requester session.");
+
         var eligible = new HashSet<string>(eligibleApprovers ?? [], StringComparer.Ordinal);
         if (requiredApprovals < 2)
             throw new InvalidOperationException("Sensitive multi-party authorization requires at least two distinct approvals.");
@@ -622,21 +621,24 @@ public sealed class RecursiveAuthorityService
             id,
             operationKey,
             targetResourceId,
-            requestedByUserId,
+            requester.ActorUserId,
             requiredApprovals,
             eligible,
             DateTimeOffset.UtcNow.Add(lifetime),
             allowRequesterApproval);
         approvals.Add(id, request);
-        Record("approval-request", requestedByUserId, requestedByUserId, targetResourceId, null, true,
-            $"operation={operationKey}; required={requiredApprovals}; eligible={eligible.Count}");
+        Record("approval-request", requester.ActorUserId, requester.EffectiveUserId, targetResourceId, null, true,
+            $"operation={operationKey}; required={requiredApprovals}; eligible={eligible.Count}; session={requesterSessionId}");
         return request;
     }
 
-    public bool Approve(string requestId, string approverUserId)
+    public bool Approve(string requestId, string approverSessionId)
     {
         if (!approvals.TryGetValue(requestId, out var request)) return false;
+        if (!sessions.TryGetValue(approverSessionId, out var approver) || !IsDirectSession(approver)) return false;
+
         var now = DateTimeOffset.UtcNow;
+        var approverUserId = approver.ActorUserId;
         if (request.Consumed || now >= request.ExpiresUtc) return false;
         if (!request.EligibleApprovers.Contains(approverUserId)) return false;
         if (!request.AllowRequesterApproval && StringComparer.Ordinal.Equals(request.RequestedByUserId, approverUserId)) return false;
@@ -644,8 +646,8 @@ public sealed class RecursiveAuthorityService
         var added = request.ApprovalSet.Add(approverUserId);
         if (added)
         {
-            Record("approval", approverUserId, request.RequestedByUserId, request.TargetResourceId, null, true,
-                $"request={requestId}; {request.ApprovalSet.Count}/{request.RequiredApprovals}");
+            Record("approval", approverUserId, approverUserId, request.TargetResourceId, null, true,
+                $"request={requestId}; session={approverSessionId}; {request.ApprovalSet.Count}/{request.RequiredApprovals}");
         }
         return added;
     }
@@ -653,8 +655,7 @@ public sealed class RecursiveAuthorityService
     public bool ConsumeApproval(string requestId, string operationKey, string targetResourceId)
     {
         if (!approvals.TryGetValue(requestId, out var request)) return false;
-        var now = DateTimeOffset.UtcNow;
-        if (!request.IsSatisfied(now)) return false;
+        if (!request.IsSatisfied(DateTimeOffset.UtcNow)) return false;
         if (!StringComparer.Ordinal.Equals(request.OperationKey, operationKey)
             || !StringComparer.Ordinal.Equals(request.TargetResourceId, targetResourceId))
             return false;
@@ -675,9 +676,11 @@ public sealed class RecursiveAuthorityService
         List<string> trace)
     {
         if (!visited.Add(resourceId))
-            return Denied(resourceId, PermissionGrant.Deny, resourceId, true, "Containment cycle encountered during resolution.", [.. trace, resourceId]);
+            return Denied(resourceId, PermissionGrant.Deny, resourceId, true,
+                "Containment cycle encountered during resolution.", [.. trace, resourceId]);
         if (!resources.TryGetValue(resourceId, out var policy))
-            return Denied(resourceId, PermissionGrant.None, null, trace.Count > 0, "Unknown authority resource.", [.. trace, resourceId]);
+            return Denied(resourceId, PermissionGrant.None, null, trace.Count > 0,
+                "Unknown authority resource.", [.. trace, resourceId]);
 
         trace.Add(resourceId);
 
@@ -686,35 +689,43 @@ public sealed class RecursiveAuthorityService
 
         policy.Entries.TryGetValue(EveryonePrincipal, out var everyone);
         if (everyone == PermissionGrant.Deny)
-            return Denied(resourceId, PermissionGrant.Deny, policy.ResourceId, trace.Count > 1, "Explicit local deny-all policy.", [.. trace]);
+            return Denied(resourceId, PermissionGrant.Deny, policy.ResourceId, trace.Count > 1,
+                "Explicit local deny-all policy.", [.. trace]);
         if (everyone == PermissionGrant.Edit)
-            return FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1, "Explicit local public-edit policy.", trace);
+            return FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1,
+                "Explicit local public-edit policy.", trace);
         if (action == AuthorityResourceAction.View && everyone is PermissionGrant.Public or PermissionGrant.View)
-            return FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1, "Explicit local public/view policy.", trace);
+            return FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1,
+                "Explicit local public/view policy.", trace);
 
         if (policy.StopsInheritance)
         {
             return everyone is PermissionGrant.Public or PermissionGrant.View
-                ? FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1, "Local/self policy stops inheritance.", trace)
-                : Denied(resourceId, PermissionGrant.None, policy.ResourceId, trace.Count > 1, "Local/self policy stops inheritance.", [.. trace]);
+                ? FromGrant(resourceId, policy.ResourceId, everyone, action, trace.Count > 1,
+                    "Local/self policy stops inheritance.", trace)
+                : Denied(resourceId, PermissionGrant.None, policy.ResourceId, trace.Count > 1,
+                    "Local/self policy stops inheritance.", [.. trace]);
         }
 
-        var parents = GetParentEdges(resourceId).Where(x => x.InheritPermissions).ToArray();
+        var parents = ParentEdges(resourceId).Where(x => x.InheritPermissions).ToArray();
         if (containmentPath is not null && pathIndex < containmentPath.Count)
         {
             var requestedParent = containmentPath[pathIndex];
             var edge = parents.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.ParentResourceId, requestedParent));
             if (edge is null)
-                return Denied(resourceId, PermissionGrant.None, null, true, "Requested containment path is not valid for this resource.", [.. trace]);
+                return Denied(resourceId, PermissionGrant.None, null, true,
+                    "Requested containment path is not valid for this resource.", [.. trace]);
             return ResolveInternal(requestedParent, principalUserId, action, containmentPath, pathIndex + 1, visited, trace);
         }
 
         if (parents.Length == 1)
             return ResolveInternal(parents[0].ParentResourceId, principalUserId, action, containmentPath, pathIndex, visited, trace);
         if (parents.Length > 1)
-            return Denied(resourceId, PermissionGrant.None, null, true, "Multiple permission-bearing parents require an explicit containment path.", [.. trace]);
+            return Denied(resourceId, PermissionGrant.None, null, true,
+                "Multiple permission-bearing parents require an explicit containment path.", [.. trace]);
 
-        return Denied(resourceId, PermissionGrant.None, null, trace.Count > 1, "No explicit or inherited permission grants this action.", [.. trace]);
+        return Denied(resourceId, PermissionGrant.None, null, trace.Count > 1,
+            "No explicit or inherited permission grants this action.", [.. trace]);
     }
 
     private static AuthorityDecision FromGrant(
@@ -748,6 +759,35 @@ public sealed class RecursiveAuthorityService
         IReadOnlyList<string> trace)
         => new(false, grant, resourceId, sourceResourceId, inherited, reason, trace);
 
+    private bool ScopeMatches(IReadOnlySet<string> scope, string resourceId, IReadOnlyList<string>? containmentPath)
+    {
+        if (scope.Contains(EveryonePrincipal) || scope.Contains(resourceId)) return true;
+        return ResourceOrAncestorMatches(scope, resourceId, containmentPath);
+    }
+
+    private bool ResourceOrAncestorMatches(IReadOnlySet<string> targets, string resourceId, IReadOnlyList<string>? containmentPath)
+    {
+        if (targets.Contains(resourceId)) return true;
+        if (containmentPath is not null)
+            return containmentPath.Any(targets.Contains);
+
+        var pending = new Stack<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal) { resourceId };
+        foreach (var edge in ParentEdges(resourceId).Where(x => x.InheritPermissions))
+            pending.Push(edge.ParentResourceId);
+
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+            if (!seen.Add(current)) continue;
+            if (targets.Contains(current)) return true;
+            foreach (var edge in ParentEdges(current).Where(x => x.InheritPermissions))
+                pending.Push(edge.ParentResourceId);
+        }
+
+        return false;
+    }
+
     private bool WouldCreateCycle(string parentResourceId, string childResourceId)
     {
         var pending = new Stack<string>();
@@ -759,11 +799,9 @@ public sealed class RecursiveAuthorityService
             var current = pending.Pop();
             if (!seen.Add(current)) continue;
             if (StringComparer.Ordinal.Equals(current, childResourceId)) return true;
-            if (!parentsByChild.TryGetValue(current, out var currentParents)) continue;
-            foreach (var edge in currentParents)
+            foreach (var edge in ParentEdges(current))
                 pending.Push(edge.ParentResourceId);
         }
-
         return false;
     }
 
@@ -776,6 +814,9 @@ public sealed class RecursiveAuthorityService
         }
         return list;
     }
+
+    private IReadOnlyList<ContainmentEdge> ParentEdges(string childResourceId)
+        => parentsByChild.TryGetValue(childResourceId, out var list) ? list : [];
 
     private static bool DelegationAllows(DelegationGrant grant, AuthorityResourceAction action)
         => action switch
@@ -792,6 +833,10 @@ public sealed class RecursiveAuthorityService
         => sessions.Values.Any(x => StringComparer.Ordinal.Equals(x.ActorUserId, userId)
             && StringComparer.Ordinal.Equals(x.EffectiveUserId, userId)
             && x.DelegationId is null);
+
+    private static bool IsDirectSession(AuthoritySession session)
+        => StringComparer.Ordinal.Equals(session.ActorUserId, session.EffectiveUserId)
+            && session.DelegationId is null;
 
     private void RecordDecision(AuthoritySession session, string resourceId, AuthorityDecision decision)
         => Record("access", session.ActorUserId, session.EffectiveUserId, resourceId, session.DelegationId, decision.Allowed,
