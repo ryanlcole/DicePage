@@ -9,6 +9,7 @@
  let observer=null;
  let depthQueue=Promise.resolve();
  let legacyCancelInFlight=false;
+ let activeDialPointer=null;
 
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
@@ -43,8 +44,20 @@
   style=document.createElement('style');
   style.id='rist-worldbuilder-optics-style';
   style.textContent=`
-   .worldbuilder-studio .wb-coordinate-legend{display:none!important;visibility:hidden!important;pointer-events:none!important}
-   .worldbuilder-studio .wb-axis-ruler,.worldbuilder-studio .wb-z-ruler,.worldbuilder-studio .wb-x-ruler,.worldbuilder-studio .wb-y-ruler,.worldbuilder-studio .rist-coordinate-frame{display:none!important;visibility:hidden!important;pointer-events:none!important}
+   .worldbuilder-studio #viewer-frame-controls,
+   .worldbuilder-studio .viewer-frame-controls,
+   .worldbuilder-studio .viewer-navigation-strip,
+   .worldbuilder-studio .wb-coordinate-legend,
+   .worldbuilder-studio .coordinate-legend,
+   .worldbuilder-studio .viewer-navigator,
+   .worldbuilder-studio .wb-axis-ruler,
+   .worldbuilder-studio .wb-z-ruler,
+   .worldbuilder-studio .wb-x-ruler,
+   .worldbuilder-studio .wb-y-ruler,
+   .worldbuilder-studio .rist-coordinate-frame,
+   .worldbuilder-studio .optic-backend-control{display:none!important;visibility:hidden!important;pointer-events:none!important}
+   .worldbuilder-studio .studio-mini-panel[aria-label="Layer controls"],
+   .worldbuilder-studio .studio-mini-panel[aria-label="Tier controls"]{visibility:hidden!important;pointer-events:none!important;opacity:0!important}
    .worldbuilder-studio{grid-template-rows:36px 62px minmax(0,1fr) 62px!important}
    .worldbuilder-studio .studio-header{grid-template-columns:34px minmax(0,1fr) 34px!important;min-height:36px!important;height:36px!important}
    .worldbuilder-studio .studio-home,.worldbuilder-studio .studio-profile{font-size:15px!important}
@@ -101,10 +114,15 @@
   return{key,host,down,knob,up,value};
  }
 
+ function retireLegacyNavigation(){
+  document.querySelectorAll('.worldbuilder-studio .wb-coordinate-legend,.worldbuilder-studio .coordinate-legend,.worldbuilder-studio .viewer-navigator').forEach(node=>node.remove());
+  for(const label of ['Layers','Tiers'])command(label)?.classList.add('optic-backend-control');
+ }
+
  let controls=null;
  function ensureControls(){
   const strip=contextStrip();if(!strip)return null;
-  strip.querySelector('.wb-coordinate-legend')?.remove();
+  retireLegacyNavigation();
   let nav=strip.querySelector('.wb-viewer-optics');
   if(nav&&controls)return controls;
   nav?.remove();
@@ -132,7 +150,9 @@
    let drag=null;
    item.knob.addEventListener('pointerdown',event=>{
     if(event.pointerType==='mouse'&&event.button!==0)return;
+    if(!event.isPrimary||activeDialPointer!==null)return;
     if(item.key!=='depth'&&locked())return;
+    activeDialPointer=event.pointerId;
     drag={id:event.pointerId,x:event.clientX,y:event.clientY,travel:0};
     item.knob.setPointerCapture?.(event.pointerId);event.preventDefault();event.stopPropagation();
    });
@@ -142,7 +162,10 @@
     while(Math.abs(drag.travel)>=9){const dir=drag.travel>0?1:-1;drag.travel-=dir*9;applyStep(item.key,dir);}
     event.preventDefault();event.stopPropagation();
    });
-   const finish=event=>{if(!drag||drag.id!==event.pointerId)return;drag=null;event.preventDefault();event.stopPropagation();};
+   const finish=event=>{
+    if(!drag||drag.id!==event.pointerId)return;
+    activeDialPointer=null;drag=null;event.preventDefault();event.stopPropagation();
+   };
    item.knob.addEventListener('pointerup',finish);item.knob.addEventListener('pointercancel',finish);
   }
   return controls;
@@ -164,7 +187,7 @@
  }
 
  function render(){
-  document.querySelectorAll('.worldbuilder-studio .wb-coordinate-legend').forEach(node=>node.remove());
+  retireLegacyNavigation();
   const ui=ensureControls();if(!ui)return;
   const nav=window.ristViewerNavigation?.get?.()||{x:0,y:0};
   const depth=readDepth();
@@ -180,8 +203,6 @@
 
  const touchList=()=>[...touchPointers.values()];
  const distance=()=>{const pts=touchList();return pts.length<2?0:Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);};
- const angle=()=>{const pts=touchList();return pts.length<2?0:Math.atan2(pts[1].y-pts[0].y,pts[1].x-pts[0].x);};
- const normalizeAngle=value=>{let v=value;while(v>Math.PI)v-=Math.PI*2;while(v<-Math.PI)v+=Math.PI*2;return v;};
  function cancelLegacyPointer(pointerId){
   try{
    legacyCancelInFlight=true;
@@ -191,8 +212,7 @@
  }
  function beginGesture(){
   if(touchPointers.size!==2)return;
-  const {tier}=readDepth();
-  gesture={distance:Math.max(distance(),1),angle:angle(),zoom:readZoom(),tier,depth:parallaxDepth(tier)};
+  gesture={distance:Math.max(distance(),1),zoom:readZoom()};
  }
  function onTouchDown(event){
   if(event.pointerType!=='touch')return;
@@ -211,8 +231,6 @@
   if(touchPointers.size!==2||!gesture)return;
   const ratio=Math.max(distance(),1)/gesture.distance;
   writeZoom(gesture.zoom*ratio);
-  const twist=normalizeAngle(angle()-gesture.angle);
-  setParallaxDepth(gesture.tier,gesture.depth+(twist/(Math.PI/2)));
   event.preventDefault();event.stopPropagation();
  }
  function onTouchRelease(event){
@@ -224,9 +242,7 @@
  }
 
  function sync(){
-  ensureStyle();
-  document.querySelectorAll('.worldbuilder-studio .wb-coordinate-legend').forEach(node=>node.remove());
-  ensureControls();render();
+  ensureStyle();retireLegacyNavigation();ensureControls();render();
  }
  function start(){
   ensureStyle();sync();
