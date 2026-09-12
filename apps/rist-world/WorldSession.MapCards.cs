@@ -234,7 +234,7 @@ public sealed partial class WorldSession
         if (!string.IsNullOrWhiteSpace(card.ManifestHash) && !string.IsNullOrWhiteSpace(loadedScope))
         {
             var restoredJson = JsonSerializer.Serialize(card, MapWriteOptions);
-            RememberPersistedText(loadedScope, ActiveMapCardId, restoredJson, card.ManifestHash);
+            RememberPersistedText(loadedScope, ActiveMapCardId, restoredJson, card.ManifestHash, countWrite:false);
         }
         return true;
     }
