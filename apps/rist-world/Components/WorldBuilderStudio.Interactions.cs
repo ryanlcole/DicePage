@@ -32,99 +32,53 @@ public partial class WorldBuilderStudio
         return Math.Clamp(1.0 / zoom, 0.001, 1_000_000.0);
     }
 
-    static bool Overlaps(TileItem a, TileItem b)
+    static string NormalizeTreatment(string? value) => value?.ToLowerInvariant() switch
     {
-        var aw = Math.Min(FootprintFor(a), WorldSession.GridColumns) / WorldSession.GridColumns;
-        var ah = Math.Min(FootprintFor(a), WorldSession.GridRows) / WorldSession.GridRows;
-        var bw = Math.Min(FootprintFor(b), WorldSession.GridColumns) / WorldSession.GridColumns;
-        var bh = Math.Min(FootprintFor(b), WorldSession.GridRows) / WorldSession.GridRows;
-        const double epsilon = 1e-9;
-        return a.X < b.X + bw - epsilon && a.X + aw > b.X + epsilon &&
-               a.Y < b.Y + bh - epsilon && a.Y + ah > b.Y + epsilon;
-    }
+        "blend" => "blend", "trim" => "crop", "crop" => "crop", _ => "normal"
+    };
 
-    bool SameStructuralSpace(TileItem a, TileItem b) =>
-        a.CubeX == b.CubeX && a.CubeY == b.CubeY && a.CubeZ == b.CubeZ &&
-        a.PlaneIndex == b.PlaneIndex && a.TierIndex == b.TierIndex;
-
-    bool HasLayerSupport(TileItem tile, int layerOffset, int ignoreIndex = -1)
+    static (int Tier, int Layer) SceneAddress(int sceneZ)
     {
-        if (layerOffset <= 0) return true;
-        for (var i = 0; i < Session.PlacedTiles.Count; i++)
-        {
-            if (i == ignoreIndex) continue;
-            var support = Session.PlacedTiles[i];
-            if (!SameStructuralSpace(tile, support) || support.LayerOffset != layerOffset - 1)
-                continue;
-            if (Overlaps(tile, support)) return true;
-        }
-        return false;
-    }
-
-    int ResolveSupportedLayer(TileItem tile, int requestedLayer, int ignoreIndex = -1)
-    {
-        var layer = Math.Clamp(requestedLayer, 0, WorldSession.LayersPerTier - 1);
-        while (layer > 0 && !HasLayerSupport(tile, layer, ignoreIndex)) layer--;
-        return layer;
-    }
-
-    int NextSupportedLayerAt(TileItem tile, int ignoreIndex = -1)
-    {
-        var highest = -1;
-        for (var i = 0; i < Session.PlacedTiles.Count; i++)
-        {
-            if (i == ignoreIndex) continue;
-            var other = Session.PlacedTiles[i];
-            if (!SameStructuralSpace(tile, other) || !Overlaps(tile, other)) continue;
-            highest = Math.Max(highest, other.LayerOffset);
-        }
-        return ResolveSupportedLayer(tile, Math.Max(1, highest + 1), ignoreIndex);
+        var (tier, layer) = WorldSession.SplitSceneZ(sceneZ);
+        return (tier, layer);
     }
 
     TileItem CreateViewerTile(AtlasTile tile, int column, int row, double footprint, string treatment = "normal")
     {
-        if (tile.DefaultFootprint > 0) footprint = tile.DefaultFootprint;
+        footprint = Math.Clamp(footprint, 1.0, WorldSession.GridColumns);
         var x = column / (double)WorldSession.GridColumns;
         var y = row / (double)WorldSession.GridRows;
-        var placementZoom = 1.0 / Math.Max(footprint, 0.001);
+        var placementZoom = 1.0 / footprint;
 
+        // The GM's raised square construction grid is placement authority. Asset
+        // metadata may describe where an asset was authored, but it must never
+        // teleport a newly placed tile away from the grid the GM is holding.
         return new TileItem(tile.Id,tile.Name,tile.Image,x,y,tile.SourceWidth,tile.SourceHeight,tile.CropX,tile.CropY,tile.CropWidth,tile.CropHeight,placementZoom)
         {
             CubeX = Session.CubeX, CubeY = Session.CubeY, CubeZ = Session.CubeZ, PlaneIndex = Session.PlaneIndex,
-            TierIndex = tile.AuthoredDepth ? tile.DefaultTierIndex : Session.TierIndex,
-            LayerOffset = tile.AuthoredDepth ? tile.DefaultLayerOffset : Session.LayerOffset,
+            TierIndex = Session.TierIndex, LayerOffset = Session.LayerOffset,
             RotationQuarterTurns = 0, PlacementTreatment = NormalizeTreatment(treatment),
             AssetKind = tile.AssetKind, AuthoredDepth = tile.AuthoredDepth,
             FrameCount = Math.Max(1, tile.FrameCount), FramesPerSecond = Math.Max(0, tile.FramesPerSecond)
         };
     }
 
-    static string NormalizeTreatment(string? value) => value?.ToLowerInvariant() switch
-    {
-        "blend" => "blend", "trim" => "crop", "crop" => "crop", _ => "normal"
-    };
-
     void AddViewerTile(AtlasTile tile, int column, int row, double footprint = 1, bool upperLayer = false, bool upperTier = false, string treatment = "normal")
     {
         var placed = CreateViewerTile(tile, column, row, footprint, treatment);
-        if (placed.AuthoredDepth && !upperLayer && !upperTier)
-        {
-            Session.PlacedTiles.Add(placed);
-            return;
-        }
+
         if (upperTier)
         {
-            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = 0 };
-            Session.AddPlacedTileStacked(placed, false);
-            return;
+            placed = placed with { TierIndex = Session.TierIndex + 1, LayerOffset = Session.LayerOffset };
         }
-        if (upperLayer)
+        else if (upperLayer)
         {
-            placed = placed with { LayerOffset = NextSupportedLayerAt(placed) };
-            Session.AddPlacedTileStacked(placed, false);
-            return;
+            var address = SceneAddress(Session.SceneZ + 1);
+            placed = placed with { TierIndex = address.Tier, LayerOffset = address.Layer };
         }
-        placed = placed with { LayerOffset = ResolveSupportedLayer(placed, Session.LayerOffset) };
+
+        // World building deliberately permits unsupported / mid-air placement.
+        // A raised grid is a valid construction plane; stacking does not imply gravity.
         Session.AddPlacedTileStacked(placed, false);
     }
 
@@ -151,7 +105,12 @@ public partial class WorldBuilderStudio
     {
         if(quickIndex<0||quickIndex>=_quickTiles.Count||_zModule is null||_libraryRailOpen)return false;
         var asset=_quickTiles[quickIndex];
-        var footprint=asset.DefaultFootprint>0?Math.Clamp((double)asset.DefaultFootprint,1.0,WorldSession.GridColumns):Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);var cell=await ViewerCell(clientX,clientY,footprint);if(cell is null)return false;
+
+        // Tile Size is an instruction for the NEXT placement. The selected 1²/2²/4²/...
+        // footprint wins over catalog defaults so every asset behaves like a physical tile
+        // the GM chose to place inside that many construction-grid squares.
+        var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);
+        var cell=await ViewerCell(clientX,clientY,footprint);if(cell is null)return false;
         PlacementChoice choice;try{choice=await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume");}catch{choice=new(false,false,"normal");}
         PushWorldBuilderUndo();ClearWorldBuilderSelection();AddViewerTile(asset,cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));Session.Notify();await PersistWorldBuilderAsync();return true;
     }
@@ -167,11 +126,12 @@ public partial class WorldBuilderStudio
             PlacementTreatment=NormalizeTreatment(treatment)
         };
         if(upperTier)
-            moved=moved with { TierIndex=tile.TierIndex+1,LayerOffset=0 };
+            moved=moved with { TierIndex=tile.TierIndex+1,LayerOffset=tile.LayerOffset };
         else if(upperLayer)
-            moved=moved with { LayerOffset=NextSupportedLayerAt(moved,index) };
-        else if (!tile.AuthoredDepth)
-            moved=moved with { LayerOffset=ResolveSupportedLayer(moved,moved.LayerOffset,index) };
+        {
+            var address=SceneAddress(WorldSession.SceneZOf(tile)+1);
+            moved=moved with { TierIndex=address.Tier,LayerOffset=address.Layer };
+        }
 
         ClearWorldBuilderSelection();_selectedPlacedTileIndices.Add(index);
         if(Session.IsPureStateNoOp(tile,moved))return _selectedPlacedTileIndices.Order().ToArray();
@@ -187,6 +147,7 @@ public partial class WorldBuilderStudio
         MovePlacedTileCore(index,clientX,clientY,upperLayer,upperTier,treatment);
 
     [JSInvokable] public async Task<int[]> RotateSelectedTilesFromJs(){if(_selectedPlacedTileIndices.Count==0)return Array.Empty<int>();PushWorldBuilderUndo();foreach(var index in _selectedPlacedTileIndices.Where(i=>i>=0&&i<Session.PlacedTiles.Count)){var tile=Session.PlacedTiles[index];Session.PlacedTiles[index]=tile with {RotationQuarterTurns=(tile.RotationQuarterTurns+1)%4};}Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();}
+
     [JSInvokable]
     public async Task<int[]> ResizeSelectedTilesFromJs()
     {
@@ -197,7 +158,6 @@ public partial class WorldBuilderStudio
         {
             var tile=Session.PlacedTiles[index];
             var resized=tile with {PlacementZoom=1.0/footprint};
-            if (!tile.AuthoredDepth) resized=resized with {LayerOffset=ResolveSupportedLayer(resized,resized.LayerOffset,index)};
             if(!Session.IsPureStateNoOp(tile,resized))changes.Add((index,resized));
         }
         if(changes.Count==0)return _selectedPlacedTileIndices.Order().ToArray();
@@ -205,6 +165,7 @@ public partial class WorldBuilderStudio
         foreach(var change in changes)Session.PlacedTiles[change.Index]=change.Tile;
         Session.RecordPureStateCommit(changes.Count);Session.Notify();await PersistWorldBuilderAsync();return _selectedPlacedTileIndices.Order().ToArray();
     }
+
     [JSInvokable] public async Task<WorldBuilderTileVisual[]> GetWorldBuilderTileVisuals(){var visuals=Session.PlacedTiles.Select((tile,index)=>new WorldBuilderTileVisual(index,tile.RotationQuarterTurns,tile.TierIndex,tile.LayerOffset)).ToArray();try{await JS.InvokeVoidAsync("ristDepth.set",visuals);}catch{}return visuals;}
     [JSInvokable] public Task<WorldBuilderCommandState> GetWorldBuilderCommandState()=>Task.FromResult(new WorldBuilderCommandState("Single",_worldBuilderUndo.Count>0,_selectedPlacedTileIndices.Count));
 }
