@@ -63,8 +63,10 @@ public partial class WorldMap:IDisposable
  static string PieceStyle(PieceItem p)=>$"left:{Pct(p.X)};top:{Pct(p.Y)}";
  static string TileStyle(TileItem t)
  {
-  var zoom=Math.Max(t.PlacementZoom,1.0/300.0);var inv=CultureInfo.InvariantCulture;
-  return $"left:{Pct(t.X)};top:{Pct(t.Y)};width:{(100.0/WorldSession.DefaultWorldWidthCells/zoom).ToString("0.###",inv)}%;height:{(100.0/WorldSession.DefaultWorldHeightCells/zoom).ToString("0.###",inv)}%";
+  // A placed tile is measured against the GM's physical 30×30 construction grid,
+  // not the larger 300×300 authored-world span. PlacementZoom is 1/footprint.
+  var zoom=Math.Max(t.PlacementZoom,1.0/WorldSession.GridColumns);var inv=CultureInfo.InvariantCulture;
+  return $"left:{Pct(t.X)};top:{Pct(t.Y)};width:{(100.0/WorldSession.GridColumns/zoom).ToString("0.###",inv)}%;height:{(100.0/WorldSession.GridRows/zoom).ToString("0.###",inv)}%";
  }
  static string CropStyle(int sourceWidth,int sourceHeight,int cropX,int cropY,int cropWidth,int cropHeight)
  {
@@ -93,7 +95,7 @@ public partial class WorldMap:IDisposable
 
  async Task<double[]> WorldPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.worldPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
  async Task<double[]> DropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);
- async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.tileDropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom,WorldSession.DefaultWorldWidthCells,WorldSession.DefaultWorldHeightCells);
+ async Task<double[]> TileDropPoint(PointerEventArgs e)=>await JS.InvokeAsync<double[]>("ristWorld.tileDropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom,WorldSession.GridColumns,WorldSession.GridRows);
  async Task DropHeaderPin(DragEventArgs e){if(!Session.HeaderPinDragging)return;var p=await JS.InvokeAsync<double[]>("ristWorld.dropPoint",MapElement,e.ClientX,e.ClientY,G.PanX,G.PanY,G.Zoom);if(p.Length>=3&&p[0]>.5)Session.PlaceHeaderPin(p[1],p[2]);else Session.EndHeaderPinDrag();}
 
  async Task StartDrag(PointerEventArgs e){DragClientX=DragStartX=e.ClientX;DragClientY=DragStartY=e.ClientY;DragMoved=false;await JS.InvokeVoidAsync("ristWorld.capturePointer",e.PointerId,e.ClientX,e.ClientY);}
