@@ -43,7 +43,7 @@
            @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag"
            @onclick="()=>TogglePreview(tile)"
            title="Tap to preview @tile.Name">
-    <img src="@ImageSource(tile)" alt="" loading="lazy" draggable="false" />
+    <img src="@tile.Image" alt="" loading="lazy" draggable="false" />
     <strong>@tile.Name</strong>
    </button>
   }
@@ -55,7 +55,7 @@
 {
  <div class="asset-preview-stage" role="dialog" aria-label="Preview @_preview.Name">
   <button type="button" class="asset-preview-card" @onclick="PinPreview" aria-label="Add @_preview.Name to top quick slider">
-   <img src="@ImageSource(_preview)" alt="@_preview.Name" draggable="false" />
+   <img src="@_preview.Image" alt="@_preview.Name" draggable="false" />
    <span><strong>@_preview.Name</strong><small>Tap image to add to top slider</small></span>
   </button>
  </div>
@@ -89,15 +89,6 @@
  static string Normalize(string? value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
  static bool Same(string? a,string? b)=>string.Equals(a,b,StringComparison.OrdinalIgnoreCase);
  static string DisplayDirectory(string? directory)=>Same(directory,"Pangea")?"Sprite Library":Normalize(directory,"Library");
- static string ImageSource(AtlasTile tile)
- {
-  var image=(tile.Image??"").Trim();
-  const string cdn="https://d2d6rnm6fnsp89.cloudfront.net/";
-  if(image.StartsWith(cdn,StringComparison.OrdinalIgnoreCase)
-     && image.Contains("assets/sprites/pangea/registered/",StringComparison.OrdinalIgnoreCase))
-   return image[cdn.Length..];
-  return image;
- }
  void GoLibraryRoot(){_directory=null;_folder=null;_preview=null;}
  void OpenDirectory(string directory){_directory=directory;_folder=null;_preview=null;}
  void OpenFolder(string folder){_folder=folder;_preview=null;}
