@@ -20,6 +20,7 @@ env:
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
   ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
   DISTRIBUTION_ID: E1D9TALLP51FI5
+  FRONTEND_STACK: rist-frontend
   ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
 
 jobs:
@@ -43,7 +44,27 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Publish all runtime art
-        run: aws s3 sync build/rist/wwwroot/assets/ "s3://${ASSET_BUCKET}/assets/" --delete --only-show-errors
+        run: |
+          # Registered Pangea sprites are promoted binary assets. They are not all
+          # stored in git, so a blanket --delete must never remove that authority.
+          aws s3 sync build/rist/wwwroot/assets/ "s3://${ASSET_BUCKET}/assets/" \
+            --delete \
+            --exclude 'sprites/pangea/registered/*' \
+            --only-show-errors
+      - name: Restore registered Pangea sprites from frontend mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRONTEND_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "$FRONTEND_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
+            --output text)
+          test -n "$FRONTEND_BUCKET"
+          test "$FRONTEND_BUCKET" != "None"
+          aws s3 sync \
+            "s3://${FRONTEND_BUCKET}/Game/assets/sprites/pangea/registered/" \
+            "s3://${ASSET_BUCKET}/assets/sprites/pangea/registered/" \
+            --only-show-errors
       - name: Stage world atlas and card assets
         run: python apps/rist-world/prepare_aws_assets.py
       - name: Publish world atlas and card assets
@@ -81,5 +102,10 @@ jobs:
           # Functional multi-frame sprite sheets are intentional.
           verify_asset assets/spritesheets/magic-coins.webp 1000
           verify_asset assets/spritesheets/directional-humanoids.webp 1000
+
+          # These registered Pangea sprites are external binary authorities mirrored
+          # into the frontend bucket; protect and verify them on every asset sync.
+          verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l00_ocean_floor_v001.png 1000
+          verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l09_ocean_surface_v001.png 1000
 
 # Deployment trigger: OIDC trust repaired 2026-08-27
