@@ -78,8 +78,9 @@ public partial class WorldBuilderStudio
         }
 
         // World building deliberately permits unsupported / mid-air placement.
-        // A raised grid is a valid construction plane; stacking does not imply gravity.
-        Session.AddPlacedTileStacked(placed, false);
+        // The raised GM construction grid is the exact placement plane. Overlap
+        // is legal and never infers another layer or gravity/support behavior.
+        Session.AddPlacedTileAtGridDepth(placed);
     }
 
     async Task<(int Column,int Row)?> ViewerCell(double clientX, double clientY, double footprint)
