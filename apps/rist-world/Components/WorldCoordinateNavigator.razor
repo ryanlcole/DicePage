@@ -1,0 +1,23 @@
+@implements IDisposable
+@inject WorldSession Session
+
+<div class="studio-coordinate-nav" aria-label="World coordinates and navigation">
+ <span class="coordinate-readout" title="@Session.WorldCoordinateLabel">COORD @Session.CubeX,@Session.CubeY,@Session.CubeZ</span>
+ <span class="axis-control" role="group" aria-label="X coordinate navigation"><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(-1,0,0)" aria-label="Move X left">←</button><b>X</b><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(1,0,0)" aria-label="Move X right">→</button></span>
+ <span class="axis-control" role="group" aria-label="Y coordinate navigation"><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(0,1,0)" aria-label="Move Y up">↑</button><b>Y</b><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(0,-1,0)" aria-label="Move Y down">↓</button></span>
+ <span class="axis-control" role="group" aria-label="Z coordinate navigation"><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(0,0,1)" aria-label="Move Z up">↑</button><b>Z</b><button type="button" disabled="@(!Session.IsLoggedIn)" @onclick="()=>MoveCube(0,0,-1)" aria-label="Move Z down">↓</button></span>
+ <span class="height-readout" title="Tier @Session.TierIndex · Layer @Session.LayerOffset · Scene Z @Session.SceneZ">@HeightLabel</span>
+</div>
+
+<style>
+ .studio-coordinate-nav{box-sizing:border-box;width:100%;height:19px;min-width:0;display:flex;align-items:stretch;justify-content:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#081017;color:#b9c5ca;font:800 7px/19px system-ui,-apple-system,sans-serif;white-space:nowrap;touch-action:pan-x}.studio-coordinate-nav::-webkit-scrollbar{display:none}.coordinate-readout,.height-readout,.axis-control{box-sizing:border-box;flex:0 0 auto;height:19px;border-left:1px solid #25353d;display:flex;align-items:center;justify-content:center}.coordinate-readout{min-width:74px;padding:0 5px;border-left:0;color:#e4c97d;letter-spacing:.035em}.height-readout{min-width:76px;padding:0 5px;color:#d6c188}.axis-control{min-width:51px}.axis-control b{width:13px;text-align:center;color:#9db4c0;font-size:7px}.axis-control button{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:19px;height:18px;padding:0;border:0;background:transparent;color:#e7d49a;font:900 11px/18px system-ui;cursor:pointer;touch-action:manipulation}.axis-control button:active{background:#1b2830}.axis-control button:focus-visible{outline:1px solid #d9bd70;outline-offset:-1px}.axis-control button:disabled{opacity:.35;cursor:default}
+ @@media(max-width:430px){.studio-coordinate-nav{justify-content:flex-start}.coordinate-readout{min-width:67px;padding:0 3px}.axis-control{min-width:47px}.height-readout{min-width:70px;padding:0 3px;font-size:6.5px}}
+</style>
+
+@code {
+ string HeightLabel=>Session.SceneZ switch{0=>"SEA LEVEL",>0=>$"+{Session.SceneZ} ABOVE SEA",_=>$"{Math.Abs(Session.SceneZ)} BELOW SEA"};
+ void MoveCube(int x,int y,int z)=>Session.SetWorldCube(checked(Session.CubeX+x),checked(Session.CubeY+y),checked(Session.CubeZ+z),Session.CubeRole);
+ protected override void OnInitialized()=>Session.Changed+=Refresh;
+ void Refresh()=>InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=Refresh;
+}

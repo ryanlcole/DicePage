@@ -7,9 +7,7 @@
 <div class="worldbuilder-studio">
  <header class="studio-header" aria-label="World Builder header">
   <button type="button" class="studio-home" @onclick="OpenStartMenu" aria-label="Start menu">⌂</button>
-  <div class="studio-context-strip" aria-label="World Building context">
-   <button type="button" class="studio-ticker studio-ticker-full" @onclick="OpenStartMenu" aria-label="Open or close start menu">WORLD BUILDING  ·  Stars: EDIT  ·  Sky: EDIT  ·  Cal: EDIT  ·  UGC: EDIT  ·  Date: --  ·  UTC: --:--:--</button>
-  </div>
+  <WorldCoordinateNavigator />
   <button type="button" class="studio-profile" aria-label="Account profile">
    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
    {

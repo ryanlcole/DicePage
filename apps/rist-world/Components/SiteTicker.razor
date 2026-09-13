@@ -1,6 +1,5 @@
 @implements IDisposable
 @inject WorldSession Session
-@inject IJSRuntime JS
 
 <button type="button" class="site-ticker-root" data-world-limit="@WorldLimitValue" aria-label="Open Start Menu" title="Open Start Menu" @onclick="OpenStartMenu">
  <span class="site-ticker-track">
@@ -19,6 +18,7 @@
 
 @code {
  [Parameter] public string Context { get; set; } = "SHAELVIEN";
+ [Parameter] public EventCallback OnStartMenu { get; set; }
  string WorldLimitValue => Session.IsWorldExtentUnbounded ? "unbounded" : (Session.WorldTileLimit ?? WorldSession.DefaultWorldWidthKm).ToString(System.Globalization.CultureInfo.InvariantCulture);
  string TickerText
  {
@@ -30,10 +30,7 @@
    return $"{Context.ToUpperInvariant()}  ·  WORLD: {world}  ·  {extent}  ·  {coordinate}  ·  ROLE: {Session.Role}  ·  MODE: {Session.OperatingMode.ToUpperInvariant()}  ·  STARS: EDIT  ·  SKY: EDIT  ·  CALENDAR: EDIT  ·  UGC: EDIT  ·  ReLiC ONLINE  ·  ";
   }
  }
- async Task OpenStartMenu()
- {
-  try{await JS.InvokeVoidAsync("RistStartMenu.open");}catch(JSException){}
- }
+ Task OpenStartMenu()=>OnStartMenu.InvokeAsync();
  protected override void OnInitialized()=>Session.Changed+=Refresh;
  void Refresh()=>InvokeAsync(StateHasChanged);
  public void Dispose()=>Session.Changed-=Refresh;
