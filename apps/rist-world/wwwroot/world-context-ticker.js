@@ -1,6 +1,10 @@
 (()=>{
  'use strict';
  let timer=0,marqueeFrame=0,lastMarqueeTime=0;
+ const footerTickerDurationMs=34000;
+ const footerTickerFont='900 7px/19px system-ui,-apple-system,sans-serif';
+ const footerTickerLetterSpacing='.08em';
+ const reducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
  const pad=value=>String(value).padStart(2,'0');
  const legacyPopouts=[
   '.world-context-dialog','.world-context-popover','.world-context-popup',
@@ -8,6 +12,16 @@
   '[data-world-context-dialog]','[data-world-context-popover]','[data-world-context-popup]'
  ].join(',');
  function removeLegacyPopouts(){document.querySelectorAll(legacyPopouts).forEach(node=>node.remove())}
+ function applyFooterTickerTypography(node){
+  if(!(node instanceof HTMLElement))return;
+  node.style.setProperty('font',footerTickerFont,'important');
+  node.style.setProperty('letter-spacing',footerTickerLetterSpacing,'important');
+  node.querySelectorAll('*').forEach(child=>{
+   if(!(child instanceof HTMLElement))return;
+   child.style.setProperty('font','inherit','important');
+   child.style.setProperty('letter-spacing','inherit','important');
+  });
+ }
  function textOnly(node){
   if(!(node instanceof HTMLButtonElement))return node;
   const span=document.createElement('span');
@@ -21,6 +35,7 @@
   node.style.flex='0 0 auto';
   node.style.whiteSpace='nowrap';
   node.style.minWidth='max-content';
+  applyFooterTickerTypography(node);
  }
  function buildLoop(track){
   if(track.dataset.tickerLoopReady==='2')return;
@@ -57,6 +72,7 @@
    group.style.minWidth='max-content';
    group.style.whiteSpace='nowrap';
    group.style.paddingRight='8px';
+   applyFooterTickerTypography(group);
   }
   track.replaceChildren(groupA,groupB);
   track.dataset.tickerLoopReady='2';
@@ -83,6 +99,7 @@
    track.style.scrollBehavior='auto';
    track.style.scrollbarWidth='none';
    track.style.webkitOverflowScrolling='touch';
+   applyFooterTickerTypography(track);
    if(!track.querySelector('[data-start-menu-label]:not([data-ticker-clone="1"])')){
     const target=track.querySelector('[data-ticker-group="a"]')||track;
     const label=document.createElement('span');
@@ -99,6 +116,8 @@
   strip.style.position='relative';
   strip.style.zIndex='2147480000';
   strip.style.overflow='hidden';
+  strip.style.setProperty('font',footerTickerFont,'important');
+  strip.style.setProperty('letter-spacing',footerTickerLetterSpacing,'important');
   strip.setAttribute('data-start-menu-authority','1');
   removeLegacyPopouts();
  }
@@ -126,12 +145,12 @@
  }
  function marquee(now){
   const track=document.querySelector('.world-context-track');
-  if(track&&!document.hidden&&track.scrollWidth>track.clientWidth){
+  const boundary=track?loopBoundary(track):0;
+  if(track&&!document.hidden&&!reducedMotion()&&boundary>0&&track.scrollWidth>track.clientWidth){
    if(lastMarqueeTime){
     const delta=Math.min(50,now-lastMarqueeTime);
-    track.scrollLeft+=delta*0.035;
-    const boundary=loopBoundary(track);
-    if(boundary>0&&track.scrollLeft>=boundary)track.scrollLeft-=boundary;
+    track.scrollLeft+=delta*(boundary/footerTickerDurationMs);
+    if(track.scrollLeft>=boundary)track.scrollLeft-=boundary;
    }
   }else if(track&&track.scrollLeft!==0){track.scrollLeft=0;}
   lastMarqueeTime=now;
