@@ -1,0 +1,25 @@
+.studio-coordinate-nav {
+    height: 13px !important;
+    font: 800 6px/13px system-ui, -apple-system, sans-serif !important;
+}
+
+.coordinate-readout,
+.height-readout,
+.axis-control {
+    height: 13px !important;
+}
+
+.axis-control b {
+    font-size: 6px !important;
+}
+
+.axis-control button {
+    height: 13px !important;
+    font: 900 9px/13px system-ui !important;
+}
+
+@media (max-width: 430px) {
+    .height-readout {
+        font-size: 6px !important;
+    }
+}
