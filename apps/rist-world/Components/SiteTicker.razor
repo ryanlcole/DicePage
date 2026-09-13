@@ -1,18 +1,20 @@
 @implements IDisposable
 @inject WorldSession Session
+@inject IJSRuntime JS
 
-<div class="site-ticker-root" data-world-limit="@WorldLimitValue" aria-label="Shaelvien site status ticker">
- <div class="site-ticker-track">
+<button type="button" class="site-ticker-root" data-world-limit="@WorldLimitValue" aria-label="Open Start Menu" title="Open Start Menu" @onclick="OpenStartMenu">
+ <span class="site-ticker-track">
   <span>@TickerText</span>
   <span aria-hidden="true">@TickerText</span>
- </div>
-</div>
+ </span>
+</button>
 
 <style>
- .site-ticker-root{box-sizing:border-box;width:100%;height:20px;min-height:20px;overflow:hidden;border-bottom:1px solid #715b2d;background:linear-gradient(90deg,#071018,#0b151d 48%,#151109);color:#e4c97d;font:900 7px/19px system-ui,-apple-system,sans-serif;letter-spacing:.08em;white-space:nowrap;position:relative;z-index:2147482000}
- .site-ticker-track{display:flex;width:max-content;min-width:200%;will-change:transform;animation:rist-site-ticker 34s linear infinite}.site-ticker-track span{display:block;flex:0 0 auto;padding-right:72px}
+ .site-ticker-root{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%;height:20px;min-height:20px;padding:0;overflow:hidden;border:0;border-bottom:1px solid #715b2d;background:linear-gradient(90deg,#071018,#0b151d 48%,#151109);color:#e4c97d;font:900 7px/19px system-ui,-apple-system,sans-serif;letter-spacing:.08em;white-space:nowrap;position:relative;z-index:2147482000;text-align:left;cursor:pointer;touch-action:manipulation}
+ .site-ticker-root:focus-visible{outline:1px solid #d9bd70;outline-offset:-1px}
+ .site-ticker-track{display:flex;width:max-content;min-width:200%;will-change:transform;animation:rist-site-ticker 34s linear infinite;pointer-events:none}.site-ticker-track>span{display:block;flex:0 0 auto;padding-right:72px}
  @@keyframes rist-site-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
- @@media(prefers-reduced-motion:reduce){.site-ticker-track{animation:none;transform:none}.site-ticker-track span[aria-hidden="true"]{display:none}}
+ @@media(prefers-reduced-motion:reduce){.site-ticker-track{animation:none;transform:none}.site-ticker-track>span[aria-hidden="true"]{display:none}}
 </style>
 
 @code {
@@ -27,6 +29,10 @@
    var coordinate=Session.HasActiveWorld?Session.WorldCoordinateLabel:"WORLD → PLANE → CUBE → TIER → LAYER";
    return $"{Context.ToUpperInvariant()}  ·  WORLD: {world}  ·  {extent}  ·  {coordinate}  ·  ROLE: {Session.Role}  ·  MODE: {Session.OperatingMode.ToUpperInvariant()}  ·  STARS: EDIT  ·  SKY: EDIT  ·  CALENDAR: EDIT  ·  UGC: EDIT  ·  ReLiC ONLINE  ·  ";
   }
+ }
+ async Task OpenStartMenu()
+ {
+  try{await JS.InvokeVoidAsync("RistStartMenu.open");}catch(JSException){}
  }
  protected override void OnInitialized()=>Session.Changed+=Refresh;
  void Refresh()=>InvokeAsync(StateHasChanged);
