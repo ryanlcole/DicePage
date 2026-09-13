@@ -1,0 +1,25 @@
+.worldbuilder-studio {
+    grid-template-rows: 14px 62px minmax(0, 1fr) 62px !important;
+}
+
+.studio-header {
+    height: 14px !important;
+    min-height: 0 !important;
+}
+
+.studio-home,
+.studio-profile {
+    min-height: 0 !important;
+    font-size: 9px !important;
+    line-height: 13px !important;
+}
+
+.studio-profile span {
+    font-size: 6px !important;
+}
+
+@media (max-width: 760px) {
+    .worldbuilder-studio {
+        grid-template-rows: 14px 58px minmax(0, 1fr) 58px !important;
+    }
+}
