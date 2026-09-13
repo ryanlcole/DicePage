@@ -1,11 +1,9 @@
 /*
- * World Builder viewer grid authority.
+ * World Builder map/grid authority.
  *
- * The canonical world is a 30 x 30 square surface.  Keep the presentation
- * surface square on every viewport so desktop/landscape layouts cannot stretch
- * the logical cells into a second geometry.  The viewer grid is deliberately
- * independent of the movable/scalable world content, but it shares the exact
- * same square bounds.
+ * The logical map surface may extend to 300 x 300 cells. Camera zoom determines
+ * how many cells are visible and how large they appear. A fresh map contains no
+ * implicit terrain image or default terrain tiles.
  */
 
 html body .worldbuilder-studio .studio-viewer-canvas{
@@ -13,10 +11,13 @@ html body .worldbuilder-studio .studio-viewer-canvas{
   calc(100cqw - var(--viewer-frame) - var(--viewer-frame)),
   calc(100cqh - var(--viewer-frame) - var(--viewer-frame))
  );
+ --world-grid-columns:300;
+ --world-grid-rows:300;
+ --world-grid-cell-x:calc(100% / var(--world-grid-columns));
+ --world-grid-cell-y:calc(100% / var(--world-grid-rows));
 }
 
-/* Restore the canonical square map surface even though WorldBuilderStudio has
-   older full-viewport rules in its component stylesheet. */
+/* The world remains square regardless of the viewer aspect ratio. */
 html body .worldbuilder-studio .studio-viewer-canvas .map{
  position:absolute!important;
  inset:auto!important;
@@ -48,9 +49,22 @@ html body .worldbuilder-studio .studio-viewer-canvas .world-stage{
  transform-origin:center center!important;
 }
 
-/* Disable every legacy/core grid so only one visible grid can own geometry. */
-.worldbuilder-studio .studio-viewer-canvas .world-stage>.grid,
-.worldbuilder-studio .studio-viewer-canvas .map [class*="grid"],
+/* Retire the old static viewer overlay. A grid outside the movable stage cannot
+   remain aligned with world coordinates while panning and zooming. */
+html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid,
+html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.on,
+html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.off{
+ display:none!important;
+ visibility:hidden!important;
+ opacity:0!important;
+ background:none!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+}
+
+/* Disable only obsolete coordinate/grid overlays. The direct child stage grid
+   below is the single presentation authority. */
 .worldbuilder-studio .studio-viewer-canvas .coordinate-system,
 .worldbuilder-studio .studio-viewer-canvas .grid-coordinates,
 .worldbuilder-studio .studio-viewer-canvas .coordinate-grid,
@@ -64,60 +78,65 @@ html body .worldbuilder-studio .studio-viewer-canvas .world-stage{
  outline:0!important;
 }
 
-/* One viewer-owned 30 x 30 square grid.  Plain percentages avoid browser
-   differences around calc() division and keep X/Y cell dimensions identical. */
-html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid{
+/* One grid cell equals one addressable world cell. At the default 10x camera
+   zoom, approximately thirty cells span the viewer without making thirty the
+   world's dimensions. */
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.grid{
  position:absolute!important;
- inset:auto!important;
- left:50%!important;
- top:50%!important;
- width:var(--viewer-surface-size)!important;
- height:var(--viewer-surface-size)!important;
+ inset:0!important;
+ width:100%!important;
+ height:100%!important;
+ min-width:100%!important;
+ min-height:100%!important;
  display:block!important;
  visibility:visible!important;
- opacity:1!important;
  box-sizing:border-box!important;
  pointer-events:none!important;
  z-index:30!important;
- border:1px solid rgba(215,199,145,.64)!important;
+ border:0!important;
  outline:0!important;
+ background-position:0 0!important;
+ background-repeat:repeat!important;
+}
+
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.grid.square{
  background-image:
   linear-gradient(to right,rgba(215,199,145,.52) 1px,transparent 1px),
   linear-gradient(to bottom,rgba(215,199,145,.52) 1px,transparent 1px)!important;
- background-size:3.3333333333% 3.3333333333%!important;
- background-position:0 0!important;
- background-repeat:repeat!important;
- transform:translate(-50%,-50%)!important;
+ background-size:var(--world-grid-cell-x) var(--world-grid-cell-y)!important;
 }
 
-html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.off{
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.grid.none{
  display:none!important;
  visibility:hidden!important;
- opacity:0!important;
+ background:none!important;
+ background-image:none!important;
+}
+
+/* No default map image or terrain wallpaper. */
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world{
+ background:#071015!important;
+ background-image:none!important;
+ background-repeat:no-repeat!important;
+ z-index:0!important;
+}
+
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world::after{
+ content:none!important;
+ display:none!important;
+ background:none!important;
+ background-image:none!important;
 }
 
 /* Legacy/core pseudo-element grids are explicitly disabled. */
-html body .worldbuilder-studio .studio-viewer-canvas .world-stage::before{
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage::before,
+html body .worldbuilder-studio .studio-viewer-canvas .world-stage::after,
+html body .worldbuilder-studio .studio-viewer-canvas .map::before,
+html body .worldbuilder-studio .studio-viewer-canvas .map::after{
  content:none!important;
  display:none!important;
  visibility:hidden!important;
  background:none!important;
  background-image:none!important;
  border:0!important;
-}
-
-.worldbuilder-studio .studio-viewer-canvas .world-stage::after,
-.worldbuilder-studio .studio-viewer-canvas .map::before,
-.worldbuilder-studio .studio-viewer-canvas .map::after{
- content:none!important;
- display:none!important;
- background:none!important;
- background-image:none!important;
-}
-
-/* The ocean wallpaper uses the same 1/30 square cadence as the viewer grid. */
-html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world{
- background-size:3.3333333333% 3.3333333333%!important;
- background-position:0 0!important;
- z-index:0!important;
 }
