@@ -1,0 +1,18 @@
+[
+  {
+    "id": "sprite-scenery-fountain-flowing-001",
+    "name": "Flowing Fountain",
+    "image": "assets/sprites/world/scenery/fountains/flowing-fountain.svg",
+    "layer": "WORLD",
+    "directory": "Scenery & Terrain",
+    "folder": "Fountains",
+    "author": "ReLiCGameMaster / Shaelvien",
+    "assetKind": "sprite",
+    "authoredDepth": false,
+    "defaultTierIndex": 0,
+    "defaultLayerOffset": 0,
+    "defaultFootprint": 1,
+    "frameCount": 24,
+    "framesPerSecond": 12
+  }
+]
