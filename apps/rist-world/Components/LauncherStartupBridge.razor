@@ -2,11 +2,51 @@
 @inject WorldSession Session
 
 @code {
- bool _armed = true;
- bool _subscribed;
- protected override void OnInitialized(){Session.Changed += SessionChanged;_subscribed = true;}
- void SessionChanged(){if(!_armed)return;_armed=false;_ = InvokeAsync(ApplyAsync);}
- async Task ApplyAsync(){try{await Session.ApplyLauncherStartupAsync();}finally{Unsubscribe();}}
- void Unsubscribe(){if(!_subscribed)return;Session.Changed-=SessionChanged;_subscribed=false;}
- public void Dispose()=>Unsubscribe();
+    bool _armed = true;
+    bool _subscribed;
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += SessionChanged;
+        _subscribed = true;
+    }
+
+    void SessionChanged()
+    {
+        if (!_armed) return;
+        _armed = false;
+        _ = InvokeAsync(ApplyAsync);
+    }
+
+    async Task ApplyAsync()
+    {
+        try
+        {
+            try
+            {
+                await Session.ApplyLauncherStartupAsync();
+            }
+            catch (InvalidOperationException ex) when (
+                ex.Message.Contains("Geonaph owner authority", StringComparison.OrdinalIgnoreCase))
+            {
+                // Geonaph may be viewed by non-owner accounts. Owner-only mutation
+                // authority remains enforced by WorldSession at the write/action boundary.
+                // An expected authorization refusal must not become a launcher-wide
+                // startup failure.
+            }
+        }
+        finally
+        {
+            Unsubscribe();
+        }
+    }
+
+    void Unsubscribe()
+    {
+        if (!_subscribed) return;
+        Session.Changed -= SessionChanged;
+        _subscribed = false;
+    }
+
+    public void Dispose() => Unsubscribe();
 }
