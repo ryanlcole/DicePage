@@ -1,27 +1,18 @@
 @inject WorldSession Session
 
-<nav class="world-asset-rail" aria-label="World building asset library">
+<nav class="world-asset-rail" aria-label="World building tile directory">
  <button type="button" class="rail-back" @onclick="Back" aria-label="Back one level">‹</button>
- <button type="button" class="rail-location library-root" @onclick="GoLibraryRoot" title="Asset library root" aria-label="Return to Library">
-  <small>Asset</small><strong>Library</strong>
- </button>
 
  @if(_directory is not null)
  {
-  <button type="button" class="rail-location" @onclick="OpenCurrentDirectory" title="Current directory">
-   <small>Directory</small><strong>@DisplayDirectory(_directory)</strong>
+  <button type="button" class="rail-location" @onclick="()=>{_folder=null;_preview=null;}" title="Current directory">
+   <small>Directory</small><strong>@_directory</strong>
   </button>
  }
  @if(_folder is not null)
  {
-  <button type="button" class="rail-location" @onclick="OpenCurrentFolder" title="Current folder">
+  <button type="button" class="rail-location" title="Current folder">
    <small>Folder</small><strong>@_folder</strong>
-  </button>
- }
- @if(_subfolder is not null)
- {
-  <button type="button" class="rail-location" title="Current subfolder">
-   <small>Subfolder</small><strong>@DisplaySubfolder(_subfolder)</strong>
   </button>
  }
 
@@ -29,9 +20,9 @@
  {
   @foreach(var directory in Directories)
   {
-   <button type="button" class="folder-card" @onclick="()=>OpenDirectory(directory)" aria-label="Open @DisplayDirectory(directory) directory"><span>▰</span><strong>@DisplayDirectory(directory)</strong><small>Directory</small></button>
+   <button type="button" class="folder-card" @onclick="()=>OpenDirectory(directory)" aria-label="Open @directory directory"><span>▰</span><strong>@directory</strong><small>Directory</small></button>
   }
-  @if(Directories.Count==0){<span class="rail-empty">No asset directories are loaded.</span>}
+  @if(Directories.Count==0){<span class="rail-empty">No tile directories are loaded.</span>}
  }
  else if(_folder is null)
  {
@@ -39,24 +30,7 @@
   {
    <button type="button" class="folder-card" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder folder"><span>▰</span><strong>@folder</strong><small>Folder</small></button>
   }
-  @if(Folders.Count==0){<span class="rail-empty">No folders are available in @DisplayDirectory(_directory).</span>}
- }
- else if(_subfolder is null && Subfolders.Count>0)
- {
-  @foreach(var subfolder in Subfolders)
-  {
-   <button type="button" class="folder-card" @onclick="()=>OpenSubfolder(subfolder)" aria-label="Open @DisplaySubfolder(subfolder) subfolder"><span>▰</span><strong>@DisplaySubfolder(subfolder)</strong><small>Subfolder</small></button>
-  }
-  @foreach(var tile in DirectTiles)
-  {
-   <button type="button" class="asset-card @(_preview?.Id==tile.Id?"previewing":"")" draggable="true"
-           @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag"
-           @onclick="()=>TogglePreview(tile)"
-           title="Tap to preview @tile.Name">
-    <img src="@tile.Image" alt="" loading="lazy" draggable="false" />
-    <strong>@tile.Name</strong>
-   </button>
-  }
+  @if(Folders.Count==0){<span class="rail-empty">No folders are available in @_directory.</span>}
  }
  else
  {
@@ -70,7 +44,7 @@
     <strong>@tile.Name</strong>
    </button>
   }
-  @if(Tiles.Count==0){<span class="rail-empty">This folder has no assets.</span>}
+  @if(Tiles.Count==0){<span class="rail-empty">This folder has no tiles.</span>}
  }
 </nav>
 
@@ -85,11 +59,15 @@
 }
 
 <style>
- .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:6px;padding:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .folder-card{display:grid;grid-template-columns:auto auto;grid-template-rows:1fr auto;align-items:center;justify-content:center;column-gap:7px;padding:4px 10px}.world-asset-rail .folder-card span{grid-row:1/3;font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .folder-card small,.world-asset-rail .rail-location small{color:#7fa9c7;font:700 7px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.world-asset-rail .rail-location{display:grid;place-items:center;gap:2px;min-width:88px;padding:4px 9px;border-color:#536b78;background:#101a21}.world-asset-rail .rail-location strong{white-space:nowrap;color:#f2dfac}.world-asset-rail .library-root{border-color:#8d6a28;background:#17180f;min-width:92px}.world-asset-rail .library-root strong{color:#f0d58b}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card.previewing{border-color:#e2bd63;box-shadow:inset 0 0 0 1px #e2bd63}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}.world-asset-rail .rail-empty{flex:0 0 auto;padding:0 10px;color:#8799a3;font:700 9px/1.2 system-ui;white-space:nowrap}
+ .world-asset-rail{box-sizing:border-box;width:100%;height:100%;display:flex;align-items:center;gap:6px;padding:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#0a1117}.world-asset-rail::-webkit-scrollbar{display:none}.world-asset-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:96px;border:1px solid #6f5a2f;border-radius:9px;background:#0d171e;color:#e1ca87;font:800 10px/1 system-ui;touch-action:manipulation;overflow:hidden}.world-asset-rail .rail-back{min-width:48px;width:48px;font-size:28px}.world-asset-rail .folder-card{display:grid;grid-template-columns:auto auto;grid-template-rows:1fr auto;align-items:center;justify-content:center;column-gap:7px;padding:4px 10px}.world-asset-rail .folder-card span{grid-row:1/3;font-size:14px}.world-asset-rail .folder-card strong{white-space:nowrap}.world-asset-rail .folder-card small,.world-asset-rail .rail-location small{color:#7fa9c7;font:700 7px/1 system-ui;text-transform:uppercase;letter-spacing:.08em}.world-asset-rail .rail-location{display:grid;place-items:center;gap:2px;min-width:88px;padding:4px 9px;border-color:#536b78;background:#101a21}.world-asset-rail .rail-location strong{white-space:nowrap;color:#f2dfac}.world-asset-rail .asset-card{position:relative;padding:0}.world-asset-rail .asset-card.previewing{border-color:#e2bd63;box-shadow:inset 0 0 0 1px #e2bd63}.world-asset-rail .asset-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.68}.world-asset-rail .asset-card strong{position:relative;z-index:2;display:grid;place-items:end center;width:100%;height:100%;padding:0 5px 5px;background:linear-gradient(transparent,#000c);color:#fff1bd;font-size:9px;text-align:center}.world-asset-rail .rail-empty{flex:0 0 auto;padding:0 10px;color:#8799a3;font:700 9px/1.2 system-ui;white-space:nowrap}
+ /* The preview belongs to the viewer, not the bottom library rail. The rail used
+    to be a transformed containing block, which pinned this absolute preview
+    below the map on mobile. Remove that containing block and anchor the preview
+    to the World Builder viewer rows: header + top workbench above, command rail below. */
  .worldbuilder-studio .studio-command-slider{transform:none!important}
  .asset-preview-stage{position:fixed;left:0;right:0;top:82px;bottom:62px;z-index:58;display:grid;place-items:center;pointer-events:none;padding:36px;background:transparent}
  .asset-preview-card{pointer-events:auto;position:relative;display:grid;place-items:center;width:min(72vw,72vh,560px);height:min(72vw,72vh,560px);padding:0;overflow:hidden;border:2px solid #d6b45f;border-radius:14px;background:#071015;box-shadow:0 14px 44px #000c;color:#fff1bd;touch-action:manipulation}.asset-preview-card img{width:100%;height:100%;object-fit:contain;display:block}.asset-preview-card span{position:absolute;left:0;right:0;bottom:0;display:grid;gap:3px;padding:10px 12px;background:linear-gradient(transparent,#000 35%);text-align:center}.asset-preview-card strong{font:900 12px/1 system-ui}.asset-preview-card small{font:800 8px/1 system-ui;color:#d6b45f;text-transform:uppercase;letter-spacing:.06em}
- @@media(max-width:760px){.world-asset-rail{padding:6px}.world-asset-rail button{height:44px;min-width:82px}.world-asset-rail .rail-back{min-width:44px;width:44px}.world-asset-rail .library-root{min-width:86px}.asset-preview-stage{padding:18px}.asset-preview-card{width:min(76vw,76vh,440px);height:min(76vw,76vh,440px)}}
+ @@media(max-width:760px){.world-asset-rail{padding:6px}.world-asset-rail button{height:44px;min-width:82px}.world-asset-rail .rail-back{min-width:44px;width:44px}.asset-preview-stage{padding:18px}.asset-preview-card{width:min(76vw,76vh,440px);height:min(76vw,76vh,440px)}}
 </style>
 
 @code{
@@ -99,48 +77,19 @@
  [Parameter] public EventCallback<AtlasTile> OnAssetPin { get; set; }
  string? _directory;
  string? _folder;
- string? _subfolder;
  AtlasTile? _preview;
 
  IEnumerable<AtlasTile> WorldTiles=>Session.AtlasTiles.Where(x=>!x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase));
  IReadOnlyList<string> Directories=>WorldTiles.Select(x=>Normalize(x.Directory,"Tiles")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
  IReadOnlyList<string> Folders=>WorldTiles.Where(x=>Same(Normalize(x.Directory,"Tiles"),_directory)).Select(x=>Normalize(x.Folder,"General")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<string> Subfolders=>WorldTiles.Where(InCurrentFolder).Select(AssetSubfolder).Where(x=>!string.IsNullOrWhiteSpace(x)).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<AtlasTile> DirectTiles=>WorldTiles.Where(x=>InCurrentFolder(x)&&string.IsNullOrWhiteSpace(AssetSubfolder(x))).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<AtlasTile> Tiles=>WorldTiles.Where(x=>InCurrentFolder(x)&&(_subfolder is null||Same(AssetSubfolder(x),_subfolder))).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
-
- bool InCurrentFolder(AtlasTile tile)=>Same(Normalize(tile.Directory,"Tiles"),_directory)&&Same(Normalize(tile.Folder,"General"),_folder);
+ IReadOnlyList<AtlasTile> Tiles=>WorldTiles.Where(x=>Same(Normalize(x.Directory,"Tiles"),_directory)&&Same(Normalize(x.Folder,"General"),_folder)).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
  static string Normalize(string? value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
  static bool Same(string? a,string? b)=>string.Equals(a,b,StringComparison.OrdinalIgnoreCase);
- static string DisplayDirectory(string? directory)=>Same(directory,"Pangea")?"Sprite Library":Normalize(directory,"Library");
- static string DisplaySubfolder(string? subfolder)=>Normalize(subfolder,"Files").Replace('-', ' ');
- static string Slug(string? value)=>new((value??"").Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
- static string? AssetSubfolder(AtlasTile tile)
- {
-  var image=(tile.Image??"").Trim();
-  if(image.Length==0)return null;
-  var path=image;
-  if(Uri.TryCreate(image,UriKind.Absolute,out var uri))path=uri.AbsolutePath;
-  var query=path.IndexOfAny(['?','#']);if(query>=0)path=path[..query];
-  var segments=path.Replace('\\','/').Split('/',StringSplitOptions.RemoveEmptyEntries);
-  if(segments.Length<2)return null;
-  var parent=Uri.UnescapeDataString(segments[^2]).Trim();
-  if(parent.Length==0)return null;
-  var parentSlug=Slug(parent);
-  if(parentSlug.Length==0||parentSlug is "assets" or "images" or "img" or "world" or "tilesets" or "sprites" or "registered")return null;
-  if(parentSlug==Slug(tile.Directory)||parentSlug==Slug(tile.Folder))return null;
-  return parent;
- }
-
- void GoLibraryRoot(){_directory=null;_folder=null;_subfolder=null;_preview=null;}
- void OpenCurrentDirectory(){_folder=null;_subfolder=null;_preview=null;}
- void OpenCurrentFolder(){_subfolder=null;_preview=null;}
- void OpenDirectory(string directory){_directory=directory;_folder=null;_subfolder=null;_preview=null;}
- void OpenFolder(string folder){_folder=folder;_subfolder=null;_preview=null;}
- void OpenSubfolder(string subfolder){_subfolder=subfolder;_preview=null;}
+ void OpenDirectory(string directory){_directory=directory;_folder=null;_preview=null;}
+ void OpenFolder(string folder){_folder=folder;_preview=null;}
  void TogglePreview(AtlasTile tile)=>_preview=_preview?.Id==tile.Id?null:tile;
  async Task PinPreview(){if(_preview is null)return;var tile=_preview;_preview=null;await OnAssetPin.InvokeAsync(tile);}
- async Task Back(){if(_preview is not null){_preview=null;return;}if(_subfolder is not null){_subfolder=null;return;}if(_folder is not null){_folder=null;return;}if(_directory is not null){_directory=null;return;}await OnExit.InvokeAsync();}
+ async Task Back(){if(_preview is not null){_preview=null;return;}if(_folder is not null){_folder=null;return;}if(_directory is not null){_directory=null;return;}await OnExit.InvokeAsync();}
  Task BeginDrag(AtlasTile tile)=>OnAssetDragStart.InvokeAsync(tile);
  Task EndDrag()=>OnAssetDragEnd.InvokeAsync();
 }
