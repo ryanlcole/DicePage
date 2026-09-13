@@ -237,9 +237,9 @@
    if(catalog is null)return;
    foreach(var tile in catalog)
     if(Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
-   var sprites=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/pangea/catalog.json?v=20260912-pangea-sprites-1");
+   var sprites=await Http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/catalog.json?v=20260914-geonaph-v1");
    if(sprites is not null)foreach(var tile in sprites)
-    if(Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
+    if(tile.AssetKind.Equals("sprite",StringComparison.OrdinalIgnoreCase)&&tile.FrameCount>1&&tile.FramesPerSecond>0&&Session.AtlasTiles.All(existing=>!string.Equals(existing.Id,tile.Id,StringComparison.Ordinal)))Session.AtlasTiles.Add(tile);
    Session.Notify();
   }
   catch{}

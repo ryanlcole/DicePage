@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+
 namespace RistWorld;
 
 public sealed partial class WorldSession
@@ -5,6 +7,7 @@ public sealed partial class WorldSession
     public const string OriginMapId = "MapU000X000Y000Z";
     public const string OriginMapAlias = GeonaphDisplayName;
     bool _originMapApplied;
+    GeonaphRuntimeCatalog? _geonaphRuntimeCatalog;
 
     public string MapId { get; private set; } = OriginMapId;
     public string MapAlias => MapName;
@@ -23,6 +26,24 @@ public sealed partial class WorldSession
         Notify();
     }
 
+    async Task LoadGeonaphRuntimeCatalogAsync()
+    {
+        try
+        {
+            var catalog = await http.GetFromJsonAsync<GeonaphRuntimeCatalog>(
+                "assets/worlds/geonaph/v1/runtime_catalog.json?v=20260914-geonaph-v1");
+            if (catalog is not null &&
+                string.Equals(catalog.WorldId, "geonaph-world-v1", StringComparison.Ordinal) &&
+                catalog.GridWidth == GridColumns && catalog.GridHeight == GridRows)
+                _geonaphRuntimeCatalog = catalog;
+        }
+        catch
+        {
+            // Geonaph remains accessible as an empty authored world if its optional
+            // package catalog has not been installed yet.
+        }
+    }
+
     // Kept under the existing method name so legacy callers continue to initialize
     // the Geonaph origin without changing its stable map identity.
     public void EnsureGianaphWorld()
@@ -34,202 +55,79 @@ public sealed partial class WorldSession
         GridCalibrationZoom = 1;
         ViewZoom = 1;
 
-        // The origin invariant can be established before the production sprite
-        // catalog is registered. Therefore _originMapApplied is not sufficient proof
-        // that the current v004 chunk is present. Registration + seeding are made
-        // idempotent and are safe to repeat whenever Geonaph is opened.
-        RegisterGeonaphChunkCatalogV004();
-        SeedRegisteredGeonaphChunk();
+        RegisterGeonaphPackageCatalog();
+        SeedGeonaphPackage();
 
         _originMapApplied = true;
         MapLocked = true;
         Notify();
     }
 
-    void RegisterGeonaphChunkCatalogV004()
+    void RegisterGeonaphPackageCatalog()
     {
-        const string root = "https://d2d6rnm6fnsp89.cloudfront.net/assets/sprites/pangea/registered/GEO_X00_Y00/";
+        // Remove only the obsolete prototype records. Their useful artwork remains
+        // available through reclassified normal-Library entries.
+        AtlasTiles.RemoveAll(tile =>
+            tile.Id.StartsWith("pangea-sprite-geo-x00-y00-", StringComparison.OrdinalIgnoreCase));
 
-        AtlasTile[] layers =
-        [
-            new(
-                "pangea-sprite-geo-x00-y00-ocean-floor-v004",
-                "GEO X00 Y00 · Ocean Floor",
-                root + "geonaph_geo_x00_y00_t00_l00_ocean_floor_v004.png",
-                "WORLD", "Pangea", "01 Ocean Floor", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 0, DefaultLayerOffset: 0, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-ocean-surface-v004",
-                "GEO X00 Y00 · Ocean Surface",
-                root + "geonaph_geo_x00_y00_t00_l09_ocean_surface_v004.png",
-                "WORLD", "Pangea", "02 Ocean Surface", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 0, DefaultLayerOffset: 9, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-plains-v004",
-                "GEO X00 Y00 · Plains",
-                root + "geonaph_geo_x00_y00_t01_l01_plains_v004.png",
-                "WORLD", "Pangea", "04 Low Plains", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 1, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-coast-shallows-v004",
-                "GEO X00 Y00 · Coast & Shallows",
-                root + "geonaph_geo_x00_y00_t01_l00_coast_shallows_v004.png",
-                "WORLD", "Pangea", "03 Coast and Shallows", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 0, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-valleys-v004",
-                "GEO X00 Y00 · Valleys",
-                root + "geonaph_geo_x00_y00_t01_l02_valleys_v004.png",
-                "WORLD", "Pangea", "05 Valleys and Depressions", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 2, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-forests-v004",
-                "GEO X00 Y00 · Forests",
-                root + "geonaph_geo_x00_y00_t01_l03_forests_v004.png",
-                "WORLD", "Pangea", "06 Forests and Wetlands", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 3, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-waterways-v004",
-                "GEO X00 Y00 · Waterways",
-                root + "geonaph_geo_x00_y00_t01_l01_waterways_v004.png",
-                "WORLD", "Pangea", "09 Waterways", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 1, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-hills-v004",
-                "GEO X00 Y00 · Hills",
-                root + "geonaph_geo_x00_y00_t01_l06_hills_v004.png",
-                "WORLD", "Pangea", "07 Hills and Uplands", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 1, DefaultLayerOffset: 6, DefaultFootprint: 30),
-            new(
-                "pangea-sprite-geo-x00-y00-mountains-v004",
-                "GEO X00 Y00 · Mountains",
-                root + "geonaph_geo_x00_y00_t02_l00_mountains_v004.png",
-                "WORLD", "Pangea", "08 Mountains and Peaks", "Shaelvien",
-                SourceWidth: 1200, SourceHeight: 1200,
-                AssetKind: "sprite", AuthoredDepth: true,
-                DefaultTierIndex: 2, DefaultLayerOffset: 0, DefaultFootprint: 30)
-        ];
-
-        foreach (var layer in layers)
+        if (_geonaphRuntimeCatalog is null) return;
+        foreach (var placement in _geonaphRuntimeCatalog.Placements)
         {
-            if (AtlasTiles.All(existing => !string.Equals(existing.Id, layer.Id, StringComparison.Ordinal)))
-                AtlasTiles.Add(layer);
+            var index = AtlasTiles.FindIndex(tile =>
+                string.Equals(tile.Id, placement.Asset.Id, StringComparison.Ordinal));
+            if (index >= 0) AtlasTiles[index] = placement.Asset;
+            else AtlasTiles.Add(placement.Asset);
         }
     }
 
-    void SeedRegisteredGeonaphChunk()
+    void SeedGeonaphPackage()
     {
-        const string chunkPrefix = "pangea-sprite-geo-x00-y00-";
+        PlacedTiles.RemoveAll(tile =>
+            tile.Id.StartsWith("pangea-sprite-geo-x00-y00-", StringComparison.OrdinalIgnoreCase));
+        if (_geonaphRuntimeCatalog is null) return;
 
-        var registeredLayers = AtlasTiles
-            .Where(tile => tile.AuthoredDepth
-                && tile.AssetKind.Equals("sprite", StringComparison.OrdinalIgnoreCase)
-                && tile.Id.StartsWith(chunkPrefix, StringComparison.Ordinal)
-                && tile.DefaultFootprint >= GridColumns)
-            .GroupBy(tile => GeonaphChunkSemanticKey(tile.Id), StringComparer.Ordinal)
-            .Select(group => group
-                .OrderByDescending(tile => GeonaphChunkVersion(tile.Id))
-                .ThenByDescending(tile => tile.Id, StringComparer.Ordinal)
-                .First())
-            // Draw order is intentionally separate from authored Z. For example,
-            // the coastline is Tier 1 / Layer 0 but must visually sit over the
-            // low-plains image when the composite world view is shown.
-            .OrderBy(tile => GeonaphChunkRenderOrder(tile.Id))
-            .ThenBy(tile => tile.DefaultTierIndex)
-            .ThenBy(tile => tile.DefaultLayerOffset)
-            .ThenBy(tile => tile.Id, StringComparer.Ordinal)
-            .ToList();
-
-        foreach (var tile in registeredLayers)
+        foreach (var placement in _geonaphRuntimeCatalog.Placements)
         {
-            var semanticKey = GeonaphChunkSemanticKey(tile.Id);
-            var version = GeonaphChunkVersion(tile.Id);
-            var existing = PlacedTiles
-                .Where(placed => placed.Id.StartsWith(chunkPrefix, StringComparison.Ordinal)
-                    && string.Equals(GeonaphChunkSemanticKey(placed.Id), semanticKey, StringComparison.Ordinal))
-                .OrderByDescending(placed => GeonaphChunkVersion(placed.Id))
-                .FirstOrDefault();
-
-            // Never duplicate a current/newer registered chunk. If an older version
-            // exists, retire only that semantic layer and replace it with the latest.
-            if (existing is not null && GeonaphChunkVersion(existing.Id) >= version)
+            if (PlacedTiles.Any(tile => string.Equals(tile.Id, placement.PlacementId, StringComparison.Ordinal)))
                 continue;
-            if (existing is not null)
-                PlacedTiles.RemoveAll(placed => placed.Id.StartsWith(chunkPrefix, StringComparison.Ordinal)
-                    && string.Equals(GeonaphChunkSemanticKey(placed.Id), semanticKey, StringComparison.Ordinal));
 
-            var footprint = Math.Max(1, tile.DefaultFootprint);
+            var asset = placement.Asset;
+            var footprint = Math.Clamp(placement.Footprint, 1, GridColumns);
             PlacedTiles.Add(new TileItem(
-                tile.Id,
-                tile.Name,
-                tile.Image,
-                0,
-                0,
-                SourceWidth: tile.SourceWidth,
-                SourceHeight: tile.SourceHeight,
-                CropX: tile.CropX,
-                CropY: tile.CropY,
-                CropWidth: tile.CropWidth,
-                CropHeight: tile.CropHeight,
+                placement.PlacementId,
+                asset.Name,
+                asset.Image,
+                Math.Clamp(placement.X / GridColumns, 0, 1),
+                Math.Clamp(placement.Y / GridRows, 0, 1),
+                SourceWidth: asset.SourceWidth,
+                SourceHeight: asset.SourceHeight,
                 PlacementZoom: 1.0 / footprint,
                 Locked: true,
                 CubeX: CubeX,
                 CubeY: CubeY,
                 CubeZ: CubeZ,
                 PlaneIndex: PlaneIndex,
-                TierIndex: tile.DefaultTierIndex,
-                LayerOffset: tile.DefaultLayerOffset,
-                RotationQuarterTurns: 0,
+                TierIndex: asset.DefaultTierIndex,
+                LayerOffset: Math.Clamp(asset.DefaultLayerOffset, 0, LayersPerTier - 1),
                 PlacementTreatment: "normal",
-                AssetKind: tile.AssetKind,
+                AssetKind: asset.AssetKind,
                 AuthoredDepth: true,
-                FrameCount: Math.Max(1, tile.FrameCount),
-                FramesPerSecond: Math.Max(0, tile.FramesPerSecond)));
+                FrameCount: Math.Max(1, asset.FrameCount),
+                FramesPerSecond: Math.Max(0, asset.FramesPerSecond)));
         }
     }
-
-    static int GeonaphChunkRenderOrder(string id)
-    {
-        if (id.Contains("ocean-floor", StringComparison.Ordinal)) return 0;
-        if (id.Contains("ocean-surface", StringComparison.Ordinal)) return 10;
-        if (id.Contains("-plains-", StringComparison.Ordinal)) return 20;
-        if (id.Contains("coast-shallows", StringComparison.Ordinal)) return 30;
-        if (id.Contains("-valleys-", StringComparison.Ordinal)) return 40;
-        if (id.Contains("-forests-", StringComparison.Ordinal)) return 50;
-        if (id.Contains("-waterways-", StringComparison.Ordinal)) return 60;
-        if (id.Contains("-hills-", StringComparison.Ordinal)) return 70;
-        if (id.Contains("-mountains-", StringComparison.Ordinal)) return 80;
-        return 1000;
-    }
-
-    static string GeonaphChunkSemanticKey(string id)
-    {
-        var marker = id.LastIndexOf("-v", StringComparison.Ordinal);
-        return marker > 0 ? id[..marker] : id;
-    }
-
-    static int GeonaphChunkVersion(string id)
-    {
-        var marker = id.LastIndexOf("-v", StringComparison.Ordinal);
-        if (marker < 0 || marker + 2 >= id.Length) return 0;
-        return int.TryParse(id[(marker + 2)..], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var version)
-            ? version
-            : 0;
-    }
 }
+
+public sealed record GeonaphRuntimeCatalog(
+    string WorldId,
+    string Name,
+    int GridWidth,
+    int GridHeight,
+    List<GeonaphRuntimePlacement> Placements);
+
+public sealed record GeonaphRuntimePlacement(
+    string PlacementId,
+    AtlasTile Asset,
+    double X,
+    double Y,
+    int Footprint);

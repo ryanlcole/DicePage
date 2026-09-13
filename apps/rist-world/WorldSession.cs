@@ -325,8 +325,11 @@ public sealed partial class WorldSession(HttpClient http, IJSRuntime js, Discord
         if(builtIn is not null)AtlasTiles.AddRange(builtIn);
         var drive=await http.GetFromJsonAsync<List<AtlasTile>>("assets/drive-tiles/catalog.json");
         if(drive is not null)AtlasTiles.AddRange(drive.Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
-        var sprites=await http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/pangea/catalog.json");
-        if(sprites is not null)AtlasTiles.AddRange(sprites.Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
+        var sprites=await http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/catalog.json?v=20260914-geonaph-v1");
+        if(sprites is not null)AtlasTiles.AddRange(sprites
+            .Where(x=>x.AssetKind.Equals("sprite",StringComparison.OrdinalIgnoreCase)&&x.FrameCount>1&&x.FramesPerSecond>0)
+            .Where(x=>AtlasTiles.All(existing=>existing.Id!=x.Id)));
+        await LoadGeonaphRuntimeCatalogAsync();
     }
     async Task LoadCardsAsync(){var rows=await http.GetFromJsonAsync<List<CardItem>>("data/cards-public.json");if(rows is not null)Cards.AddRange(rows);}
     public DiceSpec? Dice(string key)=>DiceSet.FirstOrDefault(x=>x.Key==key);

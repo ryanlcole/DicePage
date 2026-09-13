@@ -18,6 +18,20 @@ def test_sprite_catalog_contains_motion_not_static_depth_art():
     assert all("pangea" not in json.dumps(item).lower() for item in catalog)
 
 
+def test_geonaph_package_is_manifest_driven_and_legacy_catalog_is_not_loaded():
+    session = (ROOT / "WorldSession.cs").read_text()
+    bootstrap = (ROOT / "WorldSession.GianaphBootstrap.cs").read_text()
+    studio = (COMPONENTS / "WorldBuilderStudio.razor").read_text()
+    assert 'assets/sprites/catalog.json?v=20260914-geonaph-v1' in session
+    assert 'assets/sprites/pangea/catalog.json' not in session
+    assert 'assets/sprites/pangea/catalog.json' not in studio
+    assert 'assets/worlds/geonaph/v1/runtime_catalog.json' in bootstrap
+    assert 'GeonaphRuntimeCatalog' in bootstrap
+    assert 'placement.Asset.AssetKind' not in bootstrap
+    assert 'FrameCount: Math.Max(1, asset.FrameCount)' in bootstrap
+    assert 'FramesPerSecond: Math.Max(0, asset.FramesPerSecond)' in bootstrap
+
+
 def test_sprite_library_only_exposes_true_animated_assets():
     rail = (COMPONENTS / "WorldAssetFolderRail.razor").read_text()
     catalog_authority = (COMPONENTS / "WorldAnimatedAssetCatalog.razor").read_text()
