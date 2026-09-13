@@ -18,8 +18,132 @@
     font-size: 6px !important;
 }
 
+/* The Library control is the authority for the general asset rail.  Keep the
+   existing AssetLibrary data/permissions, but present its open state as the
+   next horizontal slider instead of a full-map panel. */
+.studio-viewer-canvas ::deep .map-asset-inventory {
+    inset: auto 0 0 0 !important;
+    width: 100% !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    display: block !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-top: 1px solid #715b2d !important;
+    border-radius: 0 !important;
+    background: #0a1117 !important;
+    box-shadow: 0 -8px 22px #0008 !important;
+    backdrop-filter: none !important;
+    z-index: 70 !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-toolbar,
+.studio-viewer-canvas ::deep .map-asset-filters,
+.studio-viewer-canvas ::deep .map-asset-status {
+    display: none !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-grid {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 5px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scrollbar-width: none !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-grid::-webkit-scrollbar {
+    display: none !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-card {
+    box-sizing: border-box !important;
+    flex: 0 0 94px !important;
+    width: 94px !important;
+    height: 48px !important;
+    min-width: 94px !important;
+    display: block !important;
+    overflow: hidden !important;
+    border: 1px solid #4b5f69 !important;
+    border-radius: 9px !important;
+    background: #0d171e !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-card.private {
+    border-color: #6f5a2f !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-choose {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    overflow: hidden !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-preview {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-preview img {
+    width: 100% !important;
+    height: 100% !important;
+    inset: 0 !important;
+    object-fit: cover !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-choose strong {
+    position: absolute !important;
+    z-index: 2 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    box-sizing: border-box !important;
+    padding: 4px 5px !important;
+    overflow: hidden !important;
+    background: linear-gradient(transparent, #000d) !important;
+    color: #fff1bd !important;
+    font: 800 8px/1 system-ui !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.studio-viewer-canvas ::deep .asset-rating-row {
+    display: none !important;
+}
+
+.studio-viewer-canvas ::deep .map-asset-empty {
+    flex: 0 0 auto !important;
+    padding: 0 12px !important;
+    color: #9d9687 !important;
+    font: 700 9px/48px system-ui !important;
+    white-space: nowrap !important;
+}
+
 @media (max-width: 760px) {
     .worldbuilder-studio {
         grid-template-rows: 14px 58px minmax(0, 1fr) 58px !important;
+    }
+
+    .studio-viewer-canvas ::deep .map-asset-inventory {
+        height: 54px !important;
+        min-height: 54px !important;
+        max-height: 54px !important;
+    }
+
+    .studio-viewer-canvas ::deep .map-asset-card {
+        flex-basis: 86px !important;
+        width: 86px !important;
+        min-width: 86px !important;
+        height: 44px !important;
     }
 }
