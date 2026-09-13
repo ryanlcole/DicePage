@@ -31,7 +31,7 @@ The World Builder is a dedicated studio workspace for constructing the physical-
 - A sprite is a **placed animated visual asset**, not a synonym for a terrain image, world map, or Z layer.
 - A sprite follows the same placement rules as a static tile. Its position/footprint can remain fixed while its visual state changes over time (for example: a tiny fountain whose water flows, a torch that flickers, or a windmill that turns).
 - Static images with one frame or zero animation rate must not be exposed as Sprite Library assets.
-- Sprite directories use the same normal asset taxonomy as regular images (for example `Scenery & Terrain → Fountains`). Geographic prototype names must not become a separate runtime directory authority.
+- Sprite directories use the same normal asset taxonomy as regular images (for example `Terrain → Fountains`). Geographic prototype names must not become a separate runtime directory authority.
 
 ## Play surface boundary
 
