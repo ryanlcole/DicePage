@@ -37,9 +37,9 @@ public sealed partial class WorldSession
     }
 
     /// <summary>
-    /// Adds terrain on the canonical Z axis. Overlap determines the next free
-    /// scene Z naturally; crossing a layer boundary rolls into the next tier.
-    /// Tier is therefore derived from stacking rather than chosen independently.
+    /// Adds terrain on the canonical Z axis using legacy automatic overlap stacking.
+    /// Retained for older non-World-Builder callers. The physical World Builder must
+    /// use AddPlacedTileAtGridDepth so the raised GM construction grid is authoritative.
     /// </summary>
     public void AddPlacedTileStacked(TileItem tile,bool forceUpper=false)
     {
@@ -60,6 +60,20 @@ public sealed partial class WorldSession
             targetSceneZ=Math.Max(targetSceneZ,currentSceneZ+1);
 
         StorePlacedAtSceneZ(candidate,targetSceneZ);
+        LoadCurrentSpatialPage();
+        Notify();
+    }
+
+    /// <summary>
+    /// Physical World Builder placement. The GM's raised square grid is the exact
+    /// construction plane. Overlap is legal at the same X/Y and does not move the
+    /// new asset to another layer. Mid-air placement is legal; no support or gravity
+    /// rule is inferred here. The tile's TierIndex/LayerOffset is authoritative.
+    /// </summary>
+    public void AddPlacedTileAtGridDepth(TileItem tile)
+    {
+        StoreCurrentSpatialPage();
+        StorePlacedAtSceneZ(tile,SceneZOf(tile));
         LoadCurrentSpatialPage();
         Notify();
     }
