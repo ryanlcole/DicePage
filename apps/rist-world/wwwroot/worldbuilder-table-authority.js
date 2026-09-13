@@ -92,6 +92,9 @@
   installStyle();
   const root=studio();if(!root)return;
   root.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
+  const spriteButton=[...(root.querySelectorAll('.studio-command-rail button')||[])].find(button=>(button.querySelector('strong')?.textContent||'').trim()==='Sprite Library');
+  const spriteSubtitle=spriteButton?.querySelector('small');
+  if(spriteSubtitle&&spriteSubtitle.textContent!=='Animated Assets')spriteSubtitle.textContent='Animated Assets';
  }
 
  function isLocked(){
