@@ -8,6 +8,7 @@ on:
       - 'apps/rist-world/wwwroot/assets/**'
       - 'apps/rist-world/prepare_public_data.py'
       - 'apps/rist-world/prepare_aws_assets.py'
+      - 'infra/aws/rist-assets.yml'
       - '.github/workflows/sync-rist-assets-aws.yml'
   workflow_dispatch:
 
@@ -18,6 +19,8 @@ permissions:
 env:
   AWS_REGION: us-east-1
   AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  ASSET_STACK: rist-assets
   ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
   DISTRIBUTION_ID: E1D9TALLP51FI5
   FRONTEND_STACK: rist-frontend
@@ -43,6 +46,39 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+      - name: Reconcile RIST asset CDN authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws cloudformation validate-template --template-body file://infra/aws/rist-assets.yml >/dev/null
+          aws cloudformation deploy \
+            --template-file infra/aws/rist-assets.yml \
+            --stack-name "$ASSET_STACK" \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --no-fail-on-empty-changeset
+
+          STACK_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "$ASSET_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='AssetBucketName'].OutputValue" \
+            --output text)
+          STACK_DIST=$(aws cloudformation describe-stacks \
+            --stack-name "$ASSET_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
+            --output text)
+          STACK_BASE=$(aws cloudformation describe-stacks \
+            --stack-name "$ASSET_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='AssetBaseUrl'].OutputValue" \
+            --output text)
+
+          test -n "$STACK_BUCKET" && test "$STACK_BUCKET" != "None"
+          test -n "$STACK_DIST" && test "$STACK_DIST" != "None"
+          test -n "$STACK_BASE" && test "$STACK_BASE" != "None"
+
+          echo "ASSET_BUCKET=$STACK_BUCKET" >> "$GITHUB_ENV"
+          echo "DISTRIBUTION_ID=$STACK_DIST" >> "$GITHUB_ENV"
+          echo "ASSET_BASE_URL=$STACK_BASE" >> "$GITHUB_ENV"
+          echo "RIST asset authority: bucket=$STACK_BUCKET distribution=$STACK_DIST base=$STACK_BASE"
       - name: Publish all runtime art
         run: |
           # Registered Pangea sprites are promoted binary assets. They are not all
