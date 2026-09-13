@@ -2,6 +2,7 @@
  'use strict';
  const FRAME_PX=24;
  let observer=null;
+ let guardInstalled=false;
  const lockedPointers=new Set();
 
  const studio=()=>document.querySelector('.worldbuilder-studio');
@@ -144,17 +145,26 @@
   if(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s','+','=','-','_','0'].includes(key))stop(event);
  }
 
- function start(){
-  installStyle();sync();
-  observer=new MutationObserver(()=>requestAnimationFrame(sync));
-  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+ function installGuard(){
+  if(guardInstalled)return;
+  guardInstalled=true;
   window.addEventListener('pointerdown',pointerDown,{capture:true,passive:false});
   window.addEventListener('pointermove',pointerMove,{capture:true,passive:false});
   window.addEventListener('pointerup',pointerEnd,{capture:true,passive:false});
   window.addEventListener('pointercancel',pointerEnd,{capture:true,passive:false});
   window.addEventListener('wheel',wheel,{capture:true,passive:false});
   window.addEventListener('keydown',keydown,true);
+ }
+
+ function start(){
+  installStyle();sync();
+  observer=new MutationObserver(()=>requestAnimationFrame(sync));
+  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
   window.addEventListener('resize',()=>requestAnimationFrame(sync));
  }
+
+ // Register the lock boundary immediately so later viewer/optics scripts never
+ // receive locked camera gestures first. DOM-dependent table work can wait.
+ installGuard();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
