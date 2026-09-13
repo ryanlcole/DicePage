@@ -42,9 +42,15 @@
      {
       @foreach(var world in _worlds)
       {
-       <button type="button" class="world-gate-world" disabled="@_busy" @onclick="()=>LoadAsync(world)">
-        <span><strong>@world.DisplayName</strong><small>@world.Relationship · @world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
-       </button>
+       <article class="world-gate-world">
+        <button type="button" class="world-gate-world-load" disabled="@_busy" @onclick="()=>LoadAsync(world)">
+         <span><strong>@world.DisplayName</strong><small>@world.Relationship · @world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
+        </button>
+        @if(Session.CanDeleteWorld(world))
+        {
+         <button type="button" class="world-gate-world-delete" disabled="@_busy" @onclick="()=>BeginDelete(world)" aria-label="Delete @world.DisplayName">DELETE</button>
+        }
+       </article>
       }
      }
     </section>
@@ -62,6 +68,24 @@
     <p class="world-gate-status" role="status">@_status</p>
    }
   </div>
+
+  @if(_deleteWorld is not null)
+  {
+   <section class="world-delete-backdrop" role="presentation" @onclick="CancelDelete">
+    <div class="world-delete-card" role="alertdialog" aria-modal="true" aria-labelledby="world-delete-title" @onclick:stopPropagation="true">
+     <small>PERMANENT WORLD DELETION</small>
+     <h2 id="world-delete-title">Delete @_deleteWorld.DisplayName?</h2>
+     <p>This permanently deletes this world's private cloud data, all stored versions beneath the world, and this browser's local save.</p>
+     <label for="world-delete-approval">Type exactly:</label>
+     <code>@WorldSession.WorldDeletionConfirmationPhrase</code>
+     <input id="world-delete-approval" autocomplete="off" spellcheck="false" @bind="_deleteApproval" @bind:event="oninput" />
+     <div class="world-delete-actions">
+      <button type="button" class="world-gate-secondary" disabled="@_busy" @onclick="CancelDelete">CANCEL</button>
+      <button type="button" class="world-delete-confirm" disabled="@(_busy||!DeleteApprovalMatches)" @onclick="ConfirmDeleteAsync">@(_busy?"DELETING…":"DELETE WORLD")</button>
+     </div>
+    </div>
+   </section>
+  }
  </section>
 }
 
@@ -70,10 +94,11 @@
  .world-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:auto;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
  .world-gate>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5}.world-gate>header span{display:grid;gap:4px}.world-gate>header small{color:#769db7;font-size:8px;font-weight:900;letter-spacing:.13em}.world-gate>header strong{color:#ecd48f;font-size:15px;letter-spacing:.08em}.world-gate>header button{width:38px;height:38px;border:1px solid #52636c;border-radius:8px;background:#101a20;color:#e8dec5;font-size:24px}
  .world-gate-create,.world-gate-ready{display:grid;gap:9px;padding:16px}.world-gate-create label{color:#86acc3;font-size:9px;font-weight:900;letter-spacing:.12em}.world-gate-create input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid #596d76;border-radius:8px;background:#0d171e;color:#fff2c7;font-size:16px;outline:none}.world-gate-create input:focus{border-color:#d0aa56;box-shadow:0 0 0 1px #d0aa56}
- .world-gate-primary,.world-gate-secondary{min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.world-gate-secondary{border-color:#50636c;background:#0e1920;color:#cdd9de}.world-gate button:disabled,.world-gate-import.disabled{opacity:.4}
- .world-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.world-gate-divider::before,.world-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}.world-gate-worlds{display:grid;gap:7px;padding:10px 16px 16px}.world-gate-world{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 11px;border:1px solid #465963;border-radius:8px;background:#0d171e;color:#e8dec5;text-align:left}.world-gate-world span{min-width:0;display:grid;gap:4px}.world-gate-world strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.world-gate-world small{color:#8299a4;font-size:8px}.world-gate-world b{color:#71b8e5;font-size:9px;letter-spacing:.08em}
+ .world-gate-primary,.world-gate-secondary{min-height:46px;border:1px solid #9b7a34;border-radius:8px;background:#261f10;color:#f2d990;font-weight:900;letter-spacing:.05em}.world-gate-secondary{border-color:#50636c;background:#0e1920;color:#cdd9de}.world-gate button:disabled,.world-gate-import.disabled,.world-delete-card button:disabled{opacity:.4}
+ .world-gate-divider{display:flex;align-items:center;gap:10px;padding:2px 16px;color:#8fa7b3;font-size:8px;font-weight:900;letter-spacing:.12em}.world-gate-divider::before,.world-gate-divider::after{content:"";height:1px;flex:1;background:#3c453f}.world-gate-worlds{display:grid;gap:7px;padding:10px 16px 16px}.world-gate-world{min-height:54px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch;border:1px solid #465963;border-radius:8px;background:#0d171e;overflow:hidden}.world-gate-world-load{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 11px;border:0;background:transparent;color:#e8dec5;text-align:left}.world-gate-world-load span{min-width:0;display:grid;gap:4px}.world-gate-world-load strong{overflow:hidden;text-overflow:ellipsis;color:#f0ddb0;font-size:12px}.world-gate-world-load small{color:#8299a4;font-size:8px}.world-gate-world-load b{color:#71b8e5;font-size:9px;letter-spacing:.08em}.world-gate-world-delete{min-width:70px;border:0;border-left:1px solid #62423f;background:#211313;color:#df8c82;font-size:8px;font-weight:900;letter-spacing:.08em}
  .world-gate-note{margin:2px 0;color:#9ba8ad;font-size:11px;line-height:1.4}.world-gate-import{position:relative;display:grid;gap:4px;margin:10px 16px 16px;padding:12px;border:1px dashed #7a6536;border-radius:9px;background:#0d171e;color:#e5cc88;text-align:center;overflow:hidden}.world-gate-import small{color:#93a4ab;font-size:9px;line-height:1.35}.world-gate-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.world-gate-status{margin:0;padding:0 16px 16px;color:#e5ba70;font-size:10px;line-height:1.4}.world-gate-ready{text-align:center;place-items:center;padding:30px 20px}.world-gate-ready .world-gate-primary,.world-gate-ready .world-gate-secondary{width:min(100%,380px)}.world-gate-ready h2{margin:0;color:#f2d990;font-size:24px}.world-gate-ready p{max-width:430px;margin:0 0 10px;color:#aebbc0;font-size:12px;line-height:1.5}.world-gate-glyph{font-size:42px;color:#d0aa56}
- @@media(max-width:600px){.world-gate-backdrop{padding:8px}.world-gate{width:100%;max-height:94dvh}.world-gate>header{padding:11px 12px}.world-gate-create,.world-gate-ready{padding:13px}.world-gate-worlds{padding:8px 12px 13px}.world-gate-import{margin:8px 12px 13px}}
+ .world-delete-backdrop{position:fixed;inset:0;z-index:2147482600;display:grid;place-items:center;padding:16px;background:#020609e8}.world-delete-card{box-sizing:border-box;width:min(92vw,560px);display:grid;gap:10px;padding:20px;border:1px solid #8f4943;border-radius:12px;background:#110b0c;color:#eadbd8;box-shadow:0 20px 70px #000e;font-family:system-ui,-apple-system,sans-serif}.world-delete-card>small{color:#df8379;font-size:8px;font-weight:900;letter-spacing:.14em}.world-delete-card h2{margin:0;color:#ffd0c9;font-size:20px}.world-delete-card p{margin:0 0 5px;color:#c8b1ad;font-size:11px;line-height:1.5}.world-delete-card label{color:#dc958c;font-size:9px;font-weight:900;letter-spacing:.08em}.world-delete-card code{padding:9px;border:1px solid #563a38;border-radius:7px;background:#090708;color:#f0c3bd;font-size:10px;white-space:normal}.world-delete-card input{box-sizing:border-box;width:100%;height:46px;padding:0 11px;border:1px solid #77504c;border-radius:8px;background:#090708;color:#fff;font-size:15px;outline:none}.world-delete-card input:focus{border-color:#df8379;box-shadow:0 0 0 1px #df8379}.world-delete-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.world-delete-confirm{min-height:46px;border:1px solid #a34d45;border-radius:8px;background:#461c19;color:#ffd6d0;font-weight:900;letter-spacing:.05em}
+ @@media(max-width:600px){.world-gate-backdrop{padding:8px}.world-gate{width:100%;max-height:94dvh}.world-gate>header{padding:11px 12px}.world-gate-create,.world-gate-ready{padding:13px}.world-gate-worlds{padding:8px 12px 13px}.world-gate-import{margin:8px 12px 13px}.world-gate-world-delete{min-width:64px}.world-delete-backdrop{padding:10px}.world-delete-card{width:100%;padding:16px}}
 </style>
 
 @code {
@@ -82,12 +107,15 @@
  [Parameter] public EventCallback OnClose{get;set;}
  [Parameter] public EventCallback OnContinue{get;set;}
  readonly List<AccountWorldReference> _worlds=[];
+ AccountWorldReference? _deleteWorld;
  bool _wasOpen;
  bool _loading;
  bool _busy;
  bool _ready;
  string _worldName="";
  string _status="";
+ string _deleteApproval="";
+ bool DeleteApprovalMatches=>string.Equals(_deleteApproval,WorldSession.WorldDeletionConfirmationPhrase,StringComparison.Ordinal);
 
  protected override async Task OnParametersSetAsync()
  {
@@ -96,6 +124,8 @@
    _ready=false;
    _status="";
    _worldName="";
+   _deleteWorld=null;
+   _deleteApproval="";
    await RefreshWorldsAsync();
   }
   _wasOpen=Open;
@@ -142,6 +172,40 @@
   finally{_busy=false;}
  }
 
+ void BeginDelete(AccountWorldReference world)
+ {
+  if(_busy||!Session.CanDeleteWorld(world))return;
+  _deleteWorld=world;
+  _deleteApproval="";
+  _status="";
+ }
+
+ void CancelDelete()
+ {
+  if(_busy)return;
+  _deleteWorld=null;
+  _deleteApproval="";
+ }
+
+ async Task ConfirmDeleteAsync()
+ {
+  if(_busy||_deleteWorld is null||!DeleteApprovalMatches)return;
+  var world=_deleteWorld;
+  _busy=true;
+  _status=$"Deleting {world.DisplayName}…";
+  try
+  {
+   await Session.DeleteWorldAsync(world,_deleteApproval);
+   _deleteWorld=null;
+   _deleteApproval="";
+   _ready=Session.HasActiveWorld;
+   await RefreshWorldsAsync();
+   _status=$"{world.DisplayName} and its world data were permanently deleted.";
+  }
+  catch(Exception ex){_status="World deletion failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
  async Task ImportAsync(InputFileChangeEventArgs e)
  {
   if(_busy)return;
@@ -164,5 +228,5 @@
 
  async Task ContinueAsync(){if(Session.HasActiveWorld)await OnContinue.InvokeAsync();}
  async Task ReturnAsync(){if(Session.HasActiveWorld)await OnClose.InvokeAsync();}
- async Task CloseAsync(){if(!_busy)await OnClose.InvokeAsync();}
+ async Task CloseAsync(){if(!_busy&&_deleteWorld is null)await OnClose.InvokeAsync();}
 }
