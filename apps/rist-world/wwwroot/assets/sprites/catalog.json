@@ -2,9 +2,9 @@
   {
     "id": "sprite-scenery-fountain-flowing-001",
     "name": "Flowing Fountain",
-    "image": "assets/sprites/world/scenery/fountains/flowing-fountain.svg",
+    "image": "assets/sprites/world/terrain/fountains/flowing-fountain.svg",
     "layer": "WORLD",
-    "directory": "Scenery & Terrain",
+    "directory": "Terrain",
     "folder": "Fountains",
     "author": "ReLiCGameMaster / Shaelvien",
     "assetKind": "sprite",
