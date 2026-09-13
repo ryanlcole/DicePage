@@ -1,0 +1,96 @@
+name: Deploy RIST World Lifecycle
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-world-lifecycle.yml'
+      - '.github/workflows/deploy-rist-world-lifecycle.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  AUTH_STACK_NAME: rist-discord-storage
+  STACK_NAME: rist-world-lifecycle
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate lifecycle template
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws cloudformation validate-template \
+            --template-body file://infra/aws/rist-world-lifecycle.yml >/dev/null
+
+      - name: Resolve existing RIST auth resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          resource_id(){
+            aws cloudformation describe-stack-resource \
+              --stack-name "$AUTH_STACK_NAME" \
+              --logical-resource-id "$1" \
+              --query 'StackResourceDetail.PhysicalResourceId' \
+              --output text
+          }
+          AUTH_API_ID="$(resource_id AuthApi)"
+          IDENTITY_TABLE_NAME="$(resource_id IdentityTable)"
+          PRIVATE_STORAGE_BUCKET_NAME="$(resource_id PrivateStorageBucket)"
+          test -n "$AUTH_API_ID" && test "$AUTH_API_ID" != "None"
+          test -n "$IDENTITY_TABLE_NAME" && test "$IDENTITY_TABLE_NAME" != "None"
+          test -n "$PRIVATE_STORAGE_BUCKET_NAME" && test "$PRIVATE_STORAGE_BUCKET_NAME" != "None"
+          echo "AUTH_API_ID=$AUTH_API_ID" >> "$GITHUB_ENV"
+          echo "IDENTITY_TABLE_NAME=$IDENTITY_TABLE_NAME" >> "$GITHUB_ENV"
+          echo "PRIVATE_STORAGE_BUCKET_NAME=$PRIVATE_STORAGE_BUCKET_NAME" >> "$GITHUB_ENV"
+
+      - name: Deploy world lifecycle authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws cloudformation deploy \
+            --template-file infra/aws/rist-world-lifecycle.yml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              AuthApiId="$AUTH_API_ID" \
+              IdentityTableName="$IDENTITY_TABLE_NAME" \
+              PrivateStorageBucketName="$PRIVATE_STORAGE_BUCKET_NAME"
+
+      - name: Verify delete route and fail-closed authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="$(aws apigatewayv2 get-routes \
+            --api-id "$AUTH_API_ID" \
+            --query "Items[?RouteKey=='POST /world/delete'].Target | [0]" \
+            --output text)"
+          test -n "$TARGET" && test "$TARGET" != "None"
+
+          API_URL="https://${AUTH_API_ID}.execute-api.${AWS_REGION}.amazonaws.com/world/delete"
+          HTTP_CODE="$(curl -sS -o /tmp/world-delete-probe.json -w '%{http_code}' \
+            -X POST "$API_URL" \
+            -H 'content-type: application/json' \
+            --data '{"worldId":"deployment-probe","confirmation":"I Approve The Loss Of All Data For This World."}')"
+          test "$HTTP_CODE" = "401"
+          grep -q 'Authentication required' /tmp/world-delete-probe.json
+          echo "World deletion route is attached and rejects unauthenticated destructive requests."
