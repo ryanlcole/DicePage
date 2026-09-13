@@ -30,6 +30,7 @@ def test_geonaph_package_is_manifest_driven_and_legacy_catalog_is_not_loaded():
     assert 'placement.Asset.AssetKind' not in bootstrap
     assert 'FrameCount: Math.Max(1, asset.FrameCount)' in bootstrap
     assert 'FramesPerSecond: Math.Max(0, asset.FramesPerSecond)' in bootstrap
+    assert not any(path.is_file() for path in (WWWROOT / "assets" / "sprites" / "pangea").rglob("*"))
 
 
 def test_sprite_library_only_exposes_true_animated_assets():
