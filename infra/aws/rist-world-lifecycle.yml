@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RIST destructive world lifecycle endpoint attached to the existing Discord/private-storage API
+
+Parameters:
+  AuthApiId:
+    Type: String
+    Description: Physical API Gateway HTTP API ID from rist-discord-storage/AuthApi
+  IdentityTableName:
+    Type: String
+    Description: Physical DynamoDB table name from rist-discord-storage/IdentityTable
+  PrivateStorageBucketName:
+    Type: String
+    Description: Physical S3 bucket name from rist-discord-storage/PrivateStorageBucket
+
+Resources:
+  WorldDeleteRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: RistWorldDeletion
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IdentityTableName}
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:ListBucketVersions
+                Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}/*
+
+  WorldDeleteFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 30
+      MemorySize: 256
+      Role: !GetAtt WorldDeleteRole.Arn
+      Environment:
+        Variables:
+          IDENTITY_TABLE: !Ref IdentityTableName
+          STORAGE_BUCKET: !Ref PrivateStorageBucketName
+      Code:
+        ZipFile: |
+          import boto3
+          import hashlib
+          import json
+          import os
+          import re
+          import time
+          from botocore.exceptions import ClientError
+          from datetime import datetime, timezone
+
+          ddb = boto3.resource("dynamodb").Table(os.environ["IDENTITY_TABLE"])
+          s3 = boto3.client("s3")
+          BUCKET = os.environ["STORAGE_BUCKET"]
+          CONFIRMATION = "I Approve The Loss Of All Data For This World."
+          GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"
+
+          def response(status, body=None):
+              return {
+                  "statusCode": status,
+                  "headers": {
+                      "cache-control": "no-store",
+                      "content-type": "application/json"
+                  },
+                  "body": "" if body is None else json.dumps(body, separators=(",", ":"))
+              }
+
+          def authenticate(event):
+              headers = event.get("headers") or {}
+              header = headers.get("authorization") or headers.get("Authorization") or ""
+              if not header.lower().startswith("bearer "):
+                  return None
+              token = header.split(" ", 1)[1].strip()
+              if not token:
+                  return None
+              digest = hashlib.sha256(token.encode()).hexdigest()
+              item = ddb.get_item(Key={"pk": "session#" + digest}).get("Item")
+              if not item or int(item.get("expiresAt", 0)) <= int(time.time()):
+                  return None
+              return item
+
+          def json_body(event):
+              raw = event.get("body") or "{}"
+              if event.get("isBase64Encoded"):
+                  import base64
+                  raw = base64.b64decode(raw).decode()
+              return json.loads(raw)
+
+          def load_json(key):
+              try:
+                  obj = s3.get_object(Bucket=BUCKET, Key=key)
+                  return json.loads(obj["Body"].read())
+              except ClientError as exc:
+                  code = (exc.response.get("Error") or {}).get("Code")
+                  if code in ("NoSuchKey", "404"):
+                      return None
+                  raise
+
+          def world_id_of(item):
+              return str(item.get("WorldId") or item.get("worldId") or "").strip()
+
+          def relationship_of(item):
+              return str(item.get("Relationship") or item.get("relationship") or "").strip().lower()
+
+          def purge_versions(prefix):
+              deleted = 0
+              key_marker = None
+              version_marker = None
+              while True:
+                  args = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
+                  if key_marker:
+                      args["KeyMarker"] = key_marker
+                  if version_marker:
+                      args["VersionIdMarker"] = version_marker
+                  result = s3.list_object_versions(**args)
+                  objects = []
+                  for item in result.get("Versions", []):
+                      objects.append({"Key": item["Key"], "VersionId": item["VersionId"]})
+                  for item in result.get("DeleteMarkers", []):
+                      objects.append({"Key": item["Key"], "VersionId": item["VersionId"]})
+                  for start in range(0, len(objects), 1000):
+                      batch = objects[start:start + 1000]
+                      if batch:
+                          s3.delete_objects(Bucket=BUCKET, Delete={"Objects": batch, "Quiet": True})
+                          deleted += len(batch)
+                  if not result.get("IsTruncated"):
+                      break
+                  key_marker = result.get("NextKeyMarker")
+                  version_marker = result.get("NextVersionIdMarker")
+              return deleted
+
+          def handler(event, context):
+              method = ((event.get("requestContext") or {}).get("http") or {}).get("method", "")
+              path = event.get("rawPath") or ""
+              if method != "POST" or path != "/world/delete":
+                  return response(404, {"error": "Not found"})
+
+              session = authenticate(event)
+              if not session:
+                  return response(401, {"error": "Authentication required"})
+
+              try:
+                  body = json_body(event)
+              except Exception:
+                  return response(400, {"error": "Invalid JSON body"})
+
+              world_id = str(body.get("worldId") or "").strip()
+              confirmation = str(body.get("confirmation") or "")
+              if confirmation != CONFIRMATION:
+                  return response(400, {"error": "The deletion approval phrase must match exactly."})
+              if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", world_id):
+                  return response(400, {"error": "Invalid World ID"})
+              if world_id == GEONAPH_WORLD_ID:
+                  return response(403, {"error": "Geonaph is canonical and cannot be deleted."})
+
+              user_id = str(session.get("userId") or "").strip()
+              if not user_id:
+                  return response(401, {"error": "Authenticated account identity is unavailable"})
+
+              account_prefix = "users/" + user_id + "/"
+              directory_key = account_prefix + "worlds/index.json"
+              directory = load_json(directory_key)
+              if not isinstance(directory, dict):
+                  return response(404, {"error": "World directory not found"})
+
+              worlds_key = "Worlds" if "Worlds" in directory else "worlds"
+              worlds = directory.get(worlds_key) or []
+              if not isinstance(worlds, list):
+                  return response(409, {"error": "World directory is invalid"})
+
+              target = next((item for item in worlds if isinstance(item, dict) and world_id_of(item) == world_id), None)
+              if target is None:
+                  return response(404, {"error": "World not found in this account"})
+              if relationship_of(target) != "owner":
+                  return response(403, {"error": "Only the world owner may delete this world."})
+
+              world_prefix = account_prefix + "worlds/" + world_id + "/"
+              deleted_versions = purge_versions(world_prefix)
+
+              remaining = [item for item in worlds if not (isinstance(item, dict) and world_id_of(item) == world_id)]
+              directory[worlds_key] = remaining
+              active_key = "ActiveWorldId" if "ActiveWorldId" in directory else "activeWorldId"
+              if str(directory.get(active_key) or "").strip() == world_id:
+                  directory[active_key] = ""
+              updated_key = "UpdatedAtUtc" if "UpdatedAtUtc" in directory else "updatedAtUtc"
+              directory[updated_key] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+              s3.put_object(
+                  Bucket=BUCKET,
+                  Key=directory_key,
+                  Body=json.dumps(directory, separators=(",", ":")).encode(),
+                  ContentType="application/json"
+              )
+
+              return response(200, {
+                  "deletedWorldId": world_id,
+                  "purgedObjectVersions": deleted_versions,
+                  "activeWorldId": directory.get(active_key) or ""
+              })
+
+  WorldDeleteIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref AuthApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt WorldDeleteFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  WorldDeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref AuthApiId
+      RouteKey: POST /world/delete
+      Target: !Sub integrations/${WorldDeleteIntegration}
+
+  WorldDeleteInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WorldDeleteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AuthApiId}/*/POST/world/delete
+
+Outputs:
+  WorldDeleteFunctionName:
+    Value: !Ref WorldDeleteFunction
+  AttachedApiId:
+    Value: !Ref AuthApiId
