@@ -1,24 +1,22 @@
 @using System.Net.Http.Json
+@implements IDisposable
 @inject WorldSession Session
 @inject HttpClient Http
 
 @code {
+    bool _scrubbing;
+
     protected override async Task OnInitializedAsync()
     {
-        // A sprite is motion, not a second name for a static terrain image.
-        // Retire the legacy prototype entries that labelled static Pangea art as sprites.
-        Session.AtlasTiles.RemoveAll(asset =>
-            asset.AssetKind.Equals("sprite", StringComparison.OrdinalIgnoreCase) &&
-            (asset.FrameCount <= 1 || asset.FramesPerSecond <= 0));
+        Session.Changed += SessionChanged;
+        ScrubLegacyStaticSprites();
 
         try
         {
-            var catalog = await Http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/catalog.json?v=20260913-animated-assets-1");
+            var catalog = await Http.GetFromJsonAsync<List<AtlasTile>>("assets/sprites/catalog.json?v=20260913-animated-assets-2");
             if (catalog is not null)
             {
-                foreach (var asset in catalog.Where(asset =>
-                    asset.AssetKind.Equals("sprite", StringComparison.OrdinalIgnoreCase) &&
-                    asset.FrameCount > 1 && asset.FramesPerSecond > 0))
+                foreach (var asset in catalog.Where(IsAnimatedSprite))
                 {
                     var existing = Session.AtlasTiles.FindIndex(x => string.Equals(x.Id, asset.Id, StringComparison.Ordinal));
                     if (existing >= 0) Session.AtlasTiles[existing] = asset;
@@ -28,9 +26,34 @@
         }
         catch
         {
-            // Static assets remain available even if the animated catalog is unavailable.
+            // Static tile/image assets remain usable if the animated catalog is unavailable.
         }
 
         Session.Notify();
     }
+
+    static bool IsAnimatedSprite(AtlasTile asset) =>
+        asset.AssetKind.Equals("sprite", StringComparison.OrdinalIgnoreCase) &&
+        asset.FrameCount > 1 &&
+        asset.FramesPerSecond > 0;
+
+    void SessionChanged()
+    {
+        if (_scrubbing) return;
+        if (!ScrubLegacyStaticSprites()) return;
+        _scrubbing = true;
+        try { Session.Notify(); }
+        finally { _scrubbing = false; }
+    }
+
+    bool ScrubLegacyStaticSprites()
+    {
+        // "Sprite" is reserved for motion. Old prototype terrain/depth images that were
+        // labelled sprite but contain no animation are never allowed into World Builder.
+        return Session.AtlasTiles.RemoveAll(asset =>
+            asset.AssetKind.Equals("sprite", StringComparison.OrdinalIgnoreCase) &&
+            !IsAnimatedSprite(asset)) > 0;
+    }
+
+    public void Dispose() => Session.Changed -= SessionChanged;
 }
