@@ -88,35 +88,10 @@
   document.head.appendChild(style);
  }
 
- function canonicalizeTile(tile){
-  if(!(tile instanceof HTMLElement))return;
-  const widthText=tile.style.getPropertyValue('width');
-  const heightText=tile.style.getPropertyValue('height');
-  if(!widthText.endsWith('%')||!heightText.endsWith('%'))return;
-  if(tile.dataset.wbCanonicalWidth===widthText&&tile.dataset.wbCanonicalHeight===heightText)return;
-  const width=Number.parseFloat(widthText),height=Number.parseFloat(heightText);
-  if(!Number.isFinite(width)||!Number.isFinite(height))return;
-
-  // WorldMap's legacy renderer still expresses a 30-cell cube against the old
-  // 300-cell world span. Inside World Builder only, convert that representation
-  // back to the physical 30×30 construction surface. Once the renderer itself is
-  // migrated, values above 10% are already canonical and are left untouched.
-  const nextWidth=width<=10.0001?Math.min(100,width*10):width;
-  const nextHeight=height<=10.0001?Math.min(100,height*10):height;
-  const w=`${nextWidth.toFixed(6).replace(/0+$/,'').replace(/\.$/,'')}%`;
-  const h=`${nextHeight.toFixed(6).replace(/0+$/,'').replace(/\.$/,'')}%`;
-  tile.style.setProperty('width',w,'important');
-  tile.style.setProperty('height',h,'important');
-  tile.style.setProperty('transform-origin','top left','important');
-  tile.dataset.wbCanonicalWidth=tile.style.getPropertyValue('width');
-  tile.dataset.wbCanonicalHeight=tile.style.getPropertyValue('height');
- }
-
  function sync(){
   installStyle();
   const root=studio();if(!root)return;
   root.querySelectorAll('.wb-underlay-host').forEach(node=>node.remove());
-  root.querySelectorAll('.world-stage>.tile-cell').forEach(canonicalizeTile);
  }
 
  function isLocked(){
