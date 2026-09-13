@@ -74,12 +74,12 @@
  </main>
 
  <section class="studio-command-slider" aria-label="World building commands">
-  @if(_libraryRailOpen){<WorldAssetFolderRail OnExit="CloseLibraryRail" OnAssetDragStart="BeginLibraryAssetDrag" OnAssetDragEnd="EndLibraryAssetDrag" OnAssetPin="PinQuickTile" />}
+  @if(_libraryRailOpen){<WorldAssetFolderRail AnimatedOnly="@_spriteLibraryMode" OnExit="CloseLibraryRail" OnAssetDragStart="BeginLibraryAssetDrag" OnAssetDragEnd="EndLibraryAssetDrag" OnAssetPin="PinQuickTile" />}
   else
   {
    <div class="studio-command-rail">
-    <button type="button" class="@(Session.TileBrowserOpen?"active":"")" @onclick="ToggleLibrary"><strong>Library</strong><small>Assets</small></button>
-    <button type="button" @onclick="OpenLibraryRail"><strong>Sprite Library</strong><small>World Maps</small></button>
+    <button type="button" @onclick="ToggleLibrary"><strong>Library</strong><small>Assets</small></button>
+    <button type="button" @onclick="OpenLibraryRail"><strong>Sprite Library</strong><small>Animated Assets</small></button>
     <button type="button" class="tile-size-button" data-footprint="@_tileFootprint" @onclick="CycleTileFootprint" title="Tile footprint: @_tileFootprint by @_tileFootprint viewer squares" aria-label="Tile size @_tileFootprint squared"><strong>@_tileFootprint<sup>2</sup></strong></button>
     <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLock"><strong>Z-Lock</strong><small>@(_zLocked?"Locked":"Unlocked")</small></button>
     <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayers"><strong>Layers</strong><small>@Session.LayerOffset / Z @Session.SceneZ</small></button>
@@ -109,6 +109,7 @@
  readonly List<AtlasTile> _quickTiles=[];
  bool _toolsOpen;
  bool _libraryRailOpen;
+ bool _spriteLibraryMode;
  bool _viewerGrid=true;
  bool _zLocked=true;
  bool _layerOpen;
@@ -127,14 +128,15 @@
  IReadOnlyList<AtlasTile> VisibleQuickTiles=>_quickTiles.Where(ToolModeMatch).ToList();
  void OpenStartMenu()=>OnStartMenu.InvokeAsync();
  void SelectTool(string mode){_toolMode=Modes.Contains(mode,StringComparer.Ordinal)?mode:"All";_toolsOpen=false;}
- void ToggleLibrary(){_libraryRailOpen=false;_toolsOpen=false;Session.ToggleTileBrowser();}
- void OpenLibraryRail(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();_libraryRailOpen=true;_toolsOpen=false;}
- void CloseLibraryRail()=>_libraryRailOpen=false;
- void OpenUploadsLibrary(){if(!Session.IsLoggedIn)return;_libraryRailOpen=false;_toolsOpen=false;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
+ void ToggleLibrary(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();_spriteLibraryMode=false;_libraryRailOpen=true;_toolsOpen=false;}
+ void OpenLibraryRail(){if(Session.TileBrowserOpen)Session.ToggleTileBrowser();_spriteLibraryMode=true;_libraryRailOpen=true;_toolsOpen=false;}
+ void CloseLibraryRail(){_libraryRailOpen=false;_spriteLibraryMode=false;}
+ void OpenUploadsLibrary(){if(!Session.IsLoggedIn)return;_libraryRailOpen=false;_spriteLibraryMode=false;_toolsOpen=false;if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();}
  async Task OpenAssetImportAsync()
  {
   if(!Session.IsLoggedIn)return;
   _libraryRailOpen=false;
+  _spriteLibraryMode=false;
   _toolsOpen=false;
   if(!Session.TileBrowserOpen)Session.ToggleTileBrowser();
   await InvokeAsync(StateHasChanged);
