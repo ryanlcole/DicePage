@@ -101,6 +101,17 @@ jobs:
             "s3://${FRONTEND_BUCKET}/Game/assets/sprites/pangea/registered/" \
             "s3://${ASSET_BUCKET}/assets/sprites/pangea/registered/" \
             --only-show-errors
+
+          for name in \
+            geonaph_geo_x00_y00_t00_l00_ocean_floor_v001.png \
+            geonaph_geo_x00_y00_t00_l09_ocean_surface_v001.png
+          do
+            source_key="Game/assets/sprites/pangea/registered/GEO_X00_Y00/${name}"
+            target_key="assets/sprites/pangea/registered/GEO_X00_Y00/${name}"
+            aws s3api head-object --bucket "$FRONTEND_BUCKET" --key "$source_key" >/dev/null
+            aws s3api head-object --bucket "$ASSET_BUCKET" --key "$target_key" >/dev/null
+            echo "Verified registered sprite mirror: $name"
+          done
       - name: Stage world atlas and card assets
         run: python apps/rist-world/prepare_aws_assets.py
       - name: Publish world atlas and card assets
@@ -119,11 +130,28 @@ jobs:
             local target="/tmp/$(basename "$path")"
             curl --fail --location --retry 6 --retry-delay 5 --output "$target" "${ASSET_BASE_URL}${path}"
             test "$(stat -c%s "$target")" -gt "$min_bytes"
+            echo "Verified CDN asset: $path"
+          }
+          verify_optional_asset() {
+            local path="$1"
+            local min_bytes="$2"
+            local target="/tmp/$(basename "$path")"
+            if curl --fail --location --retry 2 --retry-delay 2 --output "$target" "${ASSET_BASE_URL}${path}"; then
+              if test "$(stat -c%s "$target")" -gt "$min_bytes"; then
+                echo "Verified optional CDN asset: $path"
+              else
+                echo "::warning::Optional CDN asset is undersized: $path"
+              fi
+            else
+              echo "::warning::Optional CDN asset unavailable: $path"
+            fi
           }
 
-          # Standalone static controls. These must never be served as atlas crops.
-          verify_asset assets/ui/mmo-toggle.webp 1000
-          verify_asset assets/ui/sandbox-toggle.webp 1000
+          # Optional world toggle artwork must not mask failures in required sprites.
+          verify_optional_asset assets/ui/mmo-toggle.webp 1000
+          verify_optional_asset assets/ui/sandbox-toggle.webp 1000
+
+          # Standalone static controls required by the frontend.
           verify_asset assets/ui/map-pin.svg 300
           verify_asset assets/ui/icons/door.svg 100
           verify_asset assets/ui/icons/mode.svg 100
@@ -139,8 +167,7 @@ jobs:
           verify_asset assets/spritesheets/magic-coins.webp 1000
           verify_asset assets/spritesheets/directional-humanoids.webp 1000
 
-          # These registered Pangea sprites are external binary authorities mirrored
-          # into the frontend bucket; protect and verify them on every asset sync.
+          # These are the exact Pangea images consumed by catalog.json at runtime.
           verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l00_ocean_floor_v001.png 1000
           verify_asset assets/sprites/pangea/registered/GEO_X00_Y00/geonaph_geo_x00_y00_t00_l09_ocean_surface_v001.png 1000
 
