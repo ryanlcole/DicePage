@@ -2,9 +2,15 @@ namespace RistWorld;
 
 public sealed class MapGestureState
 {
+    // Camera scale only. The map remains the full addressable world surface while
+    // the initial view shows comfortable tile-sized cells around its center.
+    public const double DefaultZoom = 10;
+    public const double MinZoom = 1;
+    public const double MaxZoom = 30;
+
     public double PanX { get; set; }
     public double PanY { get; set; }
-    public double Zoom { get; set; } = 1;
+    public double Zoom { get; set; } = DefaultZoom;
     public Dictionary<long,(double X,double Y)> Pointers { get; } = [];
     public double LastX { get; set; }
     public double LastY { get; set; }
