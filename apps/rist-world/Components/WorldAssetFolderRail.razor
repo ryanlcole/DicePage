@@ -1,60 +1,79 @@
 @inject WorldSession Session
 
-<nav class="world-asset-rail" aria-label="@(AnimatedOnly ? "Animated sprite library" : "World building asset library")">
+<nav class="world-asset-rail" aria-label="@(AnimatedOnly ? "Sprite Library terrain browser" : "World building Library")">
  <button type="button" class="rail-back" @onclick="Back" aria-label="Back one level">‹</button>
- <button type="button" class="rail-location library-root" @onclick="GoLibraryRoot" title="@(AnimatedOnly ? "Sprite library root" : "Asset library root")" aria-label="@(AnimatedOnly ? "Return to Sprite Library" : "Return to Library")">
+ <button type="button" class="rail-location library-root" @onclick="GoLibraryRoot" title="@(AnimatedOnly ? "Sprite Library root" : "Library root")" aria-label="@(AnimatedOnly ? "Return to Sprite Library" : "Return to Library")">
   <small>@(AnimatedOnly ? "Animated Assets" : "Asset")</small><strong>@(AnimatedOnly ? "Sprite Library" : "Library")</strong>
  </button>
 
- @if(_directory is not null)
+ @if(_family is not null)
  {
-  <button type="button" class="rail-location" @onclick="OpenCurrentDirectory" title="Current directory">
-   <small>Directory</small><strong>@DisplayDirectory(_directory)</strong>
-  </button>
+  <button type="button" class="rail-location" @onclick="OpenFamilyRoot" title="Current library family"><small>Library</small><strong>@_family</strong></button>
  }
- @if(_folder is not null)
+ @if(_kind is not null)
  {
-  <button type="button" class="rail-location" @onclick="OpenCurrentFolder" title="Current folder">
-   <small>Folder</small><strong>@_folder</strong>
-  </button>
+  <button type="button" class="rail-location" @onclick="OpenKindRoot" title="Current terrain type"><small>Terrain Type</small><strong>@_kind</strong></button>
  }
- @if(_subfolder is not null)
+ @if(_spriteStyle is not null)
  {
-  <button type="button" class="rail-location" title="Current subfolder">
-   <small>Subfolder</small><strong>@DisplaySubfolder(_subfolder)</strong>
-  </button>
+  <button type="button" class="rail-location" @onclick="OpenSpriteStyleRoot" title="Current sprite type"><small>Sprite Type</small><strong>@_spriteStyle</strong></button>
+ }
+ @if(_scale is not null)
+ {
+  <button type="button" class="rail-location" @onclick="OpenScaleRoot" title="Current map scale"><small>Scale</small><strong>@_scale</strong></button>
+ }
+ @if(_category is not null)
+ {
+  <button type="button" class="rail-location" @onclick="OpenCategoryRoot" title="Current category"><small>Folder</small><strong>@_category</strong></button>
+ }
+ @if(_subcategory is not null)
+ {
+  <button type="button" class="rail-location" title="Current subfolder"><small>Subfolder</small><strong>@_subcategory</strong></button>
  }
 
- @if(_directory is null)
+ @if(_family is null)
  {
-  @foreach(var directory in Directories)
-  {
-   <button type="button" class="folder-card" @onclick="()=>OpenDirectory(directory)" aria-label="Open @DisplayDirectory(directory) directory"><span>▰</span><strong>@DisplayDirectory(directory)</strong><small>Directory</small></button>
-  }
-  @if(Directories.Count==0){<span class="rail-empty">@(AnimatedOnly ? "No animated world sprites are loaded." : "No asset directories are loaded.")</span>}
+  <button type="button" class="folder-card" @onclick="()=>OpenFamily(TerrainsFamily)" aria-label="Open Terrains"><span>▰</span><strong>Terrains</strong><small>Library</small></button>
  }
- else if(_folder is null)
+ else if(_kind is null)
  {
-  @foreach(var folder in Folders)
-  {
-   <button type="button" class="folder-card" @onclick="()=>OpenFolder(folder)" aria-label="Open @folder folder"><span>▰</span><strong>@folder</strong><small>Folder</small></button>
-  }
-  @if(Folders.Count==0){<span class="rail-empty">No folders are available in @DisplayDirectory(_directory).</span>}
+  <button type="button" class="folder-card" @onclick="()=>OpenKind(StandardKind)" aria-label="Open Standard terrains"><span>▰</span><strong>Standard</strong><small>Normal Tilesets</small></button>
+  <button type="button" class="folder-card" @onclick="()=>OpenKind(SpritesKind)" aria-label="Open Sprite terrains"><span>▰</span><strong>Sprites</strong><small>Animated Tilesets</small></button>
  }
- else if(_subfolder is null && Subfolders.Count>0)
+ else if(IsSprites && _spriteStyle is null)
  {
-  @foreach(var subfolder in Subfolders)
+  <button type="button" class="folder-card" @onclick="()=>OpenSpriteStyle(NormalSpriteStyle)" aria-label="Open normal sprites"><span>▰</span><strong>Normal</strong><small>Sprites</small></button>
+  <button type="button" class="folder-card" @onclick="()=>OpenSpriteStyle(ParallaxSpriteStyle)" aria-label="Open parallax sprites"><span>▰</span><strong>Parallax</strong><small>Sprites</small></button>
+ }
+ else if(_scale is null)
+ {
+  @foreach(var scale in ScaleFolders)
   {
-   <button type="button" class="folder-card" @onclick="()=>OpenSubfolder(subfolder)" aria-label="Open @DisplaySubfolder(subfolder) subfolder"><span>▰</span><strong>@DisplaySubfolder(subfolder)</strong><small>Subfolder</small></button>
+   <button type="button" class="folder-card" @onclick="()=>OpenScale(scale)" aria-label="Open @scale terrain assets"><span>▰</span><strong>@scale</strong><small>Scale</small></button>
+  }
+ }
+ else if(_category is null)
+ {
+  @foreach(var category in Categories)
+  {
+   <button type="button" class="folder-card" @onclick="()=>OpenCategory(category)" aria-label="Open @category folder"><span>▰</span><strong>@category</strong><small>Folder</small></button>
+  }
+  @if(Categories.Count==0)
+  {
+   <span class="rail-empty">No @_scale terrain folders are currently registered.</span>
+  }
+ }
+ else if(_subcategory is null && Subcategories.Count>0)
+ {
+  @foreach(var subcategory in Subcategories)
+  {
+   <button type="button" class="folder-card" @onclick="()=>OpenSubcategory(subcategory)" aria-label="Open @subcategory subfolder"><span>▰</span><strong>@subcategory</strong><small>Subfolder</small></button>
   }
   @foreach(var tile in DirectTiles)
   {
    <button type="button" class="asset-card @(_preview?.Id==tile.Id?"previewing":"")" draggable="true"
-           @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag"
-           @onclick="()=>TogglePreview(tile)"
-           title="Tap to preview @tile.Name">
-    <img src="@tile.Image" alt="" loading="lazy" draggable="false" />
-    <strong>@tile.Name</strong>
+           @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag" @onclick="()=>TogglePreview(tile)" title="Tap to preview @tile.Name">
+    <img src="@tile.Image" alt="" loading="lazy" draggable="false" /><strong>@tile.Name</strong>
    </button>
   }
  }
@@ -63,14 +82,14 @@
   @foreach(var tile in Tiles)
   {
    <button type="button" class="asset-card @(_preview?.Id==tile.Id?"previewing":"")" draggable="true"
-           @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag"
-           @onclick="()=>TogglePreview(tile)"
-           title="Tap to preview @tile.Name">
-    <img src="@tile.Image" alt="" loading="lazy" draggable="false" />
-    <strong>@tile.Name</strong>
+           @ondragstart="()=>BeginDrag(tile)" @ondragend="EndDrag" @onclick="()=>TogglePreview(tile)" title="Tap to preview @tile.Name">
+    <img src="@tile.Image" alt="" loading="lazy" draggable="false" /><strong>@tile.Name</strong>
    </button>
   }
-  @if(Tiles.Count==0){<span class="rail-empty">@(AnimatedOnly ? "This folder has no animated world sprites." : "This folder has no assets.")</span>}
+  @if(Tiles.Count==0)
+  {
+   <span class="rail-empty">This folder is part of the canonical library structure but has no registered assets yet.</span>
+  }
  }
 </nav>
 
@@ -92,69 +111,232 @@
 </style>
 
 @code{
+ const string TerrainsFamily="Terrains";
+ const string StandardKind="Standard";
+ const string SpritesKind="Sprites";
+ const string NormalSpriteStyle="Normal";
+ const string ParallaxSpriteStyle="Parallax";
+
+ static readonly string[] ScaleFolders={"World","Regional","Local","Instance"};
+ static readonly string[] WorldTerrainFolders={
+  "Vent Fields","Canyons","Lakes","Rivers","Cliffs","Volcano","Ice","Snow","Mountains","Hills","Desert","Swamp","Jungle","Forest","Plains","Beach","Coast","Ocean"
+ };
+ static readonly string[] RegionalFolders={"Water","Travel"};
+ static readonly string[] RegionalWaterFolders={
+  "Streams and Small Watercourses","Riverbanks and Channel Edges","Fords and Natural Crossings","Rapids and Riffles","Pools and Basins","Springs and Water Sources"
+ };
+ static readonly string[] RegionalTravelFolders={"Paths and Trails"};
+
  [Parameter] public bool AnimatedOnly { get; set; }
  [Parameter] public EventCallback OnExit { get; set; }
  [Parameter] public EventCallback<AtlasTile> OnAssetDragStart { get; set; }
  [Parameter] public EventCallback OnAssetDragEnd { get; set; }
  [Parameter] public EventCallback<AtlasTile> OnAssetPin { get; set; }
- string? _directory;
- string? _folder;
- string? _subfolder;
+
+ string? _family;
+ string? _kind;
+ string? _spriteStyle;
+ string? _scale;
+ string? _category;
+ string? _subcategory;
  AtlasTile? _preview;
+ bool _modeInitialized;
+ bool _lastAnimatedOnly;
 
- IEnumerable<AtlasTile> WorldTiles=>Session.AtlasTiles.Where(x=>
-  !x.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase)
-  && (AnimatedOnly ? IsCanonicalAnimatedWorldSprite(x) : !IsAnimatedSprite(x)));
- IReadOnlyList<string> Directories=>WorldTiles.Select(x=>Normalize(x.Directory,AnimatedOnly?"Terrain":"Tiles")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<string> Folders=>WorldTiles.Where(x=>Same(Normalize(x.Directory,AnimatedOnly?"Terrain":"Tiles"),_directory)).Select(x=>Normalize(x.Folder,"General")).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<string> Subfolders=>WorldTiles.Where(InCurrentFolder).Select(AssetSubfolder).Where(x=>!string.IsNullOrWhiteSpace(x)).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<AtlasTile> DirectTiles=>WorldTiles.Where(x=>InCurrentFolder(x)&&string.IsNullOrWhiteSpace(AssetSubfolder(x))).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
- IReadOnlyList<AtlasTile> Tiles=>WorldTiles.Where(x=>InCurrentFolder(x)&&(_subfolder is null||Same(AssetSubfolder(x),_subfolder))).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
+ bool IsSprites=>Same(_kind,SpritesKind);
 
- bool InCurrentFolder(AtlasTile tile)=>Same(Normalize(tile.Directory,AnimatedOnly?"Terrain":"Tiles"),_directory)&&Same(Normalize(tile.Folder,"General"),_folder);
- string DisplayDirectory(string? directory)=>Normalize(directory,AnimatedOnly?"Terrain":"Library");
- static string Normalize(string? value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
- static bool Same(string? a,string? b)=>string.Equals(a,b,StringComparison.OrdinalIgnoreCase);
- static string DisplaySubfolder(string? subfolder)=>Normalize(subfolder,"Files").Replace('-', ' ');
- static string Slug(string? value)=>new((value??"").Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
- static bool IsAnimatedSprite(AtlasTile tile)=>
-  tile.AssetKind.Equals("sprite",StringComparison.OrdinalIgnoreCase)&&tile.FrameCount>1&&tile.FramesPerSecond>0;
- static bool IsCanonicalAnimatedWorldSprite(AtlasTile tile)
+ protected override void OnParametersSet()
+ {
+  if(!_modeInitialized||_lastAnimatedOnly!=AnimatedOnly)
+  {
+   _modeInitialized=true;
+   _lastAnimatedOnly=AnimatedOnly;
+   ResetEntry();
+  }
+ }
+
+ IEnumerable<AtlasTile> ModeTiles=>Session.AtlasTiles.Where(IsModeAsset);
+ IEnumerable<AtlasTile> ScaleTiles=>ModeTiles.Where(x=>Same(ScaleOf(x),_scale)).Where(x=>IsTerrainForScale(x,_scale));
+
+ IReadOnlyList<string> Categories
+ {
+  get
+  {
+   if(Same(_scale,"World"))return WorldTerrainFolders;
+   if(Same(_scale,"Regional"))return RegionalFolders;
+   if(Same(_scale,"Local")||Same(_scale,"Instance"))
+   {
+    return ScaleTiles.Select(DynamicCategory).Where(x=>!string.IsNullOrWhiteSpace(x)).Cast<string>()
+     .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x,StringComparer.OrdinalIgnoreCase).ToArray();
+   }
+   return Array.Empty<string>();
+  }
+ }
+
+ IReadOnlyList<string> Subcategories
+ {
+  get
+  {
+   if(!Same(_scale,"Regional"))return Array.Empty<string>();
+   if(Same(_category,"Water"))return RegionalWaterFolders;
+   if(Same(_category,"Travel"))return RegionalTravelFolders;
+   return Array.Empty<string>();
+  }
+ }
+
+ IReadOnlyList<AtlasTile> DirectTiles=>CurrentCategoryTiles.Where(x=>string.IsNullOrWhiteSpace(RegionalSubcategoryFor(x))).OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
+ IReadOnlyList<AtlasTile> Tiles
+ {
+  get
+  {
+   var tiles=CurrentCategoryTiles;
+   if(_subcategory is not null)tiles=tiles.Where(x=>MatchesLabel(x,_subcategory));
+   return tiles.OrderBy(x=>x.Name,StringComparer.OrdinalIgnoreCase).ToArray();
+  }
+ }
+
+ IEnumerable<AtlasTile> CurrentCategoryTiles=>_category is null?Enumerable.Empty<AtlasTile>():ScaleTiles.Where(x=>MatchesCategory(x,_category));
+
+ bool IsModeAsset(AtlasTile tile)
+ {
+  if(tile.Id.StartsWith("naeja-map-",StringComparison.OrdinalIgnoreCase))return false;
+  if(IsSprites)
+  {
+   if(!IsCanonicalSprite(tile))return false;
+   if(Same(_spriteStyle,ParallaxSpriteStyle))return IsParallaxSprite(tile);
+   if(Same(_spriteStyle,NormalSpriteStyle))return !IsParallaxSprite(tile);
+   return true;
+  }
+  if(Same(_kind,StandardKind))return !string.Equals(tile.AssetKind,"sprite",StringComparison.OrdinalIgnoreCase);
+  return false;
+ }
+
+ static bool IsAnimatedSprite(AtlasTile tile)=>string.Equals(tile.AssetKind,"sprite",StringComparison.OrdinalIgnoreCase)&&tile.FrameCount>1&&tile.FramesPerSecond>0;
+ static bool IsCanonicalSprite(AtlasTile tile)
  {
   if(!IsAnimatedSprite(tile))return false;
-  var image=(tile.Image??string.Empty).Trim();
-  if(image.Length==0)return false;
-  var path=image;
-  if(Uri.TryCreate(image,UriKind.Absolute,out var uri))path=uri.AbsolutePath;
-  path=path.Replace('\\','/').ToLowerInvariant();
-  return path.StartsWith("assets/sprites/world/",StringComparison.Ordinal)||path.Contains("/assets/sprites/world/",StringComparison.Ordinal);
+  var path=NormalizedAssetPath(tile);
+  return path.StartsWith("assets/sprites/",StringComparison.OrdinalIgnoreCase)||path.Contains("/assets/sprites/",StringComparison.OrdinalIgnoreCase)||path.StartsWith("/sprites/",StringComparison.OrdinalIgnoreCase)||path.Contains("/sprites/",StringComparison.OrdinalIgnoreCase);
  }
- static string? AssetSubfolder(AtlasTile tile)
+ static bool IsParallaxSprite(AtlasTile tile)
  {
-  var image=(tile.Image??"").Trim();
-  if(image.Length==0)return null;
-  var path=image;
-  if(Uri.TryCreate(image,UriKind.Absolute,out var uri))path=uri.AbsolutePath;
-  var query=path.IndexOfAny(['?','#']);if(query>=0)path=path[..query];
-  var segments=path.Replace('\\','/').Split('/',StringSplitOptions.RemoveEmptyEntries);
-  if(segments.Length<2)return null;
-  var parent=Uri.UnescapeDataString(segments[^2]).Trim();
-  if(parent.Length==0)return null;
-  var parentSlug=Slug(parent);
-  if(parentSlug.Length==0||parentSlug is "assets" or "images" or "img" or "world" or "tilesets" or "sprites" or "registered")return null;
-  if(parentSlug==Slug(tile.Directory)||parentSlug==Slug(tile.Folder))return null;
-  return parent;
+  var path=NormalizedAssetPath(tile);
+  return PathSegments(tile).Any(x=>Same(x,"Parallax"))||path.Contains("/parallax/",StringComparison.OrdinalIgnoreCase)||(tile.Name??string.Empty).Contains("Parallax",StringComparison.OrdinalIgnoreCase)||(tile.Folder??string.Empty).Contains("Parallax",StringComparison.OrdinalIgnoreCase);
  }
 
- void GoLibraryRoot(){_directory=null;_folder=null;_subfolder=null;_preview=null;}
- void OpenCurrentDirectory(){_folder=null;_subfolder=null;_preview=null;}
- void OpenCurrentFolder(){_subfolder=null;_preview=null;}
- void OpenDirectory(string directory){_directory=directory;_folder=null;_subfolder=null;_preview=null;}
- void OpenFolder(string folder){_folder=folder;_subfolder=null;_preview=null;}
- void OpenSubfolder(string subfolder){_subfolder=subfolder;_preview=null;}
+ static string? ScaleOf(AtlasTile tile)
+ {
+  return Slug(tile.Layer) switch
+  {
+   "world"=>"World",
+   "region"=>"Regional",
+   "regional"=>"Regional",
+   "local"=>"Local",
+   "instance"=>"Instance",
+   _=>null
+  };
+ }
+
+ static bool IsTerrainForScale(AtlasTile tile,string? scale)
+ {
+  if(Same(scale,"World"))return WorldTerrainFolders.Any(x=>MatchesLabel(tile,x));
+  if(Same(scale,"Regional"))return RegionalFolders.Any(x=>MatchesLabel(tile,x))||RegionalWaterFolders.Any(x=>MatchesLabel(tile,x))||RegionalTravelFolders.Any(x=>MatchesLabel(tile,x));
+  if(Same(scale,"Local")||Same(scale,"Instance"))return Same(tile.Directory,"Terrain")||PathSegments(tile).Any(x=>Same(x,"Terrain"));
+  return false;
+ }
+
+ static string? DynamicCategory(AtlasTile tile)
+ {
+  var directory=Normalize(tile.Directory,string.Empty);
+  var folder=Normalize(tile.Folder,string.Empty);
+  if(directory.Length>0&&!Same(directory,"Terrain")&&!Same(directory,"Tiles")&&!Same(directory,"General"))return directory;
+  if(folder.Length>0&&!Same(folder,"General"))return folder;
+  return null;
+ }
+
+ static bool MatchesCategory(AtlasTile tile,string category)
+ {
+  if(MatchesLabel(tile,category))return true;
+  if(Same(category,"Water"))return RegionalWaterFolders.Any(x=>MatchesLabel(tile,x));
+  if(Same(category,"Travel"))return RegionalTravelFolders.Any(x=>MatchesLabel(tile,x));
+  return false;
+ }
+
+ static string? RegionalSubcategoryFor(AtlasTile tile)
+ {
+  foreach(var folder in RegionalWaterFolders)if(MatchesLabel(tile,folder))return folder;
+  foreach(var folder in RegionalTravelFolders)if(MatchesLabel(tile,folder))return folder;
+  return null;
+ }
+
+ static bool MatchesLabel(AtlasTile tile,string? label)
+ {
+  if(string.IsNullOrWhiteSpace(label))return false;
+  var target=Slug(label);
+  if(target.Length==0)return false;
+  if(Slug(tile.Directory)==target||Slug(tile.Folder)==target)return true;
+  return PathSegments(tile).Any(x=>Slug(x)==target);
+ }
+
+ static IReadOnlyList<string> PathSegments(AtlasTile tile)
+ {
+  var path=NormalizedAssetPath(tile);
+  return path.Split('/',StringSplitOptions.RemoveEmptyEntries).Select(Uri.UnescapeDataString).ToArray();
+ }
+
+ static string NormalizedAssetPath(AtlasTile tile)
+ {
+  var image=(tile.Image??string.Empty).Trim();
+  if(image.Length==0)return string.Empty;
+  var path=image;
+  if(Uri.TryCreate(image,UriKind.Absolute,out var uri))path=uri.AbsolutePath;
+  var marker=path.IndexOfAny(new[]{'?','#'});if(marker>=0)path=path[..marker];
+  return path.Replace('\\','/');
+ }
+
+ static string Normalize(string? value,string fallback)=>string.IsNullOrWhiteSpace(value)?fallback:value.Trim();
+ static bool Same(string? a,string? b)=>string.Equals(a,b,StringComparison.OrdinalIgnoreCase);
+ static string Slug(string? value)=>new((value??string.Empty).Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+ void ResetEntry()
+ {
+  _family=AnimatedOnly?TerrainsFamily:null;
+  _kind=AnimatedOnly?SpritesKind:null;
+  _spriteStyle=null;
+  _scale=null;
+  _category=null;
+  _subcategory=null;
+  _preview=null;
+ }
+ void GoLibraryRoot()=>ResetEntry();
+ void OpenFamilyRoot(){_kind=AnimatedOnly?SpritesKind:null;_spriteStyle=null;_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenKindRoot(){_spriteStyle=null;_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenSpriteStyleRoot(){_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenScaleRoot(){_category=null;_subcategory=null;_preview=null;}
+ void OpenCategoryRoot(){_subcategory=null;_preview=null;}
+ void OpenFamily(string family){_family=family;_kind=null;_spriteStyle=null;_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenKind(string kind){_kind=kind;_spriteStyle=null;_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenSpriteStyle(string style){_spriteStyle=style;_scale=null;_category=null;_subcategory=null;_preview=null;}
+ void OpenScale(string scale){_scale=scale;_category=null;_subcategory=null;_preview=null;}
+ void OpenCategory(string category){_category=category;_subcategory=null;_preview=null;}
+ void OpenSubcategory(string subcategory){_subcategory=subcategory;_preview=null;}
  void TogglePreview(AtlasTile tile)=>_preview=_preview?.Id==tile.Id?null:tile;
  async Task PinPreview(){if(_preview is null)return;var tile=_preview;_preview=null;await OnAssetPin.InvokeAsync(tile);}
- async Task Back(){if(_preview is not null){_preview=null;return;}if(_subfolder is not null){_subfolder=null;return;}if(_folder is not null){_folder=null;return;}if(_directory is not null){_directory=null;return;}await OnExit.InvokeAsync();}
+ async Task Back()
+ {
+  if(_preview is not null){_preview=null;return;}
+  if(_subcategory is not null){_subcategory=null;return;}
+  if(_category is not null){_category=null;return;}
+  if(_scale is not null){_scale=null;return;}
+  if(_spriteStyle is not null){_spriteStyle=null;return;}
+  if(_kind is not null)
+  {
+   if(AnimatedOnly&&Same(_kind,SpritesKind)){await OnExit.InvokeAsync();return;}
+   _kind=null;return;
+  }
+  if(_family is not null){_family=null;return;}
+  await OnExit.InvokeAsync();
+ }
  Task BeginDrag(AtlasTile tile)=>OnAssetDragStart.InvokeAsync(tile);
  Task EndDrag()=>OnAssetDragEnd.InvokeAsync();
 }
