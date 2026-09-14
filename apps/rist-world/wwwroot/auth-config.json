@@ -1,3 +1,4 @@
 {
-  "apiBaseUrl": "https://pvdxm8ht5e.execute-api.us-east-1.amazonaws.com"
+  "apiBaseUrl": "https://pvdxm8ht5e.execute-api.us-east-1.amazonaws.com",
+  "ownerDiscordUserId": "1428027768544825445"
 }
