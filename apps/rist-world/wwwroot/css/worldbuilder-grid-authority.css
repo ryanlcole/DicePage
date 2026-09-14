@@ -1,9 +1,10 @@
 /*
  * World Builder map/grid authority.
  *
- * The logical map surface may extend to 300 x 300 cells. Camera zoom determines
- * how many cells are visible and how large they appear. A fresh map contains no
- * implicit terrain image or default terrain tiles.
+ * The backing world may span far beyond one construction surface, but the active
+ * WorldBuilder table/cube is a 30 x 30 logical-cell surface. Camera zoom decides
+ * how many of those cells are visible. Keeping this authority at 30 is critical:
+ * placed-tile X/Y and footprint math are also authored against the 30-cell cube.
  */
 
 html body .worldbuilder-studio .studio-viewer-canvas{
@@ -11,13 +12,13 @@ html body .worldbuilder-studio .studio-viewer-canvas{
   calc(100cqw - var(--viewer-frame) - var(--viewer-frame)),
   calc(100cqh - var(--viewer-frame) - var(--viewer-frame))
  );
- --world-grid-columns:300;
- --world-grid-rows:300;
+ --world-grid-columns:30;
+ --world-grid-rows:30;
  --world-grid-cell-x:calc(100% / var(--world-grid-columns));
  --world-grid-cell-y:calc(100% / var(--world-grid-rows));
 }
 
-/* The world remains square regardless of the viewer aspect ratio. */
+/* The active construction surface remains square regardless of viewer aspect. */
 html body .worldbuilder-studio .studio-viewer-canvas .map{
  position:absolute!important;
  inset:auto!important;
@@ -49,22 +50,33 @@ html body .worldbuilder-studio .studio-viewer-canvas .world-stage{
  transform-origin:center center!important;
 }
 
-/* Retire the old static viewer overlay. A grid outside the movable stage cannot
-   remain aligned with world coordinates while panning and zooming. */
+/* The old viewer-grid node is no longer visible, but it stays measurable because
+   navigation code uses its box to convert pointer pixels into world cells. Scale
+   its hidden geometry with the camera so one drag-cell remains one rendered cell. */
 html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid,
 html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.on,
 html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.off{
- display:none!important;
+ display:block!important;
+ position:absolute!important;
+ inset:auto!important;
+ left:50%!important;
+ top:50%!important;
+ width:var(--viewer-surface-size)!important;
+ height:var(--viewer-surface-size)!important;
  visibility:hidden!important;
  opacity:0!important;
+ pointer-events:none!important;
  background:none!important;
  background-image:none!important;
  border:0!important;
  outline:0!important;
+ transform:translate(-50%,-50%) scale(var(--wb-view-zoom,1))!important;
+ transform-origin:center center!important;
 }
 
 /* Disable only obsolete coordinate/grid overlays. The direct child stage grid
-   below is the single presentation authority. */
+   below is the single visible presentation authority and therefore pans/zooms
+   with authored content instead of drifting away from it. */
 .worldbuilder-studio .studio-viewer-canvas .coordinate-system,
 .worldbuilder-studio .studio-viewer-canvas .grid-coordinates,
 .worldbuilder-studio .studio-viewer-canvas .coordinate-grid,
@@ -78,9 +90,9 @@ html body .worldbuilder-studio .studio-viewer-canvas .studio-viewer-grid.off{
  outline:0!important;
 }
 
-/* One grid cell equals one addressable world cell. At the default 10x camera
-   zoom, approximately thirty cells span the viewer without making thirty the
-   world's dimensions. */
+/* One grid cell equals one addressable cell in the active 30 x 30 construction
+   surface. Camera zoom exposes a smaller 10-16-cell window without rewriting
+   tile identity or squeezing a 300-cell backing world into the phone screen. */
 html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.grid{
  position:absolute!important;
  inset:0!important;
@@ -113,7 +125,7 @@ html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.grid.none{
  background-image:none!important;
 }
 
-/* No default map image or terrain wallpaper. */
+/* No implicit terrain wallpaper. Visible terrain remains authored content. */
 html body .worldbuilder-studio .studio-viewer-canvas .world-stage>.base.ocean-world{
  background:#071015!important;
  background-image:none!important;
@@ -139,4 +151,5 @@ html body .worldbuilder-studio .studio-viewer-canvas .map::after{
  background:none!important;
  background-image:none!important;
  border:0!important;
+ outline:0!important;
 }
