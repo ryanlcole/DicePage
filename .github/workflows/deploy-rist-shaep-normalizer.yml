@@ -1,0 +1,92 @@
+name: Deploy RIST SHAEP Normalizer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-shaep-normalizer.yml'
+      - 'infra/aws/shaep-normalizer/**'
+      - '.github/workflows/deploy-rist-shaep-normalizer.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
+  STORAGE_STACK: rist-discord-storage
+  STACK_NAME: rist-shaep-normalizer
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+
+      - name: Validate SHAEP normalizer template
+        run: sam validate --lint --template-file infra/aws/rist-shaep-normalizer.yml
+
+      - name: Compile SHAEP normalizer source
+        run: python -m compileall -q infra/aws/shaep-normalizer
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve private storage bucket
+        shell: bash
+        run: |
+          set -euo pipefail
+          PRIVATE_STORAGE_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "$STORAGE_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='PrivateStorageBucketName'].OutputValue | [0]" \
+            --output text)
+          if [ -z "$PRIVATE_STORAGE_BUCKET" ] || [ "$PRIVATE_STORAGE_BUCKET" = "None" ]; then
+            echo "Could not resolve PrivateStorageBucketName from $STORAGE_STACK" >&2
+            exit 1
+          fi
+          echo "PRIVATE_STORAGE_BUCKET=$PRIVATE_STORAGE_BUCKET" >> "$GITHUB_ENV"
+
+      - name: Build SHAEP preservation worker
+        run: sam build --template-file infra/aws/rist-shaep-normalizer.yml --build-dir .aws-sam/shaep-normalizer
+
+      - name: Deploy SHAEP preservation worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          sam deploy \
+            --template-file .aws-sam/shaep-normalizer/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --s3-bucket "$DEPLOY_BUCKET" \
+            --s3-prefix "sam/${STACK_NAME}" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides "PrivateStorageBucketName=$PRIVATE_STORAGE_BUCKET"
+
+      - name: Verify SHAEP hot-normalization authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          FUNCTION_NAME=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ShaepNormalizerFunctionName'].OutputValue | [0]" \
+            --output text)
+          test -n "$FUNCTION_NAME"
+          test "$FUNCTION_NAME" != "None"
+          aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null
+          aws s3api get-bucket-notification-configuration \
+            --bucket "$PRIVATE_STORAGE_BUCKET" > /tmp/shaep-notification.json
+          grep -q 'shaep-normalizer-manifest-created' /tmp/shaep-notification.json
+          grep -q '"Value": ".shaep"' /tmp/shaep-notification.json
+          echo "SHAEP manifests now trigger hot preservation normalization in $FUNCTION_NAME"
