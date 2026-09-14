@@ -22,9 +22,10 @@ public sealed record AtlasTile(
     int FrameCount = 1,
     double FramesPerSecond = 0,
     string TypeId = "",
-    string GroupId = "");
+    string GroupId = "",
+    string ShaepId = "");
 public sealed record PieceItem(string Kind,double X,double Y,double PlacementZoom=1.0,string Label="",int CubeX=0,int CubeY=0,int CubeZ=0,int PlaneIndex=0,int TierIndex=0,int LayerOffset=0);
-public sealed record TileItem(string Id,string Name,string Image,double X,double Y,int SourceWidth=0,int SourceHeight=0,int CropX=0,int CropY=0,int CropWidth=0,int CropHeight=0,double PlacementZoom=1.0,string ZoneId="",string ZoneLabel="",bool Locked=false,int CubeX=0,int CubeY=0,int CubeZ=0,int PlaneIndex=0,int TierIndex=0,int LayerOffset=0,int RotationQuarterTurns=0,string PlacementTreatment="normal",string AssetKind="tile",bool AuthoredDepth=false,int FrameCount=1,double FramesPerSecond=0,string TypeId="",string GroupId="",string PlacementId="",AssetByMetadata? Metadata=null);
+public sealed record TileItem(string Id,string Name,string Image,double X,double Y,int SourceWidth=0,int SourceHeight=0,int CropX=0,int CropY=0,int CropWidth=0,int CropHeight=0,double PlacementZoom=1.0,string ZoneId="",string ZoneLabel="",bool Locked=false,int CubeX=0,int CubeY=0,int CubeZ=0,int PlaneIndex=0,int TierIndex=0,int LayerOffset=0,int RotationQuarterTurns=0,string PlacementTreatment="normal",string AssetKind="tile",bool AuthoredDepth=false,int FrameCount=1,double FramesPerSecond=0,string TypeId="",string GroupId="",string PlacementId="",AssetByMetadata? Metadata=null,string ShaepId="");
 public sealed record MapZoneLabel(string Id,string Label,string Terrain,double X,double Y,bool Locked);
 public sealed record StagedAsset(string Key,string Kind,string Name,string Image="",int SourceWidth=0,int SourceHeight=0,int CropX=0,int CropY=0,int CropWidth=0,int CropHeight=0,string ApprovalStatus="pending",string AssetKind="tile",bool AuthoredDepth=false,int DefaultTierIndex=0,int DefaultLayerOffset=0,int DefaultFootprint=0,int FrameCount=1,double FramesPerSecond=0);
 public sealed record DiceSpec(string Key,string Label,string Image,int Sides,int Columns,int Rows,int FrameCount,int RestFrame,int ValueOffset=1,int Sign=1,double VisualAspect=1.0);
