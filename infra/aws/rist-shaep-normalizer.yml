@@ -35,31 +35,6 @@ Resources:
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
 
-  NotificationRegistrarFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: python3.12
-      Handler: notification.handler
-      CodeUri: shaep-normalizer/
-      Timeout: 30
-      MemorySize: 128
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetBucketNotification
-                - s3:PutBucketNotification
-              Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
-
-  ShaepBucketNotification:
-    Type: Custom::ShaepBucketNotification
-    DependsOn:
-      - ShaepNormalizerInvokePermission
-    Properties:
-      ServiceToken: !GetAtt NotificationRegistrarFunction.Arn
-      BucketName: !Ref PrivateStorageBucketName
-      FunctionArn: !GetAtt ShaepNormalizerFunction.Arn
-
 Outputs:
   ShaepNormalizerFunctionName:
     Value: !Ref ShaepNormalizerFunction

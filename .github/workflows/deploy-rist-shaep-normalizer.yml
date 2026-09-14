@@ -21,6 +21,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STORAGE_STACK: rist-discord-storage
   STACK_NAME: rist-shaep-normalizer
+  NOTIFICATION_ID: shaep-normalizer-manifest-created
 
 jobs:
   validate-and-deploy:
@@ -56,6 +57,19 @@ jobs:
           fi
           echo "PRIVATE_STORAGE_BUCKET=$PRIVATE_STORAGE_BUCKET" >> "$GITHUB_ENV"
 
+      - name: Recover rolled-back normalizer stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].StackStatus' \
+            --output text 2>/dev/null || true)
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            aws cloudformation delete-stack --stack-name "$STACK_NAME"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+          fi
+
       - name: Build SHAEP preservation worker
         run: sam build --template-file infra/aws/rist-shaep-normalizer.yml --build-dir .aws-sam/shaep-normalizer
 
@@ -74,6 +88,41 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides "PrivateStorageBucketName=$PRIVATE_STORAGE_BUCKET"
 
+      - name: Bind SHAEP manifests to preservation worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          FUNCTION_ARN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ShaepNormalizerFunctionArn'].OutputValue | [0]" \
+            --output text)
+          export FUNCTION_ARN
+          aws s3api get-bucket-notification-configuration \
+            --bucket "$PRIVATE_STORAGE_BUCKET" > /tmp/shaep-notification-current.json
+          python - <<'PY'
+          import json, os
+          source='/tmp/shaep-notification-current.json'
+          target='/tmp/shaep-notification-next.json'
+          with open(source, encoding='utf-8') as handle:
+              config=json.load(handle)
+          config.pop('ResponseMetadata', None)
+          notification_id=os.environ['NOTIFICATION_ID']
+          function_arn=os.environ['FUNCTION_ARN']
+          lambdas=[x for x in config.get('LambdaFunctionConfigurations', []) if x.get('Id') != notification_id]
+          lambdas.append({
+              'Id': notification_id,
+              'LambdaFunctionArn': function_arn,
+              'Events': ['s3:ObjectCreated:*'],
+              'Filter': {'Key': {'FilterRules': [{'Name': 'suffix', 'Value': '.shaep'}]}}
+          })
+          config['LambdaFunctionConfigurations']=lambdas
+          with open(target, 'w', encoding='utf-8') as handle:
+              json.dump(config, handle, separators=(',', ':'))
+          PY
+          aws s3api put-bucket-notification-configuration \
+            --bucket "$PRIVATE_STORAGE_BUCKET" \
+            --notification-configuration file:///tmp/shaep-notification-next.json
+
       - name: Verify SHAEP hot-normalization authority
         shell: bash
         run: |
@@ -87,6 +136,6 @@ jobs:
           aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null
           aws s3api get-bucket-notification-configuration \
             --bucket "$PRIVATE_STORAGE_BUCKET" > /tmp/shaep-notification.json
-          grep -q 'shaep-normalizer-manifest-created' /tmp/shaep-notification.json
+          grep -q "$NOTIFICATION_ID" /tmp/shaep-notification.json
           grep -q '"Value": ".shaep"' /tmp/shaep-notification.json
           echo "SHAEP manifests now trigger hot preservation normalization in $FUNCTION_NAME"
