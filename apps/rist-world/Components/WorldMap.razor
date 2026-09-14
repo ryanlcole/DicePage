@@ -112,47 +112,74 @@
  }
 
  <section class="map-shell">
-  <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive world map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
-   <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true"><button type="button" @onclick="ZoomOut">−</button><button type="button" @onclick="ZoomIn">+</button></div>
-   @if(Session.LockedTileMenuOpen)
-   {
-    <div class="locked-tile-menu" role="menu" aria-label="Pinned region actions" @onpointerdown:stopPropagation="true"><strong>Pinned region</strong><label class="pin-label-editor"><span>Label call-out</span><input value="@Session.SelectedPin?.Label" @onchange="e=>Session.SetSelectedPinLabel(e.Value?.ToString()??string.Empty)" placeholder="Name this location" /></label><div role="group" aria-label="Plane and tier navigation"><button type="button" @onclick="()=>Session.MovePlane(-1)">Plane−</button><button type="button" @onclick="()=>Session.MovePlane(1)">Plane+</button><button type="button" @onclick="()=>Session.MoveTier(-1)">Tier−</button><button type="button" @onclick="()=>Session.MoveTier(1)">Tier+</button></div><small>@Session.WorldCoordinateLabel</small><button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button><button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button><button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button><button class="danger" role="menuitem" @onclick="Session.RemoveSelectedPin">Remove Pin</button><button role="menuitem" @onclick="()=>Session.CloseLockedTileMenu()">Cancel</button></div>
-   }
-   @if(Session.RegionPlayerPickerOpen)
-   {
-    <div class="region-player-picker" role="dialog" aria-label="Send players to region" @onpointerdown:stopPropagation="true"><strong>Send Players to Region</strong>@foreach(var player in Session.RegionPlayerChoices){<label><input type="checkbox" checked="@Session.AssignedRegionPlayers.Contains(player)" @onchange="()=>Session.TogglePlayerInHeldRegion(player)" /> <span>@player</span></label>}<button @onclick="Session.CloseRegionPlayerPicker">Done</button></div>
-   }
-   @if(Session.RecursiveRegionSelectionMode)
-   {
-    <div class="recursive-region-actions" role="toolbar" aria-label="Local region selection" @onpointerdown:stopPropagation="true"><strong>@Session.RecursiveRegionSelectionCount tile@(Session.RecursiveRegionSelectionCount==1?"":"s") selected</strong><button @onclick="Session.CommitRecursiveRegion" disabled="@(!Session.HasRecursiveRegionSelection)">Commit to @Session.NextRecursiveLayer</button><button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button></div>
-   }
-   <div class="world-stage" style="transform:@StageTransform" aria-label="World map">
-    <div class="base ocean-world" aria-label="Ocean base"></div>
-    <div class="grid @Session.GridStyle"></div>
-    @foreach(var t in Session.PlacedTiles)
+  <button type="button" class="description-mode-toggle" @onclick="Session.ToggleDescriptionOnlyMode" aria-pressed="@Session.DescriptionOnlyMode">@(Session.DescriptionOnlyMode?"Visual map":"Description only")</button>
+  @if(Session.DescriptionOnlyMode)
+  {
+   <section class="description-only-map" aria-label="Description-only world map" aria-live="polite">
+    <header><strong>World Description</strong><small>@Session.WorldCoordinateLabel</small></header>
+    @if(Session.GetDescriptionOnlyMap().Count==0)
     {
-     <div class="tile-cell treatment-@t.PlacementTreatment @(t.AssetKind=="sprite"?"rist-world-sprite":"") @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t) @Session.RecursiveRegionBoundaryClasses(t)" style="@TileStyle(t)" @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="@(!Session.MapLocked)" @oncontextmenu:preventDefault="true" data-zone="@t.ZoneId" data-sprite-frames="@t.FrameCount" data-sprite-fps="@t.FramesPerSecond" aria-label="@t.Name"><span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@t.Name" draggable="false" /></span></div>
+     <p>No authored world features are present at this location.</p>
     }
-    @foreach(var zone in Session.MapZoneLabels){<div class="map-zone-label @(zone.Locked?"locked":"")" style="left:@Pct(zone.X);top:@Pct(zone.Y)">@zone.Label</div>}
-    @foreach(var roll in Session.Rolls){var die=Session.Dice(roll.Key);if(die is not null){<div class="rolled-die die-@die.Key" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>}}
-    @foreach(var p in Session.Pieces)
+    else
     {
-     @if(p.Kind=="pin")
-     {
-      <button class="piece pin zoom-pin placed-pin" style="@PinStyle(p)" aria-label="Open map pin menu" @onclick="()=>PinTap(p)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @oncontextmenu:preventDefault="true"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
-      @if(!string.IsNullOrWhiteSpace(p.Label)){<span class="pin-label-callout" style="left:@Pct(p.X);top:@Pct(p.Y)">@p.Label</span>}
-     }
-     else if(p.Kind=="mini")
-     {
-      <div class="piece mini" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="Miniature" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none" /></div>
-     }
-     else
-     {
-      <div class="piece @p.Kind" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">@p.Kind</div>
-     }
+     <ol>
+      @foreach(var entry in Session.GetDescriptionOnlyMap())
+      {
+       <li>
+        <strong>@entry.TypeId</strong>
+        <span>@entry.Description</span>
+        <small>X @Math.Round(entry.X*100,1)% · Y @Math.Round(entry.Y*100,1)% · Tier @entry.TierIndex · Layer @entry.LayerOffset</small>
+       </li>
+      }
+     </ol>
     }
+   </section>
+  }
+  else
+  {
+   <div class="map" data-pan-x="@G.PanX" data-pan-y="@G.PanY" data-zoom="@G.Zoom" @ref="MapElement" tabindex="0" role="application" aria-label="Interactive world map" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D + - 0 Escape" @onpointerdown="Down" @onpointermove="Move" @onpointerup="Up" @onpointercancel="Cancel" @onwheel="Wheel" @onwheel:preventDefault="true" @onkeydown="KeyDown" @ondragover:preventDefault="true" @ondrop="DropHeaderPin">
+    <div class="desktop-map-zoom" role="group" aria-label="Map zoom controls" @onpointerdown:stopPropagation="true"><button type="button" @onclick="ZoomOut">−</button><button type="button" @onclick="ZoomIn">+</button></div>
+    @if(Session.LockedTileMenuOpen)
+    {
+     <div class="locked-tile-menu" role="menu" aria-label="Pinned region actions" @onpointerdown:stopPropagation="true"><strong>Pinned region</strong><label class="pin-label-editor"><span>Label call-out</span><input value="@Session.SelectedPin?.Label" @onchange="e=>Session.SetSelectedPinLabel(e.Value?.ToString()??string.Empty)" placeholder="Name this location" /></label><div role="group" aria-label="Plane and tier navigation"><button type="button" @onclick="()=>Session.MovePlane(-1)">Plane−</button><button type="button" @onclick="()=>Session.MovePlane(1)">Plane+</button><button type="button" @onclick="()=>Session.MoveTier(-1)">Tier−</button><button type="button" @onclick="()=>Session.MoveTier(1)">Tier+</button></div><small>@Session.WorldCoordinateLabel</small><button role="menuitem" @onclick="Session.BeginRecursiveRegionSelection">Select tiles for local region</button><button role="menuitem" @onclick="Session.OpenSendPlayersToRegion" disabled="@(!Session.CanEnterHeldRegion)">Send Players to Region</button><button role="menuitem" @onclick="Session.EnterHeldRegion" disabled="@(!Session.CanEnterHeldRegion)">Enter Region</button><button class="danger" role="menuitem" @onclick="Session.RemoveSelectedPin">Remove Pin</button><button role="menuitem" @onclick="()=>Session.CloseLockedTileMenu()">Cancel</button></div>
+    }
+    @if(Session.RegionPlayerPickerOpen)
+    {
+     <div class="region-player-picker" role="dialog" aria-label="Send players to region" @onpointerdown:stopPropagation="true"><strong>Send Players to Region</strong>@foreach(var player in Session.RegionPlayerChoices){<label><input type="checkbox" checked="@Session.AssignedRegionPlayers.Contains(player)" @onchange="()=>Session.TogglePlayerInHeldRegion(player)" /> <span>@player</span></label>}<button @onclick="Session.CloseRegionPlayerPicker">Done</button></div>
+    }
+    @if(Session.RecursiveRegionSelectionMode)
+    {
+     <div class="recursive-region-actions" role="toolbar" aria-label="Local region selection" @onpointerdown:stopPropagation="true"><strong>@Session.RecursiveRegionSelectionCount tile@(Session.RecursiveRegionSelectionCount==1?"":"s") selected</strong><button @onclick="Session.CommitRecursiveRegion" disabled="@(!Session.HasRecursiveRegionSelection)">Commit to @Session.NextRecursiveLayer</button><button @onclick="Session.CancelRecursiveRegionSelection">Cancel</button></div>
+    }
+    <div class="world-stage" style="transform:@StageTransform" aria-label="World map">
+     <div class="base ocean-world" aria-label="Ocean base"></div>
+     <div class="grid @Session.GridStyle"></div>
+     @foreach(var t in Session.PlacedTiles)
+     {
+      <div class="tile-cell treatment-@t.PlacementTreatment @(t.AssetKind=="sprite"?"rist-world-sprite":"") @(t.Locked?"locked":"unlocked") @Session.ZoneBoundaryClasses(t) @Session.RecursiveRegionBoundaryClasses(t)" style="@TileStyle(t)" @onpointerdown="e=>BeginTileDrag(t,e)" @onpointerdown:stopPropagation="@(!Session.MapLocked)" @oncontextmenu:preventDefault="true" data-zone="@t.ZoneId" data-sprite-frames="@t.FrameCount" data-sprite-fps="@t.FramesPerSecond" aria-label="@(t.Metadata is null?t.Name:WorldSession.DescribeAbm(t.Metadata))"><span class="tile-image-crop"><img src="@t.Image" style="@CropStyle(t)" alt="@(t.Metadata is null?t.Name:WorldSession.DescribeAbm(t.Metadata))" draggable="false" /></span></div>
+     }
+     @foreach(var zone in Session.MapZoneLabels){<div class="map-zone-label @(zone.Locked?"locked":"")" style="left:@Pct(zone.X);top:@Pct(zone.Y)">@zone.Label</div>}
+     @foreach(var roll in Session.Rolls){var die=Session.Dice(roll.Key);if(die is not null){<div class="rolled-die die-@die.Key" style="@RollStyle(roll,die)" title="@roll.Label @(roll.Value==0?"rolling":roll.Value.ToString())"></div>}}
+     @foreach(var p in Session.Pieces)
+     {
+      @if(p.Kind=="pin")
+      {
+       <button class="piece pin zoom-pin placed-pin" style="@PinStyle(p)" aria-label="Open map pin menu" @onclick="()=>PinTap(p)" @onclick:stopPropagation="true" @onpointerdown:stopPropagation="true" @oncontextmenu:preventDefault="true"><span class="header-icon icon-pin map-pin-icon" aria-hidden="true"></span></button>
+       @if(!string.IsNullOrWhiteSpace(p.Label)){<span class="pin-label-callout" style="left:@Pct(p.X);top:@Pct(p.Y)">@p.Label</span>}
+      }
+      else if(p.Kind=="mini")
+      {
+       <div class="piece mini" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true"><img src="@(Session.Layer=="WORLD"?"/Game/assets/shaelvien/runtime/main-world-coin.png":"/Game/assets/shaelvien/runtime/main-token.png")" alt="Miniature" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none" /></div>
+      }
+      else
+      {
+       <div class="piece @p.Kind" style="@PieceStyle(p)" @onpointerdown="e=>BeginPieceDrag(p,e)" @onpointerdown:stopPropagation="true">@p.Kind</div>
+      }
+     }
+    </div>
    </div>
-  </div>
+  }
  </section>
  @if(Dragging)
  {
