@@ -2,9 +2,8 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Canonical developer authority for Geonaph's sea-level origin. The world uses
-    // sparse terrain storage, so an empty tile collection at this address means the
-    // implicit Ocean 071 base rather than an unbuilt layer.
+    // Canonical developer authority for Geonaph's sea-level origin. Terrain storage
+    // is explicit: an empty tile collection means an unbuilt layer, never implicit ocean.
     public const string GeonaphOriginAuthoritySpatialAddress = "p0:c0,0,0:t0:l0";
     public const string GeonaphOriginAuthorityRole = "developer";
 
@@ -33,9 +32,8 @@ public sealed partial class WorldSession
         NpcBoundaryExchanges = []
     };
 
-    // Repair identity/authority without destroying authored terrain. This is safe to
-    // run against existing Geonaph saves and turns older GameMaster-labelled origin
-    // checkpoints into the canonical Developer-owned origin cube.
+    // Repair identity/authority without destroying manually authored terrain. Legacy
+    // auto-generated Geonaph terrain is removed so restored worlds follow manual-build canon.
     bool EnsureGeonaphOriginLayerInvariant()
     {
         if (!IsGeonaphWorld) return false;
@@ -57,8 +55,12 @@ public sealed partial class WorldSession
             changed = true;
         }
 
+        var tileCount = PlacedTiles.Count;
+        ClearGeneratedGeonaphPackagePlacements();
+        if (PlacedTiles.Count != tileCount) changed = true;
+
         // Prevent the legacy bootstrap from treating a restored sparse world as an
-        // uninitialized world and clearing authored content later in the session.
+        // uninitialized world and changing authored content later in the session.
         _originMapApplied = true;
         return changed;
     }
