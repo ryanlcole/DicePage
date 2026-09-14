@@ -176,6 +176,78 @@
     display: none !important;
 }
 
+.description-mode-toggle {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    z-index: 60 !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    border: 1px solid #8d6a28 !important;
+    border-radius: 8px !important;
+    background: #111920 !important;
+    color: #e1c77f !important;
+    font: 800 11px/1 system-ui !important;
+}
+
+.description-mode-toggle[aria-pressed="true"] {
+    background: #2a2314 !important;
+}
+
+.description-only-map {
+    box-sizing: border-box !important;
+    position: absolute !important;
+    inset: 0 !important;
+    padding: 52px 14px 14px !important;
+    overflow: auto !important;
+    background: #071015 !important;
+    color: #eee6d2 !important;
+}
+
+.description-only-map > header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    gap: 6px 16px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #40371f !important;
+}
+
+.description-only-map > header strong {
+    color: #e1c77f !important;
+    font: 800 16px/1.2 system-ui !important;
+}
+
+.description-only-map > header small,
+.description-only-map li small {
+    color: #9e9787 !important;
+}
+
+.description-only-map ol {
+    display: grid !important;
+    gap: 8px !important;
+    margin: 12px 0 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.description-only-map li {
+    display: grid !important;
+    gap: 4px !important;
+    padding: 10px !important;
+    border: 1px solid #40371f !important;
+    border-radius: 8px !important;
+    background: #0d171e !important;
+}
+
+.description-only-map li strong {
+    color: #e1c77f !important;
+}
+
+.description-only-map li span {
+    line-height: 1.45 !important;
+}
+
 /* Landscape is the primary editing posture. Surplus horizontal space belongs to
    the surrounding workbench, not to stretched world geometry. */
 @media (orientation: landscape) {
