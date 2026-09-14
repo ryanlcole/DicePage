@@ -4,7 +4,7 @@ namespace RistWorld;
 /// Separates world truth (placed tile identity + semantic TypeId) from the
 /// representation pack (GroupId). Replacing a visual group never changes the
 /// tile's original Id, PlacementId, TypeId, coordinates, depth, lock state,
-/// rotation, treatment, or zone membership.
+/// rotation, treatment, metadata, or zone membership.
 /// </summary>
 public sealed partial class WorldSession
 {
@@ -33,6 +33,7 @@ public sealed partial class WorldSession
     string EffectiveTypeId(TileItem tile)
     {
         if (!string.IsNullOrWhiteSpace(tile.TypeId)) return tile.TypeId.Trim();
+        if (tile.Metadata is not null) return InferAbmTypeId(tile.Metadata);
         var source = SourceAssetFor(tile);
         return source is null ? tile.Id : EffectiveTypeId(source);
     }
@@ -40,6 +41,7 @@ public sealed partial class WorldSession
     string EffectiveGroupId(TileItem tile)
     {
         if (!string.IsNullOrWhiteSpace(tile.GroupId)) return tile.GroupId.Trim();
+        if (tile.Metadata is not null) return "abm:description";
         var source = SourceAssetFor(tile);
         return source is null ? "legacy:unknown" : EffectiveGroupId(source);
     }
@@ -59,10 +61,14 @@ public sealed partial class WorldSession
     {
         var source = SourceAssetFor(tile);
         var typeId = string.IsNullOrWhiteSpace(tile.TypeId)
-            ? source is null ? tile.Id : EffectiveTypeId(source)
+            ? tile.Metadata is not null
+                ? InferAbmTypeId(tile.Metadata)
+                : source is null ? tile.Id : EffectiveTypeId(source)
             : tile.TypeId.Trim();
-        var groupId = string.IsNullOrWhiteSpace(tile.GroupId) && source is not null
-            ? EffectiveGroupId(source)
+        var groupId = string.IsNullOrWhiteSpace(tile.GroupId)
+            ? tile.Metadata is not null
+                ? "abm:description"
+                : source is not null ? EffectiveGroupId(source) : "legacy:unknown"
             : tile.GroupId.Trim();
         var placementId = string.IsNullOrWhiteSpace(tile.PlacementId)
             ? $"tile-{Guid.NewGuid():N}"
