@@ -26,7 +26,8 @@ public sealed partial class WorldSession
         var targetSceneZ=ClampPlacementSceneZ(sceneZ);
         var (tier,layer)=SplitSceneZ(targetSceneZ);
         var target=new SpatialAddress(CubeX,CubeY,CubeZ,PlaneIndex,tier,layer);
-        var placed=tile with
+        var identified=NormalizePlacedTileIdentity(tile);
+        var placed=identified with
         {
             CubeX=CubeX,CubeY=CubeY,CubeZ=CubeZ,PlaneIndex=PlaneIndex,
             TierIndex=tier,LayerOffset=layer
