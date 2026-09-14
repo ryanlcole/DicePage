@@ -23,8 +23,8 @@
     background: #03080c !important;
 }
 
-/* The coordinate surface is square and centered. Zoom changes perception only;
-   it does not redefine the logical world dimensions. */
+/* The viewport always shows a 30 x 30 construction window. The world can span
+   multiple viewer windows without squeezing its entire 300 x 300 address space here. */
 .map {
     box-sizing: border-box !important;
     position: absolute !important;
@@ -42,7 +42,7 @@
     margin: 0 !important;
     overflow: hidden !important;
     container-type: size !important;
-    --rist-grid-cell: calc(100cqw / 300);
+    --rist-grid-cell: calc(100cqw / 30);
     background: #071015 !important;
 }
 
