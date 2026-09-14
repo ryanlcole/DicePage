@@ -32,12 +32,13 @@ def test_camera_clamps_navigation_to_visible_world_edges():
     assert "requestAnimationFrame(clampPan)" in camera
 
 
-def test_camera_authority_is_loaded_after_legacy_optics_and_cache_busted():
+def test_unified_gesture_authority_loads_before_legacy_camera_helpers():
     index = (WWWROOT / "index.html").read_text()
+    gestures = 'worldbuilder-gesture-authority.js?v=20260914-unified-gesture-1'
+    navigation = 'worldbuilder-navigation-authority.js?v=20260914-unified-gesture-1'
     optics = 'worldbuilder-optics.js?v=20260912-optics-pinchzoom-1'
     camera = 'worldbuilder-camera-window.js?v=20260914-camera-window-1'
-    grid = 'css/worldbuilder-grid-authority.css?v=20260914-camera-window-1'
-    assert optics in index
-    assert camera in index
-    assert grid in index
-    assert index.index(camera) > index.index(optics)
+    grid = 'css/worldbuilder-grid-authority.css?v=20260914-unified-gesture-1'
+    for asset in (gestures, navigation, optics, camera, grid):
+        assert asset in index
+    assert index.index(gestures) < index.index(navigation) < index.index(optics) < index.index(camera)
