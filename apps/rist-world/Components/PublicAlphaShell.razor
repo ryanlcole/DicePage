@@ -23,6 +23,7 @@
   </section>
 
   <section class="launcher-primary" aria-label="Shaelvien categories">
+   <button type="button" class="launcher-card accessibility-shell-card" @onclick="OpenAccessibilityShell"><span class="card-icon" aria-hidden="true">⌨</span><strong>ACCESSIBILITY SHELL</strong><small>Screen reader, keyboard, switch, speech and coordinate access to the same world.</small></button>
    <button type="button" class="launcher-card roleplay" disabled="@(!WorldReady)" @onclick="OpenRoleplay"><span class="card-icon">♙</span><strong>ROLEPLAY</strong><small>Characters, dice, encounters and play.</small></button>
    <button type="button" class="launcher-card campaign" disabled="@(!WorldReady)" @onclick="OpenGameMaster"><span class="card-icon">♜</span><strong>GAMEMASTER</strong><small>Build, manage and run campaigns.</small></button>
    <button type="button" class="launcher-card world" @onclick="OpenWorldbuilding"><span class="card-icon">◈</span><strong>WORLDBUILDER</strong><small>@(WorldReady?"Build the world map, tiers and layers.":"Choose, create or import a world first.")</small></button>
@@ -74,7 +75,7 @@
        <small>@ParallaxStatusText</small>
       </button>
      </section>
-     <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY SETTINGS</button>
+     <button type="button" class="launcher-accessibility" @onclick="OpenAccessibility">ACCESSIBILITY STATEMENT</button>
     </div>
    </section>
   }
@@ -120,6 +121,7 @@ else
  .launcher-world-loaded{width:max-content;max-width:88vw;margin:0 auto 10px;padding:5px 10px;border:1px solid #6c5b35;border-radius:999px;background:#0b161c;color:#d8c17f;font:900 8px/1 system-ui;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .launcher-card:disabled,.launcher-secondary button:disabled,.launcher-enter:disabled{opacity:.34!important;filter:grayscale(.8);cursor:not-allowed}.launcher-card:disabled:hover,.launcher-secondary button:disabled:hover{transform:none!important}
  .launcher-hub .rist-card-index-launcher{display:none!important}
+ .accessibility-shell-card{border-color:#88b9d0!important;background:linear-gradient(145deg,#102735,#0a171f)!important}.accessibility-shell-card strong{color:#dff5ff!important}.accessibility-shell-card small{color:#bad5df!important}
 </style>
 
 @code {
@@ -165,6 +167,7 @@ else
  {
   switch(mode)
   {
+   case "accessibility":_workspaceMode="accessibility";_workspaceLabel="ACCESSIBILITY SHELL";_workspaceHint="DESCRIBE → NAVIGATE → ACT → BUILD";break;
    case "viewer":_workspaceMode="viewer";_workspaceLabel="REGIONDEFINER";_workspaceHint="WORLD → REGION → LOCAL";break;
    case "immersion":_workspaceMode="immersion";_workspaceLabel="IMMERSIONBUILDER";_workspaceHint="WORLD → IMMERSION PROFILE → EXPERIENCE";break;
    case "campaign":_workspaceMode="campaign";_workspaceLabel="GAMEMASTER";_workspaceHint="PLAN → PLACE → RUN → REPLAY";break;
@@ -258,6 +261,7 @@ else
  void CloseCardIndex()=>_cardIndexOpen=false;
  async Task RefreshFullscreenStateAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.state");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];await InvokeAsync(StateHasChanged);}catch{_fullscreenSupported=false;await InvokeAsync(StateHasChanged);}}
  async Task ToggleFullscreenAsync(){try{var state=await JS.InvokeAsync<bool[]>("ristFullscreen.toggle");_fullscreen=state.Length>0&&state[0];_fullscreenSupported=state.Length<2||state[1];}catch{_fullscreenSupported=false;}await InvokeAsync(StateHasChanged);}
+ void OpenAccessibilityShell()=>OpenWorkspace("accessibility","ACCESSIBILITY SHELL","DESCRIBE → NAVIGATE → ACT → BUILD");
  void OpenWorldbuilding(){if(!WorldReady){_settingsOpen=false;_cardIndexOpen=false;_worldGateOpen=true;return;}OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");}
  void ContinueWorldbuildingFromGate()=>OpenWorkspace("world","WORLDBUILDER","WORLD → TIER → LAYER → CUBE");
  void CloseWorldGate()=>_worldGateOpen=false;

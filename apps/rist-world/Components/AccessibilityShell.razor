@@ -1,0 +1,353 @@
+@implements IDisposable
+@inject WorldSession Session
+
+<main class="accessibility-shell" aria-labelledby="accessibility-shell-title">
+ <a class="accessibility-skip" href="#accessibility-main">Skip to controls</a>
+ <header class="accessibility-header">
+  <div>
+   <p>SHAELVIEN · RIST</p>
+   <h1 id="accessibility-shell-title">Accessibility Shell</h1>
+   <p class="accessibility-intro">A semantic interface to the same world truth used by the visual table. Built for screen readers, keyboards, switch devices, speech input, braille displays, and precise coordinate control.</p>
+  </div>
+  <div class="accessibility-header-actions">
+   <button type="button" @onclick="OpenWorldGate">CHOOSE / CREATE WORLD</button>
+   <button type="button" @onclick="ReturnToLanding">RETURN TO LANDING</button>
+  </div>
+ </header>
+
+ <nav class="accessibility-nav" aria-label="Accessibility shell sections">
+  <a href="#world-description">WORLD</a>
+  <a href="#navigation">NAVIGATE</a>
+  <a href="#tokens">TOKENS</a>
+  <a href="#character">CHARACTER</a>
+  <a href="#chat">CHAT</a>
+  <a href="#dice">DICE</a>
+  <a href="#worldbuilding">BUILD</a>
+  <a href="#commands">COMMANDS</a>
+ </nav>
+
+ <div id="accessibility-status" class="accessibility-status" role="status" aria-live="polite" aria-atomic="true">@_status</div>
+
+ <section id="accessibility-main" class="accessibility-grid">
+  <section id="world-description" class="accessibility-panel" aria-labelledby="world-description-title">
+   <h2 id="world-description-title">World description</h2>
+   @if(!Session.HasActiveWorld)
+   {
+    <p>No world is loaded. Use <strong>Choose / Create World</strong> to begin.</p>
+   }
+   else
+   {
+    <dl class="accessibility-facts">
+     <div><dt>World</dt><dd>@Session.WorldDisplayName</dd></div>
+     <div><dt>Location</dt><dd>@Session.WorldCoordinateLabel</dd></div>
+     <div><dt>Scale</dt><dd>@Session.Layer · @Session.ViewerGridSizeLabel · @Session.ViewerPhysicalSizeLabel</dd></div>
+     <div><dt>Features</dt><dd>@Descriptions.Count authored map entries</dd></div>
+     <div><dt>Pieces</dt><dd>@Session.Pieces.Count placed pieces</dd></div>
+    </dl>
+    @if(Descriptions.Count==0)
+    {
+     <p>No authored world features are present at this location.</p>
+    }
+    else
+    {
+     <ol class="accessibility-world-list">
+      @foreach(var entry in Descriptions)
+      {
+       <li>
+        <strong>@entry.TypeId</strong>
+        <span>@entry.Description</span>
+        <small>Column @CellX(entry.X), row @CellY(entry.Y), tier @entry.TierIndex, layer @entry.LayerOffset.</small>
+       </li>
+      }
+     </ol>
+    }
+   }
+  </section>
+
+  <section id="navigation" class="accessibility-panel" aria-labelledby="navigation-title">
+   <h2 id="navigation-title">Navigate world coordinates</h2>
+   <p>Current location: <strong>@Session.WorldCoordinateLabel</strong></p>
+   <div class="accessibility-button-grid" role="group" aria-label="Layer and tier movement">
+    <button type="button" @onclick="()=>MoveLayer(-1)">PREVIOUS LAYER</button>
+    <button type="button" @onclick="()=>MoveLayer(1)">NEXT LAYER</button>
+    <button type="button" @onclick="()=>MoveTier(-1)">PREVIOUS TIER</button>
+    <button type="button" @onclick="()=>MoveTier(1)">NEXT TIER</button>
+    <button type="button" @onclick="()=>MovePlane(-1)" disabled="@(!Session.IsLoggedIn)">PREVIOUS PLANE</button>
+    <button type="button" @onclick="()=>MovePlane(1)" disabled="@(!Session.IsLoggedIn)">NEXT PLANE</button>
+   </div>
+   <fieldset>
+    <legend>Go to cube</legend>
+    <div class="accessibility-coordinate-fields">
+     <label>Cube X<input type="number" @bind="_cubeX" /></label>
+     <label>Cube Y<input type="number" @bind="_cubeY" /></label>
+     <label>Cube Z<input type="number" @bind="_cubeZ" /></label>
+    </div>
+    <button type="button" @onclick="GoToCube" disabled="@(!Session.IsLoggedIn)">GO TO CUBE</button>
+    @if(!Session.IsLoggedIn){<p class="accessibility-note">Changing planes or cubes requires an authenticated account.</p>}
+   </fieldset>
+  </section>
+
+  <section id="tokens" class="accessibility-panel" aria-labelledby="tokens-title">
+   <h2 id="tokens-title">Place and move tokens by coordinate</h2>
+   <p>Coordinates are one-based. Current viewer: columns 1–@Session.ViewerGridColumns, rows 1–@Session.ViewerGridRows.</p>
+   <fieldset>
+    <legend>Place a staged asset</legend>
+    <label>Staged asset
+     <select @bind="_stagedKey">
+      <option value="">Choose an asset</option>
+      @for(var i=0;i<Session.StagedAssets.Count;i++)
+      {
+       var staged=Session.StagedAssets[i];
+       <option value="@staged.Key">@(i+1). @staged.Name (@staged.Kind, @staged.ApprovalStatus)</option>
+      }
+     </select>
+    </label>
+    <div class="accessibility-coordinate-fields">
+     <label>Column<input type="number" min="1" max="@Session.ViewerGridColumns" @bind="_placeColumn" /></label>
+     <label>Row<input type="number" min="1" max="@Session.ViewerGridRows" @bind="_placeRow" /></label>
+    </div>
+    <button type="button" @onclick="PlaceStaged">PLACE AT COORDINATE</button>
+    @if(Session.StagedAssets.Count==0){<p class="accessibility-note">No staged assets yet. Stage a token or tile from its library first; this shell then provides a non-drag placement path.</p>}
+   </fieldset>
+
+   <fieldset>
+    <legend>Move an existing piece</legend>
+    <label>Piece
+     <select @bind="_selectedPieceIndex">
+      <option value="-1">Choose a piece</option>
+      @for(var i=0;i<Session.Pieces.Count;i++)
+      {
+       var piece=Session.Pieces[i];
+       <option value="@i">@(i+1). @PieceName(piece) — column @CellX(piece.X), row @CellY(piece.Y)</option>
+      }
+     </select>
+    </label>
+    <div class="accessibility-coordinate-fields">
+     <label>Column<input type="number" min="1" max="@Session.ViewerGridColumns" @bind="_moveColumn" /></label>
+     <label>Row<input type="number" min="1" max="@Session.ViewerGridRows" @bind="_moveRow" /></label>
+    </div>
+    <button type="button" @onclick="MoveSelectedPiece">MOVE PIECE</button>
+   </fieldset>
+
+   @if(Session.Pieces.Count>0)
+   {
+    <h3>Pieces at this location</h3>
+    <ol class="accessibility-world-list">
+     @foreach(var piece in Session.Pieces)
+     {
+      <li><strong>@PieceName(piece)</strong><span>Column @CellX(piece.X), row @CellY(piece.Y).</span><small>Cube @piece.CubeX,@piece.CubeY,@piece.CubeZ; plane @piece.PlaneIndex; tier @piece.TierIndex; layer @piece.LayerOffset.</small></li>
+     }
+    </ol>
+   }
+  </section>
+
+  <section id="character" class="accessibility-panel" aria-labelledby="character-title">
+   <h2 id="character-title">Character data</h2>
+   <div class="accessibility-form-stack">
+    <label>Name<input @bind="Session.CharacterName" @bind:event="oninput" /></label>
+    <label>Description<textarea rows="4" @bind="Session.CharacterDescription" @bind:event="oninput"></textarea></label>
+    <label>Background<textarea rows="4" @bind="Session.CharacterBackground" @bind:event="oninput"></textarea></label>
+    <label>Equipment<textarea rows="3" @bind="Session.CharacterEquipment" @bind:event="oninput"></textarea></label>
+    <label>Conditions<textarea rows="3" @bind="Session.CharacterConditions" @bind:event="oninput"></textarea></label>
+   </div>
+   <button type="button" @onclick="SaveCharacter">SAVE CHARACTER DATA</button>
+   @if(Session.CharacterFields.Count>0)
+   {
+    <h3>Character fields</h3>
+    <dl class="accessibility-facts">
+     @foreach(var field in Session.CharacterFields)
+     {
+      <div><dt>@field.Name</dt><dd>@field.Current@(field.Max>0?$" of {field.Max}":"") · @field.Group</dd></div>
+     }
+    </dl>
+   }
+  </section>
+
+  <section id="chat" class="accessibility-panel" aria-labelledby="chat-title">
+   <h2 id="chat-title">Chat</h2>
+   @if(Session.DialogueOpen && !string.IsNullOrWhiteSpace(Session.DialogueText))
+   {
+    <p class="accessibility-chat-line"><strong>@Session.DialogueSpeaker:</strong> @Session.DialogueText</p>
+   }
+   <form @onsubmit="SendChat" @onsubmit:preventDefault="true">
+    <label for="accessibility-chat-input">Message</label>
+    <textarea id="accessibility-chat-input" rows="4" @bind="Session.ChatDraft" @bind:event="oninput"></textarea>
+    <button type="submit">SEND CHAT</button>
+   </form>
+  </section>
+
+  <section id="dice" class="accessibility-panel" aria-labelledby="dice-title">
+   <h2 id="dice-title">Dice and actions</h2>
+   <div class="accessibility-button-grid" role="group" aria-label="Roll dice">
+    @foreach(var die in Session.DiceSet)
+    {
+     <button type="button" @onclick="()=>Roll(die.Key)">ROLL @die.Label</button>
+    }
+   </div>
+   <p><strong>Current total:</strong> @Session.Total</p>
+   @if(Session.Rolls.Count>0)
+   {
+    <ul>
+     @foreach(var roll in Session.Rolls){<li>@roll.Label: @roll.Value</li>}
+    </ul>
+   }
+   <button type="button" @onclick="ClearRolls">CLEAR ROLLS</button>
+  </section>
+
+  <section id="worldbuilding" class="accessibility-panel" aria-labelledby="worldbuilding-title">
+   <h2 id="worldbuilding-title">Semantic worldbuilding</h2>
+   <p>Create world truth without needing to draw or drag. The feature is stored as semantic metadata and can receive artwork later without changing its identity.</p>
+   <div class="accessibility-form-stack">
+    <label>Feature type<input @bind="_featureType" @bind:event="oninput" placeholder="Cave, settlement, river, ruins…" /></label>
+    <label>Terrain<input @bind="_featureTerrain" @bind:event="oninput" placeholder="Mountain, coast, forest…" /></label>
+    <label>Elevation in feet<input type="number" @bind="_featureElevationFeet" /></label>
+    <label>Description<textarea rows="4" @bind="_featureDescription" @bind:event="oninput"></textarea></label>
+   </div>
+   <div class="accessibility-coordinate-fields">
+    <label>Column<input type="number" min="1" max="@Session.ViewerGridColumns" @bind="_featureColumn" /></label>
+    <label>Row<input type="number" min="1" max="@Session.ViewerGridRows" @bind="_featureRow" /></label>
+   </div>
+   <button type="button" @onclick="PlaceFeature" disabled="@(!Session.CanEditTiles)">ADD FEATURE TO WORLD</button>
+   @if(!Session.CanEditTiles){<p class="accessibility-note">Semantic world editing requires GameMaster worldbuilder authority.</p>}
+  </section>
+
+  <section id="commands" class="accessibility-panel accessibility-command-panel" aria-labelledby="commands-title">
+   <h2 id="commands-title">Command line</h2>
+   <p>Useful for speech recognition, switch access, braille keyboards, or anyone who prefers text commands.</p>
+   <form @onsubmit="RunCommand" @onsubmit:preventDefault="true">
+    <label for="accessibility-command">Command</label>
+    <input id="accessibility-command" autocomplete="off" spellcheck="false" @bind="_command" @bind:event="oninput" placeholder="Type help for commands" />
+    <button type="submit">RUN COMMAND</button>
+   </form>
+   <details>
+    <summary>Command reference</summary>
+    <ul>
+     <li><code>describe</code> — summarize the current world location.</li>
+     <li><code>where</code> — read the full cube, plane, tier, and layer address.</li>
+     <li><code>roll d20</code> — roll a die. Other die keys include d4, d6, d8, d10, d12.</li>
+     <li><code>chat hello there</code> — send chat text.</li>
+     <li><code>layer 1</code> or <code>layer -1</code> — move one layer.</li>
+     <li><code>tier 1</code> or <code>tier -1</code> — move one tier.</li>
+     <li><code>plane 1</code> or <code>plane -1</code> — move one plane when authenticated.</li>
+     <li><code>cube 0 0 0</code> — go to a cube when authenticated.</li>
+     <li><code>place 1 12 8</code> — place staged asset 1 at column 12, row 8.</li>
+     <li><code>move 1 13 8</code> — move piece 1 to column 13, row 8.</li>
+    </ul>
+   </details>
+  </section>
+ </section>
+
+ <WorldGate Open="@_worldGateOpen" OnClose="CloseWorldGate" OnContinue="CloseWorldGate" />
+</main>
+
+<style>
+ .accessibility-shell{box-sizing:border-box;height:100%;overflow:auto;background:#071015;color:#f4f1e8;font:500 16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;scroll-behavior:smooth}.accessibility-shell *{box-sizing:border-box}.accessibility-skip{position:absolute;left:12px;top:-80px;z-index:2147483000;padding:12px 16px;background:#fff;color:#000;font-weight:900}.accessibility-skip:focus{top:12px}.accessibility-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:24px;border-bottom:2px solid #d5b35d;background:#0b171e}.accessibility-header>div:first-child{max-width:900px}.accessibility-header p{margin:0 0 8px}.accessibility-header>div>p:first-child{color:#e1c573;font-size:12px;font-weight:900;letter-spacing:.13em}.accessibility-header h1{margin:0 0 8px;color:#fff3c6;font-size:clamp(28px,5vw,44px);line-height:1.1}.accessibility-intro{color:#d1dbe0;max-width:800px}.accessibility-header-actions{display:grid;gap:8px;min-width:min(100%,230px)}.accessibility-nav{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px;padding:10px 18px;border-bottom:1px solid #52656e;background:#071015f2}.accessibility-nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #607680;border-radius:7px;color:#e9f4f8;font-weight:900;text-decoration:none}.accessibility-status{min-height:50px;padding:12px 22px;border-bottom:1px solid #41535b;background:#101c22;color:#ffe7a1;font-weight:800}.accessibility-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;padding:18px}.accessibility-panel{min-width:0;padding:20px;border:1px solid #50646d;border-radius:12px;background:#0d181e}.accessibility-panel h2{margin:0 0 12px;color:#f3d987;font-size:22px}.accessibility-panel h3{margin:22px 0 10px;color:#c8e1ed;font-size:17px}.accessibility-panel p{margin:8px 0 14px}.accessibility-panel fieldset{margin:16px 0;padding:14px;border:1px solid #627983;border-radius:9px}.accessibility-panel legend{padding:0 7px;color:#dce9ee;font-weight:900}.accessibility-panel label{display:grid;gap:6px;margin:8px 0;color:#e5edf0;font-weight:800}.accessibility-panel input,.accessibility-panel textarea,.accessibility-panel select{width:100%;min-height:46px;padding:10px 12px;border:2px solid #607680;border-radius:7px;background:#03080b;color:#fff;font:inherit}.accessibility-panel textarea{resize:vertical}.accessibility-shell button{min-height:46px;padding:9px 14px;border:2px solid #b49344;border-radius:8px;background:#17252c;color:#fff1bd;font:900 14px/1.25 system-ui,-apple-system,sans-serif;letter-spacing:.025em}.accessibility-shell button:disabled{opacity:.45}.accessibility-shell a:focus-visible,.accessibility-shell button:focus-visible,.accessibility-shell input:focus-visible,.accessibility-shell textarea:focus-visible,.accessibility-shell select:focus-visible,.accessibility-shell summary:focus-visible{outline:4px solid #fff;outline-offset:3px}.accessibility-button-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.accessibility-coordinate-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}.accessibility-form-stack{display:grid;gap:4px}.accessibility-facts{display:grid;gap:8px;margin:12px 0}.accessibility-facts div{display:grid;grid-template-columns:minmax(100px,.7fr) minmax(0,2fr);gap:12px;padding:9px;border-bottom:1px solid #34464f}.accessibility-facts dt{font-weight:900;color:#bed9e5}.accessibility-facts dd{margin:0;overflow-wrap:anywhere}.accessibility-world-list{display:grid;gap:9px;padding-left:24px}.accessibility-world-list li{padding:10px;border-left:3px solid #806b3a;background:#091318}.accessibility-world-list li>*{display:block}.accessibility-world-list small{margin-top:5px;color:#b4c6ce}.accessibility-note{color:#b9c8ce;font-size:14px}.accessibility-chat-line{padding:12px;border-left:4px solid #7fb2ca;background:#071116}.accessibility-command-panel{grid-column:1/-1}.accessibility-command-panel code{padding:2px 5px;border-radius:4px;background:#020608;color:#fff2b6}.accessibility-command-panel details{margin-top:16px}.accessibility-command-panel summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:#d8e8ef;font-weight:900}.accessibility-command-panel li{margin:7px 0}.accessibility-shell strong{color:#fff3c6}
+ @@media(max-width:700px){.accessibility-header{display:grid;padding:18px}.accessibility-header-actions{width:100%}.accessibility-grid{grid-template-columns:1fr;padding:10px}.accessibility-panel{padding:15px}.accessibility-nav{position:static}.accessibility-facts div{grid-template-columns:1fr;gap:3px}}
+ @@media(prefers-reduced-motion:reduce){.accessibility-shell{scroll-behavior:auto}.accessibility-shell *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+ bool _worldGateOpen;
+ string _status="Accessibility Shell ready. Type help in Commands for text controls.";
+ string _command="";
+ string _stagedKey="";
+ int _selectedPieceIndex=-1;
+ int _placeColumn=1;
+ int _placeRow=1;
+ int _moveColumn=1;
+ int _moveRow=1;
+ int _cubeX;
+ int _cubeY;
+ int _cubeZ;
+ string _featureType="";
+ string _featureTerrain="";
+ string _featureDescription="";
+ double _featureElevationFeet;
+ int _featureColumn=1;
+ int _featureRow=1;
+
+ IReadOnlyList<AbmMapEntry> Descriptions=>Session.GetDescriptionOnlyMap();
+
+ protected override void OnInitialized()
+ {
+  _cubeX=Session.CubeX;_cubeY=Session.CubeY;_cubeZ=Session.CubeZ;
+  Session.Changed+=SessionChanged;
+ }
+
+ void SessionChanged()=>_ = InvokeAsync(StateHasChanged);
+ public void Dispose()=>Session.Changed-=SessionChanged;
+ int CellX(double x)=>Math.Clamp((int)Math.Floor(x*Math.Max(1,Session.ViewerGridColumns))+1,1,Math.Max(1,Session.ViewerGridColumns));
+ int CellY(double y)=>Math.Clamp((int)Math.Floor(y*Math.Max(1,Session.ViewerGridRows))+1,1,Math.Max(1,Session.ViewerGridRows));
+ string PieceName(PieceItem piece)=>string.IsNullOrWhiteSpace(piece.Label)?piece.Kind:piece.Label;
+ void Announce(string message){_status=message;}
+ void OpenWorldGate()=>_worldGateOpen=true;
+ void CloseWorldGate(){_worldGateOpen=false;Announce(Session.HasActiveWorld?$"{Session.WorldDisplayName} is loaded.":"World chooser closed.");}
+ async Task ReturnToLanding(){if(OnStartMenu.HasDelegate)await OnStartMenu.InvokeAsync();}
+
+ void MoveLayer(int delta){Session.MoveLayer(delta);Announce($"Moved to {Session.WorldCoordinateLabel}.");}
+ void MoveTier(int delta){Session.MoveTier(delta);Announce($"Moved to {Session.WorldCoordinateLabel}.");}
+ void MovePlane(int delta){if(!Session.IsLoggedIn){Announce("Changing planes requires an authenticated account.");return;}Session.MovePlane(delta);Announce($"Moved to {Session.WorldCoordinateLabel}.");}
+ void GoToCube(){if(!Session.IsLoggedIn){Announce("Changing cubes requires an authenticated account.");return;}Session.SetWorldCube(_cubeX,_cubeY,_cubeZ,Session.CubeRole);Announce($"Moved to {Session.WorldCoordinateLabel}.");}
+
+ void PlaceStaged()
+ {
+  if(string.IsNullOrWhiteSpace(_stagedKey)){Announce("Choose a staged asset first.");return;}
+  if(Session.PlaceAccessibleStaged(_stagedKey,_placeColumn,_placeRow,out var message))Announce(message);else Announce(message);
+ }
+
+ void MoveSelectedPiece()
+ {
+  if(Session.MoveAccessiblePiece(_selectedPieceIndex,_moveColumn,_moveRow,out var message))Announce(message);else Announce(message);
+ }
+
+ void SaveCharacter(){Session.Notify();Announce($"Character data saved for {(string.IsNullOrWhiteSpace(Session.CharacterName)?"unnamed character":Session.CharacterName)}.");}
+ void SendChat(){var text=Session.ChatDraft.Trim();if(text.Length==0){Announce("Chat message is empty.");return;}Session.SendChat();Announce($"Chat sent by {Session.DialogueSpeaker}: {Session.DialogueText}");}
+ async Task Roll(string key){await Session.RollAsync(key);var roll=Session.Rolls.LastOrDefault(x=>x.Key==key);Announce(roll is null?$"Finished rolling {key}.":$"{roll.Label} rolled {roll.Value}. Current total {Session.Total}.");}
+ void ClearRolls(){Session.ClearRolls();Announce("Rolls cleared.");}
+
+ void PlaceFeature()
+ {
+  if(string.IsNullOrWhiteSpace(_featureType)){Announce("Feature type is required.");return;}
+  var metadata=new AssetByMetadata(_featureType,WorldSession.FeetToMeters(_featureElevationFeet),_featureTerrain,Description:_featureDescription,Provenance:"HUMAN");
+  if(Session.PlaceAccessibleFeature(metadata,_featureColumn,_featureRow,out var message))
+  {
+   _featureType="";_featureTerrain="";_featureDescription="";_featureElevationFeet=0;
+  }
+  Announce(message);
+ }
+
+ async Task RunCommand()
+ {
+  var command=_command.Trim();
+  if(command.Length==0){Announce("Command is empty. Type help for available commands.");return;}
+  _command="";
+  var parts=command.Split(' ',StringSplitOptions.RemoveEmptyEntries);
+  var verb=parts[0].ToLowerInvariant();
+
+  if(verb=="help"){Announce("Commands: describe, where, roll die, chat message, layer number, tier number, plane number, cube x y z, place asset-number column row, move piece-number column row.");return;}
+  if(verb is "describe" or "world"){Announce(Session.AccessibilityWorldSummary());return;}
+  if(verb=="where"){Announce(Session.HasActiveWorld?Session.WorldCoordinateLabel:"No world is loaded.");return;}
+  if(verb=="roll"&&parts.Length>=2){await Roll(parts[1].ToLowerInvariant());return;}
+  if(verb=="chat"&&command.Length>4){Session.ChatDraft=command[4..].Trim();SendChat();return;}
+  if(verb=="layer"&&TryInt(parts,1,out var layerDelta)){MoveLayer(layerDelta);return;}
+  if(verb=="tier"&&TryInt(parts,1,out var tierDelta)){MoveTier(tierDelta);return;}
+  if(verb=="plane"&&TryInt(parts,1,out var planeDelta)){MovePlane(planeDelta);return;}
+  if(verb=="cube"&&TryInt(parts,1,out var cx)&&TryInt(parts,2,out var cy)&&TryInt(parts,3,out var cz)){_cubeX=cx;_cubeY=cy;_cubeZ=cz;GoToCube();return;}
+  if(verb=="place"&&TryInt(parts,1,out var assetNumber)&&TryInt(parts,2,out var pc)&&TryInt(parts,3,out var pr))
+  {
+   if(assetNumber<1||assetNumber>Session.StagedAssets.Count){Announce("That staged asset number is not available.");return;}
+   _stagedKey=Session.StagedAssets[assetNumber-1].Key;_placeColumn=pc;_placeRow=pr;PlaceStaged();return;
+  }
+  if(verb=="move"&&TryInt(parts,1,out var pieceNumber)&&TryInt(parts,2,out var mc)&&TryInt(parts,3,out var mr))
+  {
+   _selectedPieceIndex=pieceNumber-1;_moveColumn=mc;_moveRow=mr;MoveSelectedPiece();return;
+  }
+  Announce($"Command not understood: {command}. Type help for available commands.");
+ }
+
+ static bool TryInt(string[] parts,int index,out int value)
+ {
+  value=0;return index<parts.Length&&int.TryParse(parts[index],System.Globalization.NumberStyles.Integer,System.Globalization.CultureInfo.InvariantCulture,out value);
+ }
+}
