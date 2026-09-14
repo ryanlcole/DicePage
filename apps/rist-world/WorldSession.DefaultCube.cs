@@ -2,7 +2,7 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Canonical geometry is unitless. A world cube is a 30 x 30 addressable cell
+    // Canonical geometry is unitless. One viewer window is a 30 x 30 addressable-cell
     // surface; measurement systems describe those cells but never redefine them.
     public const int DefaultCubeWidthCells = 30;
     public const int DefaultCubeHeightCells = 30;
@@ -10,9 +10,8 @@ public sealed partial class WorldSession
     public const int DefaultCellWidthCells = 1;
     public const int DefaultCellHeightCells = 1;
 
-    // Ordinary authored worlds are limited to 300 x 300 addressable world cells
-    // (10 x 10 viewer cubes). Geonaph is the explicit exception and is unbounded;
-    // that capability is owned by WorldSession.WorldIdentity rather than the renderer.
+    // An authored world is 300 x 300 addressable world cells. A 30 x 30 viewer therefore
+    // moves across a 10 x 10 set of viewer-sized windows without changing world truth.
     public const int DefaultWorldWidthCells = 300;
     public const int DefaultWorldHeightCells = 300;
     public const int DefaultWorldCubesAcross = DefaultWorldWidthCells / DefaultCubeWidthCells;
@@ -32,8 +31,9 @@ public sealed partial class WorldSession
     public const int DefaultCellWidthMiles = DefaultCellWidthCells;
     public const int DefaultCellHeightMiles = DefaultCellHeightCells;
 
-    public const string DefaultTerrainTilesetName = "Ocean 071";
-    public const string DefaultTerrainTilesetSlug = "ocean-071";
+    // Worlds have no implicit terrain/background. Every visible terrain asset is authored.
+    public const string DefaultTerrainTilesetName = "";
+    public const string DefaultTerrainTilesetSlug = "";
 
     public int CubeWidthCells => DefaultCubeWidthCells;
     public int CubeHeightCells => DefaultCubeHeightCells;
