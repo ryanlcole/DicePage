@@ -55,8 +55,10 @@ public sealed partial class WorldSession
         GridCalibrationZoom = 1;
         ViewZoom = 1;
 
+        // Package assets remain available in the Library, but Geonaph is never
+        // auto-painted. The author builds every visible terrain/background manually.
         RegisterGeonaphPackageCatalog();
-        SeedGeonaphPackage();
+        ClearGeneratedGeonaphPackagePlacements();
 
         _originMapApplied = true;
         MapLocked = true;
@@ -80,41 +82,12 @@ public sealed partial class WorldSession
         }
     }
 
-    void SeedGeonaphPackage()
+    void ClearGeneratedGeonaphPackagePlacements()
     {
         PlacedTiles.RemoveAll(tile =>
-            tile.Id.StartsWith("pangea-sprite-geo-x00-y00-", StringComparison.OrdinalIgnoreCase));
-        if (_geonaphRuntimeCatalog is null) return;
-
-        foreach (var placement in _geonaphRuntimeCatalog.Placements)
-        {
-            if (PlacedTiles.Any(tile => string.Equals(tile.Id, placement.PlacementId, StringComparison.Ordinal)))
-                continue;
-
-            var asset = placement.Asset;
-            var footprint = Math.Clamp(placement.Footprint, 1, GridColumns);
-            PlacedTiles.Add(new TileItem(
-                placement.PlacementId,
-                asset.Name,
-                asset.Image,
-                Math.Clamp(placement.X / GridColumns, 0, 1),
-                Math.Clamp(placement.Y / GridRows, 0, 1),
-                SourceWidth: asset.SourceWidth,
-                SourceHeight: asset.SourceHeight,
-                PlacementZoom: 1.0 / footprint,
-                Locked: true,
-                CubeX: CubeX,
-                CubeY: CubeY,
-                CubeZ: CubeZ,
-                PlaneIndex: PlaneIndex,
-                TierIndex: asset.DefaultTierIndex,
-                LayerOffset: Math.Clamp(asset.DefaultLayerOffset, 0, LayersPerTier - 1),
-                PlacementTreatment: "normal",
-                AssetKind: asset.AssetKind,
-                AuthoredDepth: true,
-                FrameCount: Math.Max(1, asset.FrameCount),
-                FramesPerSecond: Math.Max(0, asset.FramesPerSecond)));
-        }
+            tile.Id.StartsWith("pangea-sprite-geo-x00-y00-", StringComparison.OrdinalIgnoreCase) ||
+            (_geonaphRuntimeCatalog?.Placements.Any(placement =>
+                string.Equals(tile.Id, placement.PlacementId, StringComparison.Ordinal)) ?? false));
     }
 }
 
