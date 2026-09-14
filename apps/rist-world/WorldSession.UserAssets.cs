@@ -141,10 +141,13 @@ public sealed partial class WorldSession
     {
         if (!IsLoggedIn) return;
         ShaepCodec.Validate(manifest);
+        // The existing authenticated upload authority accepts application/json.
+        // The .shaep extension remains the format authority; the AWS normalizer
+        // rewrites canonical manifests with the vendor media type after ingest.
         await auth.UploadTextAsync(
             ShaepCodec.ManifestObjectKey(manifest.ShaepId),
             ShaepCodec.Serialize(manifest),
-            ShaepFormat.ManifestMediaType);
+            "application/json");
     }
 
     public async Task<ShaepManifest?> LoadShaepManifestAsync(string shaepId)
