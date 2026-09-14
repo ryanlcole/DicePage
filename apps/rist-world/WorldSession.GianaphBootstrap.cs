@@ -82,9 +82,12 @@ public sealed partial class WorldSession
         }
     }
 
+    // Remove only terrain that came from the retired automatic Geonaph builders.
+    // Manually authored tiles are preserved.
     void ClearGeneratedGeonaphPackagePlacements()
     {
         PlacedTiles.RemoveAll(tile =>
+            tile.Name.StartsWith("Gianaph · State ", StringComparison.OrdinalIgnoreCase) ||
             tile.Id.StartsWith("pangea-sprite-geo-x00-y00-", StringComparison.OrdinalIgnoreCase) ||
             (_geonaphRuntimeCatalog?.Placements.Any(placement =>
                 string.Equals(tile.Id, placement.PlacementId, StringComparison.Ordinal)) ?? false));
