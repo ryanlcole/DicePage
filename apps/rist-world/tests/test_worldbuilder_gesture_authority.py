@@ -31,7 +31,7 @@ def test_navigation_is_state_authority_not_a_second_pointer_interpreter():
 
 def test_worldbuilder_writes_resolve_from_actual_transformed_stage():
     gestures = (WWWROOT / "worldbuilder-gesture-authority.js").read_text()
-    assert "stage().getBoundingClientRect()" in gestures
+    assert "const rect=world.getBoundingClientRect()" in gestures
     assert "api.worldPoint=" in gestures
     assert "api.dropPoint=" in gestures
     assert "api.tileDropPoint=" in gestures
