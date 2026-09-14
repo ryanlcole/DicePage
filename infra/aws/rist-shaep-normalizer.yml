@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RIST SHAEP hot preservation normalizer for private user media
+
+Parameters:
+  PrivateStorageBucketName:
+    Type: String
+    Description: Existing rist-discord-storage private user storage bucket
+
+Resources:
+  ShaepNormalizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: app.handler
+      CodeUri: shaep-normalizer/
+      Timeout: 120
+      MemorySize: 1536
+      EphemeralStorage:
+        Size: 1024
+      Environment:
+        Variables:
+          STORAGE_BUCKET: !Ref PrivateStorageBucketName
+          MAX_CANONICAL_PIXELS: '100000000'
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref PrivateStorageBucketName
+
+  ShaepNormalizerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ShaepNormalizerFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
+
+  NotificationRegistrarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: notification.handler
+      CodeUri: shaep-normalizer/
+      Timeout: 30
+      MemorySize: 128
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetBucketNotification
+                - s3:PutBucketNotification
+              Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
+
+  ShaepBucketNotification:
+    Type: Custom::ShaepBucketNotification
+    DependsOn:
+      - ShaepNormalizerInvokePermission
+    Properties:
+      ServiceToken: !GetAtt NotificationRegistrarFunction.Arn
+      BucketName: !Ref PrivateStorageBucketName
+      FunctionArn: !GetAtt ShaepNormalizerFunction.Arn
+
+Outputs:
+  ShaepNormalizerFunctionName:
+    Value: !Ref ShaepNormalizerFunction
+  ShaepNormalizerFunctionArn:
+    Value: !GetAtt ShaepNormalizerFunction.Arn
+  PrivateStorageBucketName:
+    Value: !Ref PrivateStorageBucketName
