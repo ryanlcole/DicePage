@@ -59,7 +59,8 @@ public partial class WorldBuilderStudio
             TierIndex = Session.TierIndex, LayerOffset = Session.LayerOffset,
             RotationQuarterTurns = 0, PlacementTreatment = NormalizeTreatment(treatment),
             AssetKind = tile.AssetKind, AuthoredDepth = tile.AuthoredDepth,
-            FrameCount = Math.Max(1, tile.FrameCount), FramesPerSecond = Math.Max(0, tile.FramesPerSecond)
+            FrameCount = Math.Max(1, tile.FrameCount), FramesPerSecond = Math.Max(0, tile.FramesPerSecond),
+            ShaepId = Session.ResolveShaepId(tile)
         };
     }
 
