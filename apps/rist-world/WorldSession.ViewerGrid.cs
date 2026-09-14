@@ -2,8 +2,8 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    public int ViewerGridColumns { get; private set; } = DefaultWorldWidthCells;
-    public int ViewerGridRows { get; private set; } = DefaultWorldHeightCells;
+    public int ViewerGridColumns { get; private set; } = DefaultCubeWidthCells;
+    public int ViewerGridRows { get; private set; } = DefaultCubeHeightCells;
     public int ViewerZStep { get; private set; } = 3;
 
     // These are representation-scale multipliers, not world truth. Canonical geometry
@@ -23,13 +23,13 @@ public sealed partial class WorldSession
 
     public void SetViewerGridColumns(int value)
     {
-        ViewerGridColumns = Math.Clamp(value, 1, DefaultWorldWidthCells);
+        ViewerGridColumns = Math.Clamp(value, 1, DefaultCubeWidthCells);
         Notify();
     }
 
     public void SetViewerGridRows(int value)
     {
-        ViewerGridRows = Math.Clamp(value, 1, DefaultWorldHeightCells);
+        ViewerGridRows = Math.Clamp(value, 1, DefaultCubeHeightCells);
         Notify();
     }
 
