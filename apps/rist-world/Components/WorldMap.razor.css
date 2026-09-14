@@ -58,6 +58,11 @@
     max-height: none !important;
     transform-origin: center center !important;
     overflow: hidden !important;
+    background: transparent !important;
+    background-image: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .world-stage > .base,
@@ -71,10 +76,11 @@
     min-height: 100% !important;
 }
 
-/* A new map is intentionally empty. Terrain appears only when authored or loaded. */
+/* Legacy base nodes may still exist in older component markup. They are inert: a
+   world has no implicit terrain/background; visible terrain must be authored. */
 .base.ocean-world {
-    z-index: 0 !important;
-    background: #071015 !important;
+    display: none !important;
+    background: none !important;
     background-image: none !important;
 }
 
