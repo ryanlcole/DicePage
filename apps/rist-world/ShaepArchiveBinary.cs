@@ -74,7 +74,7 @@ public static class ShaepArchiveBinary
             throw new InvalidDataException($"SHAEP archive index exceeds {MaxIndexBytes} bytes.");
 
         Span<byte> prefix = stackalloc byte[PrefixBytes];
-        Magic.CopyTo(prefix);
+        Magic.AsSpan().CopyTo(prefix);
         BinaryPrimitives.WriteInt32LittleEndian(prefix[8..12], BinaryVersion);
         BinaryPrimitives.WriteInt32LittleEndian(prefix[12..16], indexBytes.Length);
         destination.Write(prefix);
@@ -118,6 +118,7 @@ public static class ShaepArchiveBinary
 
         source.Position = 0;
         var index = ReadIndex(source);
+        var payloadBase = source.Position;
         var authoritative = index.Chunks.FirstOrDefault(x => string.Equals(x.Id, entry.Id, StringComparison.Ordinal))
             ?? throw new InvalidDataException($"SHAEP chunk '{entry.Id}' is not present in the archive index.");
         if (authoritative.Offset != entry.Offset || authoritative.Length != entry.Length)
@@ -125,7 +126,6 @@ public static class ShaepArchiveBinary
         if (authoritative.Length > int.MaxValue)
             throw new InvalidDataException("SHAEP chunk is too large for an in-memory read.");
 
-        var payloadBase = checked((long)PrefixBytes + JsonSerializer.SerializeToUtf8Bytes(index, JsonOptions).LongLength);
         source.Position = checked(payloadBase + authoritative.Offset);
         var bytes = new byte[(int)authoritative.Length];
         ReadExactly(source, bytes);
@@ -177,7 +177,7 @@ public static class ShaepArchiveBinary
                 throw new InvalidDataException("SHAEP archive chunk ids must be present and unique.");
             if (chunk.Offset != expectedOffset || chunk.Length <= 0)
                 throw new InvalidDataException("SHAEP archive chunk offsets must be contiguous and lengths positive.");
-            if (chunk.Sha256.Length != 64 || chunk.Sha256.Any(c => !Uri.IsHexDigit(c)))
+            if (string.IsNullOrWhiteSpace(chunk.Sha256) || chunk.Sha256.Length != 64 || chunk.Sha256.Any(c => !Uri.IsHexDigit(c)))
                 throw new InvalidDataException("SHAEP archive chunk SHA-256 is invalid.");
             expectedOffset = checked(expectedOffset + chunk.Length);
         }
