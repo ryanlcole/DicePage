@@ -1,4 +1,4 @@
-import './worldbuilder-projection.js?v=20260915-tier-top-perspective-1';
+import './worldbuilder-projection.js?v=20260915-structural-tier-top-1';
 import './worldbuilder-context-keyboard.js?v=20260915-tier-top-keyboards-1';
 import './rist-card-tiff.js';
 
