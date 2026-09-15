@@ -2,52 +2,28 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    public IReadOnlyList<WorldBuilderUnderlayTile> GetWorldBuilderUnderlayTiles()
+    /// <summary>
+    /// Describes the canonical Z address of every World Builder drawable that is
+    /// already present in the composite page. The browser uses this metadata only
+    /// for presentation: lower layers stay below the construction grid, the
+    /// current layer sits above it, and higher layers are hidden until the viewer
+    /// reaches their Z address. World truth remains in the normal tile/piece lists.
+    /// </summary>
+    public WorldBuilderLayerFrame GetWorldBuilderLayerFrame()
     {
-        var currentSceneZ = SceneZ;
-        return _terrainByAddress
-            .Where(entry =>
-                entry.Key.CubeX == CubeX &&
-                entry.Key.CubeY == CubeY &&
-                entry.Key.CubeZ == CubeZ &&
-                entry.Key.PlaneIndex == PlaneIndex &&
-                checked((entry.Key.TierIndex * LayersPerTier) + entry.Key.LayerOffset) < currentSceneZ)
-            .OrderBy(entry => checked((entry.Key.TierIndex * LayersPerTier) + entry.Key.LayerOffset))
-            .SelectMany(entry =>
-            {
-                var sceneZ = checked((entry.Key.TierIndex * LayersPerTier) + entry.Key.LayerOffset);
-                return entry.Value.Select(tile => new WorldBuilderUnderlayTile(
-                    tile.Image,
-                    tile.X,
-                    tile.Y,
-                    tile.SourceWidth,
-                    tile.SourceHeight,
-                    tile.CropX,
-                    tile.CropY,
-                    tile.CropWidth,
-                    tile.CropHeight,
-                    tile.PlacementZoom,
-                    tile.RotationQuarterTurns,
-                    entry.Key.TierIndex,
-                    entry.Key.LayerOffset,
-                    sceneZ));
-            })
+        var tiles = PlacedTiles
+            .Select((tile, index) => new WorldBuilderLayerItem(index, SceneZOf(tile)))
             .ToList();
+        var pieces = Pieces
+            .Select((piece, index) => new WorldBuilderLayerItem(index, SceneZOf(piece)))
+            .ToList();
+
+        return new WorldBuilderLayerFrame(tiles, pieces);
     }
 }
 
-public sealed record WorldBuilderUnderlayTile(
-    string Image,
-    double X,
-    double Y,
-    int SourceWidth,
-    int SourceHeight,
-    int CropX,
-    int CropY,
-    int CropWidth,
-    int CropHeight,
-    double PlacementZoom,
-    int RotationQuarterTurns,
-    int TierIndex,
-    int LayerOffset,
-    int SceneZ);
+public sealed record WorldBuilderLayerFrame(
+    IReadOnlyList<WorldBuilderLayerItem> Tiles,
+    IReadOnlyList<WorldBuilderLayerItem> Pieces);
+
+public sealed record WorldBuilderLayerItem(int Index, int SceneZ);
