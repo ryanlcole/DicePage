@@ -6,6 +6,10 @@ Parameters:
   PrivateStorageBucketName:
     Type: String
     Description: Existing rist-discord-storage private user storage bucket
+  NotificationId:
+    Type: String
+    Default: shaep-normalizer-manifest-created
+    Description: Stable S3 notification identity owned by the SHAEP normalizer stack
 
 Resources:
   ShaepNormalizerFunction:
@@ -35,6 +39,196 @@ Resources:
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
 
+  ShaepNotificationBinderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 90
+      MemorySize: 256
+      InlineCode: |
+        import json
+        import time
+        import urllib.request
+
+        import boto3
+
+        s3 = boto3.client('s3')
+        TERMINAL_STATUS = 'preserved-source'
+        PROBE_SHAEP_ID = 'shaep-00000000000000000000000000000001'
+        PROBE_PREFIX = 'users/_system_shaep_probe/'
+        PROBE_SOURCE = f'uploads/shaep/{PROBE_SHAEP_ID}/source/probe.bin'
+        PROBE_MANIFEST = f'uploads/shaep/{PROBE_SHAEP_ID}.shaep'
+
+        def respond(event, context, status, data, physical_id, reason=None):
+            body = json.dumps({
+                'Status': status,
+                'Reason': reason or f'See CloudWatch Log Stream: {context.log_stream_name}',
+                'PhysicalResourceId': physical_id,
+                'StackId': event['StackId'],
+                'RequestId': event['RequestId'],
+                'LogicalResourceId': event['LogicalResourceId'],
+                'NoEcho': False,
+                'Data': data,
+            }).encode('utf-8')
+            request = urllib.request.Request(
+                event['ResponseURL'],
+                data=body,
+                method='PUT',
+                headers={'content-type': '', 'content-length': str(len(body))},
+            )
+            with urllib.request.urlopen(request, timeout=15) as response:
+                response.read()
+
+        def current_config(bucket):
+            config = s3.get_bucket_notification_configuration(Bucket=bucket)
+            config.pop('ResponseMetadata', None)
+            return config
+
+        def write_config(bucket, config):
+            last_error = None
+            for attempt in range(6):
+                try:
+                    s3.put_bucket_notification_configuration(
+                        Bucket=bucket,
+                        NotificationConfiguration=config,
+                    )
+                    return
+                except Exception as exc:
+                    last_error = exc
+                    if attempt == 5:
+                        raise
+                    time.sleep(5)
+            raise last_error
+
+        def bind(bucket, notification_id, function_arn):
+            config = current_config(bucket)
+            lambdas = [
+                entry for entry in config.get('LambdaFunctionConfigurations', [])
+                if entry.get('Id') != notification_id
+            ]
+            lambdas.append({
+                'Id': notification_id,
+                'LambdaFunctionArn': function_arn,
+                'Events': ['s3:ObjectCreated:*'],
+                'Filter': {
+                    'Key': {
+                        'FilterRules': [
+                            {'Name': 'suffix', 'Value': '.shaep'},
+                        ]
+                    }
+                },
+            })
+            config['LambdaFunctionConfigurations'] = lambdas
+            write_config(bucket, config)
+
+        def unbind(bucket, notification_id):
+            config = current_config(bucket)
+            lambdas = [
+                entry for entry in config.get('LambdaFunctionConfigurations', [])
+                if entry.get('Id') != notification_id
+            ]
+            if lambdas:
+                config['LambdaFunctionConfigurations'] = lambdas
+            else:
+                config.pop('LambdaFunctionConfigurations', None)
+            write_config(bucket, config)
+
+        def verify_binding(bucket, notification_id, function_arn):
+            config = current_config(bucket)
+            for entry in config.get('LambdaFunctionConfigurations', []):
+                rules = entry.get('Filter', {}).get('Key', {}).get('FilterRules', [])
+                suffix = any(rule.get('Name') == 'suffix' and rule.get('Value') == '.shaep' for rule in rules)
+                if entry.get('Id') == notification_id and entry.get('LambdaFunctionArn') == function_arn and suffix:
+                    return True
+            return False
+
+        def verify_event_delivery(bucket):
+            source_key = PROBE_PREFIX + PROBE_SOURCE
+            manifest_key = PROBE_PREFIX + PROBE_MANIFEST
+            s3.put_object(
+                Bucket=bucket,
+                Key=source_key,
+                Body=b'SHAEP hot-normalization probe',
+                ContentType='application/octet-stream',
+            )
+            manifest = {
+                'Format': 'SHAEP',
+                'Version': 1,
+                'ShaepId': PROBE_SHAEP_ID,
+                'StorageState': 'hot',
+                'IngestStatus': 'pending',
+                'Source': {
+                    'ObjectKey': PROBE_SOURCE,
+                    'MediaType': 'application/octet-stream',
+                    'OriginalFileName': 'probe.bin',
+                },
+                'Canonical': None,
+                'Temporal': None,
+            }
+            s3.put_object(
+                Bucket=bucket,
+                Key=manifest_key,
+                Body=json.dumps(manifest, separators=(',', ':')).encode('utf-8'),
+                ContentType='application/vnd.shaelvien.shaep+json',
+                CacheControl='no-store',
+            )
+            for _ in range(30):
+                time.sleep(2)
+                obj = s3.get_object(Bucket=bucket, Key=manifest_key)
+                observed = json.loads(obj['Body'].read())
+                if observed.get('IngestStatus') == TERMINAL_STATUS:
+                    canonical = observed.get('Canonical') or {}
+                    if canonical.get('Sha256') and canonical.get('Bytes'):
+                        return True
+            return False
+
+        def handler(event, context):
+            props = event.get('ResourceProperties') or {}
+            bucket = str(props.get('BucketName') or '')
+            notification_id = str(props.get('NotificationId') or '')
+            function_arn = str(props.get('FunctionArn') or '')
+            physical_id = f'{bucket}:{notification_id}'
+            try:
+                if event.get('RequestType') == 'Delete':
+                    unbind(bucket, notification_id)
+                    respond(event, context, 'SUCCESS', {'Bound': 'false', 'Verified': 'false'}, physical_id)
+                    return
+                bind(bucket, notification_id, function_arn)
+                bound = verify_binding(bucket, notification_id, function_arn)
+                if not bound:
+                    raise RuntimeError('SHAEP S3 notification was not observable after binding')
+                verified = verify_event_delivery(bucket)
+                if not verified:
+                    raise RuntimeError('SHAEP S3 event did not complete the hot-normalization probe')
+                respond(event, context, 'SUCCESS', {'Bound': 'true', 'Verified': 'true'}, physical_id)
+            except Exception as exc:
+                respond(event, context, 'FAILED', {'Bound': 'false', 'Verified': 'false'}, physical_id, str(exc))
+
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetBucketNotification
+                - s3:PutBucketNotification
+              Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}/users/_system_shaep_probe/*
+
+  ShaepManifestNotification:
+    Type: Custom::ShaepManifestNotification
+    DependsOn:
+      - ShaepNormalizerInvokePermission
+    Properties:
+      ServiceToken: !GetAtt ShaepNotificationBinderFunction.Arn
+      BucketName: !Ref PrivateStorageBucketName
+      NotificationId: !Ref NotificationId
+      FunctionArn: !GetAtt ShaepNormalizerFunction.Arn
+
 Outputs:
   ShaepNormalizerFunctionName:
     Value: !Ref ShaepNormalizerFunction
@@ -42,3 +236,7 @@ Outputs:
     Value: !GetAtt ShaepNormalizerFunction.Arn
   PrivateStorageBucketName:
     Value: !Ref PrivateStorageBucketName
+  ShaepNotificationBindingBound:
+    Value: !GetAtt ShaepManifestNotification.Bound
+  ShaepNotificationProbeVerified:
+    Value: !GetAtt ShaepManifestNotification.Verified
