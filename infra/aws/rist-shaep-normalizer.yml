@@ -10,6 +10,9 @@ Parameters:
     Type: String
     Default: shaep-normalizer-manifest-created
     Description: Stable S3 notification identity owned by the SHAEP normalizer stack
+  CloudFormationExecutionRoleArn:
+    Type: String
+    Description: Exact CloudFormation execution role allowed to invoke the stack-scoped notification binder
 
 Resources:
   ShaepNormalizerFunction:
@@ -219,10 +222,18 @@ Resources:
                 - s3:PutObject
               Resource: !Sub arn:${AWS::Partition}:s3:::${PrivateStorageBucketName}/users/_system_shaep_probe/*
 
+  ShaepNotificationBinderInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ShaepNotificationBinderFunction
+      Principal: !Ref CloudFormationExecutionRoleArn
+
   ShaepManifestNotification:
     Type: Custom::ShaepManifestNotification
     DependsOn:
       - ShaepNormalizerInvokePermission
+      - ShaepNotificationBinderInvokePermission
     Properties:
       ServiceToken: !GetAtt ShaepNotificationBinderFunction.Arn
       BucketName: !Ref PrivateStorageBucketName
