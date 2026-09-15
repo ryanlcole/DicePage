@@ -1,9 +1,12 @@
 (()=>{
  'use strict';
  const ZOOM_KEY='rist.world.viewerZoom';
+ const LOCAL_GRID_CELLS=30;
+ const MIN_VISIBLE_CELLS=10;
+ const MAX_VISIBLE_CELLS=16;
  const DEPTH_STEP=.05;
- const MIN_ZOOM=.35;
- const MAX_ZOOM=8;
+ const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS;
+ const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS;
  const touchPointers=new Map();
  let gesture=null;
  let observer=null;
@@ -20,8 +23,8 @@
  const locked=()=>localStorage.getItem('rist.world.viewerLocked')!=='false';
  const readNumber=(text,fallback=0)=>{const match=String(text??'').match(/-?\d+(?:\.\d+)?/);return match?Number(match[0]):fallback;};
  const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
- const readZoom=()=>clamp(Number(localStorage.getItem(ZOOM_KEY))||1,MIN_ZOOM,MAX_ZOOM);
- const writeZoom=value=>{const next=clamp(Number(value)||1,MIN_ZOOM,MAX_ZOOM);localStorage.setItem(ZOOM_KEY,String(next));applyZoom(next);return next;};
+ const readZoom=()=>clamp(Number(localStorage.getItem(ZOOM_KEY))||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM);
+ const writeZoom=value=>{const next=clamp(Number(value)||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM);localStorage.setItem(ZOOM_KEY,String(next));applyZoom(next);return next;};
  const readDepth=()=>{
   const layer=readNumber(command('Layers')?.querySelector('small')?.textContent,0);
   const tier=readNumber(command('Tiers')?.querySelector('small')?.textContent,0);
@@ -74,8 +77,7 @@
    .worldbuilder-studio .wb-optic-label{position:relative;z-index:1;color:#7ea9c2;font:900 6px/1 system-ui;letter-spacing:.04em}
    .worldbuilder-studio .wb-optic-value{position:relative;z-index:1;max-width:27px;color:#f3dfaa;font:900 9px/1 system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
    .worldbuilder-studio .wb-optic.locked .wb-optic-knob{filter:saturate(.45) brightness(.72);cursor:not-allowed}
-   html body .worldbuilder-studio .studio-viewer-canvas .map .world-stage,
-   html body .worldbuilder-studio.wb-z-unlocked .studio-viewer-canvas .map .world-stage{transform:translate(var(--wb-pan-x,0),var(--wb-pan-y,0)) scale(var(--wb-view-zoom,1)) scale(var(--wb-z-scale,1))!important;transform-origin:center center!important}
+   html body .worldbuilder-studio .studio-viewer-canvas .map .world-stage{transform:translate(var(--wb-pan-x,0),var(--wb-pan-y,0)) scale(var(--wb-view-zoom,1))!important;transform-origin:center center!important}
    @media(max-width:760px){
     .worldbuilder-studio{grid-template-rows:36px 58px minmax(0,1fr) 58px!important}
     .worldbuilder-studio .studio-header{grid-template-columns:32px minmax(0,1fr) 32px!important}
@@ -91,7 +93,7 @@
 
  function applyZoom(value=readZoom()){
   const world=stage();
-  if(world)world.style.setProperty('--wb-view-zoom',String(clamp(Number(value)||1,MIN_ZOOM,MAX_ZOOM)));
+  if(world)world.style.setProperty('--wb-view-zoom',String(clamp(Number(value)||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM)));
  }
 
  const dialTurns={
