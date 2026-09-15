@@ -1,39 +1,61 @@
 (()=>{
  'use strict';
- const GRID_CELLS=30;
- const PAN_THRESHOLD=6;
+
  const pointers=new Map();
- let pinch=null,pan=null,suppressUntilClear=false,syntheticCancel=false;
- const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const canvas=()=>studio()?.querySelector('.studio-viewer-canvas');
- const stage=()=>studio()?.querySelector('.studio-viewer-canvas .world-stage');
- const map=()=>studio()?.querySelector('.studio-viewer-canvas .map');
  const authority=()=>window.ristViewerAuthority;
- const navigation=()=>window.ristViewerNavigation;
  const locked=()=>authority()?.get?.().locked??(localStorage.getItem('rist.world.viewerLocked')!=='false');
- const readZoom=()=>authority()?.getZoom?.()??(Number(localStorage.getItem('rist.world.viewerZoom'))||2.5);
+ const readZoom=()=>authority()?.getZoom?.()??Number(document.querySelector('.studio-viewer-canvas .map')?.dataset?.zoom||1);
  const targetBlocked=target=>!!target?.closest?.('.studio-library-shade,.studio-mini-panel,.studio-load-panel,.wb-modal,.locked-tile-menu,.recursive-region-actions,.region-player-picker,.description-mode-toggle,.desktop-map-zoom,.wb-viewer-optics');
  const assetTarget=target=>!!target?.closest?.('.world-stage .tile-cell,.world-stage .piece,.world-stage .rolled-die,.world-stage button');
  const insideViewer=target=>{const view=canvas();return !!view&&!!target&&view.contains(target)&&!targetBlocked(target)};
- const distance=()=>{const pts=[...pointers.values()];if(pts.length<2)return 0;return Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y)};
- const center=()=>{const pts=[...pointers.values()];if(pts.length<2)return null;return{x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2}};
- function installStyle(){if(document.getElementById('rist-worldbuilder-gesture-authority-style'))return;const style=document.createElement('style');style.id='rist-worldbuilder-gesture-authority-style';style.textContent=`.worldbuilder-studio.wb-gesture-panning .studio-viewer-canvas{cursor:grabbing!important}`;document.head.appendChild(style)}
- function publishZoom(zoom){return authority()?.setZoom?.(zoom,{mode:'manual',source:'gesture-authority'})?.zoom??readZoom()}
- function stagePoint(clientX,clientY){const world=stage();if(!world)return null;const rect=world.getBoundingClientRect();if(rect.width<1||rect.height<1)return null;return{x:(clientX-rect.left)/rect.width,y:(clientY-rect.top)/rect.height,rect}}
- function applyAnchor(anchor,clientX,clientY){const nav=navigation(),world=stage();if(!anchor||!nav?.get||!nav?.setPosition||!world)return;const rect=world.getBoundingClientRect();if(rect.width<1||rect.height<1)return;const current=nav.get()||{x:0,y:0};const projectedX=rect.left+(anchor.x*rect.width),projectedY=rect.top+(anchor.y*rect.height);const cellX=rect.width/GRID_CELLS,cellY=rect.height/GRID_CELLS;const dx=(clientX-projectedX)/Math.max(cellX,1),dy=(clientY-projectedY)/Math.max(cellY,1);if(Math.abs(dx)>=.5||Math.abs(dy)>=.5)nav.setPosition((Number(current.x)||0)+Math.round(dx),(Number(current.y)||0)+Math.round(dy),true,'pinch-anchor')}
- function zoomAt(clientX,clientY,targetZoom){const anchor=stagePoint(clientX,clientY);const next=publishZoom(targetZoom);if(anchor)applyAnchor(anchor,clientX,clientY);return next}
- function cancelDownstream(pointer){if(!pointer?.target)return;try{syntheticCancel=true;pointer.target.dispatchEvent(new PointerEvent('pointercancel',{pointerId:pointer.id,pointerType:pointer.pointerType||'touch',isPrimary:true,clientX:pointer.x,clientY:pointer.y,bubbles:true,cancelable:true}))}catch{}finally{syntheticCancel=false}}
- function beginPinch(event){const pts=[...pointers.values()];if(pts.length!==2)return;for(const p of pts)cancelDownstream(p);const c=center();pinch={distance:Math.max(distance(),1),zoom:readZoom(),anchor:c?stagePoint(c.x,c.y):null};pan=null;suppressUntilClear=true;studio()?.classList.add('wb-gesture-pinching');event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}
- function onPointerDown(event){if(event.pointerType!=='touch'&&event.pointerType!=='pen'&&event.pointerType!=='mouse')return;if(!insideViewer(event.target))return;if(event.pointerType==='mouse'&&event.button!==0)return;const point={id:event.pointerId,pointerType:event.pointerType,target:event.target,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,asset:assetTarget(event.target)};pointers.set(event.pointerId,point);if(event.pointerType==='touch'&&pointers.size===2){beginPinch(event);return}if(pointers.size===1&&!point.asset&&!locked()){const state=navigation()?.get?.()||{x:0,y:0};pan={id:event.pointerId,startX:event.clientX,startY:event.clientY,viewX:Number(state.x)||0,viewY:Number(state.y)||0,active:false}}}
- function onPointerMove(event){const point=pointers.get(event.pointerId);if(!point)return;point.x=event.clientX;point.y=event.clientY;if(pinch){if(pointers.size>=2){const ratio=Math.max(distance(),1)/pinch.distance,c=center();if(c){publishZoom(pinch.zoom*ratio);applyAnchor(pinch.anchor,c.x,c.y)}}event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();return}if(suppressUntilClear){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();return}if(!pan||pan.id!==event.pointerId||point.asset||locked())return;const dx=event.clientX-pan.startX,dy=event.clientY-pan.startY;if(!pan.active&&Math.hypot(dx,dy)<PAN_THRESHOLD)return;if(!pan.active){pan.active=true;cancelDownstream(point);studio()?.classList.add('wb-gesture-panning')}const rect=stage()?.getBoundingClientRect();if(!rect)return;const cellX=rect.width/GRID_CELLS,cellY=rect.height/GRID_CELLS;navigation()?.setPosition?.(pan.viewX+Math.round(dx/Math.max(cellX,1)),pan.viewY+Math.round(dy/Math.max(cellY,1)),true,'gesture-pan');event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}
- function finishPointer(event){const handled=!!pinch||!!suppressUntilClear||!!pan?.active;pointers.delete(event.pointerId);if(pointers.size===0){pinch=null;pan=null;suppressUntilClear=false;studio()?.classList.remove('wb-gesture-pinching','wb-gesture-panning')}else if(pinch&&pointers.size<2){suppressUntilClear=true;pinch=null;studio()?.classList.remove('wb-gesture-pinching')}if(handled){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}}
- const onPointerUp=event=>{if(pointers.has(event.pointerId))finishPointer(event)};
- const onPointerCancel=event=>{if(!syntheticCancel&&pointers.has(event.pointerId))finishPointer(event)};
- function onWheel(event){if(!insideViewer(event.target))return;zoomAt(event.clientX,event.clientY,readZoom()*Math.exp(-Number(event.deltaY||0)*.0015));event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}
- function onKeyDown(event){const view=canvas();if(!view||!view.contains(event.target))return;const key=(event.key||'').toLowerCase();if(key==='+'||key==='='){const r=view.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,readZoom()*1.2)}else if(key==='-'||key==='_'){const r=view.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,readZoom()/1.2)}else if(key==='0')navigation()?.setPosition?.(0,0,true,'keyboard-reset');else if(!locked()&&(key==='arrowleft'||key==='a'))navigation()?.nudge?.('x',-1);else if(!locked()&&(key==='arrowright'||key==='d'))navigation()?.nudge?.('x',1);else if(!locked()&&(key==='arrowup'||key==='w'))navigation()?.nudge?.('y',-1);else if(!locked()&&(key==='arrowdown'||key==='s'))navigation()?.nudge?.('y',1);else return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation()}
- function patchSpatialReader(){const api=window.ristWorld;if(!api||api.__worldBuilderSpatialReaderV1)return;api.__worldBuilderSpatialReaderV1=true;const original={worldPoint:api.worldPoint,dropPoint:api.dropPoint,tileDropPoint:api.tileDropPoint,railPinDrop:api.railPinDrop};const activeFor=el=>{const root=studio();return !!root&&(!el||root.contains(el))&&!!stage()};const normalized=(x,y)=>{const p=stagePoint(x,y);return p?[p.x,p.y]:null};api.worldPoint=(el,x,y,panX,panY,zoom)=>activeFor(el)?(normalized(x,y)??[0,0]):original.worldPoint(el,x,y,panX,panY,zoom);api.dropPoint=(el,x,y,panX,panY,zoom)=>{if(!activeFor(el))return original.dropPoint(el,x,y,panX,panY,zoom);const mr=(el||map())?.getBoundingClientRect();if(!mr||x<mr.left||x>mr.right||y<mr.top||y>mr.bottom)return[0,0,0];const p=normalized(x,y);return p?[1,p[0],p[1]]:[0,0,0]};api.tileDropPoint=(el,x,y,panX,panY,zoom,columns,rows)=>{if(!activeFor(el))return original.tileDropPoint(el,x,y,panX,panY,zoom,columns,rows);const mr=(el||map())?.getBoundingClientRect();if(!mr||x<mr.left||x>mr.right||y<mr.top||y>mr.bottom)return[0,0,0];const p=normalized(x,y);if(!p)return[0,0,0];const cols=Math.max(1,Number(columns)||GRID_CELLS),rws=Math.max(1,Number(rows)||GRID_CELLS);return[1,(Math.floor(clamp(p[0],0,.999999)*cols)+.5)/cols,(Math.floor(clamp(p[1],0,.999999)*rws)+.5)/rws]};api.railPinDrop=(x,y)=>{if(!studio())return original.railPinDrop(x,y);const el=map(),mr=el?.getBoundingClientRect();if(!mr||x<mr.left||x>mr.right||y<mr.top||y>mr.bottom)return[0,0,0];const p=normalized(x,y);return p?[1,p[0],p[1]]:[0,0,0]}}
- function install(){installStyle();patchSpatialReader();window.addEventListener('pointerdown',onPointerDown,{capture:true,passive:false});window.addEventListener('pointermove',onPointerMove,{capture:true,passive:false});window.addEventListener('pointerup',onPointerUp,{capture:true,passive:false});window.addEventListener('pointercancel',onPointerCancel,{capture:true,passive:false});window.addEventListener('wheel',onWheel,{capture:true,passive:false});window.addEventListener('keydown',onKeyDown,{capture:true})}
- window.ristWorldBuilderGestures={ownsViewerGestures:true,getZoom:readZoom,zoomAt,setZoom:value=>publishZoom(value),state:()=>({locked:locked(),zoom:readZoom(),pointerCount:pointers.size,pinching:!!pinch,panning:!!pan?.active})};
+
+ function onPointerDown(event){
+  if(!insideViewer(event.target))return;
+  if(event.pointerType==='mouse'&&event.button!==0)return;
+  pointers.set(event.pointerId,{asset:assetTarget(event.target)});
+ }
+
+ function onPointerMove(event){
+  const pointer=pointers.get(event.pointerId);
+  if(!pointer||!locked()||pointer.asset||pointers.size>=2)return;
+  // Viewer lock gates only single-pointer camera pan. The event is stopped before
+  // WorldMap sees movement, while taps, wheel zoom and two-finger pinch remain native.
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+ }
+
+ function finishPointer(event){pointers.delete(event.pointerId)}
+
+ function onKeyDown(event){
+  if(!locked())return;
+  const view=canvas();
+  if(!view||!view.contains(event.target))return;
+  const key=(event.key||'').toLowerCase();
+  if(!['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s'].includes(key))return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+ }
+
+ function setZoom(value){return authority()?.setZoom?.(value,{mode:'manual',source:'gesture-adapter'})}
+ function zoomAt(_clientX,_clientY,value){return setZoom(value)}
+ function install(){
+  window.addEventListener('pointerdown',onPointerDown,{capture:true,passive:true});
+  window.addEventListener('pointermove',onPointerMove,{capture:true,passive:false});
+  window.addEventListener('pointerup',finishPointer,{capture:true,passive:true});
+  window.addEventListener('pointercancel',finishPointer,{capture:true,passive:true});
+  window.addEventListener('keydown',onKeyDown,{capture:true});
+ }
+
+ window.ristWorldBuilderGestures={
+  ownsViewerGestures:false,
+  getZoom:readZoom,
+  zoomAt,
+  setZoom,
+  state:()=>({locked:locked(),zoom:readZoom(),pointerCount:pointers.size})
+ };
  install();
 })();
