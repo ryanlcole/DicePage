@@ -16,8 +16,8 @@
  window.ristCameraWindow={
   minZoom:MIN_ZOOM,maxZoom:MAX_ZOOM,
   getZoom:()=>authority()?.getZoom?.()??MIN_ZOOM,
-  setZoom:value=>authority()?.setZoom?.(value,{mode:'manual',source:'camera-window-control'})?.zoom??MIN_ZOOM,
-  resetAuto:()=>authority()?.resetAutoZoom?.({source:'camera-window-reset'}),
+  setZoom:value=>authority()?.setZoom?.(value,{mode:'manual',source:'camera-window-control'})??Promise.resolve(null),
+  resetAuto:()=>authority()?.resetAutoZoom?.({source:'camera-window-reset'})??Promise.resolve(null),
   sync:schedule,
   modeKey:MODE_KEY,
   targetCellPx:TARGET_CELL_PX,
