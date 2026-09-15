@@ -24,10 +24,6 @@ function ensureStyle(){
  style=document.createElement('style');
  style.id='rist-worldbuilder-view-fix';
  style.textContent=`
-  .worldbuilder-studio.wb-z-unlocked .studio-viewer-canvas .world-stage{
-   transform:translate(var(--wb-pan-x,0px),var(--wb-pan-y,0px)) scale(var(--wb-z-scale,1))!important;
-   transform-origin:center center!important;
-  }
   .worldbuilder-studio.wb-z-unlocked .tile-edit-overlay{display:none!important}
   .worldbuilder-studio .studio-viewer-canvas .world-stage .tile-cell{
    pointer-events:none!important;
