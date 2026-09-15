@@ -22,7 +22,7 @@
  function readNumber(key,fallback){try{const n=Number(localStorage.getItem(key));return Number.isFinite(n)?n:fallback}catch{return fallback}}
  function readBool(key,fallback){try{const raw=localStorage.getItem(key);return raw===null?fallback:raw!=='false'&&raw!=='off'}catch{return fallback}}
  function write(key,value){try{localStorage.setItem(key,String(value))}catch{}}
- function desiredVisibleCells(){const rect=(grid()||canvas())?.getBoundingClientRect();if(!rect||rect.width<1||rect.height<1)return 12;return clamp(Math.round(Math.min(rect.width,rect.height)/TARGET_CELL_PX),MIN_VISIBLE_CELLS,MAX_VISIBLE_CELLS)}
+ function desiredVisibleCells(){const rect=(canvas()||grid())?.getBoundingClientRect();if(!rect||rect.width<1||rect.height<1)return 12;return clamp(Math.round(Math.min(rect.width,rect.height)/TARGET_CELL_PX),MIN_VISIBLE_CELLS,MAX_VISIBLE_CELLS)}
  function zoomForCells(cells){return clamp(GRID_CELLS/clamp(Number(cells)||12,MIN_VISIBLE_CELLS,MAX_VISIBLE_CELLS),MIN_ZOOM,MAX_ZOOM)}
  function visibleCells(){return GRID_CELLS/state.zoom}
  function maxPanOffset(){return Math.max(0,Math.floor((GRID_CELLS-visibleCells())/2))}
@@ -38,7 +38,7 @@
   state.x=clampAxis(state.x);state.y=clampAxis(state.y);
  }
  function persistCamera(){write(X_KEY,state.x);write(Y_KEY,state.y);write(ZOOM_KEY,state.zoom);write(MODE_KEY,state.mode);write(LOCK_KEY,state.locked);write(GRID_KEY,state.grid)}
- function cellSize(){const rect=(grid()||canvas())?.getBoundingClientRect();return rect&&rect.width>0&&rect.height>0?[rect.width/GRID_CELLS,rect.height/GRID_CELLS]:[1,1]}
+ function cellSize(){const rect=(canvas()||grid())?.getBoundingClientRect();return rect&&rect.width>0&&rect.height>0?[rect.width/GRID_CELLS,rect.height/GRID_CELLS]:[1,1]}
  function installStyle(){if(document.getElementById('rist-viewer-authority-style'))return;const s=document.createElement('style');s.id='rist-viewer-authority-style';s.textContent=`
  html body .worldbuilder-studio.viewer-grid-disabled .studio-viewer-canvas .world-stage>.grid,
  html body .worldbuilder-studio.viewer-grid-disabled .studio-viewer-grid{display:none!important;visibility:hidden!important;background:none!important;background-image:none!important}
