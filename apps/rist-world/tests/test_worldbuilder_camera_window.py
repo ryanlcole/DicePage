@@ -20,9 +20,31 @@ def test_camera_window_is_responsive_and_never_squeezes_entire_surface_onto_phon
     assert "const MIN_VISIBLE_CELLS=10" in camera
     assert "const MAX_VISIBLE_CELLS=16" in camera
     assert "const TARGET_CELL_PX=30" in camera
+    assert "const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS" in camera
+    assert "const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS" in camera
     assert "orientationchange" in camera
     assert "resize" in camera
-    assert "cameraWindowV1" in camera
+    assert "cameraWindowV2" in camera
+
+
+def test_optics_share_camera_window_zoom_bounds():
+    optics = (WWWROOT / "worldbuilder-optics.js").read_text()
+    assert "const LOCAL_GRID_CELLS=30" in optics
+    assert "const MIN_VISIBLE_CELLS=10" in optics
+    assert "const MAX_VISIBLE_CELLS=16" in optics
+    assert "const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS" in optics
+    assert "const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS" in optics
+    assert "const MIN_ZOOM=.35" not in optics
+    assert "const MAX_ZOOM=8" not in optics
+
+
+def test_lock_and_z_depth_cannot_change_stage_grid_scale():
+    optics = (WWWROOT / "worldbuilder-optics.js").read_text()
+    view_fix = (WWWROOT / "worldbuilder-view-fix.js").read_text()
+    assert "scale(var(--wb-view-zoom,1))!important" in optics
+    assert "scale(var(--wb-z-scale" not in optics
+    assert "wb-z-unlocked .studio-viewer-canvas .world-stage" not in view_fix
+    assert "scale(var(--wb-z-scale" not in view_fix
 
 
 def test_camera_clamps_navigation_to_visible_world_edges():
@@ -32,7 +54,7 @@ def test_camera_clamps_navigation_to_visible_world_edges():
     assert "requestAnimationFrame(clampPan)" in camera
 
 
-def test_unified_gesture_authority_loads_before_legacy_camera_helpers():
+def test_unified_gesture_authority_loads_before_camera_helpers():
     index = (WWWROOT / "index.html").read_text()
     gestures = 'worldbuilder-gesture-authority.js?v=20260914-unified-gesture-1'
     navigation = 'worldbuilder-navigation-authority.js?v=20260914-unified-gesture-1'
