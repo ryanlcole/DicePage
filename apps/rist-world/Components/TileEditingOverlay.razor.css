@@ -1,4 +1,7 @@
 .tile-edit-overlay {
+    --tile-edit-control-size: 18px;
+    --tile-edit-control-outset: -23px;
+    --tile-edit-lock-size: 18px;
     position: fixed;
     left: var(--tile-left);
     top: var(--tile-top);
@@ -19,17 +22,18 @@
 .tile-edit-arrow,
 .tile-edit-lock {
     position: absolute;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
-    padding: 3px;
+    box-sizing: border-box;
+    width: var(--tile-edit-control-size);
+    height: var(--tile-edit-control-size);
+    min-width: var(--tile-edit-control-size);
+    min-height: var(--tile-edit-control-size);
+    padding: 1px;
     display: grid;
     place-items: center;
     border: 1px solid #d7be80;
     border-radius: 50%;
     background: rgba(5,9,12,.94);
-    box-shadow: 0 2px 8px rgba(0,0,0,.55);
+    box-shadow: 0 1px 5px rgba(0,0,0,.55);
     pointer-events: auto;
     touch-action: manipulation;
     cursor: pointer;
@@ -44,27 +48,30 @@
     user-select: none;
 }
 
-/* Tile editing is a map overlay. All controls stay inside the selected tile so
-   they remain over the world surface instead of spilling into the asset/footer
-   sliders when a tile is close to a map edge. */
+/*
+   Editing controls are screen-space UI, not part of the tile representation.
+   Keep the outline on the exact selected tile rect, but place the eight nudge
+   arrows just OUTSIDE that rect. Their pixel size never follows tile footprint,
+   PlacementZoom, camera zoom, tier/layer depth, or the transformed world stage.
+*/
 .tile-edit-lock {
-    right: 4px;
-    top: 4px;
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    min-height: 24px;
+    right: 3px;
+    top: 3px;
+    width: var(--tile-edit-lock-size);
+    height: var(--tile-edit-lock-size);
+    min-width: var(--tile-edit-lock-size);
+    min-height: var(--tile-edit-lock-size);
     z-index: 4;
 }
 
-.tile-edit-arrow.north-west { left: 4px; top: 4px; }
-.tile-edit-arrow.north      { left: 50%; top: 4px; transform: translateX(-50%); }
-.tile-edit-arrow.north-east { right: 36px; top: 4px; }
-.tile-edit-arrow.east       { right: 4px; top: 50%; transform: translateY(-50%); }
-.tile-edit-arrow.south-east { right: 4px; bottom: 4px; }
-.tile-edit-arrow.south      { left: 50%; bottom: 4px; transform: translateX(-50%); }
-.tile-edit-arrow.south-west { left: 4px; bottom: 4px; }
-.tile-edit-arrow.west       { left: 4px; top: 50%; transform: translateY(-50%); }
+.tile-edit-arrow.north-west { left: var(--tile-edit-control-outset); top: var(--tile-edit-control-outset); }
+.tile-edit-arrow.north      { left: 50%; top: var(--tile-edit-control-outset); transform: translateX(-50%); }
+.tile-edit-arrow.north-east { right: var(--tile-edit-control-outset); top: var(--tile-edit-control-outset); }
+.tile-edit-arrow.east       { right: var(--tile-edit-control-outset); top: 50%; transform: translateY(-50%); }
+.tile-edit-arrow.south-east { right: var(--tile-edit-control-outset); bottom: var(--tile-edit-control-outset); }
+.tile-edit-arrow.south      { left: 50%; bottom: var(--tile-edit-control-outset); transform: translateX(-50%); }
+.tile-edit-arrow.south-west { left: var(--tile-edit-control-outset); bottom: var(--tile-edit-control-outset); }
+.tile-edit-arrow.west       { left: var(--tile-edit-control-outset); top: 50%; transform: translateY(-50%); }
 
 /* page-arrow.png is the established character-sheet arrow art. The same image
    is rotated to provide all eight one-pixel nudge directions. */
@@ -78,19 +85,9 @@
 .tile-edit-arrow.north-east img { transform: rotate(315deg); }
 
 @media (pointer: coarse) {
-    .tile-edit-arrow {
-        width: 34px;
-        height: 34px;
-        min-width: 34px;
-        min-height: 34px;
+    .tile-edit-overlay {
+        --tile-edit-control-size: 20px;
+        --tile-edit-control-outset: -25px;
+        --tile-edit-lock-size: 20px;
     }
-
-    .tile-edit-lock {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        min-height: 30px;
-    }
-
-    .tile-edit-arrow.north-east { right: 42px; }
 }
