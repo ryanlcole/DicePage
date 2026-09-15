@@ -30,11 +30,38 @@ html body:has(.worldbuilder-studio){overflow:hidden!important;overscroll-behavio
 .worldbuilder-studio .wb-keyboard-command{min-width:82px;height:48px;padding:4px 10px;display:grid;place-items:center;align-content:center;gap:3px;font:900 10px/1 system-ui}
 .worldbuilder-studio .wb-keyboard-command strong{font:900 11px/1 system-ui;color:#f2dfac;white-space:nowrap}
 .worldbuilder-studio .wb-keyboard-command small{max-width:100%;font:800 7px/1 system-ui;color:#8fa6b2;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.worldbuilder-studio .wb-keyboard-command.active{border-color:#d0aa56;background:#201b10}.worldbuilder-studio .wb-keyboard-command.danger{border-color:#80504b}.worldbuilder-studio .wb-keyboard-command:disabled{opacity:.36}
+.worldbuilder-studio .wb-keyboard-command.active{border-color:#d0aa56;background:#201b10}
+.worldbuilder-studio .wb-keyboard-command.danger{border-color:#80504b}
+.worldbuilder-studio .wb-keyboard-command:disabled{opacity:.36}
+.worldbuilder-studio .wb-keyboard-mode:focus-visible,.worldbuilder-studio .wb-keyboard-command:focus-visible,.worldbuilder-studio .wb-keyboard-collapse:focus-visible{outline:3px solid #f5dc84!important;outline-offset:1px!important}
 .worldbuilder-studio.wb-keyboard-collapsed .wb-keyboard-mode-row,.worldbuilder-studio.wb-keyboard-collapsed .wb-keyboard-command-row{display:none!important}
 .worldbuilder-studio.wb-keyboard-collapsed .wb-context-keyboard{padding-top:5px}
 .worldbuilder-studio .studio-library-shade{bottom:var(--wb-keyboard-h)!important}
 .worldbuilder-studio .asset-preview-stage{bottom:calc(var(--wb-keyboard-h) + 8px)!important}
+
+/* Accessibility is part of the input surface, not a separate editor. */
+.worldbuilder-studio.wb-access-large{--wb-keyboard-h:158px}
+.worldbuilder-studio.wb-access-large.wb-keyboard-collapsed{--wb-keyboard-h:42px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-head{height:30px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-mode-row{height:48px;gap:7px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-command-row{height:72px;gap:7px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-mode{min-width:94px;height:44px;padding:0 14px;font-size:10px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-command{min-width:110px;height:62px;padding:7px 14px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-command strong{font-size:13px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-command small{font-size:8px}
+.worldbuilder-studio.wb-access-large .wb-keyboard-collapse{width:36px;height:28px}
+
+.worldbuilder-studio.wb-access-contrast .wb-context-keyboard{background:#000!important;border-top:2px solid #fff!important;box-shadow:0 -8px 0 #000!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:#fff!important}
+.worldbuilder-studio.wb-access-contrast .wb-keyboard-badge,.worldbuilder-studio.wb-access-contrast .wb-keyboard-mode,.worldbuilder-studio.wb-access-contrast .wb-keyboard-command,.worldbuilder-studio.wb-access-contrast .wb-keyboard-collapse{background:#000!important;border-color:#fff!important;color:#fff!important}
+.worldbuilder-studio.wb-access-contrast .wb-keyboard-mode.active,.worldbuilder-studio.wb-access-contrast .wb-keyboard-command.active{background:#fff!important;color:#000!important;box-shadow:none!important}
+.worldbuilder-studio.wb-access-contrast .wb-keyboard-mode.active strong,.worldbuilder-studio.wb-access-contrast .wb-keyboard-command.active strong,.worldbuilder-studio.wb-access-contrast .wb-keyboard-command.active small{color:#000!important}
+.worldbuilder-studio.wb-access-contrast .wb-keyboard-command strong,.worldbuilder-studio.wb-access-contrast .wb-keyboard-command small,.worldbuilder-studio.wb-access-contrast .wb-keyboard-status{color:#fff!important}
+.worldbuilder-studio.wb-access-contrast .wb-keyboard-command:disabled{opacity:.55}
+.worldbuilder-studio.wb-access-contrast .studio-viewer-grid{border-color:#fff!important;background-image:linear-gradient(to right,rgba(255,255,255,.72) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.72) 1px,transparent 1px)!important}
+.worldbuilder-studio.wb-access-contrast>.studio-header{border-color:#fff!important;background:#000!important}
+
+.worldbuilder-studio.wb-access-reduced *,.worldbuilder-studio.wb-access-reduced *::before,.worldbuilder-studio.wb-access-reduced *::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important}
+
 @media(max-width:760px){
  :root{--wb-keyboard-h:124px}.worldbuilder-studio{--wb-keyboard-h:124px}.worldbuilder-studio.wb-keyboard-collapsed{--wb-keyboard-h:38px}
  .worldbuilder-studio>.studio-header{top:6px!important;left:6px!important;right:6px!important;height:34px!important;min-height:34px!important}
@@ -43,9 +70,12 @@ html body:has(.worldbuilder-studio){overflow:hidden!important;overscroll-behavio
  .worldbuilder-studio .wb-context-keyboard{padding-left:6px;padding-right:6px}
  .worldbuilder-studio .wb-keyboard-mode{min-width:62px;padding:0 8px;font-size:8px}.worldbuilder-studio .wb-keyboard-command{min-width:78px;padding:4px 8px}
  .worldbuilder-studio .studio-edit-mode,.worldbuilder-studio .studio-publish-banner{top:46px!important}
+ .worldbuilder-studio.wb-access-large{--wb-keyboard-h:156px}.worldbuilder-studio.wb-access-large.wb-keyboard-collapsed{--wb-keyboard-h:42px}
+ .worldbuilder-studio.wb-access-large .wb-keyboard-mode{min-width:88px;height:42px;font-size:10px}.worldbuilder-studio.wb-access-large .wb-keyboard-command{min-width:104px;height:60px}
 }
 @media(orientation:landscape) and (max-height:520px){
  .worldbuilder-studio{--wb-keyboard-h:102px}.worldbuilder-studio.wb-keyboard-collapsed{--wb-keyboard-h:34px}
  .worldbuilder-studio .wb-context-keyboard{height:var(--wb-keyboard-h)}.worldbuilder-studio .wb-keyboard-head{height:21px}.worldbuilder-studio .wb-keyboard-mode-row{height:31px}.worldbuilder-studio .wb-keyboard-command-row{height:43px}.worldbuilder-studio .wb-keyboard-mode{height:28px}.worldbuilder-studio .wb-keyboard-command{height:39px}
+ .worldbuilder-studio.wb-access-large{--wb-keyboard-h:128px}.worldbuilder-studio.wb-access-large.wb-keyboard-collapsed{--wb-keyboard-h:38px}.worldbuilder-studio.wb-access-large .wb-keyboard-head{height:24px}.worldbuilder-studio.wb-access-large .wb-keyboard-mode-row{height:39px}.worldbuilder-studio.wb-access-large .wb-keyboard-command-row{height:57px}.worldbuilder-studio.wb-access-large .wb-keyboard-mode{height:36px}.worldbuilder-studio.wb-access-large .wb-keyboard-command{height:52px}
 }
 @media(prefers-reduced-motion:reduce){.worldbuilder-studio .wb-context-keyboard *{scroll-behavior:auto!important;transition:none!important}}
