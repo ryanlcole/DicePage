@@ -8,7 +8,7 @@
  const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS;
  const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS;
  const ZOOM_KEY='rist.world.viewerZoom';
- const MODE_KEY='rist.world.viewerZoom.cameraWindowV1';
+ const MODE_KEY='rist.world.viewerZoom.cameraWindowV2';
 
  let observer=null;
  let raf=0;
@@ -146,9 +146,9 @@
   const root=studio();
   if(!root){setTimeout(initialize,100);return;}
 
-  /* This version marker deliberately migrates the old full-surface default. A
-     stale saved zoom of 1 was the regression that squeezed the construction
-     surface into the phone and made authored cells effectively unreadable. */
+  /* V2 migrates every pre-single-grid camera state. In particular, an old
+     optics pinch could persist zoom values below the camera-window minimum,
+     compressing the 30-cell construction grid into a dense micro-grid. */
   if(localStorage.getItem(MODE_KEY)!=='auto'&&localStorage.getItem(MODE_KEY)!=='manual'){
    localStorage.setItem(MODE_KEY,'auto');
   }
@@ -168,6 +168,15 @@
   window.addEventListener('pointerup',onPointerEnd,{capture:true,passive:true});
   window.addEventListener('pointercancel',onPointerEnd,{capture:true,passive:true});
  }
+
+ window.ristCameraWindow={
+  minZoom:MIN_ZOOM,
+  maxZoom:MAX_ZOOM,
+  getZoom:cameraZoom,
+  setZoom(value){markManual();return applyZoomValue(value);},
+  resetAuto:applyAutoZoom,
+  sync:schedule
+ };
 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});
  else initialize();
