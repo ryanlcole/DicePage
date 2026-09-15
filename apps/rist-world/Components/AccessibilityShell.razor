@@ -296,9 +296,10 @@
   if(Session.PlaceAccessibleStaged(_stagedKey,_placeColumn,_placeRow,out var message))Announce(message);else Announce(message);
  }
 
- void MoveSelectedPiece()
+ async Task MoveSelectedPiece()
  {
-  if(Session.MoveAccessiblePiece(_selectedPieceIndex,_moveColumn,_moveRow,out var message))Announce(message);else Announce(message);
+  var result=await Session.MoveAccessiblePieceAsync(_selectedPieceIndex,_moveColumn,_moveRow);
+  Announce(result.Message);
  }
 
  void SaveCharacter(){Session.Notify();Announce($"Character data saved for {(string.IsNullOrWhiteSpace(Session.CharacterName)?"unnamed character":Session.CharacterName)}.");}
@@ -341,7 +342,7 @@
   }
   if(verb=="move"&&TryInt(parts,1,out var pieceNumber)&&TryInt(parts,2,out var mc)&&TryInt(parts,3,out var mr))
   {
-   _selectedPieceIndex=pieceNumber-1;_moveColumn=mc;_moveRow=mr;MoveSelectedPiece();return;
+   _selectedPieceIndex=pieceNumber-1;_moveColumn=mc;_moveRow=mr;await MoveSelectedPiece();return;
   }
   Announce($"Command not understood: {command}. Type help for available commands.");
  }
