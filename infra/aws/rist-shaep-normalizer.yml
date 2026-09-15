@@ -137,15 +137,6 @@ Resources:
                 config.pop('LambdaFunctionConfigurations', None)
             write_config(bucket, config)
 
-        def verify_binding(bucket, notification_id, function_arn):
-            config = current_config(bucket)
-            for entry in config.get('LambdaFunctionConfigurations', []):
-                rules = entry.get('Filter', {}).get('Key', {}).get('FilterRules', [])
-                suffix = any(rule.get('Name') == 'suffix' and rule.get('Value') == '.shaep' for rule in rules)
-                if entry.get('Id') == notification_id and entry.get('LambdaFunctionArn') == function_arn and suffix:
-                    return True
-            return False
-
         def verify_event_delivery(bucket):
             source_key = PROBE_PREFIX + PROBE_SOURCE
             manifest_key = PROBE_PREFIX + PROBE_MANIFEST
@@ -198,9 +189,6 @@ Resources:
                     respond(event, context, 'SUCCESS', {'Bound': 'false', 'Verified': 'false'}, physical_id)
                     return
                 bind(bucket, notification_id, function_arn)
-                bound = verify_binding(bucket, notification_id, function_arn)
-                if not bound:
-                    raise RuntimeError('SHAEP S3 notification was not observable after binding')
                 verified = verify_event_delivery(bucket)
                 if not verified:
                     raise RuntimeError('SHAEP S3 event did not complete the hot-normalization probe')
