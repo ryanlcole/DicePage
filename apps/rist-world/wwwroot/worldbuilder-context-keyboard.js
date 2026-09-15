@@ -8,7 +8,7 @@ const ACCESS_MOTION_KEY='rist.worldbuilder.access.reducedMotion.v1';
 const MODES=['pixels','tiles','sprites','target','navigate','layers','tiers','parallax','access','file'];
 let activeRoot=null,keyboard=null,statusNode=null,modeRow=null,commandRow=null,rootObserver=null,refreshFrame=0,lastSelectedCount=0;
 
-function ensureStyle(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./css/worldbuilder-viewer-keyboard.css?v=20260915-tier-top-keyboards-1';document.head.appendChild(link)}
+function ensureStyle(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./css/worldbuilder-viewer-keyboard.css?v=20260915-tier-top-keyboards-2';document.head.appendChild(link)}
 function read(key,fallback){try{return localStorage.getItem(key)??fallback}catch{return fallback}}
 function write(key,value){try{localStorage.setItem(key,String(value))}catch{}}
 function studio(){return document.querySelector('.worldbuilder-studio')}
@@ -31,7 +31,7 @@ function tileSize(){return`${tileFootprint()}²`}
 function selectionCount(){const text=(commandButton('remove')?.querySelector('small')?.textContent||'0').trim(),n=parseInt(text,10);return Number.isFinite(n)?n:0}
 function currentTierIndex(){const m=(readSmall('Tiers')||'').match(/-?\d+/);return m?Number(m[0]):0}
 function currentLayerIndex(){const m=(readSmall('Layers')||'').match(/-?\d+/);return m?Number(m[0]):0}
-function currentTopLayer(){const state=projectionState(),value=state?.tierTops?.[String(currentTierIndex())]??state?.tierTops?.[currentTierIndex()];return Number.isFinite(Number(value))?Number(value):null}
+function currentTopLayer(){const state=projectionState(),structural=Number(state?.tierTopLayer);if(Number.isFinite(structural))return structural;const value=state?.tierTops?.[String(currentTierIndex())]??state?.tierTops?.[currentTierIndex()];return Number.isFinite(Number(value))?Number(value):null}
 function lockLabel(){const b=findStrong('Unlock')||findStrong('Lock')||findStrong('Z-Lock');return(b?.querySelector('strong')?.textContent||'Lock').trim()}
 function toggleLock(){if(clickStrong('Unlock')||clickStrong('Lock')||clickStrong('Z-Lock'))return;try{window.ristViewerAuthority?.toggleLocked?.({source:'keyboard'})}catch{}scheduleRefresh()}
 function toggleGrid(){try{window.ristViewerAuthority?.toggleGrid?.({source:'keyboard'})}catch{}scheduleRefresh()}
@@ -47,12 +47,14 @@ function setPixelFootprint(){const b=tileButton();if(!b||b.disabled)return;let t
 function save(){clickStrong('Save')}
 function load(){clickStrong('Load')}
 function publish(){clickStrong('Publish')}
+function descriptionOnly(){return activeRoot?.querySelector('.description-mode-toggle')?.getAttribute('aria-pressed')==='true'}
+function toggleDescription(){const button=activeRoot?.querySelector('.description-mode-toggle');if(button&&!button.disabled)button.click();scheduleRefresh()}
 
 function panelFor(kind){const needle=kind==='layer'?'Layer ':'Tier ';return[...(activeRoot?.querySelectorAll('.studio-mini-panel')||[])].find(p=>p.textContent?.includes(needle))||null}
 function ensurePanel(kind){const panel=panelFor(kind);if(panel)return panel;clickStrong(kind==='layer'?'Layers':'Tiers');return null}
 function stepDepth(kind,direction){if(!activeRoot)return;ensurePanel(kind);let attempts=0;const run=()=>{const panel=panelFor(kind),text=kind==='layer'?(direction<0?'Layer Down':'Layer Up'):(direction<0?'Tier Down':'Tier Up'),button=[...(panel?.querySelectorAll('button')||[])].find(b=>b.textContent?.trim()===text);if(button){if(!button.disabled)button.click();scheduleRefresh();return}if(attempts++<4)setTimeout(run,20)};setTimeout(run,0)}
 
-function togglePerspective(){if(accessState().reduced){write(ACCESS_MOTION_KEY,false);applyAccessState()}if(clickRuntime('parallax'))return;try{const p=parallaxState();if(!p.enabled)window.ristParallax?.setEnabled?.(true);window.ristParallax?.setActive?.(!p.requested)}catch{}scheduleRefresh()}
+function togglePerspective(){if(accessState().reduced)return;if(clickRuntime('parallax'))return;try{const p=parallaxState();if(!p.enabled)window.ristParallax?.setEnabled?.(true);window.ristParallax?.setActive?.(!p.requested)}catch{}scheduleRefresh()}
 function adjustTilt(delta){const p=parallaxState();try{window.ristParallax?.setTiltStrength?.(Math.max(0,Math.min(1,p.strength+delta)))}catch{}scheduleRefresh()}
 function resetTilt(){try{window.ristParallax?.resetTilt?.()}catch{}scheduleRefresh()}
 function requestMotion(){try{window.ristMotionPermission?.request?.()}catch{}scheduleRefresh()}
@@ -69,7 +71,7 @@ function toggleReducedMotion(){const s=accessState(),next=!s.reduced;write(ACCES
 function descriptor(label,sub,action,{active=false,disabled=false,danger=false}={}){return{label,sub,action,active,disabled,danger}}
 function commandsFor(mode){
  const view=viewerState(),play=playbackState(),par=parallaxState(),selected=selectionCount(),locked=!!view.locked,access=accessState(),top=currentTopLayer(),layer=currentLayerIndex();
- const topState=top===null?'No Top':layer===top?'Top Layer':`Top L${top}`;
+ const topState=top===null?'Top Unknown':layer===top?'Top Layer':`Top L${top}`;
  switch(mode){
   case 'pixels':return[
    descriptor('1²','Smallest Cell',setPixelFootprint,{active:tileFootprint()===1}),descriptor('Grid',view.grid===false?'Off':'On',toggleGrid,{active:view.grid!==false}),descriptor('Zoom −',`${Math.round(view.visibleCells||12)} Cells`,()=>zoomBy(.9)),descriptor('Zoom +',`${Math.round(view.visibleCells||12)} Cells`,()=>zoomBy(1.1)),descriptor('Center','Viewer',centerView),descriptor('Undo','Last Action',()=>clickCommand('undo'),{disabled:!!commandButton('undo')?.disabled})
@@ -78,7 +80,7 @@ function commandsFor(mode){
    descriptor('Library','Tile Assets',()=>openLibrary(false)),descriptor(tileSize(),'Tile Size',cycleTileSize),descriptor('Quick','Asset Strip',toggleQuick,{active:activeRoot?.dataset.wbQuickHidden!=='true'}),descriptor('Target',`${selected} Selected`,()=>setMode('target'),{disabled:selected<1}),descriptor('Undo','Last Action',()=>clickCommand('undo'),{disabled:!!commandButton('undo')?.disabled}),descriptor('Grid',view.grid===false?'Off':'On',toggleGrid,{active:view.grid!==false})
   ];
   case 'sprites':return[
-   descriptor('Sprite Library','Animated Assets',()=>openLibrary(true)),descriptor('Play / Pause',play.state||'playing',togglePlayback,{active:play.state==='playing'}),descriptor('Stop','Sprites',stopPlayback),descriptor('FPS',String(play.fps||12),cycleFps),descriptor('Perspective',par.active?'Tilt On':'Tilt Off',togglePerspective,{active:par.active}),descriptor(tileSize(),'Tile Size',cycleTileSize),descriptor('Target',`${selected} Selected`,()=>setMode('target'),{disabled:selected<1})
+   descriptor('Sprite Library','Animated Assets',()=>openLibrary(true)),descriptor('Play / Pause',play.state||'playing',togglePlayback,{active:play.state==='playing'}),descriptor('Stop','Sprites',stopPlayback),descriptor('FPS',String(play.fps||12),cycleFps),descriptor('Perspective',access.reduced?'Motion Reduced':par.active?'Tilt On':'Tilt Off',togglePerspective,{active:par.active,disabled:access.reduced}),descriptor(tileSize(),'Tile Size',cycleTileSize),descriptor('Target',`${selected} Selected`,()=>setMode('target'),{disabled:selected<1})
   ];
   case 'target':return[
    descriptor('Rotate','90°',()=>clickCommand('rotate'),{disabled:selected<1}),descriptor('Resize',`To ${tileSize()}`,()=>clickCommand('resize'),{disabled:selected<1}),descriptor('Tile Size',tileSize(),cycleTileSize,{disabled:selected<1}),descriptor('Layer','Depth Tools',()=>setMode('layers'),{disabled:selected<1}),descriptor('Tier','Tier Tools',()=>setMode('tiers'),{disabled:selected<1}),descriptor('Undo','Last Action',()=>clickCommand('undo'),{disabled:!!commandButton('undo')?.disabled}),descriptor('Remove',`${selected} Selected`,()=>clickCommand('remove'),{disabled:selected<1,danger:true})
@@ -93,10 +95,10 @@ function commandsFor(mode){
    descriptor('Tier −',readSmall('Tiers')||'Depth',()=>stepDepth('tier',-1),{disabled:locked}),descriptor('Tier +',readSmall('Tiers')||'Depth',()=>stepDepth('tier',1),{disabled:locked}),descriptor('Top Surface',topState,()=>setMode('parallax'),{disabled:top===null}),descriptor('Layer −',readSmall('Layers')||'Depth',()=>stepDepth('layer',-1),{disabled:locked}),descriptor('Layer +',readSmall('Layers')||'Depth',()=>stepDepth('layer',1),{disabled:locked}),descriptor(lockLabel(),locked?'Viewer Locked':'Viewer Unlocked',toggleLock,{active:locked})
   ];
   case 'parallax':return[
-   descriptor('Perspective',par.active?'Tier-Top Tilt On':'Tier-Top Tilt Off',togglePerspective,{active:par.active}),descriptor('Tilt −',`${Math.round(par.strength*100)}%`,()=>adjustTilt(-.1),{disabled:!par.active}),descriptor('Tilt +',`${Math.round(par.strength*100)}%`,()=>adjustTilt(.1),{disabled:!par.active}),descriptor('Reset Tilt','Viewer Only',resetTilt),descriptor('Surface',topState,()=>setMode('layers')),descriptor('Motion','Device / Pointer',requestMotion,{disabled:access.reduced}),descriptor('Reduce Motion',access.reduced?'On':'Off',toggleReducedMotion,{active:access.reduced})
+   descriptor('Perspective',access.reduced?'Motion Reduced':par.active?'Tier-Top Tilt On':'Tier-Top Tilt Off',togglePerspective,{active:par.active,disabled:access.reduced}),descriptor('Tilt −',`${Math.round(par.strength*100)}%`,()=>adjustTilt(-.1),{disabled:!par.active||access.reduced}),descriptor('Tilt +',`${Math.round(par.strength*100)}%`,()=>adjustTilt(.1),{disabled:!par.active||access.reduced}),descriptor('Reset Tilt','Viewer Only',resetTilt,{disabled:access.reduced}),descriptor('Surface',topState,()=>setMode('layers')),descriptor('Motion','Device / Pointer',requestMotion,{disabled:access.reduced}),descriptor('Reduce Motion',access.reduced?'On':'Off',toggleReducedMotion,{active:access.reduced})
   ];
   case 'access':return[
-   descriptor('Large Keys',access.large?'On':'Off',toggleLargeTargets,{active:access.large}),descriptor('High Contrast',access.contrast?'On':'Off',toggleHighContrast,{active:access.contrast}),descriptor('Reduce Motion',access.reduced?'On':'Off',toggleReducedMotion,{active:access.reduced}),descriptor('Navigate','Accessible View',()=>setMode('navigate')),descriptor('Grid',view.grid===false?'Off':'On',toggleGrid,{active:view.grid!==false}),descriptor('Center','Viewer',centerView),descriptor('Auto View','Fit Device',autoZoom),descriptor(lockLabel(),locked?'Viewer Locked':'Viewer Unlocked',toggleLock,{active:locked})
+   descriptor('Large Keys',access.large?'On':'Off',toggleLargeTargets,{active:access.large}),descriptor('High Contrast',access.contrast?'On':'Off',toggleHighContrast,{active:access.contrast}),descriptor('Reduce Motion',access.reduced?'On':'Off',toggleReducedMotion,{active:access.reduced}),descriptor('Description',descriptionOnly()?'Text Map':'Visual Map',toggleDescription,{active:descriptionOnly()}),descriptor('Navigate','Accessible View',()=>setMode('navigate')),descriptor('Grid',view.grid===false?'Off':'On',toggleGrid,{active:view.grid!==false}),descriptor('Center','Viewer',centerView),descriptor('Auto View','Fit Device',autoZoom),descriptor(lockLabel(),locked?'Viewer Locked':'Viewer Unlocked',toggleLock,{active:locked})
   ];
   case 'file':return[
    descriptor('Save','World',save),descriptor('Load','Saved / Published',load),descriptor('Publish','To Region',publish),descriptor('Menu','Shaelvien',openHome),descriptor('Grid',view.grid===false?'Off':'On',toggleGrid,{active:view.grid!==false}),descriptor(lockLabel(),locked?'Viewer Locked':'Viewer Unlocked',toggleLock,{active:locked})
@@ -122,7 +124,7 @@ function build(root){
  const collapse=document.createElement('button');collapse.type='button';collapse.className='wb-keyboard-collapse';collapse.textContent=collapsed?'⌃':'⌄';collapse.setAttribute('aria-label',collapsed?'Expand World Builder keyboard':'Collapse World Builder keyboard');collapse.setAttribute('aria-expanded',collapsed?'false':'true');collapse.addEventListener('click',()=>{const next=!root.classList.contains('wb-keyboard-collapsed');root.classList.toggle('wb-keyboard-collapsed',next);write(COLLAPSE_KEY,String(next));collapse.textContent=next?'⌃':'⌄';collapse.setAttribute('aria-label',next?'Expand World Builder keyboard':'Collapse World Builder keyboard');collapse.setAttribute('aria-expanded',next?'false':'true');scheduleRefresh()});
  head.append(badge,statusNode,collapse);modeRow=document.createElement('div');modeRow.className='wb-keyboard-mode-row';modeRow.setAttribute('role','tablist');modeRow.setAttribute('aria-label','World Builder keyboard modes');commandRow=document.createElement('div');commandRow.className='wb-keyboard-command-row';commandRow.setAttribute('role','group');commandRow.setAttribute('aria-label','Commands for selected World Builder keyboard');keyboard.append(head,modeRow,commandRow);root.appendChild(keyboard);
  renderModes();const stored=read(MODE_KEY,'pixels');setMode(MODES.includes(stored)?stored:'pixels');lastSelectedCount=selectionCount();
- rootObserver?.disconnect();rootObserver=new MutationObserver(records=>{if(records.every(r=>r.target?.closest?.('.wb-context-keyboard')))return;scheduleRefresh()});rootObserver.observe(root,{childList:true,subtree:true,attributes:true,characterData:true,attributeFilter:['disabled','class','data-viewer-locked','data-camera-visible-cells','data-footprint','data-tier-top']})
+ rootObserver?.disconnect();rootObserver=new MutationObserver(records=>{if(records.every(r=>r.target?.closest?.('.wb-context-keyboard')))return;scheduleRefresh()});rootObserver.observe(root,{childList:true,subtree:true,attributes:true,characterData:true,attributeFilter:['disabled','class','data-viewer-locked','data-camera-visible-cells','data-footprint','data-tier-top','aria-pressed']})
 }
 function mount(){const root=studio();if(!root)return;if(root===activeRoot&&keyboard?.isConnected)return;rootObserver?.disconnect();keyboard?.remove();build(root)}
 
