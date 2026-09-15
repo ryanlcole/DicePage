@@ -28,11 +28,11 @@ public sealed partial class WorldSession
             return catalog;
         }
 
-        // Older uploads predate SHAEP. Migrate them lazily the first time their
-        // catalog is read: no media bytes are duplicated, and the current hot
-        // object becomes both source and provisional canonical preservation
-        // payload until a normalizer supplies a replacement canonical object.
-        if (sourceItems.Any(x => string.IsNullOrWhiteSpace(x.ShaepId)))
+        // Pre-SHAEP uploads and v1 manifest-only SHAEP assets are migrated
+        // lazily. Native bytes stay where they are and remain the immediate
+        // viewer fallback. v2 adds a real archive.shaep conversion target;
+        // ShaepId and placement identity remain unchanged.
+        if (sourceItems.Any(NeedsShaepUpgrade))
         {
             var migrated = await EnsureShaepEntriesAsync(sourceItems);
             var normalized = new UserAssetCatalog(migrated, DateTimeOffset.UtcNow);
@@ -73,24 +73,24 @@ public sealed partial class WorldSession
         {
             if (!string.IsNullOrWhiteSpace(entry.ShaepId))
             {
-                result.Add(entry with
+                var normalized = NormalizeExistingShaepEntry(entry);
+                if (NeedsShaepUpgrade(normalized))
                 {
-                    ShaepManifestKey = string.IsNullOrWhiteSpace(entry.ShaepManifestKey)
-                        ? ShaepCodec.ManifestObjectKey(entry.ShaepId)
-                        : entry.ShaepManifestKey,
-                    CanonicalMediaType = string.IsNullOrWhiteSpace(entry.CanonicalMediaType)
-                        ? ShaepCodec.MediaTypeForObjectKey(entry.Key)
-                        : entry.CanonicalMediaType,
-                    CanonicalObjectKey = string.IsNullOrWhiteSpace(entry.CanonicalObjectKey)
-                        ? entry.Key
-                        : entry.CanonicalObjectKey,
-                    StorageState = string.IsNullOrWhiteSpace(entry.StorageState)
-                        ? ShaepFormat.HotStorageState
-                        : entry.StorageState,
-                    IngestStatus = string.IsNullOrWhiteSpace(entry.IngestStatus)
-                        ? ShaepFormat.PendingNormalization
-                        : entry.IngestStatus
-                });
+                    var existing = await LoadShaepManifestAsync(normalized.ShaepId);
+                    if (existing is not null)
+                    {
+                        var current = existing.Version == ShaepFormat.LegacyVersion
+                            ? ShaepCodec.UpgradeLegacy(existing)
+                            : existing;
+                        if (current.Version == ShaepFormat.CurrentVersion)
+                        {
+                            if (existing.Version != current.Version)
+                                await SaveShaepManifestAsync(current);
+                            normalized = ApplyShaepManifest(normalized, current);
+                        }
+                    }
+                }
+                result.Add(normalized);
                 continue;
             }
 
@@ -101,18 +101,65 @@ public sealed partial class WorldSession
                 originalFileName: Path.GetFileName(entry.Key),
                 provenanceOrigin: "HUMAN");
             await SaveShaepManifestAsync(manifest);
-            result.Add(entry with
-            {
-                ShaepId = manifest.ShaepId,
-                ShaepManifestKey = ShaepCodec.ManifestObjectKey(manifest.ShaepId),
-                CanonicalMediaType = manifest.Canonical.MediaType,
-                CanonicalObjectKey = manifest.Canonical.ObjectKey,
-                Sha256 = manifest.Canonical.Sha256,
-                IngestStatus = manifest.IngestStatus,
-                StorageState = manifest.StorageState
-            });
+            result.Add(ApplyShaepManifest(entry, manifest));
         }
         return result;
+    }
+
+    static bool NeedsShaepUpgrade(UserAssetCatalogEntry entry)
+    {
+        if (string.IsNullOrWhiteSpace(entry.ShaepId)) return true;
+        if (string.IsNullOrWhiteSpace(entry.ArchiveObjectKey)) return true;
+        if (string.IsNullOrWhiteSpace(entry.ConversionStatus)) return true;
+        if (entry.ShaepManifestKey.EndsWith($"manifest{ShaepFormat.FileExtension}", StringComparison.OrdinalIgnoreCase)) return true;
+        return string.Equals(entry.IngestStatus, ShaepFormat.PendingNormalization, StringComparison.OrdinalIgnoreCase);
+    }
+
+    static UserAssetCatalogEntry NormalizeExistingShaepEntry(UserAssetCatalogEntry entry)
+    {
+        var mediaType = string.IsNullOrWhiteSpace(entry.CanonicalMediaType)
+            ? ShaepCodec.MediaTypeForObjectKey(string.IsNullOrWhiteSpace(entry.CanonicalObjectKey) ? entry.Key : entry.CanonicalObjectKey)
+            : entry.CanonicalMediaType;
+        var canonicalKey = string.IsNullOrWhiteSpace(entry.CanonicalObjectKey) ? entry.Key : entry.CanonicalObjectKey;
+        var legacy = string.Equals(entry.IngestStatus, ShaepFormat.PendingNormalization, StringComparison.OrdinalIgnoreCase)
+            || entry.ShaepManifestKey.EndsWith($"manifest{ShaepFormat.FileExtension}", StringComparison.OrdinalIgnoreCase);
+        var manifestKey = string.IsNullOrWhiteSpace(entry.ShaepManifestKey)
+            ? (legacy ? ShaepCodec.LegacyManifestObjectKey(entry.ShaepId) : ShaepCodec.ManifestObjectKey(entry.ShaepId))
+            : entry.ShaepManifestKey;
+        return entry with
+        {
+            ShaepManifestKey = manifestKey,
+            CanonicalMediaType = mediaType,
+            CanonicalObjectKey = canonicalKey,
+            ArchiveMediaType = string.IsNullOrWhiteSpace(entry.ArchiveMediaType) ? ShaepFormat.ArchiveMediaType : entry.ArchiveMediaType,
+            ArchiveObjectKey = string.IsNullOrWhiteSpace(entry.ArchiveObjectKey) ? ShaepCodec.ArchiveObjectKey(entry.ShaepId) : entry.ArchiveObjectKey,
+            ConversionStatus = string.IsNullOrWhiteSpace(entry.ConversionStatus)
+                ? (legacy ? ShaepFormat.PendingConversion : entry.IngestStatus)
+                : entry.ConversionStatus,
+            StorageState = string.IsNullOrWhiteSpace(entry.StorageState) ? ShaepFormat.HotStorageState : entry.StorageState,
+            IngestStatus = string.IsNullOrWhiteSpace(entry.IngestStatus)
+                ? ShaepFormat.PendingConversion
+                : entry.IngestStatus
+        };
+    }
+
+    static UserAssetCatalogEntry ApplyShaepManifest(UserAssetCatalogEntry entry, ShaepManifest manifest)
+    {
+        return entry with
+        {
+            ShaepId = manifest.ShaepId,
+            ShaepManifestKey = manifest.Version == ShaepFormat.LegacyVersion
+                ? ShaepCodec.LegacyManifestObjectKey(manifest.ShaepId)
+                : ShaepCodec.ManifestObjectKey(manifest.ShaepId),
+            CanonicalMediaType = manifest.Canonical.MediaType,
+            CanonicalObjectKey = manifest.Canonical.ObjectKey,
+            ArchiveMediaType = manifest.Archive?.MediaType ?? "",
+            ArchiveObjectKey = manifest.Archive?.ObjectKey ?? "",
+            ConversionStatus = manifest.Archive?.ConversionStatus ?? manifest.IngestStatus,
+            Sha256 = manifest.Canonical.Sha256,
+            IngestStatus = manifest.IngestStatus,
+            StorageState = manifest.StorageState
+        };
     }
 
     void IndexShaepEntries(IEnumerable<UserAssetCatalogEntry> entries)
@@ -141,19 +188,19 @@ public sealed partial class WorldSession
     {
         if (!IsLoggedIn) return;
         ShaepCodec.Validate(manifest);
-        // The existing authenticated upload authority accepts application/json.
-        // The .shaep extension remains the format authority; the AWS normalizer
-        // rewrites canonical manifests with the vendor media type after ingest.
-        await auth.UploadTextAsync(
-            ShaepCodec.ManifestObjectKey(manifest.ShaepId),
-            ShaepCodec.Serialize(manifest),
-            "application/json");
+        var key = manifest.Version == ShaepFormat.LegacyVersion
+            ? ShaepCodec.LegacyManifestObjectKey(manifest.ShaepId)
+            : ShaepCodec.ManifestObjectKey(manifest.ShaepId);
+        // Manifest JSON is metadata beside archive.shaep. The archive itself is
+        // binary hot media and is written by the conversion engine/service.
+        await auth.UploadTextAsync(key, ShaepCodec.Serialize(manifest), "application/json");
     }
 
     public async Task<ShaepManifest?> LoadShaepManifestAsync(string shaepId)
     {
         if (!IsLoggedIn || string.IsNullOrWhiteSpace(shaepId)) return null;
         var manifest = await auth.DownloadJsonAsync<ShaepManifest>(ShaepCodec.ManifestObjectKey(shaepId));
+        manifest ??= await auth.DownloadJsonAsync<ShaepManifest>(ShaepCodec.LegacyManifestObjectKey(shaepId));
         if (manifest is null) return null;
         ShaepCodec.Validate(manifest);
         return manifest;
@@ -224,4 +271,7 @@ public sealed record UserAssetCatalogEntry(
     string CanonicalObjectKey = "",
     string Sha256 = "",
     string IngestStatus = "",
-    string StorageState = "hot");
+    string StorageState = "hot",
+    string ArchiveMediaType = "",
+    string ArchiveObjectKey = "",
+    string ConversionStatus = "");
