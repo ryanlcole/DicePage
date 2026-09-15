@@ -1,30 +1,17 @@
 (()=>{
  'use strict';
- const ZOOM_KEY='rist.world.viewerZoom';
- const LOCAL_GRID_CELLS=30;
- const MIN_VISIBLE_CELLS=10;
- const MAX_VISIBLE_CELLS=16;
  const DEPTH_STEP=.05;
- const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS;
- const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS;
- const touchPointers=new Map();
- let gesture=null;
  let observer=null;
  let depthQueue=Promise.resolve();
- let legacyCancelInFlight=false;
  let activeDialPointer=null;
 
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
- const canvas=()=>studio()?.querySelector('.studio-viewer-canvas');
- const stage=()=>studio()?.querySelector('.world-stage');
  const contextStrip=()=>studio()?.querySelector('.studio-context-strip');
  const command=name=>[...(studio()?.querySelectorAll('.studio-command-rail button')||[])].find(button=>(button.querySelector('strong')?.textContent||'').trim()===name);
- const locked=()=>localStorage.getItem('rist.world.viewerLocked')!=='false';
+ const locked=()=>window.ristViewerAuthority?.get?.().locked??(localStorage.getItem('rist.world.viewerLocked')!=='false');
  const readNumber=(text,fallback=0)=>{const match=String(text??'').match(/-?\d+(?:\.\d+)?/);return match?Number(match[0]):fallback;};
  const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
- const readZoom=()=>clamp(Number(localStorage.getItem(ZOOM_KEY))||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM);
- const writeZoom=value=>{const next=clamp(Number(value)||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM);localStorage.setItem(ZOOM_KEY,String(next));applyZoom(next);return next;};
  const readDepth=()=>{
   const layer=readNumber(command('Layers')?.querySelector('small')?.textContent,0);
   const tier=readNumber(command('Tiers')?.querySelector('small')?.textContent,0);
@@ -75,7 +62,6 @@
    .worldbuilder-studio .wb-optic-label{position:relative;z-index:1;color:#7ea9c2;font:900 6px/1 system-ui;letter-spacing:.04em}
    .worldbuilder-studio .wb-optic-value{position:relative;z-index:1;max-width:27px;color:#f3dfaa;font:900 9px/1 system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
    .worldbuilder-studio .wb-optic.locked .wb-optic-knob{filter:saturate(.45) brightness(.72);cursor:not-allowed}
-   html body .worldbuilder-studio .studio-viewer-canvas .map .world-stage{transform:translate(var(--wb-pan-x,0),var(--wb-pan-y,0)) scale(var(--wb-view-zoom,1))!important;transform-origin:center center!important}
    @media(max-width:760px){
     .worldbuilder-studio .wb-viewer-optics{gap:1px;padding-inline:1px}
     .worldbuilder-studio .wb-optic{grid-template-columns:10px minmax(25px,1fr) 10px}
@@ -85,11 +71,6 @@
   `;
   document.head.appendChild(style);
   return style;
- }
-
- function applyZoom(value=readZoom()){
-  const world=stage();
-  if(world)world.style.setProperty('--wb-view-zoom',String(clamp(Number(value)||MIN_ZOOM,MIN_ZOOM,MAX_ZOOM)));
  }
 
  const dialTurns={
@@ -137,7 +118,7 @@
   controls={nav,items};
   const applyStep=(key,delta)=>{
    if((key==='x'||key==='y'||key==='layer'||key==='tier')&&locked())return;
-   if(key==='x'||key==='y'){window.ristViewerNavigation?.nudge?.(key,delta);render();return;}
+   if(key==='x'||key==='y'){window.ristViewerNavigation?.nudge?.(key,delta);return;}
    if(key==='depth'){const {tier}=readDepth();setParallaxDepth(tier,parallaxDepth(tier)+(delta*DEPTH_STEP));return;}
    depthQueue=depthQueue.then(()=>stepWorldDepth(key,delta)).catch(()=>{});
   };
@@ -196,63 +177,16 @@
    item.knob.style.setProperty('--dial-turn',dialTurns[key](value));
    const isLocked=key!=='depth'&&locked();item.host.classList.toggle('locked',isLocked);item.down.disabled=isLocked;item.up.disabled=isLocked;item.knob.setAttribute('aria-disabled',String(isLocked));
   }
-  applyZoom();
  }
 
- const touchList=()=>[...touchPointers.values()];
- const distance=()=>{const pts=touchList();return pts.length<2?0:Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);};
- function cancelLegacyPointer(pointerId){
-  try{
-   legacyCancelInFlight=true;
-   document.dispatchEvent(new PointerEvent('pointercancel',{pointerId,pointerType:'touch',isPrimary:true,bubbles:true,cancelable:true}));
-  }catch{}
-  finally{legacyCancelInFlight=false;}
- }
- function beginGesture(){
-  if(touchPointers.size!==2)return;
-  gesture={distance:Math.max(distance(),1),zoom:readZoom()};
- }
- function onTouchDown(event){
-  if(event.pointerType!=='touch')return;
-  const view=canvas();if(!view||!view.contains(event.target))return;
-  touchPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
-  if(touchPointers.size===2){
-   const first=[...touchPointers.keys()].find(id=>id!==event.pointerId);
-   if(first!==undefined)cancelLegacyPointer(first);
-   beginGesture();
-   event.preventDefault();event.stopPropagation();
-  }else if(touchPointers.size>2){event.preventDefault();event.stopPropagation();}
- }
- function onTouchMove(event){
-  if(event.pointerType!=='touch'||!touchPointers.has(event.pointerId))return;
-  const point=touchPointers.get(event.pointerId);point.x=event.clientX;point.y=event.clientY;
-  if(touchPointers.size!==2||!gesture)return;
-  const ratio=Math.max(distance(),1)/gesture.distance;
-  writeZoom(gesture.zoom*ratio);
-  event.preventDefault();event.stopPropagation();
- }
- function onTouchRelease(event){
-  if(legacyCancelInFlight)return;
-  if(!touchPointers.has(event.pointerId))return;
-  const multi=!!gesture;touchPointers.delete(event.pointerId);
-  if(touchPointers.size<2)gesture=null;
-  if(multi){event.preventDefault();event.stopPropagation();}
- }
-
- function sync(){
-  ensureStyle();retireLegacyNavigation();ensureControls();render();
- }
+ function sync(){ensureStyle();retireLegacyNavigation();ensureControls();render();}
  function start(){
   ensureStyle();sync();
   observer=new MutationObserver(()=>requestAnimationFrame(sync));observer.observe(document.body,{childList:true,subtree:true});
-  window.addEventListener('pointerdown',onTouchDown,{capture:true,passive:false});
-  window.addEventListener('pointermove',onTouchMove,{capture:true,passive:false});
-  window.addEventListener('pointerup',onTouchRelease,{capture:true,passive:false});
-  window.addEventListener('pointercancel',onTouchRelease,{capture:true,passive:false});
+  window.addEventListener('rist:viewer-state',render);
   window.addEventListener('rist:viewer-pan',render);
   window.addEventListener('rist-parallax-settings',render);
   window.addEventListener('storage',render);
-  window.addEventListener('resize',()=>requestAnimationFrame(()=>applyZoom()));
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
