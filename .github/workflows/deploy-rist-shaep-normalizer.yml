@@ -88,7 +88,8 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides \
               "PrivateStorageBucketName=$PRIVATE_STORAGE_BUCKET" \
-              "NotificationId=$NOTIFICATION_ID"
+              "NotificationId=$NOTIFICATION_ID" \
+              "CloudFormationExecutionRoleArn=$CFN_EXECUTION_ROLE_ARN"
 
       - name: Verify SHAEP hot-normalization authority
         shell: bash
