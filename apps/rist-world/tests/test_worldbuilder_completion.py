@@ -33,6 +33,8 @@ def test_native_drag_matches_selected_footprint_and_undo():
 def test_history_rejects_other_world_or_external_changes():
     source = (ROOT / "Components/WorldBuilderStudio.Interactions.cs").read_text()
     assert "Session.WorldId" in source
+    assert "Session.TierIndex" in source
+    assert "Session.LayerOffset" in source
     assert "_historyExpected.SequenceEqual(Session.PlacedTiles)" in source
     assert "!Session.PlacedTiles[index].Locked" in source
     assert "_worldBuilderUndo.Take(30).Reverse()" in source
