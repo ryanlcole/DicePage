@@ -15,6 +15,7 @@ MAX_CANONICAL_PIXELS = int(os.environ.get("MAX_CANONICAL_PIXELS", "100000000"))
 MANIFEST_MEDIA_TYPE = "application/vnd.shaelvien.shaep+json"
 READY = "ready"
 HOT = "hot"
+PRESERVED_SOURCE = "preserved-source"
 SUPPORTED_IMAGE_TYPES = {
     "image/png",
     "image/jpeg",
@@ -171,8 +172,9 @@ def _canonicalize_image(source_bytes):
 
 def _normalize_manifest(manifest_key):
     manifest = _manifest_from_s3(manifest_key)
-    if manifest.get("IngestStatus") == READY:
-        return {"status": "already-ready", "shaepId": manifest["ShaepId"]}
+    ingest_status = str(manifest.get("IngestStatus") or "")
+    if ingest_status in {READY, PRESERVED_SOURCE}:
+        return {"status": "already-" + ingest_status, "shaepId": manifest["ShaepId"]}
 
     user_prefix = _relative_user_prefix(manifest_key)
     source = dict(manifest.get("Source") or {})
@@ -196,10 +198,10 @@ def _normalize_manifest(manifest_key):
         manifest["Source"] = source
         manifest["Canonical"] = dict(source)
         manifest["StorageState"] = HOT
-        manifest["IngestStatus"] = "preserved-source"
+        manifest["IngestStatus"] = PRESERVED_SOURCE
         manifest["UpdatedAtUtc"] = _utc_now()
         _put_manifest(manifest_key, manifest)
-        return {"status": "preserved-source", "shaepId": manifest["ShaepId"]}
+        return {"status": PRESERVED_SOURCE, "shaepId": manifest["ShaepId"]}
 
     canonical_bytes, width, height, frame_count, temporal = _canonicalize_image(source_bytes)
     source["PixelWidth"] = width
