@@ -59,24 +59,21 @@ public sealed partial class WorldSession
         return true;
     }
 
-    public bool MoveAccessiblePiece(int pieceIndex, int column, int row, out string message)
+    public async Task<PieceMutationResult> MoveAccessiblePieceAsync(int pieceIndex, int column, int row)
     {
-        message = "The piece could not be moved.";
         if (pieceIndex < 0 || pieceIndex >= Pieces.Count)
-        {
-            message = "Choose an existing piece first.";
-            return false;
-        }
+            return new(false, "Choose an existing piece first.");
 
         var piece = Pieces[pieceIndex];
         var x = AccessibilityCellCenter(column, ViewerGridColumns);
         var y = AccessibilityCellCenter(row, ViewerGridRows);
         var safeColumn = Math.Clamp(column, 1, Math.Max(1, ViewerGridColumns));
         var safeRow = Math.Clamp(row, 1, Math.Max(1, ViewerGridRows));
-        MovePiece(piece, x, y);
+        var result = await MovePieceAuthorizedAsync(piece, x, y);
+        if (!result.Success) return result;
+
         var name = string.IsNullOrWhiteSpace(piece.Label) ? piece.Kind : piece.Label;
-        message = $"Moved {name} to column {safeColumn}, row {safeRow}.";
-        return true;
+        return new(true, $"Moved {name} to column {safeColumn}, row {safeRow}.");
     }
 
     public bool PlaceAccessibleFeature(AssetByMetadata metadata, int column, int row, out string message)
