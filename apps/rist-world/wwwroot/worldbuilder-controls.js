@@ -1,5 +1,5 @@
 import './worldbuilder-projection.js?v=20260912-parallax-shared-depth-1';
-import './worldbuilder-context-keyboard.js?v=20260915-meaning-keyboards-2';
+import './worldbuilder-context-keyboard.js?v=20260915-meaning-keyboards-3';
 import './rist-card-tiff.js';
 
 window.ristWorld=window.ristWorld||{};
