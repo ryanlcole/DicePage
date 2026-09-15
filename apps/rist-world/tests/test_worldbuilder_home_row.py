@@ -31,6 +31,18 @@ def test_mobile_axis_buttons_use_compact_screen_space_cells():
     assert "min-height:44px" in mobile
 
 
+def test_mobile_home_and_profile_controls_are_compact_and_centered():
+    source = NAV.read_text()
+    mobile = mobile_css(source)
+    selector = ".studio-header>.studio-home,.studio-header>.studio-profile"
+    assert selector in mobile
+    rule = mobile.split(selector, 1)[1].split("}", 1)[0]
+    assert "width:36px" in rule
+    assert "height:36px" in rule
+    assert "place-self:center" in rule
+    assert "border-radius:7px" in rule
+
+
 def test_home_row_keeps_coordinate_and_height_context_visible():
     source = NAV.read_text()
     assert '<small>COORD</small><strong>@Session.CubeX,@Session.CubeY,@Session.CubeZ</strong>' in source
@@ -46,3 +58,4 @@ def test_ultra_narrow_home_row_remains_bounded():
     narrow = source.split("@@media(max-width:340px)", 1)[1]
     assert "grid-template-columns:minmax(46px,1fr) repeat(3,minmax(0,.85fr)) minmax(48px,1fr)" in narrow
     assert ".coordinate-readout small,.height-readout small{display:none}" in narrow
+    assert "width:34px;height:34px;min-width:34px" in narrow
