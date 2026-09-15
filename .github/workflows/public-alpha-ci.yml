@@ -50,6 +50,9 @@ jobs:
       - name: Verify piece mutation authority
         run: python apps/rist-world/tests/test_piece_mutation_authority.py
 
+      - name: Verify WorldBuilder camera and single-grid authority
+        run: python apps/rist-world/tests/test_worldbuilder_camera_window.py
+
       - name: Publish RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
