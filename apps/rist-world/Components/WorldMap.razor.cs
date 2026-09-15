@@ -142,7 +142,11 @@ public partial class WorldMap:IDisposable
   var overPallet=await JS.InvokeAsync<bool>("ristWorld.overPallet",e.ClientX,e.ClientY);
   if(AtlasDragging is not null){if(overPallet)Session.StageTile(AtlasDragging);}
   else if(TrayDragging is not null){if(inside)Session.PlaceStaged(TrayDragging,p[1],p[2],G.Zoom);else if(!overPallet)Session.RemoveStaged(TrayDragging.Key);}
-  else if(PieceDragging is not null){if(inside)Session.MovePiece(PieceDragging,p[1],p[2]);else Session.RemovePiece(PieceDragging);}
+  else if(PieceDragging is not null)
+  {
+   if(inside)await Session.MovePieceAuthorizedAsync(PieceDragging,p[1],p[2]);
+   else await Session.RemovePieceAuthorizedAsync(PieceDragging);
+  }
   else if(TileDragging is not null){if(inside)Session.MoveTile(TileDragging,p[1],p[2]);else Session.RemoveTile(TileDragging);}
   ClearDrag();
   await InvokeAsync(StateHasChanged);
