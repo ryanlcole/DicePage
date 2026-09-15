@@ -41,11 +41,11 @@ public partial class WorldBuilderStudio
 
             var sceneZ = WorldSession.SceneZOf(tile);
 
-            // Composite Z view renders the whole visible stack, including tiles
-            // above the viewer's current Z. Those rendered tiles must remain
-            // directly selectable/movable. In a single-Z view, preserve the
-            // normal viewer-depth cutoff.
-            if (!Session.CompositeZView && sceneZ > viewerSceneZ)
+            // The construction grid is the viewer's active Z plane. Content
+            // above that plane is not visible yet and therefore cannot be hit.
+            // Current-Z and lower-Z content remain selectable; repeated taps can
+            // deliberately reach down through the visible stack.
+            if (sceneZ > viewerSceneZ)
                 continue;
 
             var footprint = FootprintFor(tile);
