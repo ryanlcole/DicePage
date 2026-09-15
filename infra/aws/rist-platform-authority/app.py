@@ -9,7 +9,13 @@ from decimal import Decimal
 
 import boto3
 
-from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
+from mutation_policy import (
+    canonical_piece_state,
+    canonical_tile_state,
+    dynamo_safe,
+    protects_piece,
+    protects_tile,
+)
 
 
 ddb = boto3.resource("dynamodb")
@@ -128,6 +134,13 @@ def _mutate_world_entity(req, world_id, entity_id, user_id, now):
     if protects_piece(action, entity_id, current_state):
         try:
             next_state = canonical_piece_state(action, entity_id, payload, current_state, manager=manager)
+        except PermissionError as exc:
+            return response(403, {"error": str(exc)})
+        except ValueError as exc:
+            return response(400, {"error": str(exc)})
+    elif protects_tile(action, entity_id, current_state):
+        try:
+            next_state = canonical_tile_state(action, entity_id, payload, current_state, manager=manager)
         except PermissionError as exc:
             return response(403, {"error": str(exc)})
         except ValueError as exc:
