@@ -129,7 +129,7 @@ public sealed partial class WorldSession
     {
         var index = PlacedTiles.IndexOf(tile);
         if (index < 0) return new(false, "That tile is no longer present.");
-        if (!CanEditTiles || tile.Locked && !next.Locked)
+        if (!CanEditTiles || tile.Locked)
             return new(false, "That tile is locked.");
 
         var identified = NormalizePlacedTileIdentity(tile);
