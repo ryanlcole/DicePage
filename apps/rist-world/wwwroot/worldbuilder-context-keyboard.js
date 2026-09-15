@@ -26,7 +26,7 @@ function clickCommand(name,root=activeRoot){const b=commandButton(name,root);if(
 function clickRuntime(name,root=activeRoot){const b=runtimeButton(name,root);if(!b||b.disabled)return false;b.click();scheduleRefresh();return true}
 function viewerState(){try{return window.ristViewerAuthority?.get?.()||{}}catch{return{}}}
 function playbackState(){try{return window.ristSpritePlayback?.state?.()||{}}catch{return{}}}
-function parallaxState(){try{return{enabled:window.ristParallax?.isEnabled?.()!==false,active:window.ristParallax?.isWorldBuilderActive?.()===true,depths:window.ristParallax?.getTierDepths?.()||{}}}catch{return{enabled:true,active:false,depths:{}}}}
+function parallaxState(){try{const enabled=window.ristParallax?.isEnabled?.()!==false,requested=window.ristParallax?.isWorldBuilderActive?.()===true;return{enabled,active:enabled&&requested,requested,depths:window.ristParallax?.getTierDepths?.()||{}}}catch{return{enabled:true,active:false,requested:false,depths:{}}}}
 function currentMode(){const mode=activeRoot?.dataset.wbKeyboardMode||read(MODE_KEY,'pixels');return MODES.includes(mode)?mode:'pixels'}
 function tileButton(){return activeRoot?.querySelector('.studio-command-rail .tile-size-button')||null}
 function tileFootprint(){const b=tileButton();const fromData=Number(b?.dataset?.footprint);if(Number.isFinite(fromData)&&fromData>0)return fromData;const text=(b?.querySelector('strong')?.textContent||'1').replace(/[^0-9.]/g,'');return Number(text)||1}
@@ -64,6 +64,7 @@ function stepDepth(kind,direction){
  setTimeout(run,0);
 }
 function toggleParallax(){
+ if(accessState().reduced){write(ACCESS_MOTION_KEY,false);applyAccessState()}
  if(clickRuntime('parallax'))return;
  try{const enabled=window.ristParallax?.isEnabled?.()!==false;window.ristParallax?.setEnabled?.(!enabled)}catch{}
  scheduleRefresh();
