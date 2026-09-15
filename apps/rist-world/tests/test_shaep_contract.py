@@ -34,6 +34,18 @@ def test_shaep_archive_has_separate_metadata_and_binary_targets():
     assert "archive.index.json" in docs
 
 
+def test_shaep_binary_archive_has_front_index_and_random_access_integrity():
+    binary = read("ShaepArchiveBinary.cs")
+    assert 'Encoding.ASCII.GetBytes("SHAEP2\\0\\0")' in binary
+    assert "public const int PrefixBytes = 16" in binary
+    assert "BinaryPrimitives.WriteInt32LittleEndian" in binary
+    assert "JsonSerializer.SerializeToUtf8Bytes(index" in binary
+    assert "payloadBase = source.Position" in binary
+    assert "SHA256.HashData" in binary
+    assert "ReadChunk" in binary
+    assert "ShaepArchiveChunkIndex" in binary
+
+
 def test_shaep_keeps_identity_separate_from_integrity_hash():
     codec = read("ShaepCodec.cs")
     docs = read("SHAEP_FORMAT.md")
