@@ -7,22 +7,25 @@ public partial class WorldBuilderStudio
     readonly Stack<List<TileItem>> _worldBuilderUndo = new();
     readonly HashSet<int> _selectedPlacedTileIndices = [];
     string _historyContext = "";
+    List<TileItem>? _historyExpected;
     string HistoryContext => $"{Session.WorldId}|{Session.ActiveMapCardId}|{Session.Layer}|{Session.CubeX},{Session.CubeY},{Session.CubeZ}|{Session.PlaneIndex}";
     void ResetWorldBuilderHistory()
     {
         _worldBuilderUndo.Clear();
         ClearWorldBuilderSelection();
         _historyContext = HistoryContext;
+        _historyExpected = Session.PlacedTiles.ToList();
     }
     void EnsureWorldBuilderHistory()
     {
-        if (_historyContext != HistoryContext) ResetWorldBuilderHistory();
+        if (_historyContext != HistoryContext || (_historyExpected is not null && !_historyExpected.SequenceEqual(Session.PlacedTiles))) ResetWorldBuilderHistory();
     }
     bool EditableTile(int index) => Session.CanEditTiles && index >= 0 && index < Session.PlacedTiles.Count &&
         !Session.PlacedTiles[index].Locked;
 
     async Task PersistWorldBuilderAsync()
     {
+        _historyExpected = Session.PlacedTiles.ToList();
         await Session.SaveAsync();
         await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id));
     }
