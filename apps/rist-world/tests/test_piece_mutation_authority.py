@@ -43,3 +43,19 @@ def test_accessibility_and_pointer_paths_share_authorized_mutation():
 def test_authority_client_carries_server_owner_back_to_session():
     client = read("AwsAuthorityClient.cs")
     assert 'string OwnerUserId = ""' in client
+
+
+def main():
+    tests = [
+        test_piece_identity_is_persistent_and_versioned,
+        test_authenticated_piece_mutation_is_server_first_and_fail_closed,
+        test_accessibility_and_pointer_paths_share_authorized_mutation,
+        test_authority_client_carries_server_owner_back_to_session,
+    ]
+    for test in tests:
+        test()
+    print(f"piece-mutation-authority: ok ({len(tests)} checks)")
+
+
+if __name__ == "__main__":
+    main()
