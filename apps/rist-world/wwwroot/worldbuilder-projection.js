@@ -1,10 +1,12 @@
 (()=>{
  'use strict';
  const TILE_SELECTOR='.worldbuilder-studio .world-stage > .tile-cell';
+ const LAYERS_PER_TIER=10;
+ const TIER_TOP_LAYER=LAYERS_PER_TIER-1;
  let visuals=[];
  let observer=null;
  let raf=0;
- let lastTopology={tops:{},tiers:[]};
+ let lastTopology={topLayer:TIER_TOP_LAYER,tops:{},tiers:[]};
 
  try{
   localStorage.removeItem('rist.world.distancePerSquareKmAtZ0');
@@ -20,7 +22,7 @@
  const number=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
  const tierFor=v=>number(v?.tierIndex??v?.TierIndex,0);
  const layerFor=v=>number(v?.layerOffset??v?.LayerOffset,0);
- const sceneZFor=v=>number(v?.sceneZ??v?.SceneZ,(tierFor(v)*10)+layerFor(v));
+ const sceneZFor=v=>number(v?.sceneZ??v?.SceneZ,(tierFor(v)*LAYERS_PER_TIER)+layerFor(v));
  const tiltStrength=()=>clamp(number(window.ristParallax?.tiltStrength?.(),.65),0,1);
  const viewZoom=()=>{const value=Number(map()?.dataset.zoom);return Number.isFinite(value)&&value>0?value:1};
 
@@ -32,19 +34,14 @@
   return 'cartographic-world';
  }
 
- // The map stores only discrete tier/layer truth. The viewer derives a topology
- // from that truth: the greatest occupied layer in each tier is that tier's top
- // surface. Only top surfaces after the first can tilt against a previous top.
+ // Tier/layer coordinates are map truth. A tier always has ten structural layers,
+ // therefore layer 9 is the tier-top surface even when that layer is empty. The
+ // viewer may tilt artwork placed on that surface against tier-1; occupancy never
+ // promotes a lower layer into being a top surface.
  function topologyFor(list){
-  const tops=new Map();
-  for(const visual of list){
-   const tier=tierFor(visual),layer=layerFor(visual);
-   tops.set(tier,Math.max(tops.get(tier)??Number.NEGATIVE_INFINITY,layer));
-  }
-  const tiers=[...tops.keys()].sort((a,b)=>a-b);
-  const ranks=new Map(tiers.map((tier,index)=>[tier,index]));
-  const previous=new Map(tiers.map((tier,index)=>[tier,index>0?tiers[index-1]:null]));
-  return{tops,tiers,ranks,previous};
+  const tiers=[...new Set(list.map(tierFor))].sort((a,b)=>a-b);
+  const tops=new Map(tiers.map(tier=>[tier,TIER_TOP_LAYER]));
+  return{tops,tiers};
  }
 
  function clearPerception(tile){
@@ -65,10 +62,12 @@
   const spatialWeight=active?smoothstep(.5,1,zoom):0;
   const strength=tiltStrength();
   const topology=topologyFor(visuals);
-  lastTopology={tops:Object.fromEntries(topology.tops),tiers:[...topology.tiers]};
+  lastTopology={topLayer:TIER_TOP_LAYER,tops:Object.fromEntries(topology.tops),tiers:[...topology.tiers]};
   root.dataset.projectionRepresentation=representationFor(zoom);
   root.dataset.projectionTruth='tier-layer';
-  root.dataset.projectionRule='tier-top-tilt';
+  root.dataset.projectionRule='structural-tier-top-tilt';
+  root.dataset.layersPerTier=String(LAYERS_PER_TIER);
+  root.dataset.tierTopLayer=String(TIER_TOP_LAYER);
   root.style.setProperty('--wb-cartographic-blend',String(1-spatialWeight));
   root.style.setProperty('--wb-perspective-strength',strength.toFixed(3));
 
@@ -76,20 +75,19 @@
   list.forEach((tile,index)=>{
    const visual=visuals[index]||{};
    const tier=tierFor(visual),layer=layerFor(visual),sceneZ=sceneZFor(visual);
-   const top=topology.tops.get(tier);
-   const rank=topology.ranks.get(tier)??0;
-   const previousTier=topology.previous.get(tier);
-   const isTop=Number.isFinite(top)&&layer===top;
-   const hasPreviousTop=isTop&&previousTier!==null&&previousTier!==undefined;
+   const isTop=layer===TIER_TOP_LAYER;
+   const previousTier=tier>0?tier-1:null;
+   const hasPreviousTop=isTop&&previousTier!==null;
+   const tierStep=Math.max(0,tier);
    const tileRect=tile.getBoundingClientRect();
    const originX=(stageRect.left+(stageRect.width/2))-tileRect.left;
    const originY=stageRect.bottom-tileRect.top;
 
-   // Each successive top surface receives the same relative angular step.
-   // Cumulative rank makes tier N visibly tilt against tier N-1 while every
-   // ordinary layer remains geometrically flat in the viewer.
-   const angle=hasPreviousTop?clamp(-rank*5.25*strength*spatialWeight,-18,0):0;
-   const lift=hasPreviousTop?clamp(-rank*9*strength*spatialWeight,-42,0):0;
+   // Only structural top-layer artwork receives perspective. Each successive
+   // tier-top is one visual step relative to the preceding tier-top. Nothing
+   // here mutates TierIndex, LayerOffset, SceneZ, placement, or SHAEP identity.
+   const angle=hasPreviousTop?clamp(-tierStep*5.25*strength*spatialWeight,-18,0):0;
+   const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;
    const stackZ=1000000+((sceneZ+1000)*1000)+index;
 
    tile.dataset.sceneZ=String(sceneZ);
@@ -113,7 +111,7 @@
   apply:schedule,
   getState(){
    const zoom=viewZoom();
-   return{cellKm:1,cellVolumeKm3:1,zoom,representation:representationFor(zoom),cartographicBlend:1-smoothstep(.5,1,zoom),truth:'tier-layer',rule:'tier-top-tilt',tiltStrength:tiltStrength(),tierTops:{...lastTopology.tops},tiers:[...lastTopology.tiers]};
+   return{cellKm:1,cellVolumeKm3:1,zoom,representation:representationFor(zoom),cartographicBlend:1-smoothstep(.5,1,zoom),truth:'tier-layer',rule:'structural-tier-top-tilt',layersPerTier:LAYERS_PER_TIER,tierTopLayer:TIER_TOP_LAYER,tiltStrength:tiltStrength(),tierTops:{...lastTopology.tops},tiers:[...lastTopology.tiers]};
   }
  };
 
