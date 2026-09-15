@@ -1,6 +1,7 @@
 (()=>{
  'use strict';
 
+ const STRUCTURAL_TOP_LAYER=9;
  const state={enabled:false,permissionAsked:false,permission:'unknown',baselineBeta:null,baselineGamma:null,targetX:0,targetY:0,x:0,y:0,raf:0,visuals:[]};
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
@@ -11,6 +12,10 @@
  const tiltStrength=()=>clamp(Number(window.ristParallax?.tiltStrength?.()??.65),0,1);
  const tierFor=v=>Number(v?.tierIndex??v?.TierIndex??0)||0;
  const layerFor=v=>Number(v?.layerOffset??v?.LayerOffset??0)||0;
+ const tierTopLayer=()=>{
+  const value=Number(window.ristProjection?.getState?.()?.tierTopLayer);
+  return Number.isFinite(value)?value:STRUCTURAL_TOP_LAYER;
+ };
 
  const acceptVisuals=visuals=>{state.visuals=Array.isArray(visuals)?visuals:[];schedule()};
  window.addEventListener('rist-depth-visuals',event=>acceptVisuals(event.detail));
@@ -18,13 +23,6 @@
  if(typeof window.ristDepth.set!=='function')window.ristDepth.set=visuals=>{acceptVisuals(visuals);window.dispatchEvent(new CustomEvent('rist-depth-visuals',{detail:state.visuals}))};
 
  window.ristMotionPermission={state(){return state.permission},async request(){return await requestPermission()}};
-
- function topology(){
-  const tops=new Map();
-  for(const visual of state.visuals){const tier=tierFor(visual),layer=layerFor(visual);tops.set(tier,Math.max(tops.get(tier)??Number.NEGATIVE_INFINITY,layer))}
-  const tiers=[...tops.keys()].sort((a,b)=>a-b);
-  return{tops,tiers,ranks:new Map(tiers.map((tier,index)=>[tier,index]))};
- }
 
  function screenAdjusted(beta,gamma){
   const angle=(screen.orientation?.angle??window.orientation??0);
@@ -56,11 +54,13 @@
   const root=studio();
   if(!root||!userParallaxEnabled()||!worldBuilderParallaxActive()||root.classList.contains('wb-access-reduced')){clearWorldBuilderParallax();return}
   const list=tiles();if(list.length===0)return;
-  const graph=topology(),denominator=Math.max(1,graph.tiers.length-1),strength=tiltStrength();
+  const top=tierTopLayer();
+  const maxTier=Math.max(1,...state.visuals.map(v=>Math.max(0,tierFor(v))));
+  const strength=tiltStrength();
   list.forEach((tile,index)=>{
-   const visual=state.visuals[index]||{},tier=tierFor(visual),layer=layerFor(visual),rank=graph.ranks.get(tier)??0;
-   const isTop=layer===graph.tops.get(tier),hasPrevious=isTop&&rank>0;
-   const relative=hasPrevious?rank/denominator:0;
+   const visual=state.visuals[index]||{},tier=tierFor(visual),layer=layerFor(visual);
+   const isTop=layer===top,hasPrevious=isTop&&tier>0;
+   const relative=hasPrevious?clamp(tier/maxTier,0,1):0;
    const motion=relative*strength;
    const dx=state.x*motion,dy=state.y*motion;
    tile.style.setProperty('--wb-motion-x',`${dx.toFixed(2)}px`);
