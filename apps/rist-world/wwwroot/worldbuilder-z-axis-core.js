@@ -65,7 +65,7 @@ export function attach(element,dotnet){
  const queueSync=()=>queueMicrotask(syncCommands);
  commandObserver=new MutationObserver(queueSync);if(studio)commandObserver.observe(studio,{childList:true,subtree:true});queueSync();
 
- const quickIndexFor=button=>button&&studio?[...studio.querySelectorAll('.quick-slot.filled')].indexOf(button):-1;
+ const quickIndexFor=button=>{const value=button?.dataset?.quickIndex;if(value==null||value==='')return -1;const index=Number(value);return Number.isInteger(index)&&index>=0?index:-1;};
  const placeQuick=async(index,x,y)=>{if(index<0)return;try{if(await dotnet.invokeMethodAsync('PlaceQuickTileFromJs',index,x,y)){applySelection([]);await applyVisuals();await syncCommands()}}catch{}};
  const removeGhost=()=>{quickGhost?.remove();quickGhost=null};
  const createGhost=(button,x,y)=>{removeGhost();quickGhost=document.createElement('div');quickGhost.className='wb-quick-drag-ghost';const img=button.querySelector('img'),label=button.querySelector('span');if(img){const copy=document.createElement('img');copy.src=img.src;copy.alt='';quickGhost.appendChild(copy)}if(label){const text=document.createElement('span');text.textContent=label.textContent||'';quickGhost.appendChild(text)}quickGhost.style.left=`${x}px`;quickGhost.style.top=`${y}px`;document.body.appendChild(quickGhost)};

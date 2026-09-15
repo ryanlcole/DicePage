@@ -87,6 +87,7 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public async Task LoadWorldFromJs()
     {
+        ResetWorldBuilderHistory();
         var loaded = await Session.LoadActiveMapCardAsync();
         if (!loaded)
         {
@@ -113,11 +114,11 @@ public partial class WorldBuilderStudio
     public async Task<bool> SetPublishModeFromJs(bool published)
     {
         await CaptureActiveCardLanguageAsync();
-        _publishMode = published;
         if (published)
             await Session.PublishActiveMapCardAsync(_quickTiles.Select(x => x.Id));
         else
             await Session.SaveActiveMapCardAsync(_quickTiles.Select(x => x.Id), false);
+        _publishMode = published;
         return _publishMode;
     }
 
@@ -126,7 +127,7 @@ public partial class WorldBuilderStudio
         _quickTiles.Clear();
         foreach (var id in Session.ActiveMapCardQuickSlotTileIds)
         {
-            var tile = Session.AtlasTiles.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.Ordinal));
+            var tile = FindAsset(id);
             if (tile is not null && _quickTiles.All(x => !string.Equals(x.Id, tile.Id, StringComparison.Ordinal)))
                 _quickTiles.Add(tile);
         }

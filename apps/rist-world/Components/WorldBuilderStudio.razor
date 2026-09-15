@@ -8,7 +8,7 @@
  <header class="studio-header" aria-label="World Builder header">
   <button type="button" class="studio-home" @onclick="OpenStartMenu" aria-label="Start menu">⌂</button>
   <WorldCoordinateNavigator />
-  <button type="button" class="studio-profile" aria-label="Account profile">
+  <button type="button" class="studio-profile" @onclick="OpenStartMenu" aria-label="Open account and workspace menu">
    @if(!string.IsNullOrWhiteSpace(Session.CharacterPortraitDataUrl))
    {
     <img src="@Session.CharacterPortraitDataUrl" alt="Profile" />
@@ -36,7 +36,7 @@
    {
     @foreach(var tile in VisibleQuickTiles)
     {
-     <button type="button" class="quick-slot filled" draggable="true" @ondragstart="()=>BeginQuickAssetDrag(tile)" @ondragend="EndQuickAssetDrag" @onclick="()=>Session.StageTile(tile)" @ondblclick="()=>RemoveQuickTile(tile)" title="Drag to the viewer to place; double click to remove"><img src="@tile.Image" alt="" draggable="false" /><span>@tile.Name</span></button>
+     <button type="button" class="quick-slot filled" data-quick-index="@_quickTiles.IndexOf(tile)" draggable="@Session.CanEditTiles" @ondragstart="()=>BeginQuickAssetDrag(tile)" @ondragend="EndQuickAssetDrag" @onclick="()=>Session.StageTile(tile)" @ondblclick="()=>RemoveQuickTile(tile)" title="Drag to the viewer to place; double click to remove"><img src="@tile.Image" alt="" draggable="false" /><span>@tile.Name</span></button>
     }
     @for(var i=VisibleQuickTiles.Count;i<QuickSlotCount;i++){<span class="quick-slot empty" aria-label="Empty matching quick asset slot"></span>}
     @if(_toolMode=="Uploads")
@@ -53,6 +53,13 @@
 
  <main class="studio-viewer @(_libraryRailOpen?"library-muted":"")" aria-label="World map viewer">
   <div class="studio-viewer-canvas" @ref="_viewerElement" @ondragover:preventDefault="true" @ondrop="DropQuickAsset">
+   @if(!Session.CanEditTiles)
+   {
+    <div class="studio-edit-mode" role="status">
+     <span>Viewing world</span>
+     @if(Session.IsLoggedIn){<button type="button" @onclick='()=>Session.SetRole("GM")'>Enter build mode</button>}
+    </div>
+   }
    <WorldMap />
    <AssetLibrary />
    <div class="studio-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
@@ -101,6 +108,18 @@
  .studio-command-slider{position:relative;z-index:60;min-width:0;overflow:hidden;border-top:1px solid #715b2d;background:#0a1117;padding:6px;transform:translateY(-4px)}.studio-command-rail{height:100%;display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.studio-command-rail::-webkit-scrollbar{display:none}.studio-command-rail button{box-sizing:border-box;flex:0 0 auto;height:48px;min-width:104px;padding:4px 12px;display:grid;place-items:center;gap:2px;border:1px solid #4b5f69;border-radius:9px;background:#0d171e;color:#d4dde1;touch-action:manipulation}.studio-command-rail button strong{font:900 12px/1 system-ui;color:#f0ddb0}.studio-command-rail button small{font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8fa5b0}.studio-command-rail button.active{border-color:#d0aa56;background:#201b10}.studio-command-rail button.publish{border-color:#7e6a43}.studio-command-rail button:disabled{opacity:.38}.studio-command-slider.library-open{padding:0}.studio-command-slider.library-open .studio-library-deck{height:100%}
  .studio-mini-panel,.studio-load-panel{position:absolute;z-index:80;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #846c39;border-radius:10px;background:#081117;box-shadow:0 8px 26px #000b}.studio-mini-panel button,.studio-load-panel button{min-height:34px;border:1px solid #536771;border-radius:7px;background:#0e1a21;color:#e7d39a;font-weight:800}.studio-load-panel{width:min(92%,520px);display:grid}.studio-load-panel header{display:flex;align-items:center;justify-content:space-between}.studio-load-panel header button{min-width:34px}.studio-load-panel>button{display:grid;text-align:left;padding:8px 10px}.studio-load-panel small{color:#9babb3}.studio-publish-banner{position:absolute;z-index:75;left:50%;top:8px;transform:translateX(-50%);padding:5px 10px;border:1px solid #836c3f;border-radius:10px;background:#0a1117;color:#f0d69a;font:800 8px/1 system-ui;letter-spacing:.05em;white-space:nowrap}
  @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:20px 58px minmax(0,1fr) 58px}.studio-workbench{padding:5px}.studio-top-slider button,.quick-slot{height:44px}.studio-command-slider{padding:5px;transform:translateY(-3px)}.studio-command-rail button{height:44px;min-width:94px;padding:4px 9px}.studio-viewer-canvas{--viewer-frame:24px}}
+ .worldbuilder-studio{grid-template-rows:36px 62px minmax(0,1fr) 62px}
+ .studio-header{grid-template-columns:44px minmax(0,1fr) 44px}
+ .studio-home,.studio-profile{font-size:18px;touch-action:manipulation}
+ .studio-command-slider{transform:none}
+ .studio-command-rail{scrollbar-width:thin;scrollbar-color:#715b2d #071015}
+ .studio-command-rail::-webkit-scrollbar{display:block;height:5px}
+ .studio-command-rail::-webkit-scrollbar-thumb{background:#715b2d;border-radius:4px}
+ .worldbuilder-studio button:focus-visible{outline:2px solid #f1d884;outline-offset:-2px}
+ html body:has(.worldbuilder-studio) .viewer-frame-controls{display:none!important}
+ @@media(max-width:760px){.worldbuilder-studio{grid-template-rows:44px 58px minmax(0,1fr) 60px}.studio-header{grid-template-columns:44px minmax(0,1fr) 44px}.studio-command-slider{transform:none}}
+ .studio-edit-mode{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:54;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #715b2d;border-radius:8px;background:#081017;color:#e4c97d;font:700 11px/1.3 system-ui;white-space:nowrap}
+ .studio-edit-mode button{min-height:36px;border:1px solid #715b2d;border-radius:5px;background:#18252e;color:#fff1bd}
 </style>
 
 @code {
@@ -164,29 +183,25 @@
  Task EndLibraryAssetDrag(){_draggingLibraryTile=null;return Task.CompletedTask;}
  async Task PinQuickTile(AtlasTile tile){if(_quickTiles.All(x=>x.Id!=tile.Id)){if(_quickTiles.Count>=QuickSlotCount)_quickTiles.RemoveAt(0);_quickTiles.Add(tile);await PersistQuickSlotsAsync();}await InvokeAsync(StateHasChanged);}
  Task PinDraggedAsset(){var tile=_draggingLibraryTile;_draggingLibraryTile=null;return tile is null?Task.CompletedTask:PinQuickTile(tile);}
- void BeginQuickAssetDrag(AtlasTile tile){_draggingQuickTile=tile;Session.StageTile(tile);}
+ void BeginQuickAssetDrag(AtlasTile tile){_draggingQuickTile=Session.CanEditTiles?tile:null;}
  void EndQuickAssetDrag(){_draggingQuickTile=null;}
  async Task DropQuickAsset(DragEventArgs e)
  {
   var tile=_draggingQuickTile;
   _draggingQuickTile=null;
-  if(tile is null||_zModule is null||_libraryRailOpen)return;
-  var footprint=tile.DefaultFootprint>0?Math.Clamp(tile.DefaultFootprint,1,300):Math.Clamp(_tileFootprint,1,300);
+  if(tile is null||_zModule is null||_libraryRailOpen||!Session.CanEditTiles)return;
+  var footprint=Math.Clamp((double)_tileFootprint,1.0,WorldSession.GridColumns);
   var cell=await ViewerCell(e.ClientX,e.ClientY,footprint);
   if(cell is null)return;
-  Session.StageTile(tile);
-  var staged=Session.StagedAssets.LastOrDefault(x=>x.Key==$"tile:{tile.Id}");
-  if(staged is null)return;
-  Session.PlaceStaged(staged,cell.Value.Column/(double)WorldSession.GridColumns,cell.Value.Row/(double)WorldSession.GridRows,1.0/footprint);
-  var placedIndex=Session.PlacedTiles.FindLastIndex(x=>x.Id==tile.Id);
-  if(placedIndex>=0)Session.PlacedTiles[placedIndex]=Session.PlacedTiles[placedIndex] with{PlacementZoom=1.0/footprint};
-  Session.RemoveStaged(staged.Key);
+  PlacementChoice choice;try{choice=await JS.InvokeAsync<PlacementChoice>("ristPlacement.consume");}catch{choice=new(false,false,"normal");}
+  PushWorldBuilderUndo();ClearWorldBuilderSelection();
+  AddViewerTile(tile,cell.Value.Column,cell.Value.Row,footprint,choice.UpperLayer,choice.UpperTier,NormalizeTreatment(choice.Treatment));
   Session.Notify();
   await PersistWorldBuilderAsync();
  }
  async Task SaveAsync(){if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));}
- async Task LoadLocalAsync(){await Session.LoadAsync();await RestoreMapCardAsync();_loadOpen=false;}
- async Task LoadPrivateAsync(){await Session.LoadPrivateCheckpointAsync();await RestoreMapCardAsync();_loadOpen=false;}
+ async Task LoadLocalAsync(){ResetWorldBuilderHistory();await Session.LoadAsync();await RestoreMapCardAsync();_loadOpen=false;}
+ async Task LoadPrivateAsync(){ResetWorldBuilderHistory();await Session.LoadPrivateCheckpointAsync();await RestoreMapCardAsync();_loadOpen=false;}
  AtlasTile? FindAsset(string id)=>Session.UserAssetTiles.Concat(Session.AtlasTiles).FirstOrDefault(x=>string.Equals(x.Id,id,StringComparison.Ordinal));
  bool ToolModeMatch(AtlasTile tile)
  {
@@ -266,7 +281,7 @@
    await Session.SaveActiveMapCardAsync(_quickTiles.Select(x=>x.Id));
   }
   _self=DotNetObjectReference.Create(this);
-  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260912-pangea-sprites-1");
+  _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260915-completion-1");
   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_viewerElement,_self);
  }
  [JSInvokable] public Task StepZ(int delta){if(!_zLocked)Session.MoveLayer(Math.Sign(delta));return InvokeAsync(StateHasChanged);}

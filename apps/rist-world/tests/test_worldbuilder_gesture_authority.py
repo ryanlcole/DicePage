@@ -43,7 +43,7 @@ def test_asset_editor_does_not_block_empty_viewer_when_locked():
     assert "const tile=tileAt(e.clientX,e.clientY);if(!tile)return;" in zaxis
     assert "Map + Viewer Locked" not in zaxis
     assert "Viewer Locked" in zaxis
-    assert "worldbuilder-z-axis-core.js?v=20260914-unified-gesture-1" in zaxis
+    assert "worldbuilder-z-axis-core.js?v=20260915-completion-1" in zaxis
 
 
 def test_z_axis_core_no_longer_owns_grid_or_camera_transform():

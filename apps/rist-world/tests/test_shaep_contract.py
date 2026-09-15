@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +23,8 @@ def test_shaep_keeps_identity_separate_from_integrity_hash():
     codec = read("ShaepCodec.cs")
     docs = read("SHAEP_FORMAT.md")
     assert 'var id = $"shaep-{Guid.NewGuid():N}"' in codec
-    assert "SHA-256 is integrity evidence, not object identity" in docs
+    assert "`Sha256` is optional integrity evidence for a payload" in docs
+    assert "same checksum without becoming the same object" in docs
     assert "hash.Length != 64" in codec
 
 
@@ -56,7 +58,7 @@ def test_shaep_hot_canonical_is_created_for_user_upload_catalogs():
 def test_world_placements_preserve_shaep_identity():
     models = read("WorldSession.Models.cs")
     interactions = read("Components/WorldBuilderStudio.Interactions.cs")
-    assert models.count('string ShaepId = ""') >= 2
+    assert len(re.findall(r'string\s+ShaepId\s*=\s*""', models)) >= 2
     assert "ShaepId = Session.ResolveShaepId(tile)" in interactions
     assert "ResolveShaepId(AtlasTile tile)" in read("WorldSession.UserAssets.cs")
 

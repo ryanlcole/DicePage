@@ -149,3 +149,10 @@ jobs:
           test -f build/rist/wwwroot/shaelvien-navigation-authority.js
           test -f build/rist/wwwroot/css/shaelvien-navigation-authority.css
           grep -q 'ReLiCGameMaster RIST WORLD' build/rist/wwwroot/index.html
+
+      - name: Upload tested World Builder build
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldbuilder-verified-build
+          path: build/rist/wwwroot
+          retention-days: 7

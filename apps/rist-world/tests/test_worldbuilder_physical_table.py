@@ -28,16 +28,17 @@ def test_geonaph_package_is_manifest_driven_and_legacy_catalog_is_not_loaded():
     assert 'assets/worlds/geonaph/v1/runtime_catalog.json' in bootstrap
     assert 'GeonaphRuntimeCatalog' in bootstrap
     assert 'placement.Asset.AssetKind' not in bootstrap
-    assert 'FrameCount: Math.Max(1, asset.FrameCount)' in bootstrap
-    assert 'FramesPerSecond: Math.Max(0, asset.FramesPerSecond)' in bootstrap
+    assert 'AtlasTiles.Add(placement.Asset)' in bootstrap
+    assert 'ClearGeneratedGeonaphPackagePlacements();' in bootstrap
+    assert 'PlacedTiles.Add(' not in bootstrap
     assert not any(path.is_file() for path in (WWWROOT / "assets" / "sprites" / "pangea").rglob("*"))
 
 
 def test_sprite_library_only_exposes_true_animated_assets():
     rail = (COMPONENTS / "WorldAssetFolderRail.razor").read_text()
     catalog_authority = (COMPONENTS / "WorldAnimatedAssetCatalog.razor").read_text()
-    assert 'x.FrameCount>1' in rail
-    assert 'x.FramesPerSecond>0' in rail
+    assert 'tile.FrameCount>1' in rail
+    assert 'tile.FramesPerSecond>0' in rail
     assert 'asset.FrameCount > 1' in catalog_authority
     assert 'asset.FramesPerSecond > 0' in catalog_authority
     assert 'RemoveAll' in catalog_authority

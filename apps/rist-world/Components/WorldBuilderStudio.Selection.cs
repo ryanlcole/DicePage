@@ -18,6 +18,7 @@ public partial class WorldBuilderStudio
     [JSInvokable]
     public Task<int[]> SelectPlacedTileAtWorldPoint(double x, double y, bool additive)
     {
+        EnsureWorldBuilderHistory();
         if (!double.IsFinite(x) || !double.IsFinite(y) || x < 0 || x > 1 || y < 0 || y > 1)
         {
             if (!additive) ClearWorldBuilderSelection();

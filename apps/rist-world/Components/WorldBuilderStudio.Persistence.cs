@@ -48,7 +48,7 @@ public partial class WorldBuilderStudio
             _quickTiles.Clear();
             foreach (var id in state.QuickTileIds.Distinct(StringComparer.Ordinal).Take(QuickSlotCount))
             {
-                var tile = Session.AtlasTiles.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.Ordinal));
+                var tile = FindAsset(id);
                 if (tile is not null) _quickTiles.Add(tile);
             }
 

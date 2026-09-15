@@ -61,8 +61,6 @@
    .worldbuilder-studio .optic-backend-control{display:none!important;visibility:hidden!important;pointer-events:none!important}
    .worldbuilder-studio .studio-mini-panel[aria-label="Layer controls"],
    .worldbuilder-studio .studio-mini-panel[aria-label="Tier controls"]{visibility:hidden!important;pointer-events:none!important;opacity:0!important}
-   .worldbuilder-studio{grid-template-rows:36px 62px minmax(0,1fr) 62px!important}
-   .worldbuilder-studio .studio-header{grid-template-columns:34px minmax(0,1fr) 34px!important;min-height:36px!important;height:36px!important}
    .worldbuilder-studio .studio-home,.worldbuilder-studio .studio-profile{font-size:15px!important}
    .worldbuilder-studio .studio-context-strip{height:36px!important;overflow:hidden!important}
    .worldbuilder-studio .studio-context-strip>.studio-ticker{display:none!important}
@@ -79,8 +77,6 @@
    .worldbuilder-studio .wb-optic.locked .wb-optic-knob{filter:saturate(.45) brightness(.72);cursor:not-allowed}
    html body .worldbuilder-studio .studio-viewer-canvas .map .world-stage{transform:translate(var(--wb-pan-x,0),var(--wb-pan-y,0)) scale(var(--wb-view-zoom,1))!important;transform-origin:center center!important}
    @media(max-width:760px){
-    .worldbuilder-studio{grid-template-rows:36px 58px minmax(0,1fr) 58px!important}
-    .worldbuilder-studio .studio-header{grid-template-columns:32px minmax(0,1fr) 32px!important}
     .worldbuilder-studio .wb-viewer-optics{gap:1px;padding-inline:1px}
     .worldbuilder-studio .wb-optic{grid-template-columns:10px minmax(25px,1fr) 10px}
     .worldbuilder-studio .wb-optic-step{width:10px;font-size:10px}
@@ -118,7 +114,7 @@
 
  function retireLegacyNavigation(){
   document.querySelectorAll('.worldbuilder-studio .wb-coordinate-legend,.worldbuilder-studio .coordinate-legend,.worldbuilder-studio .viewer-navigator').forEach(node=>node.remove());
-  for(const label of ['Layers','Tiers'])command(label)?.classList.add('optic-backend-control');
+  for(const label of ['Layers','Tiers'])command(label)?.classList.toggle('optic-backend-control',!!contextStrip());
  }
 
  let controls=null;
