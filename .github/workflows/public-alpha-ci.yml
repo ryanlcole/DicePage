@@ -47,6 +47,9 @@ jobs:
       - name: Verify world coordinate authority
         run: node apps/rist-world/tests/world-coordinate-authority.test.mjs
 
+      - name: Verify piece mutation authority
+        run: python apps/rist-world/tests/test_piece_mutation_authority.py
+
       - name: Publish RIST WORLD
         run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
 
@@ -103,8 +106,12 @@ jobs:
           grep -q 'DefaultCubeWidthCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultCubeHeightCells = 30' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultCubeCellCount = DefaultCubeWidthCells \* DefaultCubeHeightCells' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultWorldWidthCells = 300' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultWorldHeightCells = 300' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultWorldCubesAcross = DefaultWorldWidthCells / DefaultCubeWidthCells' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'DefaultCubeWidthMiles = DefaultCubeWidthCells' apps/rist-world/WorldSession.DefaultCube.cs
-          grep -q 'DefaultTerrainTilesetName = "Ocean 071"' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'Worlds have no implicit terrain/background' apps/rist-world/WorldSession.DefaultCube.cs
+          grep -q 'DefaultTerrainTilesetName = ""' apps/rist-world/WorldSession.DefaultCube.cs
           grep -q 'GridColumns = DefaultCubeWidthMiles' apps/rist-world/WorldSession.cs
           grep -q 'GridRows = DefaultCubeHeightMiles' apps/rist-world/WorldSession.cs
           grep -q 'class="base ocean-world"' apps/rist-world/Components/WorldMap.razor
