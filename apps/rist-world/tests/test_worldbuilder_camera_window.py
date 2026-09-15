@@ -58,8 +58,8 @@ def test_unified_gesture_authority_loads_before_camera_helpers():
     index = (WWWROOT / "index.html").read_text()
     gestures = 'worldbuilder-gesture-authority.js?v=20260914-unified-gesture-1'
     navigation = 'worldbuilder-navigation-authority.js?v=20260914-unified-gesture-1'
-    optics = 'worldbuilder-optics.js?v=20260912-optics-pinchzoom-1'
-    camera = 'worldbuilder-camera-window.js?v=20260914-camera-window-1'
+    optics = 'worldbuilder-optics.js?v=20260914-single-grid-2'
+    camera = 'worldbuilder-camera-window.js?v=20260914-single-grid-2'
     grid = 'css/worldbuilder-grid-authority.css?v=20260914-unified-gesture-1'
     for asset in (gestures, navigation, optics, camera, grid):
         assert asset in index
