@@ -124,10 +124,14 @@
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell.wb-selected,
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell.wb-moving{z-index:2147483000!important}
   .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell>.tile-image-crop{
-   transform:translate3d(var(--wb-motion-x,0px),var(--wb-tier-lift,0px),0) translateY(var(--wb-motion-y,0px)) rotateX(var(--wb-tier-tilt,0deg)) rotate(var(--wb-rotation,0deg))!important;
-   transform-origin:var(--wb-tier-origin-x,50%) var(--wb-tier-origin-y,50%)!important;
+   transform:rotate(var(--wb-rotation,0deg))!important;
+   transform-origin:center center!important;
    transform-style:preserve-3d!important;
    transition:transform 90ms linear!important;
+  }
+  .worldbuilder-studio .studio-viewer-canvas .world-stage>.tile-cell[data-tier-top="true"]>.tile-image-crop{
+   transform:translate3d(var(--wb-motion-x,0px),calc(var(--wb-tier-lift,0px) + var(--wb-motion-y,0px)),0) rotateX(var(--wb-tier-tilt,0deg)) rotate(var(--wb-rotation,0deg))!important;
+   transform-origin:var(--wb-tier-origin-x,50%) var(--wb-tier-origin-y,50%)!important;
   }
   .worldbuilder-studio .world-stage>.tile-cell.treatment-blend>.tile-image-crop{opacity:.86!important;mix-blend-mode:multiply!important}
   .worldbuilder-studio .world-stage>.tile-cell.treatment-crop>.tile-image-crop{clip-path:inset(1px)!important}
