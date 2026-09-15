@@ -8,7 +8,7 @@ public partial class WorldBuilderStudio
     readonly HashSet<int> _selectedPlacedTileIndices = [];
     string _historyContext = "";
     List<TileItem>? _historyExpected;
-    string HistoryContext => $"{Session.WorldId}|{Session.ActiveMapCardId}|{Session.Layer}|{Session.CubeX},{Session.CubeY},{Session.CubeZ}|{Session.PlaneIndex}";
+    string HistoryContext => $"{Session.WorldId}|{Session.ActiveMapCardId}|{Session.Layer}|{Session.CubeX},{Session.CubeY},{Session.CubeZ}|{Session.PlaneIndex}|{Session.TierIndex},{Session.LayerOffset}";
     void ResetWorldBuilderHistory()
     {
         _worldBuilderUndo.Clear();
