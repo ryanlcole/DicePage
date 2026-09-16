@@ -17,5 +17,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify Shaelvien runtime syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in apps/rist-world/wwwroot/shaelvien-*.js; do
+            echo "Checking $file"
+            node --check "$file"
+          done
+
       - name: Verify policy and semantic guardrails
         run: python .github/scripts/verify-compliance-guardrails.py
