@@ -1,0 +1,214 @@
+/* Shaelvien World Builder keyboard presentation skin.
+   Presentation only: existing buttons retain action, authority and accessible names. */
+
+.worldbuilder-studio{
+  --wb-device-keyboard-h:250px;
+}
+
+.wb-device-keyboard.wb-shaelvien-skinned{
+  background:
+    linear-gradient(180deg,rgba(4,12,19,.985),rgba(3,8,13,.985)),
+    #050a0f;
+  border-top:1px solid rgba(214,164,75,.76);
+  box-shadow:0 -10px 36px rgba(0,0,0,.62),0 -1px 0 rgba(61,157,255,.22) inset;
+}
+.wb-device-keyboard.wb-shaelvien-skinned::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 14% 58%,rgba(31,123,225,.09),transparent 26%),
+    radial-gradient(circle at 84% 56%,rgba(142,65,224,.07),transparent 28%);
+}
+
+/* The persistent grid-selection D-pad owns the left control bay. */
+.wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+  padding-left:142px!important;
+  padding-right:0!important;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+  left:8px!important;
+  right:auto!important;
+}
+
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-grabber-row,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode-row,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-keys,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+  position:relative;
+  z-index:2;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+  position:absolute;
+}
+
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode-row{
+  border-top:1px solid rgba(214,164,75,.16);
+  border-bottom:1px solid rgba(214,164,75,.14);
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+  border:1px solid rgba(194,145,67,.42);
+  border-radius:5px;
+  background:linear-gradient(180deg,rgba(17,29,40,.94),rgba(7,14,21,.96));
+  color:#dec99e;
+  box-shadow:inset 0 0 0 1px rgba(62,139,211,.10),0 1px 3px rgba(0,0,0,.46);
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode[aria-selected="true"]{
+  color:#fff2d1;
+  border-color:#e1b15d;
+  background:linear-gradient(180deg,rgba(24,49,73,.98),rgba(8,20,31,.98));
+  box-shadow:inset 0 0 12px rgba(43,148,255,.26),0 0 8px rgba(43,148,255,.16);
+}
+
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  padding:0;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  box-shadow:none;
+  color:#fff5de;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key::after{
+  content:"";
+  position:absolute;
+  inset:4px;
+  z-index:-1;
+  border-radius:7px;
+  background:rgba(8,15,22,.50);
+  pointer-events:none;
+}
+.wb-shaelvien-key-art{
+  position:absolute;
+  z-index:0;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key>strong,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key>small{
+  position:relative;
+  z-index:2;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-exact>strong{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-exact>small{
+  position:absolute;
+  right:7px;
+  bottom:5px;
+  max-width:calc(100% - 14px);
+  padding:2px 5px;
+  border:1px solid rgba(222,178,96,.34);
+  border-radius:999px;
+  background:rgba(2,7,12,.72);
+  color:#f4e5c5;
+  font:650 8px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  text-shadow:0 1px 2px #000;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-fallback{
+  padding:6px 8px;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-fallback>strong{
+  color:#fff2d6;
+  text-shadow:0 1px 3px #000;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-fallback>small{
+  color:#d9c59d;
+  text-shadow:0 1px 2px #000;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.active .wb-shaelvien-key-art{
+  filter:brightness(1.16) drop-shadow(0 0 7px rgba(34,151,255,.72));
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.danger .wb-shaelvien-key-art{
+  filter:sepia(.2) saturate(1.35) drop-shadow(0 0 6px rgba(255,54,54,.76));
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key:disabled .wb-shaelvien-key-art{
+  filter:grayscale(.55) brightness(.55);
+  opacity:.64;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-key:focus-visible{
+  outline:3px solid #ffe08b!important;
+  outline-offset:1px!important;
+}
+
+/* D-pad artwork changes with the active keyboard, but its trusted action path does not. */
+.wb-device-keyboard.wb-shaelvien-skinned .wb-dpad-key{
+  position:relative;
+  overflow:hidden;
+  border:0;
+  border-radius:8px;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  text-shadow:none!important;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-dpad-key .wb-shaelvien-dpad-art{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  pointer-events:none;
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-dpad-readout{
+  color:#e4c98f;
+  text-shadow:0 1px 2px #000;
+}
+
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor input,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor textarea,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor select,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-admin-field input,
+.wb-device-keyboard.wb-shaelvien-skinned .wb-admin-field select{
+  border:1px solid rgba(208,161,79,.58);
+  background:rgba(7,14,21,.96);
+  color:#fff1d2;
+  box-shadow:inset 0 0 10px rgba(26,86,140,.12);
+}
+.wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor button{
+  border:1px solid rgba(220,174,92,.62);
+  background:linear-gradient(180deg,#243a4d,#101d29);
+  color:#fff0cc;
+}
+
+.worldbuilder-studio.wb-access-large .wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+  padding-left:174px!important;
+  padding-right:0!important;
+}
+
+@media(max-width:430px){
+  .worldbuilder-studio{--wb-device-keyboard-h:260px}
+  .wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+    padding-left:124px!important;
+    padding-right:0!important;
+  }
+  .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{left:4px!important;right:auto!important}
+  .wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-exact>small{font-size:7px;right:5px;bottom:4px}
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  .worldbuilder-studio{--wb-device-keyboard-h:205px}
+  .wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+    padding-left:116px!important;
+    padding-right:0!important;
+  }
+  .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{left:4px!important;right:auto!important}
+}
