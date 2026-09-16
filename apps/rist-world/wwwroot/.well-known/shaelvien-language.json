@@ -8,14 +8,17 @@
     "status": "experimental",
     "description": "A semantic programming and transport language in which stable meaning is identified independently from source spelling, file location, representation, and browser rendering.",
     "identity_rule": "Semantic identity is stable; representations may vary.",
-    "source_of_truth_rule": "Until the semantic compiler/runtime is declared authoritative, executable repository source remains runtime truth and this manifest governs interpretation, generation, translation, and validation."
+    "source_of_truth_rule": "Until the semantic compiler/runtime is declared authoritative, executable repository source remains runtime truth and the canonical language contract governs interpretation, generation, translation, and validation."
   },
   "discovery": {
+    "canonical_contract": ".code-index/humans_language.json",
+    "canonical_contract_sha256": "5330b22f80a04f9c41e642eb4b7b939afb153543e97504fa5a8c11c85a5d5a04",
     "canonical_manifest": "apps/rist-world/wwwroot/.well-known/shaelvien-language.json",
     "machine_url": "/.well-known/shaelvien-language.json",
     "hidden_reference_page": "/_shaelvien-language.html",
     "agent_entrypoint": "AGENTS.md",
     "canonical_sources": [
+      ".code-index/humans_language.json",
       "docs/HUMANS_LANGUAGE.md",
       "docs/CODE_DATABASE_ARCHITECTURE.md",
       "docs/ERROR_GRAPH.md",
@@ -139,14 +142,14 @@
     "rule": "Normalized recurring failures are linked to code IDs/CHIDs and, where known, Rune/Glyph semantics. A previously resolved failure that reappears is a regression, distinct from an ordinary repeat."
   },
   "agent_bootstrap": [
-    "Read this manifest before generating, translating, refactoring, or decoding Shaelvien semantic code.",
-    "Load the canonical sources listed under discovery when the task touches their domain.",
+    "Read .code-index/humans_language.json before generating, translating, refactoring, or decoding Shaelvien semantic code.",
+    "Use this deployed manifest for discovery and compatibility metadata, then load the canonical sources listed under discovery when the task touches their domain.",
     "Search existing CHIDs and semantic units before creating a new concept; reuse identity when the concept is the same.",
     "Do not infer semantic identity from spelling, filename, line number, ASCII token, or target-language syntax.",
     "Keep FACT, HYPOTHESIS, FICTION, and UNKNOWN distinct and explicit.",
-    "Treat compact-token examples as non-canonical unless a later manifest version marks their grammar canonical.",
+    "Treat compact-token examples as non-canonical unless a later contract version marks their grammar canonical.",
     "Preserve provenance and authority boundaries in generated code and translations.",
-    "When repository behavior and this experimental manifest disagree, do not silently rewrite working behavior; report the mismatch and preserve executable truth while the semantic layer is reconciled."
+    "When repository behavior and this experimental language layer disagree, do not silently rewrite working behavior; report the mismatch and preserve executable truth while the semantic layer is reconciled."
   ],
   "compatibility": {
     "current_targets": [
