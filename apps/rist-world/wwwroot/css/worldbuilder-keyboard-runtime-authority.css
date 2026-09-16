@@ -1,0 +1,203 @@
+/* World Builder keyboard runtime authority.
+   Fixes the mixed percentage/pixel collapse introduced by the responsive pass.
+   Sections and button boxes remain percentage based; artwork, semantics and actions
+   remain owned by their existing authorities. */
+
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+  --wb-runtime-dpad-section:24%;
+  box-sizing:border-box;
+  display:grid!important;
+  grid-template-rows:12% 3% 17% 68%!important;
+  grid-template-columns:100%!important;
+  align-items:stretch;
+  overflow:hidden;
+  pointer-events:auto!important;
+}
+
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-grabber-row{
+  grid-row:1!important;
+  grid-column:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned>.wb-device-grabber{
+  grid-row:2!important;
+  grid-column:1!important;
+  align-self:center!important;
+  justify-self:center!important;
+  width:12%!important;
+  height:28%!important;
+  min-height:2px!important;
+  max-height:5px!important;
+  margin:0!important;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode-row{
+  grid-row:3!important;
+  grid-column:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:1% 0!important;
+  pointer-events:auto!important;
+  position:relative!important;
+  z-index:8!important;
+}
+
+/* Use the uploaded Shaelvien blank/active key assets for mode selectors too. */
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+  box-sizing:border-box!important;
+  flex:0 0 15%!important;
+  width:15%!important;
+  min-width:15%!important;
+  height:92%!important;
+  padding:0 1%!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/runtime/worldbuilder/keyboards/v1/common/blank.png")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  color:#fff0cb!important;
+  text-shadow:0 1px 3px #000!important;
+  box-shadow:none!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode[aria-selected="true"]{
+  background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/runtime/worldbuilder/keyboards/v1/common/active.png")!important;
+  color:#fff!important;
+}
+
+/* The real uploaded keyboard design is six keys across by two rows beside the D-pad. */
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-keys{
+  grid-row:4!important;
+  grid-column:1!important;
+  box-sizing:border-box!important;
+  position:relative!important;
+  left:var(--wb-runtime-dpad-section)!important;
+  width:calc(100% - var(--wb-runtime-dpad-section))!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:1% 1% 2%!important;
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(0,48%)!important;
+  grid-auto-flow:row!important;
+  gap:2%!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  pointer-events:auto!important;
+  z-index:6!important;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-key{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+  background-color:transparent!important;
+  background-image:url("https://d2d6rnm6fnsp89.cloudfront.net/runtime/worldbuilder/keyboards/v1/common/blank.png");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+}
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-key.wb-shaelvien-key-exact{
+  background-image:none!important;
+}
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-shaelvien-key-art,
+.worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-shaelvien-dpad-art{
+  pointer-events:none!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  -webkit-user-drag:none!important;
+}
+
+/* Permanent left control bay uses the same percentage key field, never mixed units. */
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+  box-sizing:border-box!important;
+  position:absolute!important;
+  left:1%!important;
+  right:auto!important;
+  top:32%!important;
+  bottom:2%!important;
+  width:calc(var(--wb-runtime-dpad-section) - 2%)!important;
+  height:auto!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,31%)!important;
+  grid-template-rows:12% repeat(3,27%)!important;
+  gap:2%!important;
+  align-content:space-between!important;
+  justify-content:space-between!important;
+  pointer-events:auto!important;
+  z-index:9!important;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-dpad-key{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Visual confirmation that an iOS touch was accepted. */
+.worldbuilder-studio .wb-device-keyboard button.wb-touch-active{
+  filter:brightness(1.28) drop-shadow(0 0 7px rgba(61,162,255,.72))!important;
+  transform:scale(.97);
+}
+
+/* Data/Admin editors can exceed the two-row artwork matrix; they retain scrolling. */
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard[data-shaelvien-keyboard-mode="admin"] .wb-device-keys,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard[data-shaelvien-keyboard-mode="widgets"] .wb-device-keys{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(38%,auto)!important;
+  gap:2%!important;
+}
+
+@media(max-width:768px){
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-runtime-dpad-section:24%;
+  }
+  .worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:22%!important;
+    width:22%!important;
+    min-width:22%!important;
+  }
+}
+
+@media(max-width:430px){
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-runtime-dpad-section:26%;
+  }
+  .worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:25%!important;
+    width:25%!important;
+    min-width:25%!important;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-keys{
+    gap:1.4%!important;
+    padding-left:.6%!important;
+    padding-right:.6%!important;
+  }
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-runtime-dpad-section:18%;
+  }
+  .worldbuilder-studio .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:14%!important;
+    width:14%!important;
+    min-width:14%!important;
+  }
+}
