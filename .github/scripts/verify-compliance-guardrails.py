@@ -39,6 +39,7 @@ required_files = [
     "apps/rist-world/wwwroot/shaelvien-input-runtime.js",
     "apps/rist-world/wwwroot/shaelvien-client-perception.js",
     "apps/rist-world/wwwroot/shaelvien-adaptive-perception.js",
+    "apps/rist-world/wwwroot/shaelvien-perception-planner.js",
     "apps/rist-world/wwwroot/shaelvien-language-perception-bridge.js",
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
     "apps/rist-world/wwwroot/worldbuilder-camera-window.js",
@@ -100,7 +101,7 @@ require_text("apps/rist-world/wwwroot/privacy.html", ["not intended for children
 require_text("apps/rist-world/wwwroot/safety.html", ["TAKE IT DOWN", "within 48 hours"])
 
 # Site boot must keep the semantic membrane active. The order matters: core runtime first,
-# then wire/perception/input/client negotiation/adaptive scheduling; language bridge only after the language runtime.
+# then wire/perception/input/client negotiation/adaptive scheduling/planning; language bridge only after language runtime.
 index = require_file("apps/rist-world/wwwroot/index.html").read_text(encoding="utf-8")
 boot_sequence = [
     "shaelvien-semantic-runtime.js",
@@ -109,6 +110,7 @@ boot_sequence = [
     "shaelvien-input-runtime.js",
     "shaelvien-client-perception.js",
     "shaelvien-adaptive-perception.js",
+    "shaelvien-perception-planner.js",
 ]
 positions = [index.find(item) for item in boot_sequence]
 if any(position < 0 for position in positions) or positions != sorted(positions):
@@ -123,11 +125,21 @@ for required in [
 if index.find("shaelvien-language-perception-bridge.js") < index.find("ui-language-sitewide.js"):
     raise SystemExit("COMPLIANCE GUARDRAIL FAILED: language perception bridge loads before language runtime")
 
+# Migrated presentation scripts must use evolved cache keys so successful deployment actually reaches returning clients.
+for cache_key in [
+    "shaelvien-perception-planner.js?v=20260916-perception-planner-1",
+    "shaelvien-worldbuilder-perception-bridge.js?v=20260916-semantic-worldbuilder-3",
+    "worldbuilder-camera-window.js?v=20260916-adaptive-camera-1",
+    "worldbuilder-drag-preview.js?v=20260916-adaptive-preview-1",
+]:
+    if cache_key not in index:
+        raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: evolved runtime cache key missing from index.html: {cache_key}")
+
 # All Shaelvien runtime/bridge scripts must remain registry-based rather than arbitrary source execution.
-for runtime in sorted((ROOT / "apps/rist-world/wwwroot").glob("shaelvien-*.js")):
-    source = runtime.read_text(encoding="utf-8")
+for runtime_file in sorted((ROOT / "apps/rist-world/wwwroot").glob("shaelvien-*.js")):
+    source = runtime_file.read_text(encoding="utf-8")
     if "eval(" in source or "new Function(" in source:
-        relative = runtime.relative_to(ROOT)
+        relative = runtime_file.relative_to(ROOT)
         raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: arbitrary source execution found in {relative}")
 
 # Capability negotiation must remain privacy-coarse and local by default.
@@ -139,6 +151,25 @@ require_text(
         "It is intentionally not sent through the semantic transport automatically",
     ],
 )
+
+# The planner may select only among trusted authorized-equivalent offers. It is not an executor or authority layer.
+planner_path = "apps/rist-world/wwwroot/shaelvien-perception-planner.js"
+require_text(
+    planner_path,
+    [
+        "authorized and presentation-equivalent",
+        "does not grant authority",
+        "offer.authorizedEquivalent !== true",
+        "accessibilityCompatible",
+        "authority: \"none\"",
+        "executes: false",
+        "localOnly: true",
+    ],
+)
+planner_source = require_file(planner_path).read_text(encoding="utf-8")
+for forbidden in ["runtime.receive(", "runtime.applyPerception(", "runtime.emitDeclaredIntent(", "fetch("]:
+    if forbidden in planner_source:
+        raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: perception planner acquired execution/transport behavior: {forbidden}")
 
 # Adaptive scheduling is allowed to lose obsolete perception, never truth or intent.
 require_text(
@@ -212,4 +243,4 @@ require_text(
     ],
 )
 
-print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, narrow Worldbuilder camera and transient placement-preview migrations, and no-arbitrary-execution invariants remain present.")
+print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, selection-only perception planning, adaptive-perception separation, narrow Worldbuilder camera and transient placement-preview migrations, cache delivery keys, and no-arbitrary-execution invariants remain present.")
