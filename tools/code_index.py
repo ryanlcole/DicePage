@@ -516,8 +516,9 @@ def iter_records(path: Path, text: str, language: str, category: str, registry: 
         if not raw.strip() or line_no in full_comment_lines:
             continue
         norm = normalize_space(raw)
-        code_occurrence[norm] += 1
-        fp = fingerprint(path, language, "code", norm, code_occurrence[norm])
+        identity_norm = normalize_space(strip_materialized_id(raw))
+        code_occurrence[identity_norm] += 1
+        fp = fingerprint(path, language, "code", identity_norm, code_occurrence[identity_norm])
         meta = {"kind": "code", "language": language, "path": rel(path), "text": norm}
         numeric = allocate_id(registry, fp, meta)
         yield {
