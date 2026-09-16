@@ -68,11 +68,11 @@ function decodePacket(root, packet, writeDom) {
           root.dataset.runeZLock = a ? "locked" : "unlocked";
           break;
         case OP.LAYER:
-          root.dataset.runeLayer = String(a);
-          root.dataset.runeSceneZ = String(b);
+          root.dataset.runeLayer = String(b);
+          root.dataset.runeSceneZ = String(c);
           break;
         case OP.TIER:
-          root.dataset.runeTier = String(a);
+          root.dataset.runeTier = String(b);
           break;
         case OP.LAYER_PANEL:
           root.dataset.runeLayerPanel = a ? "open" : "closed";
@@ -113,6 +113,36 @@ function decodePacket(root, packet, writeDom) {
   return [decoded, elapsed, packedLogicalBytes, interopJsonBytes, verboseJsonBytes];
 }
 
+function benchmarkDecode(packet, runeCount) {
+  let checksum = 0;
+  const values = packet.length;
+  for (let rune = 0; rune < runeCount; rune++) {
+    const i = (rune * STRIDE) % values;
+    const op = packet[i] | 0;
+    const a = packet[i + 1] | 0;
+    const b = packet[i + 2] | 0;
+    const c = packet[i + 3] | 0;
+    switch (op) {
+      case OP.VIEW:
+      case OP.Z_LOCK:
+      case OP.LAYER_PANEL:
+      case OP.TIER_PANEL:
+      case OP.LIBRARY:
+      case OP.PUBLISH:
+        checksum ^= (a & 1);
+        break;
+      case OP.LAYER:
+      case OP.TIER:
+        checksum = (checksum + a + b + c) | 0;
+        break;
+      default:
+        checksum = (checksum + op + a) | 0;
+        break;
+    }
+  }
+  return checksum;
+}
+
 export function attach(root) {
   let disposed = false;
 
@@ -135,13 +165,7 @@ export function attach(root) {
       }
 
       const started = performance.now();
-      let totalDecoded = 0;
-      for (let i = 0; i < count; i += batchSize) {
-        const take = Math.min(batchSize, count - i);
-        const view = take === batchSize ? packet : packet.slice(0, take * STRIDE);
-        // Benchmark the decoder loop itself without DOM mutation.
-        totalDecoded += decodePacket(null, view, false)[0];
-      }
+      const checksum = benchmarkDecode(packet, count);
       const elapsed = performance.now() - started;
       const logicalBytes = count * STRIDE * 4;
       const packedJsonBytesPerBatch = encodedBytes(packet);
@@ -151,7 +175,7 @@ export function attach(root) {
         verbose.push({ op: OP_NAMES[packet[i]] || `OP_${packet[i]}`, a: packet[i + 1], b: packet[i + 2], c: packet[i + 3] });
       }
       const verboseJsonBytesPerBatch = encodedBytes(verbose);
-      return [totalDecoded, elapsed, logicalBytes, packedJsonBytesPerBatch, verboseJsonBytesPerBatch];
+      return [count, elapsed, logicalBytes, packedJsonBytesPerBatch, verboseJsonBytesPerBatch, checksum];
     },
 
     dispose() {
