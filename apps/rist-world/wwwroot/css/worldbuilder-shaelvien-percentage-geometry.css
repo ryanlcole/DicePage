@@ -141,6 +141,10 @@
   --wb-shaelvien-dpad-section:24%;
   --wb-shaelvien-key-section:76%;
 }
+body .worldbuilder-studio.wb-access-large:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+  padding-left:0!important;
+  padding-right:0!important;
+}
 @media(max-width:430px){
   .worldbuilder-studio.wb-access-large:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
     --wb-shaelvien-dpad-section:34%;
