@@ -7,7 +7,7 @@
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const viewer=()=>studio()?.querySelector('.studio-viewer-canvas')||null;
- const grid=()=>studio()?.querySelector('.studio-viewer-grid')||viewer();
+ const gridElement=()=>studio()?.querySelector('.studio-viewer-grid')||null;
  const authority=()=>window.ristViewerAuthority;
 
  function ensureStyle(){
@@ -35,8 +35,9 @@
   return 12;
  }
  function squareGridRect(){
-  const node=grid();
-  const rect=node?.getBoundingClientRect();
+  const marker=gridElement();
+  let rect=marker?.getBoundingClientRect();
+  if(!rect||rect.width<1||rect.height<1)rect=viewer()?.getBoundingClientRect();
   if(!rect||rect.width<1||rect.height<1)return null;
   const side=Math.min(rect.width,rect.height);
   return{left:rect.left+((rect.width-side)/2),top:rect.top+((rect.height-side)/2),width:side,height:side};
