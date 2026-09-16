@@ -5,6 +5,7 @@
   "materialize_comment_ids": true,
   "prune_explicit_stale": true,
   "fail_on_new_exact_source_duplicates": true,
+  "baseline_existing_exact_source_duplicates": true,
   "tracked_code_extensions": [
     ".py", ".cs", ".razor", ".cshtml", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx",
     ".html", ".htm", ".css", ".scss", ".ps1", ".psm1", ".sh", ".bash", ".bat", ".cmd",
@@ -31,6 +32,6 @@
   ],
   "preserve_stale_paths": [],
   "materialize_languages": [
-    "python", "csharp", "razor", "javascript", "typescript", "html", "css", "powershell", "shell", "batch", "c", "cpp", "java", "kotlin", "swift", "go", "rust", "sql", "yaml"
+    "python"
   ]
 }
