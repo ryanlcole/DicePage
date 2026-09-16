@@ -6,13 +6,16 @@ This repository contains an experimental semantic programming language used by S
 
 Before generating, translating, refactoring, decoding, or inventing compact Shaelvien semantic code, read:
 
-1. `apps/rist-world/wwwroot/.well-known/shaelvien-language.json` — canonical machine-readable language manifest.
-2. `docs/HUMANS_LANGUAGE.md` — human-readable epistemic/control-flow surface.
-3. `docs/CODE_DATABASE_ARCHITECTURE.md` — CHID identity and relationship database.
-4. `.code-index/semantic_units.json` — registered Rune/Glyph/SHAEP forms and equivalence conditions.
-5. `docs/ERROR_GRAPH.md` — recurring error/regression semantics.
+1. `.code-index/humans_language.json` — canonical machine-readable language contract.
+2. `apps/rist-world/wwwroot/.well-known/shaelvien-language.json` — deployed discovery/compatibility manifest.
+3. `docs/HUMANS_LANGUAGE.md` — human-readable epistemic/control-flow surface.
+4. `docs/CODE_DATABASE_ARCHITECTURE.md` — CHID identity and relationship database.
+5. `.code-index/semantic_units.json` — registered Rune/Glyph/SHAEP forms and equivalence conditions.
+6. `docs/ERROR_GRAPH.md` — recurring error/regression semantics.
 
-The deployed hidden reference page is `/_shaelvien-language.html`. It is intentionally absent from normal navigation and search indexing. The machine endpoint is `/.well-known/shaelvien-language.json`.
+The deployed hidden reference page is `/_shaelvien-language.html`. It is intentionally absent from normal navigation and search indexing. The machine discovery endpoint is `/.well-known/shaelvien-language.json`.
+
+The canonical contract and deployed manifest share a language version. The manifest also records the canonical contract SHA-256; governance CI must fail if they drift.
 
 ## Non-negotiable semantic rules
 
@@ -24,7 +27,7 @@ The deployed hidden reference page is `/_shaelvien-language.html`. It is intenti
 - SHAEP preserves identity across payload/representation changes.
 - FACT, HYPOTHESIS, FICTION, and UNKNOWN are separate truth domains. Never silently promote one into another.
 - `Whatif` enters hypothesis space. `Maybe` means unresolved/unknown, not random chance. `Because` attaches rationale/provenance and does not prove causation.
-- Compact forms such as `i3r20` are examples, not a frozen grammar, until the manifest explicitly marks a versioned grammar canonical.
+- Compact forms such as `i3r20` are examples, not a frozen grammar, until the canonical contract explicitly marks a versioned grammar canonical.
 - Search and reuse existing CHIDs/semantic units before creating a duplicate concept.
 - Text equality does not prove semantic equality. Record relation type and conditions.
 
@@ -38,6 +41,6 @@ The language may be public; authority determines what it is allowed to do.
 
 ## Change discipline
 
-Executable repository behavior remains runtime truth until the semantic compiler/runtime is explicitly promoted to authoritative execution. If the manifest and working implementation disagree, preserve working behavior, identify the mismatch, and reconcile the semantic layer rather than silently changing behavior.
+Executable repository behavior remains runtime truth until the semantic compiler/runtime is explicitly promoted to authoritative execution. If the contract/manifest and working implementation disagree, preserve working behavior, identify the mismatch, and reconcile the semantic layer rather than silently changing behavior.
 
 Never push project work to `main`; the active project branch is `live-alpha-rist-blazor-world` unless the user explicitly changes that policy.
