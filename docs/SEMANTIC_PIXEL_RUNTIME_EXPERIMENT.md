@@ -51,6 +51,10 @@ The resolver does not map RGB, CSS position, dimensions, or render mode to meani
 
 The `RUN PROOF` control executes a four-state browser-side mutation sequence against one DOM representation and reports whether the attached semantic reference remained byte-for-byte stable.
 
+## Validation harness
+
+The experiment branch contains `.github/workflows/validate-semantic-pixel-experiment.yml`. It performs a JavaScript module syntax check, runs the same public-data preparation used by the frontend delivery workflow, and publishes `apps/rist-world/RistWorld.csproj` in Release mode without AWS credentials or deployment steps.
+
 ## Promotion rule
 
 A successful experiment proves only the local mechanism. Promotion into the canonical semantic registry/runtime requires a separate deliberate change that defines versioned identities, relations, authority, provenance, and compatibility behavior. Do not silently reinterpret these `EXP:` references as canonical language forms.
