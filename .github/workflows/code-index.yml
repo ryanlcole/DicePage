@@ -40,6 +40,34 @@ jobs:
       - name: Build CHID relationship and error database
         run: python tools/code_database.py build
 
+      - name: Flag repeated and regressed errors
+        shell: bash
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          path = Path('.code-index/code_graph.sqlite3')
+          if not path.exists():
+              raise SystemExit(0)
+
+          db = sqlite3.connect(path)
+          rows = db.execute('''
+              SELECT error_id, language, error_code, occurrence_count,
+                     repeat_flag, regression_flag, normalized_message
+              FROM error_signatures
+              WHERE repeat_flag = 1 OR regression_flag = 1
+              ORDER BY regression_flag DESC, occurrence_count DESC, error_id
+          ''').fetchall()
+          db.close()
+
+          for error_id, language, error_code, count, repeat_flag, regression_flag, message in rows:
+              level = 'REGRESSION' if regression_flag else 'REPEATED'
+              code = f' {error_code}' if error_code else ''
+              clean = (message or '').replace('\n', ' ')[:700]
+              print(f'::warning title={level} {language} error::{error_id}{code} seen {count} times — {clean}')
+          PY
+
       - name: Verify governance invariants
         run: python tools/code_index.py verify
 
