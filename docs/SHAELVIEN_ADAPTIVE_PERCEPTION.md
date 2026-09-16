@@ -94,6 +94,28 @@ The adaptive scheduler does not intercept `runtime.receive()` automatically. Exi
 
 This preserves working behavior while migration proceeds incrementally.
 
+## First migrated surface: Worldbuilder auto camera
+
+The first production-facing migration is deliberately narrow.
+
+`shaelvien-worldbuilder-perception-bridge.js` owns the runtime-local presentation stream `worldbuilder.camera`. It can build a registered Worldbuilder camera perception envelope and enqueue it through `Shaelvien.AdaptivePerception` with a local monotonically increasing presentation sequence.
+
+`worldbuilder-camera-window.js` uses that adaptive stream only for automatic camera-window recalculation such as responsive resize/orientation/layout updates while the viewer is in automatic camera mode. These updates are marked supersedable because only the newest pending automatic camera perception matters.
+
+The following remain deliberately outside that adaptive path during this phase:
+
+- manual zoom/control calls;
+- viewer grid enable/disable;
+- camera navigation lock;
+- asset placement or removal;
+- coordinates that define world truth;
+- save/load/publish operations;
+- permissions, content gates, legal agreements, payments, moderation, or account actions.
+
+If the adaptive camera queue is unavailable or rejects execution, the camera-window falls back to the previous direct `ristViewerAuthority` automatic-zoom path. Manual camera state continues to use the existing synchronous viewer authority path.
+
+This is the migration pattern for later surfaces: first identify presentation-only state, preserve the old implementation as a fallback, add one semantic/adaptive boundary, and promote further only after runtime and governance checks remain healthy.
+
 ## Safety and compliance
 
 `docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md` remains higher authority than this experimental layer.
