@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />
   <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet" />
+  <meta name="referrer" content="no-referrer" />
   <title>Shaelvien Semantic Language Reference</title>
   <style>
     :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    body { margin: 0; background: #0d1015; color: #e7edf5; }
+    body { margin: 0; background: #0d1015; color: #e7edf5; line-height: 1.5; }
     main { max-width: 1040px; margin: 0 auto; padding: 28px 18px 64px; }
     h1, h2 { font-family: system-ui, sans-serif; }
     h1 { margin-bottom: 4px; }
@@ -27,18 +28,18 @@
 <body>
 <main>
   <h1>Shaelvien Semantic Language</h1>
-  <div class="subtle">Developer / agent reference <span class="status">experimental v0.1.0</span></div>
+  <div class="subtle">Developer / agent reference <span class="status">experimental language contract v0.1.0</span></div>
 
-  <p class="notice"><strong>Hidden reference:</strong> this page is intentionally absent from normal site navigation and requests no search indexing. It is a discovery/documentation surface, not an authentication or security boundary. The language may be public; authority determines what it is allowed to do.</p>
+  <p class="notice"><strong>Hidden reference:</strong> this page is intentionally absent from normal site navigation and requests no search indexing. It is a discovery/documentation surface, not an authentication or security boundary. No secrets belong here. The language may be public; authority determines what it is allowed to do.</p>
 
   <h2>Agent bootstrap</h2>
   <ol>
-    <li>Repository coding agents load <code>.code-index/humans_language.json</code> as the canonical machine-readable contract.</li>
-    <li>Deployed tools discover that contract through <a href="/.well-known/shaelvien-language.json"><code>/.well-known/shaelvien-language.json</code></a>; the manifest carries the canonical path, version, and SHA-256.</li>
-    <li>Use the repository sources named by that manifest when generating or modifying semantic code.</li>
+    <li>Repository coding agents load <code>.code-index/humans_language.json</code> as the canonical machine-readable language contract.</li>
+    <li>Load <code>docs/SHAELVIEN_SEMANTIC_LANGUAGE.md</code> for the current Rune/Glyph/SHAEP/CHID/CCTV, permission, perception, compact-stream, and pixel/property architecture reference.</li>
+    <li>Deployed tools discover compatibility metadata through <a href="./.well-known/shaelvien-language.json"><code>/Game/.well-known/shaelvien-language.json</code></a>; the manifest carries the canonical contract path, version, and SHA-256.</li>
     <li>Search existing CHIDs and Rune/Glyph/SHAEP units before inventing a new concept.</li>
-    <li>Never infer identity from spelling, source line, target language, compact ASCII token, or UI representation.</li>
-    <li>Preserve provenance, truth domain, authority scope, and error relationships.</li>
+    <li>Never infer identity from spelling, source line, target language, compact ASCII token, numeric opcode, pixel, or UI representation.</li>
+    <li>Preserve provenance, truth domain, authority scope, hidden-state boundaries, and error relationships.</li>
   </ol>
 
   <h2>Core identities</h2>
@@ -47,10 +48,19 @@
     <tbody>
       <tr><td><code>CHID</code></td><td>Persistent semantic code identity independent of name, path, line, language, and UI representation.</td></tr>
       <tr><td><code>RUNE</code></td><td>Atomic semantic operation or intent.</td></tr>
-      <tr><td><code>GLYPH</code></td><td>Compound behavior composed from Runes and/or other Glyphs.</td></tr>
-      <tr><td><code>SHAEP</code></td><td>Persistent identity/preservation object whose representations or payload references may change without changing identity.</td></tr>
+      <tr><td><code>GLYPH</code></td><td>Contextual or compound meaning composed from Runes and/or other Glyphs.</td></tr>
+      <tr><td><code>SHAEP</code></td><td>Spatial Hot Preservation Object. Current authoritative format is SHAEP v2: stable <code>ShaepId</code>, preserved source/provenance, and a canonical hot archive representation.</td></tr>
+      <tr><td><code>CCTV</code></td><td>Trusted context translation/verification boundary under development. Its long-form expansion is not yet canon and must not be invented by tooling.</td></tr>
     </tbody>
   </table>
+
+  <h2>Core rules</h2>
+  <pre>Identity != representation
+Representation != truth
+Server = authoritative truth
+Viewer = authorized perception
+Unknown semantic meaning = reject or UNKNOWN; never guess
+Compactness / obscurity != security</pre>
 
   <h2>Truth domains</h2>
   <table>
@@ -59,60 +69,95 @@
       <tr><td><code>FACT</code></td><td>Asserted true inside the declared real/system scope with evidence or provenance.</td></tr>
       <tr><td><code>HYPOTHESIS</code></td><td>A possibility being explored; it cannot silently mutate FACT.</td></tr>
       <tr><td><code>FICTION</code></td><td>Invented/world-canon truth inside its fictional scope without claiming real-world truth.</td></tr>
-      <tr><td><code>UNKNOWN</code></td><td>Unresolved or insufficiently supported; not random chance.</td></tr>
+      <tr><td><code>UNKNOWN</code></td><td>Unresolved or insufficiently supported; not FALSE and not random chance.</td></tr>
     </tbody>
   </table>
+
+  <h2>Typed booleans</h2>
+  <p>The semantic layer uses typed <code>TRUE</code>/<code>FALSE</code>, with epistemic <code>UNKNOWN</code> where a schema permits it. Numeric <code>0</code>, <code>1</code>, and <code>-1</code> have no universal semantic truth meaning. A target or wire format may map a number to a boolean only when its schema explicitly declares that mapping.</p>
 
   <h2>Humans surface</h2>
   <p><code>If Then Whatif Maybe Maybeif Else Elseif Dont Because</code></p>
   <p><code>Whatif</code> explicitly enters hypothesis space. <code>Maybe</code> expresses UNKNOWN/uncertainty. <code>Because</code> attaches evidence, provenance, or rationale and does not itself prove causation.</p>
 
-  <h2>Representation rules</h2>
-  <ul>
-    <li>Identity is not output equivalence.</li>
-    <li>Representation is not truth.</li>
-    <li>ASCII symbols, numeric opcodes, C#/JS/Python/SQL syntax, JSON keys, binary encodings, and visual controls are representations of semantic identities.</li>
-    <li>Text duplication does not automatically mean semantic duplication.</li>
-    <li>Equivalence must name its relation type and conditions.</li>
-  </ul>
+  <h2>CCTV / contextual capability</h2>
+  <pre>authenticated/effective identity
+ + protected resource / SHAEP
+ + active containment path
+ + intent / trusted context
+          |
+          v
+        CCTV
+          |
+          v
+contextual capability Glyph
+          |
+          v
+ allowlisted Rune/result stream</pre>
+  <p>Recursive Authority remains authoritative. Credentials stay on the trusted side. CCTV exposes capability, not the credential that created it, and denies ambiguous permission paths rather than guessing.</p>
+
+  <h2>Map / perception request</h2>
+  <pre>H52|C1|X23|Y42|Z74|T1|L9|I</pre>
+  <p>This is a conceptual example, not frozen grammar: Human 52, Character 1, X=23, Y=42, Z=74, Tier=1, Layer=9, intent Inspect.</p>
+  <pre>identity
+ -> character
+ -> coordinate/tier/layer lookup
+ -> world object / SHAEP
+ -> Recursive Authority
+ -> character metadata + perception rules
+ -> authoritative roll/check when required
+ -> contextual Glyph
+ -> revealed Rune/value stream</pre>
+  <p>Hidden traps, reveal DCs/thresholds, GM notes, secret objects, and other unrevealed truth remain on the trusted side until the resolved context authorizes reveal. Hiding protected facts in DOM/CSS/browser memory is not security.</p>
+
+  <h2>Pixel / property rule</h2>
+  <pre>pixel / screen position
+ -> current representation node / hit target
+ -> CHID or semantic UI identity
+ -> permitted Rune/Glyph action</pre>
+  <p>A pixel locates a representation at one moment; it is not the persistent identity of a Login button or another control. Responsive layout, localization, zoom, and accessibility may change the pixels while preserving the same semantic identity and action.</p>
 
   <h2>Compact instruction streams</h2>
   <p>Forms such as <code>i3r20</code> are currently illustrative, not canonical grammar. A production format must be versioned and unambiguous about opcode identity, operand type/length, target/symbol identity, block boundaries, registry/schema version, provenance, and authority context.</p>
 
   <h2>Decoder / perception compiler</h2>
   <pre>incoming instruction/request
-  -> framing + version check
-  -> known Rune/Glyph?
-  -> operand schema/type/range validation
-  -> authentication + Recursive Authority/capability check
-  -> CHID/SHAEP resolution
-  -> resource/budget validation
-  -> authoritative server state transition
-  -> affected dependency delta
-  -> browser perception/rendering</pre>
+ -> framing + version check
+ -> known Rune/Glyph?
+ -> operand schema/type/range validation
+ -> authentication + Recursive Authority/capability check
+ -> CHID/SHAEP resolution
+ -> resource/budget validation
+ -> authoritative server state transition
+ -> affected dependency delta
+ -> browser perception/rendering</pre>
   <p>The browser is not authoritative world truth. It decodes approved semantic state into the representation appropriate for that client. Arbitrary <code>eval</code> or dynamic source execution is forbidden.</p>
 
-  <h2>Provenance</h2>
-  <p>Relevant semantic instructions, generated code, assets, and modifications preserve origin metadata: <code>HUMAN</code>, <code>OUTSIDER_AI</code>, or <code>SHAELVIEN_EI</code>. Unknown provenance defaults to the outsider/red boundary; editing AI-derived content does not erase its ancestry.</p>
-
-  <h2>Error law</h2>
-  <p>Errors become law. Recurring normalized failures should link to code IDs/CHIDs and, when known, Rune/Glyph semantics. A previously resolved failure that reappears is a regression and should be distinguished from an ordinary repeat.</p>
+  <h2>Provenance and error law</h2>
+  <p>Relevant semantic instructions, generated code, assets, and modifications preserve origin metadata: <code>HUMAN</code>, <code>OUTSIDER_AI</code>, or <code>SHAELVIEN_EI</code>. Errors become law: recurring normalized failures should link to code IDs/CHIDs and, when known, Rune/Glyph semantics; a regression is distinct from an ordinary repeat.</p>
 
   <h2>Canonical repository sources</h2>
   <pre>AGENTS.md
+SHAELVIEN_LANGUAGE.md
 .code-index/humans_language.json
+docs/SHAELVIEN_SEMANTIC_LANGUAGE.md
 apps/rist-world/wwwroot/.well-known/shaelvien-language.json
 docs/HUMANS_LANGUAGE.md
 docs/CODE_DATABASE_ARCHITECTURE.md
 docs/ERROR_GRAPH.md
 .code-index/semantic_units.json
-.code-index/chid_registry.json</pre>
+.code-index/chid_registry.json
+apps/rist-world/SHAEP_FORMAT.md
+apps/rist-world/AUTHORITY_SYSTEM.md</pre>
+
+  <h2>Fresh-chat behavior</h2>
+  <p>A new ChatGPT conversation does not automatically remember this language just because this page exists. The repository agent entry point, canonical contract, architecture reference, machine manifest, and this hidden page give a connected or repository-aware session a deterministic way to reload the current rules.</p>
 
   <h2>Machine-readable discovery manifest</h2>
-  <pre id="manifest">Loading /.well-known/shaelvien-language.json …</pre>
+  <pre id="manifest">Loading /Game/.well-known/shaelvien-language.json …</pre>
 </main>
 <script>
-  fetch('/.well-known/shaelvien-language.json', { cache: 'no-store' })
+  fetch('./.well-known/shaelvien-language.json', { cache: 'no-store' })
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
     .then(v => { document.getElementById('manifest').textContent = JSON.stringify(v, null, 2); })
     .catch(e => { document.getElementById('manifest').textContent = `Manifest unavailable: ${e.message}`; });

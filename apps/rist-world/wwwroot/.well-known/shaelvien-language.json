@@ -13,30 +13,42 @@
   "discovery": {
     "canonical_contract": ".code-index/humans_language.json",
     "canonical_contract_sha256": "5330b22f80a04f9c41e642eb4b7b939afb153543e97504fa5a8c11c85a5d5a04",
+    "architecture_reference": "docs/SHAELVIEN_SEMANTIC_LANGUAGE.md",
+    "repository_pointer": "SHAELVIEN_LANGUAGE.md",
     "canonical_manifest": "apps/rist-world/wwwroot/.well-known/shaelvien-language.json",
-    "machine_url": "/.well-known/shaelvien-language.json",
-    "hidden_reference_page": "/_shaelvien-language.html",
+    "machine_url": "/Game/.well-known/shaelvien-language.json",
+    "hidden_reference_page": "/Game/_shaelvien-language.html",
     "agent_entrypoint": "AGENTS.md",
     "canonical_sources": [
       ".code-index/humans_language.json",
+      "docs/SHAELVIEN_SEMANTIC_LANGUAGE.md",
       "docs/HUMANS_LANGUAGE.md",
       "docs/CODE_DATABASE_ARCHITECTURE.md",
       "docs/ERROR_GRAPH.md",
       ".code-index/semantic_units.json",
-      ".code-index/chid_registry.json"
+      ".code-index/chid_registry.json",
+      "apps/rist-world/SHAEP_FORMAT.md",
+      "apps/rist-world/AUTHORITY_SYSTEM.md"
     ]
   },
   "semantic_identities": {
     "CHID": "Code Handle ID. Persistent semantic identity for a code symbol independent of name, path, line, language, or UI representation.",
     "RUNE": "Atomic semantic operation or intent.",
-    "GLYPH": "Compound behavior composed from Runes and/or other Glyphs.",
-    "SHAEP": "Persistent identity/preservation object whose representations or payload references may change without changing identity."
+    "GLYPH": "Contextual or compound meaning composed from Runes and/or other Glyphs.",
+    "SHAEP": "Spatial Hot Preservation Object. Current authoritative format is SHAEP v2: persistent ShaepId, preserved native source/provenance, and a canonical hot archive representation.",
+    "CCTV": "Trusted context translation/verification boundary under development. It resolves authenticated/effective identity, protected resource context, Recursive Authority path, and intent into contextual capability. Its long-form expansion is not yet canon."
   },
   "epistemic_domains": {
     "FACT": "Asserted true inside the declared real/system scope with evidence or provenance.",
     "HYPOTHESIS": "A possibility being explored. It must not silently mutate FACT.",
     "FICTION": "Deliberately invented or world-canon material. It may be true inside a fictional scope without becoming a real-world FACT.",
-    "UNKNOWN": "Unresolved or insufficiently supported. UNKNOWN is not random chance."
+    "UNKNOWN": "Unresolved or insufficiently supported. UNKNOWN is not false and is not random chance."
+  },
+  "boolean_semantics": {
+    "semantic_values": ["TRUE", "FALSE"],
+    "epistemic_unknown": "UNKNOWN is available where the active schema/domain permits epistemic uncertainty.",
+    "implicit_numeric_truthiness": false,
+    "rule": "Numeric 0, 1, and -1 have no universal boolean meaning in the semantic layer. A target or wire representation may map numbers to booleans only when that mapping is explicitly declared by its schema."
   },
   "humans_surface": {
     "name": "Humans",
@@ -56,7 +68,7 @@
   "representation_rules": [
     "Identity is not output equivalence.",
     "Representation is not truth.",
-    "ASCII characters, source-language keywords, numeric opcodes, JSON names, binary encodings, and UI controls are representations of semantic identities; they are not the identities themselves.",
+    "ASCII characters, source-language keywords, numeric opcodes, JSON names, binary encodings, pixels, and UI controls are representations of semantic identities; they are not the identities themselves.",
     "Values are operands/results and are not generally equal to the operations that consume or produce them.",
     "Textually duplicated code is not automatically semantically duplicated code.",
     "A semantic relation must declare its relation type and any conditions under which equivalence holds."
@@ -64,9 +76,12 @@
   "relation_types": [
     "exact_identity",
     "alias",
+    "implements_intent",
+    "implements_behavior",
     "contextual_semantic_equivalence",
     "behavioral_equivalence",
     "representation_equivalence",
+    "payload_representation",
     "subset",
     "superset",
     "transforms_to",
@@ -97,6 +112,35 @@
       "authority/capability context for state-changing requests"
     ]
   },
+  "cctv_contract": {
+    "status": "architecture-under-development",
+    "long_form_name": null,
+    "input": "authenticated identity + effective/delegated identity when applicable + protected resource/SHAEP + active authority path + intent + trusted context",
+    "output": "contextual capability Glyph and/or allowlisted Rune stream",
+    "rule": "Expose capability without exposing the credential that created it. Resolve Recursive Authority on the trusted side and deny ambiguous permission paths rather than guessing."
+  },
+  "perception_request_model": {
+    "conceptual_example": "H52|C1|X23|Y42|Z74|T1|L9|I",
+    "example_is_canonical_grammar": false,
+    "meaning": "Human 52, Character 1, X=23, Y=42, Z=74, Tier=1, Layer=9, Intent=Inspect.",
+    "trusted_resolution_order": [
+      "authenticated/effective identity",
+      "character identity",
+      "coordinate/tier/layer lookup",
+      "world object and SHAEP resolution",
+      "Recursive Authority",
+      "character metadata and perception rules",
+      "authoritative roll/check resolution when required",
+      "contextual Glyph",
+      "revealed Rune/value stream"
+    ],
+    "hidden_state_rule": "Hidden traps, reveal thresholds/DCs, GM notes, unrevealed objects, and other protected facts remain on the trusted side until reveal is authorized."
+  },
+  "pixel_property_model": {
+    "rule": "A pixel or screen coordinate locates a current representation; it is not persistent semantic identity.",
+    "resolution": "pixel/screen position -> current representation node/hit target -> CHID or semantic UI identity -> permitted Rune/Glyph action",
+    "accessibility": "Pointer, touch, keyboard, voice, switch input, and screen-reader actions may resolve to the same semantic action without sharing the same pixel."
+  },
   "decoder_contract": {
     "browser_role": "perception compiler/decoder",
     "server_holds_authoritative_truth": true,
@@ -118,6 +162,7 @@
   "security": {
     "principle": "The language may be public; authority determines what it is allowed to do.",
     "security_by_obscurity": false,
+    "hidden_reference_is_security_boundary": false,
     "requirements": [
       "Never treat compact or binary encoding as authorization.",
       "Never evaluate arbitrary incoming source strings.",
@@ -126,15 +171,12 @@
       "Version semantic definitions and never silently change an opcode's meaning.",
       "Reject malformed, unknown, out-of-scope, over-budget, or unauthorized instructions.",
       "Audit actor -> instruction -> target -> authority decision -> state revision -> affected CHIDs/SHAEPs.",
-      "Use anti-replay/sequence or revision controls where repeated commands would be unsafe."
+      "Use anti-replay/sequence or revision controls where repeated commands would be unsafe.",
+      "Do not send hidden authoritative state to a client before that context is allowed to perceive it."
     ]
   },
   "provenance": {
-    "required_origins": [
-      "HUMAN",
-      "OUTSIDER_AI",
-      "SHAELVIEN_EI"
-    ],
+    "required_origins": ["HUMAN", "OUTSIDER_AI", "SHAELVIEN_EI"],
     "rule": "Provenance persists through copying and modification. Unknown provenance defaults to the outsider/red boundary rather than silently becoming HUMAN."
   },
   "error_law": {
@@ -142,26 +184,19 @@
     "rule": "Normalized recurring failures are linked to code IDs/CHIDs and, where known, Rune/Glyph semantics. A previously resolved failure that reappears is a regression, distinct from an ordinary repeat."
   },
   "agent_bootstrap": [
-    "Read .code-index/humans_language.json before generating, translating, refactoring, or decoding Shaelvien semantic code.",
+    "Read .code-index/humans_language.json and docs/SHAELVIEN_SEMANTIC_LANGUAGE.md before generating, translating, refactoring, or decoding Shaelvien semantic code.",
     "Use this deployed manifest for discovery and compatibility metadata, then load the canonical sources listed under discovery when the task touches their domain.",
     "Search existing CHIDs and semantic units before creating a new concept; reuse identity when the concept is the same.",
-    "Do not infer semantic identity from spelling, filename, line number, ASCII token, or target-language syntax.",
+    "Do not infer semantic identity from spelling, filename, line number, ASCII token, numeric opcode, pixel, or target-language syntax.",
+    "Do not infer numeric truthiness; use typed boolean semantics or an explicitly declared encoding map.",
     "Keep FACT, HYPOTHESIS, FICTION, and UNKNOWN distinct and explicit.",
-    "Treat compact-token examples as non-canonical unless a later contract version marks their grammar canonical.",
+    "Treat compact-token and perception-packet examples as non-canonical unless a later contract version marks their grammar canonical.",
     "Preserve provenance and authority boundaries in generated code and translations.",
+    "Treat CCTV as a trusted verification/translation boundary and do not invent its long-form expansion.",
     "When repository behavior and this experimental language layer disagree, do not silently rewrite working behavior; report the mismatch and preserve executable truth while the semantic layer is reconciled."
   ],
   "compatibility": {
-    "current_targets": [
-      "C#",
-      "Razor/Blazor",
-      "JavaScript",
-      "TypeScript",
-      "Python",
-      "SQL",
-      "JSON",
-      "browser/runtime instruction streams"
-    ],
+    "current_targets": ["C#", "Razor/Blazor", "JavaScript", "TypeScript", "Python", "SQL", "JSON", "browser/runtime instruction streams"],
     "target_rule": "Target-language syntax is a generated or observed representation of semantic meaning, not the semantic identity itself."
   }
 }
