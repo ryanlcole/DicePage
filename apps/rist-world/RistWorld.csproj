@@ -18,4 +18,10 @@
     <Exec Command="python &quot;$(MSBuildProjectDirectory)/apply_prototype_shell.py&quot;" />
     <Exec Command="python &quot;$(MSBuildProjectDirectory)/apply_map_viewer_shell.py&quot;" />
   </Target>
+  <Target Name="ValidateShaelvienSemanticBrowserRuntime" BeforeTargets="Publish" Condition="'$(CI)' == 'true'">
+    <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-semantic-runtime.js&quot;" />
+    <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-wire.js&quot;" />
+    <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-perception-runtime.js&quot;" />
+    <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-input-runtime.js&quot;" />
+  </Target>
 </Project>
