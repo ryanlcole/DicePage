@@ -75,6 +75,42 @@ jobs:
       - name: Build searchable code ledger
         run: python tools/code_index.py build
 
+      - name: Verify code identity uniqueness before semantic database
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from collections import defaultdict
+          from pathlib import Path
+
+          path = Path('.code-index/code_index.jsonl')
+          by_id = defaultdict(list)
+          for raw in path.read_text(encoding='utf-8').splitlines():
+              if not raw.strip():
+                  continue
+              row = json.loads(raw)
+              by_id[str(row.get('id', ''))].append(row)
+
+          collisions = {code_id: rows for code_id, rows in by_id.items() if code_id and len(rows) > 1}
+          if not collisions:
+              print(f'Identity uniqueness OK: {sum(len(rows) for rows in by_id.values())} records')
+              raise SystemExit(0)
+
+          print(f'IDENTITY COLLISION: {len(collisions)} code_id values are assigned to multiple active records')
+          for code_id, rows in list(sorted(collisions.items()))[:20]:
+              print(f'code_id={code_id} records={len(rows)}')
+              for row in rows[:12]:
+                  print('  ' + json.dumps({
+                      'fingerprint': row.get('fingerprint'),
+                      'path': row.get('path'),
+                      'line': row.get('line'),
+                      'kind': row.get('kind'),
+                      'language': row.get('language'),
+                      'text': row.get('text'),
+                  }, ensure_ascii=False, sort_keys=True))
+          raise SystemExit(1)
+          PY
+
       - name: Build CHID relationship and error database
         run: python tools/code_database.py build
 

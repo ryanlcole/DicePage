@@ -1,0 +1,352 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div class="semantic-pixel-test">
+ <header class="semantic-header">
+  <button type="button" class="semantic-back" @onclick="OpenStartMenu" aria-label="Back to Shaelvien start menu">←</button>
+  <div class="semantic-title">
+   <strong>WORLDBUILDER · SEMANTIC PIXEL LAB</strong>
+   <small>HYPOTHESIS · NON-AUTHORITATIVE · REPRESENTATION ≠ TRUTH</small>
+  </div>
+  <div class="semantic-boundary" role="status">EXPERIMENT BRANCH</div>
+ </header>
+
+ <main class="semantic-main">
+  <section class="semantic-stage" aria-label="Semantic tile and pixel representation experiment">
+   <div class="semantic-grid" aria-hidden="true"></div>
+   <div class="semantic-axis" aria-hidden="true"><span>X</span><span>Y</span></div>
+
+   <div class="semantic-sample @RenderClass"
+        @ref="_sample"
+        data-semantic-id="@ProbeSemanticId"
+        data-render-mode="@RenderMode"
+        data-truth-domain="HYPOTHESIS"
+        style="@SampleStyle"
+        role="img"
+        aria-label="@SampleAria">
+    <span aria-hidden="true">@DisplayToken</span>
+   </div>
+
+   <div class="semantic-caption">
+    <strong>@Selected.Surface</strong>
+    <span>visual position (@_x, @_y) · @_size px · @RenderMode · @Palette.Name</span>
+   </div>
+  </section>
+
+  <aside class="semantic-inspector" aria-label="Semantic runtime inspector">
+   <div class="semantic-inspector-head">
+    <div><strong>SEMANTIC RESOLVER</strong><small>identity-first observation</small></div>
+    <span class="@(_moduleReady?"ready":"pending")">@(_moduleReady?"READY":"LOADING")</span>
+   </div>
+
+   <dl>
+    <dt>Experimental ref</dt><dd class="mono">@ProbeSemanticId</dd>
+    <dt>Registered here</dt><dd>@(!_unknownProbe ? "YES · LAB ONLY" : "NO")</dd>
+    <dt>Surface label</dt><dd>@Selected.Surface</dd>
+    <dt>Meaning</dt><dd>@Selected.Meaning</dd>
+    <dt>Truth domain</dt><dd>HYPOTHESIS</dd>
+    <dt>Authority</dt><dd>NONE · READ/OBSERVE ONLY</dd>
+   </dl>
+
+   <section class="semantic-observation" aria-live="polite">
+    <h2>LAST DOM OBSERVATION</h2>
+    <div class="observation-grid">
+     <span>semanticId</span><b class="mono">@(_observation?.SemanticId ?? "—")</b>
+     <span>render mode</span><b>@(_observation?.Mode ?? "—")</b>
+     <span>background</span><b class="mono">@ShortBackground</b>
+     <span>size</span><b>@ObservedSize</b>
+     <span>screen xy</span><b>@ObservedPosition</b>
+    </div>
+    <p class="status @StatusClass">@_lastStatus</p>
+   </section>
+
+   @if(_proof is not null)
+   {
+    <section class="semantic-proof" aria-live="polite">
+     <h2>4-STATE INVARIANCE PROOF</h2>
+     @foreach(var sample in _proof.Samples)
+     {
+      <div class="proof-row">
+       <span>@sample.Label</span>
+       <b class="mono">@sample.SemanticId</b>
+       <small>@sample.Width.ToString("0")×@sample.Height.ToString("0") · (@sample.X.ToString("0"), @sample.Y.ToString("0"))</small>
+      </div>
+     }
+     <p class="status @ProofStatusClass">@_proofStatus</p>
+    </section>
+   }
+  </aside>
+ </main>
+
+ <section class="semantic-controls" aria-label="Semantic pixel experiment controls">
+  <button type="button" @onclick="CycleUnit"><strong>REF</strong><small>@Selected.ShortName</small></button>
+  <button type="button" @onclick="CyclePalette"><strong>◐</strong><small>palette</small></button>
+  <button type="button" @onclick="CycleSize"><strong>↔</strong><small>@_size px</small></button>
+  <button type="button" @onclick="MoveSample"><strong>⌖</strong><small>move</small></button>
+  <button type="button" @onclick="CycleRenderMode"><strong>▦</strong><small>@RenderMode</small></button>
+  <button type="button" class="@(_unknownProbe?"danger active":"danger")" @onclick="ToggleUnknownProbe"><strong>?</strong><small>@(_unknownProbe?"unknown on":"unknown id")</small></button>
+  <button type="button" class="observe" @onclick="ObserveAsync" disabled="@(!_moduleReady)"><strong>◎</strong><small>observe DOM</small></button>
+  <button type="button" class="proof" @onclick="RunProofAsync" disabled="@(!_moduleReady)"><strong>✓4</strong><small>run proof</small></button>
+ </section>
+</div>
+
+<style>
+ .semantic-pixel-test{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:46px minmax(0,1fr) 76px;overflow:hidden;background:#02070a;color:#e9e1cc;font-family:Inter,system-ui,-apple-system,sans-serif;--gold:#d8bd73;--blue:#73bddc;--green:#77dda0;--red:#ef7f7f}
+ .semantic-header{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:stretch;border-bottom:1px solid #66562f;background:#071117}.semantic-back{border:0;border-right:1px solid #66562f;background:#0c171e;color:var(--gold);font-size:22px;font-weight:900}.semantic-title{min-width:0;display:grid;align-content:center;padding:0 12px}.semantic-title strong{font-size:11px;letter-spacing:.1em;color:#f2d98d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.semantic-title small{margin-top:3px;font-size:7px;letter-spacing:.09em;color:#8db5c7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.semantic-boundary{align-self:center;margin-right:10px;padding:5px 8px;border:1px solid #6d5a30;border-radius:999px;color:#e8cb7a;background:#18150d;font:900 7px/1 system-ui;letter-spacing:.1em}
+ .semantic-main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,360px);overflow:hidden}.semantic-stage{position:relative;min-width:0;min-height:0;overflow:hidden;display:grid;place-items:center;background:#030a0e}.semantic-grid{position:absolute;inset:22px;background-image:linear-gradient(to right,rgba(105,151,169,.16) 1px,transparent 1px),linear-gradient(to bottom,rgba(105,151,169,.16) 1px,transparent 1px);background-size:32px 32px;border:1px solid #25414c}.semantic-axis{position:absolute;inset:8px 14px auto auto;display:flex;gap:7px;color:#5e8495;font:900 8px/1 monospace}.semantic-sample{z-index:2;display:grid;place-items:center;box-sizing:border-box;border:2px solid rgba(255,255,255,.62);border-radius:8px;background:linear-gradient(135deg,var(--sample-a),var(--sample-b));box-shadow:0 14px 40px #000b,0 0 28px color-mix(in srgb,var(--sample-a) 42%,transparent);transition:width .18s ease,height .18s ease,transform .18s ease,filter .18s ease;background-color:.18s ease;overflow:hidden}.semantic-sample span{font:900 clamp(12px,4vw,42px)/1 ui-monospace,SFMono-Regular,Consolas,monospace;color:#fff;text-shadow:0 2px 8px #000a}.semantic-sample.mode-pixel{border-radius:0;image-rendering:pixelated}.semantic-sample.mode-pixel span{font-size:9px}.semantic-sample.mode-glyph{border-radius:50%;filter:saturate(.8) contrast(1.1)}.semantic-caption{position:absolute;z-index:3;left:50%;bottom:20px;transform:translateX(-50%);width:min(86%,520px);display:grid;gap:3px;text-align:center;pointer-events:none}.semantic-caption strong{font-size:11px;color:#f0d483}.semantic-caption span{font-size:8px;color:#8ea8b2}
+ .semantic-inspector{min-height:0;overflow:auto;border-left:1px solid #334c57;background:#071015;padding:12px}.semantic-inspector-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid #29404a}.semantic-inspector-head div{display:grid;gap:3px}.semantic-inspector-head strong{font-size:10px;letter-spacing:.12em;color:#bde2ef}.semantic-inspector-head small{font-size:8px;color:#789aa8}.semantic-inspector-head>span{font:900 7px/1 system-ui}.semantic-inspector-head .ready{color:var(--green)}.semantic-inspector-head .pending{color:#d7b96f}.semantic-inspector dl{display:grid;grid-template-columns:100px minmax(0,1fr);gap:5px 8px;margin:12px 0;padding:0 0 12px;border-bottom:1px solid #20343d;font-size:8px}.semantic-inspector dt{color:#7693a0}.semantic-inspector dd{margin:0;color:#d9e6ea;overflow-wrap:anywhere}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important}.semantic-observation h2,.semantic-proof h2{margin:0 0 7px;color:#cdb776;font-size:8px;letter-spacing:.1em}.observation-grid{display:grid;grid-template-columns:76px minmax(0,1fr);gap:4px 7px;font-size:8px}.observation-grid span{color:#718f9c}.observation-grid b{color:#cbdcdf;overflow-wrap:anywhere}.status{margin:9px 0 0;padding:7px;border:1px solid #334b55;border-radius:6px;background:#08151b;color:#a9c7d2;font:800 8px/1.35 system-ui}.status.pass{border-color:#396a4c;color:#9ae7b4}.status.closed{border-color:#7a6435;color:#e8ce81}.status.fail{border-color:#793f3f;color:#ffaaaa}.semantic-proof{margin-top:12px;padding-top:12px;border-top:1px solid #20343d}.proof-row{display:grid;grid-template-columns:58px minmax(0,1fr);gap:2px 6px;padding:5px 0;border-bottom:1px dashed #1d3038;font-size:7px}.proof-row span{color:#7f9daa;text-transform:uppercase}.proof-row b{color:#d7e5e8;overflow-wrap:anywhere}.proof-row small{grid-column:2;color:#71858d}
+ .semantic-controls{box-sizing:border-box;display:flex;align-items:center;gap:7px;overflow-x:auto;overflow-y:hidden;padding:8px;border-top:1px solid #66562f;background:linear-gradient(180deg,#09141a,#050b0f);scrollbar-width:thin;scrollbar-color:#66562f #071015}.semantic-controls button{box-sizing:border-box;flex:0 0 78px;height:58px;display:grid;place-items:center;align-content:center;gap:4px;border:1px solid #415b67;border-radius:8px;background:#0d1920;color:#e4e9e9;touch-action:manipulation}.semantic-controls button strong{font:900 15px/1 system-ui;color:#efd78f}.semantic-controls button small{max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:800 7px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:#83a5b4}.semantic-controls button.observe{border-color:#39708a}.semantic-controls button.proof{border-color:#4b7b59}.semantic-controls button.danger{border-color:#6c4b4b}.semantic-controls button.danger.active{background:#2b1111;border-color:#b45c5c}.semantic-controls button:disabled{opacity:.38}.semantic-pixel-test button:focus-visible{outline:2px solid #f1d884;outline-offset:-2px}
+ @@media(max-width:820px){.semantic-pixel-test{grid-template-rows:48px minmax(0,1fr) 68px}.semantic-header{grid-template-columns:46px minmax(0,1fr)}.semantic-boundary{display:none}.semantic-main{grid-template-columns:1fr}.semantic-stage{min-height:0}.semantic-inspector{position:absolute;z-index:5;right:8px;top:56px;width:min(290px,72vw);max-height:46%;border:1px solid #38545f;border-radius:9px;background:rgba(7,16,21,.94);box-shadow:0 12px 32px #000a}.semantic-controls{padding:5px}.semantic-controls button{height:54px;flex-basis:70px}}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ const string UnknownSemanticId="EXP:UNKNOWN:NOT-REGISTERED";
+ readonly SemanticUnit[] _units=
+ {
+  new("EXP:SEM:OCEAN.DEPTH.5","ocean.depth.5","OD5","Deep-ocean terrain concept used only inside this hypothesis lab."),
+  new("EXP:SEM:COAST.SHORE.1","coast.shore.1","CS1","Shore/coast terrain concept used only inside this hypothesis lab."),
+  new("EXP:SEM:PLAINS.LOW.1","plains.low.1","PL1","Low-plains terrain concept used only inside this hypothesis lab.")
+ };
+ readonly PaletteSpec[] _palettes=
+ {
+  new("ocean","#0b3554","#168cb0"),
+  new("ember","#55240f","#d67d24"),
+  new("violet","#32195d","#8b65d6"),
+  new("mono","#20272b","#87949a")
+ };
+ readonly int[] _sizes={56,88,124};
+ readonly string[] _modes={"tile","pixel","glyph"};
+
+ ElementReference _sample;
+ IJSObjectReference? _module;
+ bool _moduleReady;
+ bool _observeAfterRender;
+ bool _unknownProbe;
+ int _unitIndex;
+ int _paletteIndex;
+ int _sizeIndex=1;
+ int _modeIndex;
+ int _x;
+ int _y;
+ DomObservation? _observation;
+ ProofResult? _proof;
+ string _lastStatus="No DOM observation yet.";
+ string _proofStatus="";
+ string _statusKind="";
+ string _proofStatusKind="";
+
+ SemanticUnit Selected=>_units[_unitIndex];
+ PaletteSpec Palette=>_palettes[_paletteIndex];
+ int _size=>_sizes[_sizeIndex];
+ string RenderMode=>_modes[_modeIndex];
+ string ProbeSemanticId=>_unknownProbe?UnknownSemanticId:Selected.Id;
+ string RenderClass=>$"mode-{RenderMode}";
+ string DisplayToken=>RenderMode switch{"pixel"=>"■","glyph"=>Selected.Token,_=>Selected.ShortName};
+ string SampleStyle=>$"width:{_size}px;height:{_size}px;transform:translate({_x}px,{_y}px);--sample-a:{Palette.A};--sample-b:{Palette.B};";
+ string SampleAria=>$"Experimental representation of {Selected.Surface}. Semantic reference {ProbeSemanticId}. Visual mode {RenderMode}, palette {Palette.Name}, size {_size} pixels, presentation offset {_x}, {_y}.";
+ string StatusClass=>string.IsNullOrWhiteSpace(_statusKind)?"":_statusKind;
+ string ProofStatusClass=>string.IsNullOrWhiteSpace(_proofStatusKind)?"":_proofStatusKind;
+ string ShortBackground=>_observation is null?"—":Shorten(_observation.Background,34);
+ string ObservedSize=>_observation is null?"—":$"{_observation.Width:0}×{_observation.Height:0}";
+ string ObservedPosition=>_observation is null?"—":$"({_observation.X:0}, {_observation.Y:0})";
+
+ Task OpenStartMenu()=>OnStartMenu.InvokeAsync();
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(firstRender)
+  {
+   try
+   {
+    _module=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-semantic-pixel-test.js?v=20260916-semantic-pixel-1");
+    _moduleReady=true;
+    await ObserveAsync();
+   }
+   catch
+   {
+    _moduleReady=false;
+    _lastStatus="Browser observer module unavailable. Experiment remains non-authoritative and no semantic inference was attempted.";
+    _statusKind="fail";
+    await InvokeAsync(StateHasChanged);
+   }
+   return;
+  }
+
+  if(_observeAfterRender&&_moduleReady)
+  {
+   _observeAfterRender=false;
+   await ObserveAsync();
+  }
+ }
+
+ void CycleUnit()
+ {
+  _unitIndex=(_unitIndex+1)%_units.Length;
+  _unknownProbe=false;
+  RepresentationChanged("Semantic reference changed intentionally; representation will be observed separately.");
+ }
+
+ void CyclePalette()
+ {
+  _paletteIndex=(_paletteIndex+1)%_palettes.Length;
+  RepresentationChanged("Palette changed. Semantic reference was not changed.");
+ }
+
+ void CycleSize()
+ {
+  _sizeIndex=(_sizeIndex+1)%_sizes.Length;
+  RepresentationChanged("Rendered size changed. Semantic reference was not changed.");
+ }
+
+ void MoveSample()
+ {
+  (_x,_y)=(_x,_y) switch
+  {
+   (0,0)=>(72,-46),
+   (72,-46)=>(-68,44),
+   _=>(0,0)
+  };
+  RepresentationChanged("Screen position changed. Semantic reference was not changed.");
+ }
+
+ void CycleRenderMode()
+ {
+  _modeIndex=(_modeIndex+1)%_modes.Length;
+  RepresentationChanged("Representation mode changed. Semantic reference was not changed.");
+ }
+
+ void ToggleUnknownProbe()
+ {
+  _unknownProbe=!_unknownProbe;
+  RepresentationChanged(_unknownProbe
+   ?"Unknown semantic reference injected. Resolver must fail closed rather than infer meaning from pixels."
+   :"Known experimental semantic reference restored.");
+ }
+
+ void RepresentationChanged(string message)
+ {
+  _lastStatus=message;
+  _statusKind="";
+  _proof=null;
+  _proofStatus="";
+  _proofStatusKind="";
+  _observeAfterRender=true;
+ }
+
+ async Task ObserveAsync()
+ {
+  if(_module is null)return;
+  try
+  {
+   _observation=await _module.InvokeAsync<DomObservation>("observe",_sample);
+   var resolved=Resolve(_observation.SemanticId);
+   if(resolved is null)
+   {
+    _lastStatus="FAIL-CLOSED PASS — semantic ID is unknown, so no meaning was guessed from color, size, position, or mode.";
+    _statusKind="closed";
+   }
+   else
+   {
+    _lastStatus=$"RESOLVED — {_observation.SemanticId} → {resolved.Surface}. Pixel properties were observed but were not used as semantic authority.";
+    _statusKind="pass";
+   }
+   await InvokeAsync(StateHasChanged);
+  }
+  catch
+  {
+   _lastStatus="DOM observation failed; no fallback semantic guess was made.";
+   _statusKind="fail";
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ async Task RunProofAsync()
+ {
+  if(_module is null)return;
+  try
+  {
+   _proof=await _module.InvokeAsync<ProofResult>("runInvarianceProof",_sample);
+   var resolved=Resolve(_proof.SemanticId);
+   if(!_proof.Stable)
+   {
+    _proofStatus="PROOF FAILED — semantic reference changed while only representation was being mutated.";
+    _proofStatusKind="fail";
+   }
+   else if(resolved is null)
+   {
+    _proofStatus="FAIL-CLOSED PASS — the unknown ID remained stable through four visual states and still resolved to nothing. No pixel inference occurred.";
+    _proofStatusKind="closed";
+   }
+   else
+   {
+    _proofStatus=$"INVARIANCE PASS — {resolved.Surface} kept the same semantic reference across baseline, palette, size, and position mutations.";
+    _proofStatusKind="pass";
+   }
+   await ObserveAsync();
+  }
+  catch
+  {
+   _proofStatus="PROOF ERROR — browser test did not complete; no semantic conclusion was inferred.";
+   _proofStatusKind="fail";
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ SemanticUnit? Resolve(string? semanticId)
+ {
+  if(string.IsNullOrWhiteSpace(semanticId))return null;
+  foreach(var unit in _units)
+  {
+   if(string.Equals(unit.Id,semanticId,StringComparison.Ordinal))return unit;
+  }
+  return null;
+ }
+
+ static string Shorten(string? value,int max)
+ {
+  if(string.IsNullOrWhiteSpace(value))return "—";
+  return value.Length<=max?value:$"{value[..Math.Max(1,max-1)]}…";
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_module is not null)await _module.DisposeAsync();
+ }
+
+ sealed record SemanticUnit(string Id,string Surface,string Token,string Meaning)
+ {
+  public string ShortName=>Surface.Length<=10?Surface:Surface[..10];
+ }
+ sealed record PaletteSpec(string Name,string A,string B);
+
+ public sealed class DomObservation
+ {
+  public string SemanticId { get; set; }="";
+  public string Mode { get; set; }="";
+  public string Background { get; set; }="";
+  public double Width { get; set; }
+  public double Height { get; set; }
+  public double X { get; set; }
+  public double Y { get; set; }
+ }
+
+ public sealed class ProofResult
+ {
+  public string SemanticId { get; set; }="";
+  public bool Stable { get; set; }
+  public List<ProofSample> Samples { get; set; }=new();
+ }
+
+ public sealed class ProofSample
+ {
+  public string Label { get; set; }="";
+  public string SemanticId { get; set; }="";
+  public string Background { get; set; }="";
+  public double Width { get; set; }
+  public double Height { get; set; }
+  public double X { get; set; }
+  public double Y { get; set; }
+ }
+}

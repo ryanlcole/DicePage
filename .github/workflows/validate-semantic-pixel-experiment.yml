@@ -1,0 +1,44 @@
+name: Validate Semantic Pixel Experiment
+
+on:
+  push:
+    branches:
+      - experiment/semantic-pixel-runtime
+    paths:
+      - 'apps/rist-world/**'
+      - 'docs/SEMANTIC_PIXEL_RUNTIME_EXPERIMENT.md'
+      - '.github/workflows/validate-semantic-pixel-experiment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Syntax-check semantic pixel browser module
+        shell: bash
+        run: node --input-type=module --check < apps/rist-world/wwwroot/worldbuilder-semantic-pixel-test.js
+
+      - name: Prepare public data
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYDEPS="$RUNNER_TEMP/rist-pydeps"
+          rm -rf "$PYDEPS"
+          python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
+          PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
+
+      - name: Build RIST WORLD without deployment
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist

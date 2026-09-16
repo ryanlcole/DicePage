@@ -1,7 +1,11 @@
 @inject NavigationManager Navigation
 
 <div class="task-workspace-router">
- @if (Mode == "worldrunetest" || (Mode == "world" && RuneTestRequested))
+ @if (Mode == "worldsemanticpixeltest" || (Mode == "world" && SemanticPixelLabRequested))
+ {
+  <WorldBuilderSemanticPixelTest OnStartMenu="OnStartMenu" />
+ }
+ else if (Mode == "worldrunetest" || (Mode == "world" && RuneTestRequested))
  {
   <WorldAnimatedAssetCatalog />
   <WorldBuilderRuneTest OnStartMenu="OnStartMenu" />
@@ -46,12 +50,23 @@
 </div>
 
 <style>
- .task-workspace-router{box-sizing:border-box;height:100%;min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface,.task-workspace-router>.worldbuilder-studio,.task-workspace-router>.worldbuilder-rune-test,.task-workspace-router>.accessibility-shell,.task-workspace-router>.immersion-builder,.task-workspace-router>.card-index-workspace,.task-workspace-router>.dice-tools-workspace,.task-workspace-router>.region-definer{height:100%!important}
+ .task-workspace-router{box-sizing:border-box;height:100%;min-height:0;overflow:hidden}.task-workspace-router>.workspace-surface,.task-workspace-router>.worldbuilder-studio,.task-workspace-router>.worldbuilder-rune-test,.task-workspace-router>.semantic-pixel-test,.task-workspace-router>.accessibility-shell,.task-workspace-router>.immersion-builder,.task-workspace-router>.card-index-workspace,.task-workspace-router>.dice-tools-workspace,.task-workspace-router>.region-definer{height:100%!important}
 </style>
 
 @code {
  [Parameter] public string Mode { get; set; } = "world";
  [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ bool SemanticPixelLabRequested
+ {
+  get
+  {
+   var uri=new Uri(Navigation.Uri);
+   return uri.AbsolutePath.EndsWith("/worldbuildersemanticpixeltest",StringComparison.OrdinalIgnoreCase)
+    || uri.Query.Contains("semanticpixellab=1",StringComparison.OrdinalIgnoreCase);
+  }
+ }
+
  bool RuneTestRequested
  {
   get
