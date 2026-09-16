@@ -1,0 +1,164 @@
+{
+  "schema": "shaelvien.language-manifest/v1",
+  "language": {
+    "id": "shaelvien.semantic",
+    "display_name": "Shaelvien Semantic Language",
+    "family": "Shaelvien/RIST",
+    "version": "0.1.0",
+    "status": "experimental",
+    "description": "A semantic programming and transport language in which stable meaning is identified independently from source spelling, file location, representation, and browser rendering.",
+    "identity_rule": "Semantic identity is stable; representations may vary.",
+    "source_of_truth_rule": "Until the semantic compiler/runtime is declared authoritative, executable repository source remains runtime truth and this manifest governs interpretation, generation, translation, and validation."
+  },
+  "discovery": {
+    "canonical_manifest": "apps/rist-world/wwwroot/.well-known/shaelvien-language.json",
+    "machine_url": "/.well-known/shaelvien-language.json",
+    "hidden_reference_page": "/_shaelvien-language.html",
+    "agent_entrypoint": "AGENTS.md",
+    "canonical_sources": [
+      "docs/HUMANS_LANGUAGE.md",
+      "docs/CODE_DATABASE_ARCHITECTURE.md",
+      "docs/ERROR_GRAPH.md",
+      ".code-index/semantic_units.json",
+      ".code-index/chid_registry.json"
+    ]
+  },
+  "semantic_identities": {
+    "CHID": "Code Handle ID. Persistent semantic identity for a code symbol independent of name, path, line, language, or UI representation.",
+    "RUNE": "Atomic semantic operation or intent.",
+    "GLYPH": "Compound behavior composed from Runes and/or other Glyphs.",
+    "SHAEP": "Persistent identity/preservation object whose representations or payload references may change without changing identity."
+  },
+  "epistemic_domains": {
+    "FACT": "Asserted true inside the declared real/system scope with evidence or provenance.",
+    "HYPOTHESIS": "A possibility being explored. It must not silently mutate FACT.",
+    "FICTION": "Deliberately invented or world-canon material. It may be true inside a fictional scope without becoming a real-world FACT.",
+    "UNKNOWN": "Unresolved or insufficiently supported. UNKNOWN is not random chance."
+  },
+  "humans_surface": {
+    "name": "Humans",
+    "role": "Human-readable epistemic/control-flow surface for the same semantic system.",
+    "keywords": {
+      "If": "Enter a conditional test.",
+      "Then": "Execute the consequent behavior when the active condition holds.",
+      "Whatif": "Explicitly enter HYPOTHESIS space.",
+      "Maybe": "Mark a value, branch, or statement UNKNOWN/uncertain rather than random.",
+      "Maybeif": "Conditional exploration whose premise remains uncertain.",
+      "Else": "Fallback branch when the preceding condition does not hold.",
+      "Elseif": "Additional conditional branch.",
+      "Dont": "Negate/prohibit the following action or condition according to its declared scope.",
+      "Because": "Attach provenance, evidence, or rationale. Because does not itself prove causation."
+    }
+  },
+  "representation_rules": [
+    "Identity is not output equivalence.",
+    "Representation is not truth.",
+    "ASCII characters, source-language keywords, numeric opcodes, JSON names, binary encodings, and UI controls are representations of semantic identities; they are not the identities themselves.",
+    "Values are operands/results and are not generally equal to the operations that consume or produce them.",
+    "Textually duplicated code is not automatically semantically duplicated code.",
+    "A semantic relation must declare its relation type and any conditions under which equivalence holds."
+  ],
+  "relation_types": [
+    "exact_identity",
+    "alias",
+    "contextual_semantic_equivalence",
+    "behavioral_equivalence",
+    "representation_equivalence",
+    "subset",
+    "superset",
+    "transforms_to",
+    "calls",
+    "reads",
+    "writes",
+    "binds_to",
+    "serializes",
+    "implements",
+    "depends_on",
+    "causes_error",
+    "resolved_by"
+  ],
+  "instruction_model": {
+    "canonical_shape": "semantic identity/opcode + typed operands + explicit target/scope when required",
+    "compact_surface_status": "experimental",
+    "compact_example": "i3r20",
+    "compact_example_is_canonical": false,
+    "compact_example_note": "Compact character streams are illustrative until a versioned, unambiguous token grammar defines operand types, lengths, blocks, negative/float/string values, symbols, and boundaries.",
+    "required_future_framing": [
+      "protocol or format version",
+      "semantic registry/schema hash",
+      "typed operands",
+      "stable CHID/SHAEP references where applicable",
+      "deterministic block/instruction boundaries",
+      "source/error mapping",
+      "provenance",
+      "authority/capability context for state-changing requests"
+    ]
+  },
+  "decoder_contract": {
+    "browser_role": "perception compiler/decoder",
+    "server_holds_authoritative_truth": true,
+    "client_commands_are_requests": true,
+    "arbitrary_eval_allowed": false,
+    "dispatch_rule": "Use pre-registered, versioned handlers for known Rune/Glyph opcodes. Reject unknown instructions before execution.",
+    "state_rule": "Resolve semantic targets through CHID/SHAEP identity and update only affected representations/dependencies when possible.",
+    "validation_order": [
+      "framing/version validation",
+      "Rune/Glyph existence",
+      "operand schema/type/range validation",
+      "authentication and Recursive Authority/capability validation",
+      "CHID/SHAEP resolution",
+      "resource/budget validation",
+      "authoritative state transition",
+      "perception/render delta"
+    ]
+  },
+  "security": {
+    "principle": "The language may be public; authority determines what it is allowed to do.",
+    "security_by_obscurity": false,
+    "requirements": [
+      "Never treat compact or binary encoding as authorization.",
+      "Never evaluate arbitrary incoming source strings.",
+      "Validate every state-changing instruction server-side.",
+      "Use authenticated actor identity and scoped Recursive Authority/capabilities.",
+      "Version semantic definitions and never silently change an opcode's meaning.",
+      "Reject malformed, unknown, out-of-scope, over-budget, or unauthorized instructions.",
+      "Audit actor -> instruction -> target -> authority decision -> state revision -> affected CHIDs/SHAEPs.",
+      "Use anti-replay/sequence or revision controls where repeated commands would be unsafe."
+    ]
+  },
+  "provenance": {
+    "required_origins": [
+      "HUMAN",
+      "OUTSIDER_AI",
+      "SHAELVIEN_EI"
+    ],
+    "rule": "Provenance persists through copying and modification. Unknown provenance defaults to the outsider/red boundary rather than silently becoming HUMAN."
+  },
+  "error_law": {
+    "principle": "Errors become law.",
+    "rule": "Normalized recurring failures are linked to code IDs/CHIDs and, where known, Rune/Glyph semantics. A previously resolved failure that reappears is a regression, distinct from an ordinary repeat."
+  },
+  "agent_bootstrap": [
+    "Read this manifest before generating, translating, refactoring, or decoding Shaelvien semantic code.",
+    "Load the canonical sources listed under discovery when the task touches their domain.",
+    "Search existing CHIDs and semantic units before creating a new concept; reuse identity when the concept is the same.",
+    "Do not infer semantic identity from spelling, filename, line number, ASCII token, or target-language syntax.",
+    "Keep FACT, HYPOTHESIS, FICTION, and UNKNOWN distinct and explicit.",
+    "Treat compact-token examples as non-canonical unless a later manifest version marks their grammar canonical.",
+    "Preserve provenance and authority boundaries in generated code and translations.",
+    "When repository behavior and this experimental manifest disagree, do not silently rewrite working behavior; report the mismatch and preserve executable truth while the semantic layer is reconciled."
+  ],
+  "compatibility": {
+    "current_targets": [
+      "C#",
+      "Razor/Blazor",
+      "JavaScript",
+      "TypeScript",
+      "Python",
+      "SQL",
+      "JSON",
+      "browser/runtime instruction streams"
+    ],
+    "target_rule": "Target-language syntax is a generated or observed representation of semantic meaning, not the semantic identity itself."
+  }
+}

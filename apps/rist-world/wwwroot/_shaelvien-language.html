@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />
+  <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet" />
+  <title>Shaelvien Semantic Language Reference</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    body { margin: 0; background: #0d1015; color: #e7edf5; }
+    main { max-width: 1040px; margin: 0 auto; padding: 28px 18px 64px; }
+    h1, h2 { font-family: system-ui, sans-serif; }
+    h1 { margin-bottom: 4px; }
+    .subtle { color: #9aa7b7; }
+    .notice { padding: 12px 14px; border: 1px solid #354253; border-radius: 10px; background: #151b23; }
+    code, pre { background: #121821; }
+    code { padding: 2px 5px; border-radius: 4px; }
+    pre { overflow: auto; padding: 14px; border-radius: 10px; border: 1px solid #283444; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid #283444; padding: 9px 8px; }
+    th { color: #b8c7d9; }
+    a { color: #8bc7ff; }
+    .status { display: inline-block; padding: 3px 8px; border: 1px solid #58677a; border-radius: 999px; font-size: .8rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Shaelvien Semantic Language</h1>
+  <div class="subtle">Developer / agent reference <span class="status">experimental v0.1.0</span></div>
+
+  <p class="notice"><strong>Hidden reference:</strong> this page is intentionally absent from normal site navigation and requests no search indexing. It is a discovery/documentation surface, not an authentication or security boundary. The language may be public; authority determines what it is allowed to do.</p>
+
+  <h2>Agent bootstrap</h2>
+  <ol>
+    <li>Load the canonical machine manifest at <a href="/.well-known/shaelvien-language.json"><code>/.well-known/shaelvien-language.json</code></a>.</li>
+    <li>Use the repository sources named by that manifest when generating or modifying semantic code.</li>
+    <li>Search existing CHIDs and Rune/Glyph/SHAEP units before inventing a new concept.</li>
+    <li>Never infer identity from spelling, source line, target language, compact ASCII token, or UI representation.</li>
+    <li>Preserve provenance, truth domain, authority scope, and error relationships.</li>
+  </ol>
+
+  <h2>Core identities</h2>
+  <table>
+    <thead><tr><th>Identity</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>CHID</code></td><td>Persistent semantic code identity independent of name, path, line, language, and UI representation.</td></tr>
+      <tr><td><code>RUNE</code></td><td>Atomic semantic operation or intent.</td></tr>
+      <tr><td><code>GLYPH</code></td><td>Compound behavior composed from Runes and/or other Glyphs.</td></tr>
+      <tr><td><code>SHAEP</code></td><td>Persistent identity/preservation object whose representations or payload references may change without changing identity.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Truth domains</h2>
+  <table>
+    <thead><tr><th>Domain</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>FACT</code></td><td>Asserted true inside the declared real/system scope with evidence or provenance.</td></tr>
+      <tr><td><code>HYPOTHESIS</code></td><td>A possibility being explored; it cannot silently mutate FACT.</td></tr>
+      <tr><td><code>FICTION</code></td><td>Invented/world-canon truth inside its fictional scope without claiming real-world truth.</td></tr>
+      <tr><td><code>UNKNOWN</code></td><td>Unresolved or insufficiently supported; not random chance.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Humans surface</h2>
+  <p><code>If Then Whatif Maybe Maybeif Else Elseif Dont Because</code></p>
+  <p><code>Whatif</code> explicitly enters hypothesis space. <code>Maybe</code> expresses UNKNOWN/uncertainty. <code>Because</code> attaches evidence, provenance, or rationale and does not itself prove causation.</p>
+
+  <h2>Representation rules</h2>
+  <ul>
+    <li>Identity is not output equivalence.</li>
+    <li>Representation is not truth.</li>
+    <li>ASCII symbols, numeric opcodes, C#/JS/Python/SQL syntax, JSON keys, binary encodings, and visual controls are representations of semantic identities.</li>
+    <li>Text duplication does not automatically mean semantic duplication.</li>
+    <li>Equivalence must name its relation type and conditions.</li>
+  </ul>
+
+  <h2>Compact instruction streams</h2>
+  <p>Forms such as <code>i3r20</code> are currently illustrative, not canonical grammar. A production format must be versioned and unambiguous about opcode identity, operand type/length, target/symbol identity, block boundaries, registry/schema version, provenance, and authority context.</p>
+
+  <h2>Decoder / perception compiler</h2>
+  <pre>incoming instruction/request
+  -> framing + version check
+  -> known Rune/Glyph?
+  -> operand schema/type/range validation
+  -> authentication + Recursive Authority/capability check
+  -> CHID/SHAEP resolution
+  -> resource/budget validation
+  -> authoritative server state transition
+  -> affected dependency delta
+  -> browser perception/rendering</pre>
+  <p>The browser is not authoritative world truth. It decodes approved semantic state into the representation appropriate for that client. Arbitrary <code>eval</code> or dynamic source execution is forbidden.</p>
+
+  <h2>Provenance</h2>
+  <p>Relevant semantic instructions, generated code, assets, and modifications preserve origin metadata: <code>HUMAN</code>, <code>OUTSIDER_AI</code>, or <code>SHAELVIEN_EI</code>. Unknown provenance defaults to the outsider/red boundary; editing AI-derived content does not erase its ancestry.</p>
+
+  <h2>Error law</h2>
+  <p>Errors become law. Recurring normalized failures should link to code IDs/CHIDs and, when known, Rune/Glyph semantics. A previously resolved failure that reappears is a regression and should be distinguished from an ordinary repeat.</p>
+
+  <h2>Canonical repository sources</h2>
+  <pre>AGENTS.md
+apps/rist-world/wwwroot/.well-known/shaelvien-language.json
+docs/HUMANS_LANGUAGE.md
+docs/CODE_DATABASE_ARCHITECTURE.md
+docs/ERROR_GRAPH.md
+.code-index/semantic_units.json
+.code-index/chid_registry.json</pre>
+
+  <h2>Machine-readable manifest</h2>
+  <pre id="manifest">Loading /.well-known/shaelvien-language.json …</pre>
+</main>
+<script>
+  fetch('/.well-known/shaelvien-language.json', { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .then(v => { document.getElementById('manifest').textContent = JSON.stringify(v, null, 2); })
+    .catch(e => { document.getElementById('manifest').textContent = `Manifest unavailable: ${e.message}`; });
+</script>
+</body>
+</html>
