@@ -36,6 +36,9 @@ required_files = [
     "apps/rist-world/wwwroot/shaelvien-wire.js",
     "apps/rist-world/wwwroot/shaelvien-perception-runtime.js",
     "apps/rist-world/wwwroot/shaelvien-input-runtime.js",
+    "apps/rist-world/wwwroot/shaelvien-client-perception.js",
+    "apps/rist-world/wwwroot/shaelvien-language-perception-bridge.js",
+    "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
 ]
 for item in required_files:
     require_file(item)
@@ -92,14 +95,44 @@ require_text("apps/rist-world/wwwroot/terms.html", ["not intended for children u
 require_text("apps/rist-world/wwwroot/privacy.html", ["not intended for children under 13"])
 require_text("apps/rist-world/wwwroot/safety.html", ["TAKE IT DOWN", "within 48 hours"])
 
-for runtime in [
-    "apps/rist-world/wwwroot/shaelvien-semantic-runtime.js",
-    "apps/rist-world/wwwroot/shaelvien-wire.js",
-    "apps/rist-world/wwwroot/shaelvien-perception-runtime.js",
-    "apps/rist-world/wwwroot/shaelvien-input-runtime.js",
+# Site boot must keep the semantic membrane active. The order matters: core runtime first,
+# then wire/perception/input/client negotiation; language bridge only after the language runtime.
+index = require_file("apps/rist-world/wwwroot/index.html").read_text(encoding="utf-8")
+boot_sequence = [
+    "shaelvien-semantic-runtime.js",
+    "shaelvien-wire.js",
+    "shaelvien-perception-runtime.js",
+    "shaelvien-input-runtime.js",
+    "shaelvien-client-perception.js",
+]
+positions = [index.find(item) for item in boot_sequence]
+if any(position < 0 for position in positions) or positions != sorted(positions):
+    raise SystemExit("COMPLIANCE GUARDRAIL FAILED: semantic boot sequence missing or out of order")
+for required in [
+    "ui-language-sitewide.js",
+    "shaelvien-language-perception-bridge.js",
+    "shaelvien-worldbuilder-perception-bridge.js",
 ]:
-    source = require_file(runtime).read_text(encoding="utf-8")
-    if "eval(" in source or "new Function(" in source:
-        raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: arbitrary source execution found in {runtime}")
+    if required not in index:
+        raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: semantic bridge is not loaded by index.html: {required}")
+if index.find("shaelvien-language-perception-bridge.js") < index.find("ui-language-sitewide.js"):
+    raise SystemExit("COMPLIANCE GUARDRAIL FAILED: language perception bridge loads before language runtime")
 
-print("Compliance guardrails verified: required policy, authority, safety, age, and semantic-runtime invariants remain present.")
+# All Shaelvien runtime/bridge scripts must remain registry-based rather than arbitrary source execution.
+for runtime in sorted((ROOT / "apps/rist-world/wwwroot").glob("shaelvien-*.js")):
+    source = runtime.read_text(encoding="utf-8")
+    if "eval(" in source or "new Function(" in source:
+        relative = runtime.relative_to(ROOT)
+        raise SystemExit(f"COMPLIANCE GUARDRAIL FAILED: arbitrary source execution found in {relative}")
+
+# Capability negotiation must remain privacy-coarse and local by default.
+require_text(
+    "apps/rist-world/wwwroot/shaelvien-client-perception.js",
+    [
+        "fingerprintMinimized: true",
+        "localOnly: true",
+        "It is intentionally not sent through the semantic transport automatically",
+    ],
+)
+
+print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, and no-arbitrary-execution invariants remain present.")
