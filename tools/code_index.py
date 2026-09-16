@@ -68,6 +68,12 @@ MATERIALIZED_RE = re.compile(
     r"(?P<scope>[A-Za-z0-9_.-]+)\.line\d+\.(?P<kind>comment|code)\b"
 )
 
+# Runtime-only caches. They are deliberately outside the persisted registry so
+# the registry remains plain JSON while allocation can enforce identity
+# ownership in amortized O(1) time.
+_REGISTRY_USED_IDS: dict[int, set[str]] = {}
+_REGISTRY_ID_OWNERS: dict[int, dict[str, str]] = {}
+
 
 @dataclass(frozen=True)
 class CommentHit:
@@ -165,26 +171,87 @@ def used_ids(registry: dict) -> set[str]:
     }
 
 
+def registry_id_state(registry: dict) -> tuple[set[str], dict[str, str]]:
+    """Return collision-safe runtime ownership state for one registry.
+
+    Persisted IDs are identity. Duplicate ownership is therefore corruption and
+    must fail closed rather than silently choosing a winner. `next_id` is only
+    an allocation hint and may be repaired upward without changing identity.
+    """
+    key = id(registry)
+    cached_used = _REGISTRY_USED_IDS.get(key)
+    cached_owners = _REGISTRY_ID_OWNERS.get(key)
+    if cached_used is not None and cached_owners is not None:
+        return cached_used, cached_owners
+
+    owners: dict[str, str] = {}
+    collisions: list[tuple[str, str, str]] = []
+    max_numeric = 0
+    for fp, entry in registry.get("entries", {}).items():
+        raw = entry.get("id")
+        if raw in (None, ""):
+            continue
+        value = str(raw)
+        prior = owners.get(value)
+        if prior is not None and prior != fp:
+            collisions.append((value, prior, fp))
+            continue
+        owners[value] = fp
+        if value.isdigit():
+            max_numeric = max(max_numeric, int(value))
+
+    if collisions:
+        preview = ", ".join(f"{value}:{left[:12]}|{right[:12]}" for value, left, right in collisions[:8])
+        raise ValueError(f"Persistent code ID registry contains duplicate ownership: {preview}")
+
+    used = set(owners)
+    try:
+        next_id = int(registry.get("next_id", 1))
+    except (TypeError, ValueError):
+        next_id = 1
+    registry["next_id"] = max(1, next_id, max_numeric + 1)
+    _REGISTRY_USED_IDS[key] = used
+    _REGISTRY_ID_OWNERS[key] = owners
+    return used, owners
+
+
 def allocate_id(registry: dict, fp: str, metadata: dict, preferred: str | None = None) -> str:
     entries = registry.setdefault("entries", {})
-    if fp in entries:
-        entries[fp].update(metadata)
-        return str(entries[fp]["id"])
+    used, owners = registry_id_state(registry)
 
-    # Fast path: new records allocate monotonically from next_id. This is O(1)
-    # instead of rescanning the entire registry for every source line.
+    if fp in entries:
+        value = str(entries[fp]["id"])
+        owner = owners.get(value)
+        if owner not in (None, fp):
+            raise ValueError(f"Persistent code ID {value} is already owned by another fingerprint.")
+        owners[value] = fp
+        used.add(value)
+        entries[fp].update(metadata)
+        return value
+
     width = int(registry.get("width", 6))
     if preferred:
-        used = used_ids(registry)
-        if preferred not in used:
-            value = preferred
-            registry["next_id"] = max(int(registry.get("next_id", 1)), int(preferred) + 1)
+        value = str(preferred)
+        owner = owners.get(value)
+        if owner in (None, fp):
+            owners[value] = fp
+            used.add(value)
+            if value.isdigit():
+                registry["next_id"] = max(int(registry.get("next_id", 1)), int(value) + 1)
             entries[fp] = {"id": value, **metadata}
             return value
 
-    n = int(registry.get("next_id", 1))
+    # Collision-safe monotonic allocation. Membership checks are O(1), and the
+    # cursor only moves forward, preserving the linear behavior that replaced
+    # the original full-registry scan.
+    n = max(1, int(registry.get("next_id", 1)))
     value = f"{n:0{width}d}"
+    while value in used:
+        n += 1
+        value = f"{n:0{width}d}"
     registry["next_id"] = n + 1
+    owners[value] = fp
+    used.add(value)
     entries[fp] = {"id": value, **metadata}
     return value
 
@@ -525,6 +592,14 @@ def build_index(config: dict, registry: dict) -> dict:
         entry["status"] = "active" if fp in active_fps else "retired"
 
     records.sort(key=lambda row: (row["path"], row["line"], row["column"], row["kind"], row["id"]))
+    repeated_ids = [value for value, count in Counter(row["id"] for row in records).items() if count > 1]
+    if repeated_ids:
+        preview = []
+        for value in repeated_ids[:8]:
+            owners = [f"{row['path']}:{row['line']}:{row['kind']}" for row in records if row["id"] == value]
+            preview.append(f"{value}=>{'|'.join(owners[:4])}")
+        raise RuntimeError("Code index identity collision after allocation: " + ", ".join(preview))
+
     duplicates = exact_duplicate_groups(file_rows)
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
     with INDEX_JSONL.open("w", encoding="utf-8", newline="\n") as handle:
