@@ -13,7 +13,7 @@
 
   if (window.Shaelvien?.runtimeVersion) return;
 
-  const RUNTIME_VERSION = "0.1.0";
+  const RUNTIME_VERSION = "0.1.1";
   const ENVELOPE_SCHEMA = "shaelvien.semantic-envelope/1";
   const KINDS = new Set(["input", "intent", "perception", "feedback"]);
   const perceptionHandlers = new Map();
@@ -45,22 +45,27 @@
     const rune = cleanString(bound.dataset.rune);
     const glyph = cleanString(bound.dataset.glyph);
 
-    const identity = chid
-      ? { type: "chid", id: chid }
-      : shaep
-        ? { type: "shaep", id: shaep }
-        : semanticId
-          ? { type: "semantic", id: semanticId }
-          : null;
+    const identities = [
+      chid ? Object.freeze({ type: "chid", id: chid }) : null,
+      shaep ? Object.freeze({ type: "shaep", id: shaep }) : null,
+      semanticId ? Object.freeze({ type: "semantic", id: semanticId }) : null
+    ].filter(Boolean);
+
+    const declarations = [
+      rune ? Object.freeze({ type: "rune", id: rune }) : null,
+      glyph ? Object.freeze({ type: "glyph", id: glyph }) : null
+    ].filter(Boolean);
+
+    const ambiguity = Object.freeze({
+      identity: identities.length > 1,
+      operation: declarations.length > 1
+    });
 
     return Object.freeze({
       element: bound,
-      identity,
-      declaration: glyph
-        ? Object.freeze({ type: "glyph", id: glyph })
-        : rune
-          ? Object.freeze({ type: "rune", id: rune })
-          : null
+      identity: ambiguity.identity ? null : identities[0] || null,
+      declaration: ambiguity.operation ? null : declarations[0] || null,
+      ambiguity
     });
   }
 
@@ -85,6 +90,7 @@
       authoritative: false,
       identity: binding?.identity || null,
       declaration: binding?.declaration || null,
+      ambiguity: binding?.ambiguity || Object.freeze({ identity: false, operation: false }),
       representation: representationDescriptor(binding?.element || element, point)
     });
   }
@@ -144,6 +150,10 @@
   }
 
   function emitDeclaredIntent({ target, declaration, operands = null, input = null, meta = null }) {
+    if (target?.ambiguity?.identity || target?.ambiguity?.operation) {
+      diagnostic("warn", "ambiguous-semantic-binding-rejected", target.ambiguity);
+      return null;
+    }
     if (!declaration?.type || !declaration?.id) return null;
     const envelope = createEnvelope({
       kind: "intent",
