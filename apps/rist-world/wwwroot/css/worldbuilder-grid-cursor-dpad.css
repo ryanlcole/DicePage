@@ -1,0 +1,110 @@
+/* Persistent square-by-square World Builder navigation. Presentation cursor only. */
+.wb-device-keyboard.wb-has-dpad .wb-device-keys{
+  padding-right:136px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.wb-persistent-dpad{
+  position:absolute;
+  z-index:4;
+  right:7px;
+  bottom:calc(7px + env(safe-area-inset-bottom));
+  width:124px;
+  height:132px;
+  display:grid;
+  grid-template-columns:repeat(3,38px);
+  grid-template-rows:18px repeat(3,38px);
+  gap:3px;
+  align-content:end;
+  justify-content:end;
+  pointer-events:auto;
+}
+.wb-dpad-readout{
+  grid-column:1/-1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-align:center;
+  color:#d0d0d3;
+  font:600 9px/18px -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+.wb-dpad-key{
+  box-sizing:border-box;
+  width:38px;
+  height:38px;
+  min-width:38px;
+  min-height:38px;
+  padding:0;
+  border:0;
+  border-radius:7px;
+  background:#424245;
+  color:#fff;
+  box-shadow:0 1px 0 #000,0 1.5px 2px rgba(0,0,0,.55);
+  display:grid;
+  place-items:center;
+  font:700 16px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  touch-action:manipulation;
+}
+.wb-device-android .wb-dpad-key{background:#303134;box-shadow:none}
+.wb-dpad-key.wb-dpad-select{
+  background:#d1d1d3;
+  color:#111113;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+.wb-device-android .wb-dpad-key.wb-dpad-select{background:#8ab4f8;color:#101418}
+.wb-dpad-up{grid-column:2;grid-row:2}
+.wb-dpad-left{grid-column:1;grid-row:3}
+.wb-dpad-select{grid-column:2;grid-row:3}
+.wb-dpad-right{grid-column:3;grid-row:3}
+.wb-dpad-down{grid-column:2;grid-row:4}
+.wb-dpad-key:focus-visible{outline:3px solid #ffe386!important;outline-offset:2px!important}
+.worldbuilder-studio.wb-device-collapsed .wb-persistent-dpad{display:none!important}
+
+.wb-grid-cursor{
+  position:absolute;
+  z-index:139;
+  box-sizing:border-box;
+  pointer-events:none;
+  border:3px solid #ffe075;
+  background:rgba(255,224,117,.10);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.75),0 0 0 1px rgba(0,0,0,.5);
+  border-radius:2px;
+}
+.wb-grid-cursor::after{
+  content:"";
+  position:absolute;
+  inset:26%;
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:50%;
+}
+.worldbuilder-studio.wb-access-contrast .wb-grid-cursor{
+  border:4px solid #fff;
+  background:#0008;
+  box-shadow:inset 0 0 0 2px #000,0 0 0 2px #fff;
+}
+.worldbuilder-studio.wb-access-large .wb-persistent-dpad{
+  width:154px;
+  height:159px;
+  grid-template-columns:repeat(3,47px);
+  grid-template-rows:18px repeat(3,47px);
+  gap:4px;
+}
+.worldbuilder-studio.wb-access-large .wb-device-keyboard.wb-has-dpad .wb-device-keys{padding-right:166px}
+.worldbuilder-studio.wb-access-large .wb-dpad-key{width:47px;height:47px;min-width:47px;min-height:47px;font-size:20px}
+.worldbuilder-studio.wb-access-large .wb-dpad-key.wb-dpad-select{font-size:11px}
+
+@media(max-width:430px){
+  .wb-device-keyboard.wb-has-dpad .wb-device-keys{padding-right:126px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wb-persistent-dpad{width:116px;grid-template-columns:repeat(3,36px)}
+  .wb-dpad-key{width:36px;height:36px;min-width:36px;min-height:36px}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .wb-device-keyboard.wb-has-dpad .wb-device-keys{padding-right:116px;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .wb-persistent-dpad{width:108px;height:104px;grid-template-columns:repeat(3,32px);grid-template-rows:14px repeat(3,28px);gap:3px;bottom:5px}
+  .wb-dpad-readout{font-size:8px;line-height:14px}
+  .wb-dpad-key{width:32px;height:28px;min-width:32px;min-height:28px;font-size:14px;border-radius:5px}
+  .wb-dpad-key.wb-dpad-select{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){.wb-grid-cursor{transition:none!important}}
