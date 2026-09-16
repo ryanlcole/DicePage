@@ -48,9 +48,9 @@ public partial class WorldBuilderStudio
             if (!Session.CompositeZView && sceneZ > viewerSceneZ)
                 continue;
 
-            var footprint = FootprintFor(tile);
-            var width = Math.Min(footprint, WorldSession.GridColumns) / (double)WorldSession.GridColumns;
-            var height = Math.Min(footprint, WorldSession.GridRows) / (double)WorldSession.GridRows;
+            var footprint = AssetKeyboardFootprint(tile);
+            var width = Math.Min(footprint.Width, WorldSession.GridColumns) / (double)WorldSession.GridColumns;
+            var height = Math.Min(footprint.Height, WorldSession.GridRows) / (double)WorldSession.GridRows;
 
             const double epsilon = 1e-9;
             if (x + epsilon < tile.X || x - epsilon > tile.X + width ||
