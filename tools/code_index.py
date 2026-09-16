@@ -22,7 +22,6 @@ from dataclasses import dataclass
 import hashlib
 import io
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
@@ -172,17 +171,20 @@ def allocate_id(registry: dict, fp: str, metadata: dict, preferred: str | None =
         entries[fp].update(metadata)
         return str(entries[fp]["id"])
 
-    used = used_ids(registry)
-    if preferred and preferred not in used:
-        value = preferred
-        registry["next_id"] = max(int(registry.get("next_id", 1)), int(preferred) + 1)
-    else:
-        width = int(registry.get("width", 6))
-        n = int(registry.get("next_id", 1))
-        while f"{n:0{width}d}" in used:
-            n += 1
-        value = f"{n:0{width}d}"
-        registry["next_id"] = n + 1
+    # Fast path: new records allocate monotonically from next_id. This is O(1)
+    # instead of rescanning the entire registry for every source line.
+    width = int(registry.get("width", 6))
+    if preferred:
+        used = used_ids(registry)
+        if preferred not in used:
+            value = preferred
+            registry["next_id"] = max(int(registry.get("next_id", 1)), int(preferred) + 1)
+            entries[fp] = {"id": value, **metadata}
+            return value
+
+    n = int(registry.get("next_id", 1))
+    value = f"{n:0{width}d}"
+    registry["next_id"] = n + 1
     entries[fp] = {"id": value, **metadata}
     return value
 
@@ -234,9 +236,7 @@ def is_explicit_stale(path: Path, config: dict) -> bool:
 def append_cleanup(records: list[dict]) -> None:
     if not records:
         return
-    existing = ""
-    if CLEANUP_LOG.exists():
-        existing = CLEANUP_LOG.read_text(encoding="utf-8")
+    existing = CLEANUP_LOG.read_text(encoding="utf-8") if CLEANUP_LOG.exists() else ""
     with CLEANUP_LOG.open("w", encoding="utf-8", newline="\n") as handle:
         if existing:
             handle.write(existing.rstrip("\n") + "\n")
@@ -255,10 +255,8 @@ def prune_explicit_stale(config: dict) -> list[dict]:
         except OSError:
             digest, size = "unreadable", 0
         records.append({
-            "path": rel(path),
-            "reason": "explicit-stale-name",
-            "sha256": digest,
-            "bytes": size,
+            "path": rel(path), "reason": "explicit-stale-name",
+            "sha256": digest, "bytes": size,
             "status": "removed-from-active-tree",
         })
         try:
@@ -305,27 +303,21 @@ def marker_outside_quotes(line: str, marker: str) -> int:
 def python_comment_hits(text: str) -> list[CommentHit]:
     hits: list[CommentHit] = []
     try:
-        tokens = tokenize.generate_tokens(io.StringIO(text).readline)
-        for token in tokens:
+        for token in tokenize.generate_tokens(io.StringIO(text).readline):
             if token.type != tokenize.COMMENT:
                 continue
             line_no, col = token.start
             raw = token.string
-            # Leave interpreter and encoding directives untouched as source text.
             if line_no == 1 and raw.startswith("#!"):
                 continue
             if line_no <= 2 and "coding" in raw:
                 continue
             source_line = token.line or ""
             hits.append(CommentHit(
-                line=line_no,
-                column=col,
-                text=raw[1:].strip(),
-                full_line=(source_line[:col].strip() == ""),
-                marker="#",
+                line=line_no, column=col, text=raw[1:].strip(),
+                full_line=(source_line[:col].strip() == ""), marker="#",
             ))
     except (tokenize.TokenError, IndentationError):
-        # Broken Python is still indexed as code; comments are not guessed.
         pass
     return hits
 
@@ -350,11 +342,10 @@ def comment_hits(text: str, language: str) -> list[CommentHit]:
     if language == "html":
         for i, line in enumerate(lines, 1):
             start = line.find("<!--")
-            if start < 0:
-                continue
-            end = line.find("-->", start + 4)
-            body = line[start + 4:end if end >= 0 else None].strip()
-            hits.append(CommentHit(i, start, body, line[:start].strip() == "", "<!--", "-->" if end >= 0 else ""))
+            if start >= 0:
+                end = line.find("-->", start + 4)
+                body = line[start + 4:end if end >= 0 else None].strip()
+                hits.append(CommentHit(i, start, body, line[:start].strip() == "", "<!--", "-->" if end >= 0 else ""))
         return hits
 
     if language == "razor":
@@ -378,22 +369,18 @@ def comment_hits(text: str, language: str) -> list[CommentHit]:
     if marker:
         for i, line in enumerate(lines, 1):
             pos = marker_outside_quotes(line, marker)
-            if pos < 0:
-                continue
-            actual = marker
-            if marker == "//" and line.startswith("///", pos):
-                actual = "///"
-            body = line[pos + len(actual):].strip()
-            hits.append(CommentHit(i, pos, body, line[:pos].strip() == "", actual))
+            if pos >= 0:
+                actual = "///" if marker == "//" and line.startswith("///", pos) else marker
+                body = line[pos + len(actual):].strip()
+                hits.append(CommentHit(i, pos, body, line[:pos].strip() == "", actual))
     return sorted(hits, key=lambda hit: (hit.line, hit.column, hit.marker))
 
 
 def materialize_python_comments(path: Path, text: str, registry: dict) -> tuple[str, int]:
     lines = text.splitlines(keepends=True)
-    hits = python_comment_hits(text)
     occurrence: Counter[str] = Counter()
     changed = 0
-    for hit in hits:
+    for hit in python_comment_hits(text):
         clean = strip_materialized_id(hit.text)
         key = normalize_space(clean)
         occurrence[key] += 1
@@ -401,7 +388,7 @@ def materialize_python_comments(path: Path, text: str, registry: dict) -> tuple[
         existing = MATERIALIZED_RE.search(hit.text)
         meta = {"kind": "comment", "language": "python", "path": rel(path), "text": key}
         numeric = allocate_id(registry, fp, meta, existing.group("id") if existing else None)
-        if not hit.full_line or existing:
+        if not hit.full_line:
             continue
         idx = hit.line - 1
         original = lines[idx]
@@ -417,15 +404,13 @@ def materialize_python_comments(path: Path, text: str, registry: dict) -> tuple[
 
 
 def materialize_all_comments(config: dict, registry: dict) -> dict:
-    allowed = set(config.get("materialize_languages", []))
-    files_changed = comments_changed = 0
-    if "python" not in allowed:
+    if "python" not in set(config.get("materialize_languages", [])):
         return {"files_changed": 0, "comments_materialized": 0}
+    files_changed = comments_changed = 0
     for path in tracked_files():
         if not path.exists() or path.suffix.lower() != ".py":
             continue
-        category, _ = classify(path, config)
-        if category != "source":
+        if classify(path, config)[0] != "source":
             continue
         text = safe_text(path)
         if text is None:
@@ -442,7 +427,6 @@ def iter_records(path: Path, text: str, language: str, category: str, registry: 
     hits = comment_hits(text, language)
     full_comment_lines = {hit.line for hit in hits if hit.full_line}
     comment_occurrence: Counter[str] = Counter()
-
     for hit in hits:
         clean = strip_materialized_id(hit.text)
         norm = normalize_space(clean)
@@ -454,15 +438,10 @@ def iter_records(path: Path, text: str, language: str, category: str, registry: 
         yield {
             "id": numeric,
             "display_id": display_id(numeric, language, path, hit.line, "comment"),
-            "kind": "comment",
-            "language": language,
-            "path": rel(path),
-            "line": hit.line,
-            "column": hit.column + 1,
-            "classification": category,
-            "text": norm,
-            "materialized": bool(existing),
-            "fingerprint": fp,
+            "kind": "comment", "language": language, "path": rel(path),
+            "line": hit.line, "column": hit.column + 1,
+            "classification": category, "text": norm,
+            "materialized": bool(existing), "fingerprint": fp,
         }
 
     code_occurrence: Counter[str] = Counter()
@@ -477,24 +456,17 @@ def iter_records(path: Path, text: str, language: str, category: str, registry: 
         yield {
             "id": numeric,
             "display_id": display_id(numeric, language, path, line_no, "code"),
-            "kind": "code",
-            "language": language,
-            "path": rel(path),
-            "line": line_no,
-            "column": 1,
-            "classification": category,
-            "text": norm,
-            "materialized": False,
-            "fingerprint": fp,
+            "kind": "code", "language": language, "path": rel(path),
+            "line": line_no, "column": 1, "classification": category,
+            "text": norm, "materialized": False, "fingerprint": fp,
         }
 
 
 def exact_duplicate_groups(file_rows: list[dict]) -> list[dict]:
     grouped: defaultdict[tuple[str, str], list[dict]] = defaultdict(list)
     for row in file_rows:
-        if row["classification"] not in {"source", "vendor", "config"} or not row.get("sha256"):
-            continue
-        grouped[(row["sha256"], row.get("language", ""))].append(row)
+        if row["classification"] in {"source", "vendor", "config"} and row.get("sha256"):
+            grouped[(row["sha256"], row.get("language", ""))].append(row)
     result: list[dict] = []
     for (digest, language), rows in grouped.items():
         if len(rows) < 2:
@@ -502,9 +474,7 @@ def exact_duplicate_groups(file_rows: list[dict]) -> list[dict]:
         paths = sorted(row["path"] for row in rows)
         result.append({
             "key": digest + ":" + "|".join(paths),
-            "sha256": digest,
-            "language": language,
-            "paths": paths,
+            "sha256": digest, "language": language, "paths": paths,
             "classifications": sorted({row["classification"] for row in rows}),
             "source_duplicate": sum(row["classification"] == "source" for row in rows) > 1,
         })
@@ -526,7 +496,6 @@ def build_index(config: dict, registry: dict) -> dict:
     file_rows: list[dict] = []
     stale_rows: list[dict] = []
     never = tuple(config.get("never_index_prefixes", []))
-
     for path in tracked_files():
         if not path.exists():
             continue
@@ -535,27 +504,21 @@ def build_index(config: dict, registry: dict) -> dict:
             continue
         category, reasons = classify(path, config)
         try:
-            digest = sha256_file(path)
-            size = path.stat().st_size
+            digest, size = sha256_file(path), path.stat().st_size
         except OSError:
             digest, size = "", 0
         language = LANGUAGES.get(path.suffix.lower(), "")
         file_row = {
-            "path": rp,
-            "classification": category,
-            "language": language,
-            "bytes": size,
-            "sha256": digest,
-            "reasons": reasons,
+            "path": rp, "classification": category, "language": language,
+            "bytes": size, "sha256": digest, "reasons": reasons,
         }
         file_rows.append(file_row)
         if category in {"stale", "generated"}:
             stale_rows.append(file_row)
-        if not language:
-            continue
-        text = safe_text(path)
-        if text is not None:
-            records.extend(iter_records(path, text, language, category, registry))
+        if language:
+            text = safe_text(path)
+            if text is not None:
+                records.extend(iter_records(path, text, language, category, registry))
 
     active_fps = {row["fingerprint"] for row in records}
     for fp, entry in registry.get("entries", {}).items():
@@ -564,7 +527,6 @@ def build_index(config: dict, registry: dict) -> dict:
     records.sort(key=lambda row: (row["path"], row["line"], row["column"], row["kind"], row["id"]))
     duplicates = exact_duplicate_groups(file_rows)
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
-
     with INDEX_JSONL.open("w", encoding="utf-8", newline="\n") as handle:
         for row in records:
             handle.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
@@ -576,7 +538,6 @@ def build_index(config: dict, registry: dict) -> dict:
                 f"{row['id']}\t{row['display_id']}\t{row['kind']}\t{row['language']}\t"
                 f"{row['classification']}\t{row['path']}\t{row['line']}\t{clean_text}\n"
             )
-
     DUPLICATES_PATH.write_text(json.dumps(duplicates, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     STALE_PATH.write_text(json.dumps(sorted(stale_rows, key=lambda row: row["path"]), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     REGISTRY_PATH.write_text(json.dumps(registry, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -660,12 +621,12 @@ def verify(config: dict) -> int:
 def build_command(args: argparse.Namespace) -> int:
     config = load_config()
     registry = load_registry(int(config.get("id_width", 6)))
-    removed = []
-    if args.prune or config.get("prune_explicit_stale", False):
-        removed = prune_explicit_stale(config)
-    materialized = {"files_changed": 0, "comments_materialized": 0}
-    if args.materialize or config.get("materialize_comment_ids", False):
-        materialized = materialize_all_comments(config, registry)
+    removed = prune_explicit_stale(config) if (args.prune or config.get("prune_explicit_stale", False)) else []
+    materialized = (
+        materialize_all_comments(config, registry)
+        if (args.materialize or config.get("materialize_comment_ids", False))
+        else {"files_changed": 0, "comments_materialized": 0}
+    )
     summary = build_index(config, registry)
     print(json.dumps({"cleanup_files": len(removed), **materialized, **summary}, indent=2, sort_keys=True))
     return 0
