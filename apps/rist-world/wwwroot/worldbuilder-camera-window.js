@@ -9,8 +9,27 @@
  const MODE_KEY='rist.world.viewerZoom.cameraWindowV3';
  let observer=null,raf=0;
  const authority=()=>window.ristViewerAuthority;
+ const adaptiveCamera=()=>window.Shaelvien?.WorldbuilderPerception;
  const studio=()=>document.querySelector('.worldbuilder-studio');
- function sync(){raf=0;const api=authority();if(!api)return;if(api.get?.().mode==='auto')api.resetAutoZoom?.({source:'camera-window'});else api.syncViewport?.('camera-window')}
+ function sync(){
+  raf=0;
+  const api=authority();
+  if(!api)return;
+  if(api.get?.().mode==='auto'){
+   const semantic=adaptiveCamera();
+   if(semantic?.enqueueCamera){
+    Promise.resolve(semantic.enqueueCamera({mode:'auto'},{source:'camera-window-auto',supersedable:true})).catch(error=>{
+     console.warn('[Shaelvien] adaptive camera fallback',error);
+     api.resetAutoZoom?.({source:'camera-window-fallback'});
+    });
+    return;
+   }
+   api.resetAutoZoom?.({source:'camera-window'});
+   return;
+  }
+  // Manual camera state remains on the existing synchronous authority path during migration.
+  api.syncViewport?.('camera-window');
+ }
  function schedule(){if(!raf)raf=requestAnimationFrame(sync)}
  function initialize(){if(!studio())return setTimeout(initialize,100);sync();observer=new MutationObserver(schedule);observer.observe(studio(),{childList:true,subtree:true});window.addEventListener('resize',schedule,{passive:true});window.addEventListener('orientationchange',schedule,{passive:true});window.addEventListener('pageshow',schedule,{passive:true});window.addEventListener('rist-parallax-settings',schedule)}
  window.ristCameraWindow={
