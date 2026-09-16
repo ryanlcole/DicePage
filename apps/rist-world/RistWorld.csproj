@@ -23,5 +23,6 @@
     <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-wire.js&quot;" />
     <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-perception-runtime.js&quot;" />
     <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-input-runtime.js&quot;" />
+    <Exec Command="node --check &quot;$(MSBuildProjectDirectory)/wwwroot/shaelvien-worldbuilder-perception-bridge.js&quot;" />
   </Target>
 </Project>
