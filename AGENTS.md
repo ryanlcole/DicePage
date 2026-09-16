@@ -2,6 +2,17 @@
 
 This repository contains an experimental semantic programming and transport language used by Shaelvien/RIST. Coding agents, including ChatGPT/Codex sessions, must discover its semantics from repository truth rather than reconstructing them from conversational memory.
 
+## Compliance discovery — read first
+
+Before changing runtime behavior, authority, AI/EI behavior, user data handling, perception, input, deployment, monetization, accessibility, or any semantic execution path, read:
+
+1. `docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md` — foundational engineering constraint for law, human/AI policy, safety, consent, privacy, accessibility, ownership, lawful process, and non-bypass behavior.
+2. `apps/rist-world/AUTHORITY_SYSTEM.md` — foundational Recursive Authority & Supervision contract.
+3. `apps/rist-world/wwwroot/ai-policy.json` — deployed AI-access policy.
+4. The deployed legal/safety surfaces under `apps/rist-world/wwwroot/`, including `terms.html`, `privacy.html`, `safety.html`, `dmca.html`, and `accessibility.html`.
+
+If a requirement is unknown, ambiguous, conflicting, stale, jurisdiction-dependent, or not yet implemented safely, fail closed or preserve the prior lawful behavior and escalate for qualified human/legal review. Semantic efficiency never outranks lawful human requirements, consent, privacy, safety, accessibility, ownership, or established Shaelvien/RIST policy.
+
 ## Language discovery
 
 Before generating, translating, refactoring, decoding, or inventing compact Shaelvien semantic code, read:
