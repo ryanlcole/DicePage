@@ -1,0 +1,149 @@
+/* Shaelvien World Builder percentage geometry.
+   Scope is intentionally narrow: section boxes and button boxes only.
+   Typography, borders, artwork, focus treatment, cursor math, world coordinates,
+   camera authority, and button actions remain owned by their existing layers. */
+
+.worldbuilder-studio:not(.wb-device-collapsed){
+  --wb-device-keyboard-h:32%;
+}
+
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+  --wb-shaelvien-dpad-section:16%;
+  --wb-shaelvien-key-section:84%;
+}
+
+/* Keyboard structural sections scale from the keyboard box. */
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-grabber-row{
+  width:100%;
+  height:12%;
+  grid-template-columns:10% 80% 10%;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode-row{
+  width:100%;
+  height:17%;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned.wb-has-dpad .wb-device-keys{
+  box-sizing:border-box;
+  width:var(--wb-shaelvien-key-section);
+  height:63%;
+  margin-left:var(--wb-shaelvien-dpad-section);
+  padding-left:0!important;
+  padding-right:0!important;
+  grid-auto-rows:minmax(0,48%);
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-persistent-dpad{
+  box-sizing:border-box;
+  left:1%!important;
+  right:auto!important;
+  bottom:3%;
+  width:calc(var(--wb-shaelvien-dpad-section) - 2%)!important;
+  height:60%!important;
+  grid-template-columns:repeat(3,31%)!important;
+  grid-template-rows:12% repeat(3,27%)!important;
+  align-content:space-between;
+  justify-content:space-between;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-admin-status,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-admin-fields,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-admin-permission-fields,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-admin-authority-note{
+  box-sizing:border-box;
+  width:100%;
+}
+
+/* Button boxes use percentages of the section/cell that owns them. */
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-menu,
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-collapse{
+  width:72%;
+  height:78%;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-grabber{
+  width:12%;
+  height:2%;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+  flex:0 0 12%;
+  width:12%;
+  min-width:12%;
+  height:78%;
+  padding-left:1%;
+  padding-right:1%;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-key{
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-dpad-key{
+  box-sizing:border-box;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+}
+.worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-inline-editor button{
+  width:20%;
+  height:80%;
+  min-width:0;
+  min-height:0;
+}
+
+/* Tablet: reserve a larger percentage for the permanent left D-pad. */
+@media(max-width:768px){
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-shaelvien-dpad-section:22%;
+    --wb-shaelvien-key-section:78%;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:18%;
+    width:18%;
+    min-width:18%;
+  }
+}
+
+/* Phone portrait: percentages reproduce the larger touch-friendly left control bay. */
+@media(max-width:430px){
+  .worldbuilder-studio:not(.wb-device-collapsed){
+    --wb-device-keyboard-h:31%;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-shaelvien-dpad-section:31%;
+    --wb-shaelvien-key-section:69%;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:26%;
+    width:26%;
+    min-width:26%;
+  }
+}
+
+/* Phone landscape needs a shallower, wider percentage keyboard. */
+@media(orientation:landscape) and (max-height:520px){
+  .worldbuilder-studio:not(.wb-device-collapsed){
+    --wb-device-keyboard-h:52%;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-shaelvien-dpad-section:18%;
+    --wb-shaelvien-key-section:82%;
+  }
+  .worldbuilder-studio:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned .wb-device-mode{
+    flex-basis:14%;
+    width:14%;
+    min-width:14%;
+  }
+}
+
+/* Large-target accessibility remains relative rather than returning to fixed widths. */
+.worldbuilder-studio.wb-access-large:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+  --wb-shaelvien-dpad-section:24%;
+  --wb-shaelvien-key-section:76%;
+}
+@media(max-width:430px){
+  .worldbuilder-studio.wb-access-large:not(.wb-device-collapsed) .wb-device-keyboard.wb-shaelvien-skinned{
+    --wb-shaelvien-dpad-section:34%;
+    --wb-shaelvien-key-section:66%;
+  }
+}
