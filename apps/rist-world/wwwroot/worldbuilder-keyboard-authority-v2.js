@@ -1,7 +1,7 @@
 (()=>{
  'use strict';
 
- const VERSION='20260916-keyboard-authority-v2-1';
+ const VERSION='20260916-keyboard-authority-v2-2';
  if(window.RistWorldBuilderKeyboardAuthority?.version===VERSION)return;
 
  const ASSET_BASE='https://d2d6rnm6fnsp89.cloudfront.net/runtime/worldbuilder/keyboards/v1';
@@ -11,8 +11,8 @@
  const MODE_KEY='rist.worldbuilder.deviceKeyboard.mode.v1';
  const ADMIN_KEY='rist.worldbuilder.deviceKeyboard.mode.adminOverlay.v1';
 
- /* Only map artwork that actually represents the command. Unknown keys keep their
-    semantic text over the generic blank key instead of borrowing a misleading icon. */
+ /* Artwork is semantic: a command gets a picture only when that picture actually
+    represents the command. Everything else uses one generic CSS key and live text. */
  const MAP={
   pixels:{'1²':'1x1','1x1':'1x1','Grid':'grid','Zoom −':'zoom_minus','Zoom -':'zoom_minus','Zoom +':'zoom_plus','Undo':'undo'},
   tiles:{'Library':'library','Tile Size':'tile_size','Rotate':'rotate','Layer +':'layer_plus','Layer −':'layer_minus','Layer -':'layer_minus','Tier +':'tier_plus','Tier −':'tier_minus','Tier -':'tier_minus','Remove':'delete','Delete':'delete','Move':'move','Copy':'copy','Place':'place','Flip':'flip'},
@@ -139,37 +139,52 @@
 
  function removeLegacyArt(button){
   button.querySelectorAll(':scope > .wb-shaelvien-key-art,:scope > .wb-final-key-art').forEach(node=>node.remove());
-  button.classList.remove('wb-final-art-loaded','wb-shaelvien-key-exact','wb-shaelvien-key-fallback');
+  button.classList.remove('wb-final-art-loaded');
+ }
+
+ function setKeyClasses(button,exact){
+  button.classList.toggle('wb-keyboard-v2-exact',exact);
+  button.classList.toggle('wb-keyboard-v2-fallback',!exact);
+  button.classList.toggle('wb-shaelvien-key-exact',exact);
+  button.classList.toggle('wb-shaelvien-key-fallback',!exact);
  }
 
  function decorateKey(button,mode){
   if(!(button instanceof HTMLButtonElement)||button.closest('.wb-persistent-dpad'))return;
   removeLegacyArt(button);
   const id=assetId(mode,button);
-  const token=`${mode}:${id||'blank'}`;
+  const token=`${mode}:${id||'text'}`;
   const existing=button.querySelector(':scope > .wb-keyboard-v2-art');
-  if(button.dataset.keyboardV2ArtToken===token&&existing){
-   button.classList.toggle('wb-keyboard-v2-exact',!!id);
-   button.classList.toggle('wb-keyboard-v2-fallback',!id);
-   button.classList.toggle('wb-shaelvien-key-exact',!!id);
+
+  /* Generic keys already own one blank background in runtime CSS. Do not stack a
+     second blank PNG on top of it. */
+  if(!id){
+   existing?.remove();
+   button.dataset.keyboardV2ArtToken=token;
+   button.dataset.accessTranslation='available';
+   setKeyClasses(button,false);
    return;
   }
+
+  if(button.dataset.keyboardV2ArtToken===token&&existing){
+   setKeyClasses(button,true);
+   return;
+  }
+
   existing?.remove();
   const img=document.createElement('img');
   img.className='wb-keyboard-v2-art';
   img.alt='';img.setAttribute('aria-hidden','true');img.draggable=false;img.decoding='async';
-  img.src=id?`${ASSET_BASE}/keyboards/${mode}/tiles/${id}.png`:BLANK;
-  if(id)img.addEventListener('error',()=>{
-   img.src=BLANK;
-   button.classList.remove('wb-keyboard-v2-exact','wb-shaelvien-key-exact');
-   button.classList.add('wb-keyboard-v2-fallback');
+  img.src=`${ASSET_BASE}/keyboards/${mode}/tiles/${id}.png`;
+  img.addEventListener('error',()=>{
+   img.remove();
+   button.dataset.keyboardV2ArtToken=`${mode}:text`;
+   setKeyClasses(button,false);
   },{once:true});
   button.prepend(img);
   button.dataset.keyboardV2ArtToken=token;
   button.dataset.accessTranslation='available';
-  button.classList.toggle('wb-keyboard-v2-exact',!!id);
-  button.classList.toggle('wb-keyboard-v2-fallback',!id);
-  button.classList.toggle('wb-shaelvien-key-exact',!!id);
+  setKeyClasses(button,true);
  }
 
  function dpadDirection(button){
