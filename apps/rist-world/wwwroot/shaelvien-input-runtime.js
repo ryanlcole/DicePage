@@ -17,14 +17,20 @@
     return null;
   }
 
+  function sensitiveTarget(target) {
+    return target instanceof HTMLInputElement && (target.type === "password" || target.type === "file");
+  }
+
   function inputDescriptor(event) {
     const pointer = "pointerType" in event ? event.pointerType || "pointer" : null;
+    const withholdKeyboard = sensitiveTarget(event.target);
     return Object.freeze({
       modality: pointer || (event instanceof KeyboardEvent ? "keyboard" : "browser"),
       eventType: event.type,
       trustedBrowserEvent: event.isTrusted === true,
-      key: event instanceof KeyboardEvent ? event.key : null,
-      code: event instanceof KeyboardEvent ? event.code : null,
+      key: event instanceof KeyboardEvent && !withholdKeyboard ? event.key : null,
+      code: event instanceof KeyboardEvent && !withholdKeyboard ? event.code : null,
+      sensitiveInputWithheld: withholdKeyboard,
       button: "button" in event && Number.isFinite(event.button) ? event.button : null,
       buttons: "buttons" in event && Number.isFinite(event.buttons) ? event.buttons : null,
       altKey: Boolean(event.altKey),
@@ -41,7 +47,7 @@
     }
 
     // Password/file values are deliberately never copied into semantic feedback.
-    if (target instanceof HTMLInputElement && (target.type === "password" || target.type === "file")) {
+    if (sensitiveTarget(target)) {
       return Object.freeze({ valueKind: target.type, valueWithheld: true });
     }
 
