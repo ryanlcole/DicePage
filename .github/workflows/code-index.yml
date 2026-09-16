@@ -34,6 +34,44 @@ jobs:
       - name: Syntax-check governance tools
         run: python -m py_compile tools/code_index.py tools/code_database.py tools/semantic_units.py
 
+      - name: Verify language contract discovery stays synchronized
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          contract_path = Path('.code-index/humans_language.json')
+          manifest_path = Path('apps/rist-world/wwwroot/.well-known/shaelvien-language.json')
+
+          contract_bytes = contract_path.read_bytes()
+          contract = json.loads(contract_bytes)
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+
+          expected_path = manifest['discovery']['canonical_contract']
+          if expected_path != contract_path.as_posix():
+              raise SystemExit(
+                  f'Language discovery points to {expected_path!r}, expected {contract_path.as_posix()!r}'
+              )
+
+          contract_version = contract['version']
+          manifest_version = manifest['language']['version']
+          if contract_version != manifest_version:
+              raise SystemExit(
+                  f'Language version drift: contract={contract_version} manifest={manifest_version}'
+              )
+
+          actual_hash = hashlib.sha256(contract_bytes).hexdigest()
+          expected_hash = manifest['discovery']['canonical_contract_sha256']
+          if actual_hash != expected_hash:
+              raise SystemExit(
+                  'Language contract hash drift: update the deployed manifest when the canonical contract changes. '
+                  f'expected={expected_hash} actual={actual_hash}'
+              )
+
+          print(f'Language contract v{contract_version} synchronized: {actual_hash}')
+          PY
+
       - name: Build searchable code ledger
         run: python tools/code_index.py build
 
