@@ -2,9 +2,18 @@
  'use strict';
 
  const STYLE_ID='rist-worldbuilder-mode-keyboard-relocation-style';
+ const RUNTIME_ID='rist-worldbuilder-keyboard-runtime-authority';
  let observer=null;
  let frame=0;
 
+ function ensureRuntime(){
+  if(window.RistWorldBuilderKeyboardRuntime||document.getElementById(RUNTIME_ID))return;
+  const script=document.createElement('script');
+  script.id=RUNTIME_ID;
+  script.src='./worldbuilder-keyboard-runtime-authority.js?v=20260916-touch-art-resume-1';
+  script.async=false;
+  document.head.appendChild(script);
+ }
  function ensureStyle(){
   if(document.getElementById(STYLE_ID))return;
   const style=document.createElement('style');
@@ -116,6 +125,7 @@
  }
  function descriptionOnly(){return descriptionBridge()?.getAttribute('aria-pressed')==='true'}
  function sync(){
+  ensureRuntime();
   ensureStyle();
   renderViewerModeKeys();
   normalizeAccessDescription();
@@ -125,7 +135,7 @@
   frame=requestAnimationFrame(()=>{frame=0;sync()});
  }
  function start(){
-  ensureStyle();sync();
+  ensureRuntime();ensureStyle();sync();
   observer=new MutationObserver(schedule);
   observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-selected','aria-pressed']});
   document.addEventListener('click',event=>{if(event.target?.closest?.('.wb-device-mode,.wb-device-key,.studio-edit-mode button,.description-mode-toggle'))setTimeout(schedule,0)},true);
