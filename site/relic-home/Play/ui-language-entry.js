@@ -13,6 +13,7 @@
  const clean=value=>String(value??'').replace(/\s+/g,' ').trim();
  function root(){return document.querySelector(ROOT)}
  function state(){return window.RistUiLanguage?.state?.()||{name:localStorage.getItem('rist.primaryHumanLanguage')||'English',code:'en',locale:'en',dir:'ltr'}}
+ function translationCode(language){return language?.name==='Cantonese'?'zh-TW':String(language?.code||'en')}
  function textNodes(){
   const host=root();
   if(!host)return [];
@@ -67,9 +68,10 @@
  }
  async function translations(values){
   const language=state();
+  const target=translationCode(language);
   const unique=[...new Set(values.map(clean).filter(Boolean))];
   const result=new Map();
-  if(!unique.length||language.code==='en')return result;
+  if(!unique.length||target==='en')return result;
   if(!apiBase)await loadApi();
   if(!apiBase)return result;
   const token=sessionStorage.getItem('rist.session')||'';
@@ -78,7 +80,7 @@
   for(let i=0;i<unique.length;i+=80){
    const chunk=unique.slice(i,i+80);
    try{
-    const response=await fetch(apiBase+'/ui/translate',{method:'POST',headers,body:JSON.stringify({sourceLanguageCode:'en',targetLanguageCode:language.code,texts:chunk})});
+    const response=await fetch(apiBase+'/ui/translate',{method:'POST',headers,body:JSON.stringify({sourceLanguageCode:'en',targetLanguageCode:target,texts:chunk})});
     if(!response.ok)continue;
     const data=await response.json();
     for(const item of data.items||[]){
@@ -105,7 +107,7 @@
   applying=true;
   try{
    const language=state();
-   if(language.code==='en'){restore();return}
+   if(translationCode(language)==='en'){restore();return}
    const nodes=textNodes();
    const attrs=attributeTargets();
    const map=await translations([...nodes.map(sourceFor),...attrs.map(item=>item.source)]);

@@ -42,13 +42,23 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'text/html; charset=utf-8' \
             --only-show-errors
+          aws s3 cp site/relic-home/Play/ui-language-entry.js "s3://${BUCKET}/Play/ui-language-entry.js" \
+            --cache-control 'public,max-age=300,must-revalidate' \
+            --content-type 'application/javascript; charset=utf-8' \
+            --only-show-errors
 
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/Play/index.html' '/Play/' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/Play/index.html' '/Play/ui-language-entry.js' '/Play/' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play.html "${URL}Play/index.html"
-          grep -q '>Continue with Discord<' /tmp/play.html
-          grep -q "button.hidden=!!text" /tmp/play.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/play-language.js "${URL}Play/ui-language-entry.js"
+          grep -q 'data-rist-play-entry' /tmp/play.html
+          grep -q '>SIGN IN<' /tmp/play.html
+          grep -q '>SIGN UP<' /tmp/play.html
+          grep -q 'ui-language-entry.js' /tmp/play.html
+          grep -q 'menu.hidden=!!text' /tmp/play.html
           grep -q 'Completing secure Discord sign in' /tmp/play.html
           grep -q 'Entering Shaelvien' /tmp/play.html
-          echo "Play authentication status surface refreshed without changing auth routing."
+          grep -q 'RistPlayEntryLanguage' /tmp/play-language.js
+          grep -q '/ui/translate' /tmp/play-language.js
+          echo "Play authentication and language surfaces refreshed without changing auth routing."
