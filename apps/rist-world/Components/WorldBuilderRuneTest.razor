@@ -1,0 +1,302 @@
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject IJSRuntime JS
+
+<div class="worldbuilder-rune-test" @ref="_rootElement">
+ <header class="rune-header" aria-label="World Builder Rune Test header">
+  <button type="button" class="rune-home" @onclick="OpenStartMenu" aria-label="Back to Shaelvien start menu">←</button>
+  <div class="rune-title"><strong>WORLDBUILDER · RUNE TEST</strong><small>WORLD TRUTH → RUNES → DECODER → BROWSER</small></div>
+  <WorldCoordinateNavigator />
+ </header>
+
+ <main class="rune-viewer" aria-label="Rune driven World Builder viewer">
+  <div class="rune-viewer-canvas">
+   @if(!Session.CanEditTiles)
+   {
+    <div class="rune-edit-mode" role="status"><span>Viewing world</span>@if(Session.IsLoggedIn){<button type="button" @onclick='()=>Session.SetRole("GM")'>Enter build mode</button>}</div>
+   }
+   <WorldMap />
+   <AssetLibrary />
+   <div class="rune-viewer-grid @(_viewerGrid?"on":"off")" aria-hidden="true"></div>
+
+   @if(_layerOpen)
+   {
+    <section class="rune-mini-panel" role="dialog" aria-label="Rune layer controls">
+     <button type="button" disabled="@_zLocked" @onclick="()=>ExecuteRuneAsync(RuneOp.Layer,-1)">Layer −</button>
+     <span>L @Session.LayerOffset · Z @Session.SceneZ</span>
+     <button type="button" disabled="@_zLocked" @onclick="()=>ExecuteRuneAsync(RuneOp.Layer,1)">Layer +</button>
+    </section>
+   }
+   @if(_tierOpen)
+   {
+    <section class="rune-mini-panel tier-panel" role="dialog" aria-label="Rune tier controls">
+     <button type="button" disabled="@_zLocked" @onclick="()=>ExecuteRuneAsync(RuneOp.Tier,-1)">Tier −</button>
+     <span>T @Session.TierIndex</span>
+     <button type="button" disabled="@_zLocked" @onclick="()=>ExecuteRuneAsync(RuneOp.Tier,1)">Tier +</button>
+    </section>
+   }
+   @if(_publishMode){<div class="rune-publish-banner" role="status">REGION PUBLISH TEST MODE</div>}
+
+   <aside class="rune-diagnostics" aria-label="Rune decoder diagnostics">
+    <div class="diag-heading"><strong>RUNE BUS</strong><span class="@(_decoderReady?"ready":"pending")">@(_decoderReady?"DECODER READY":"DECODER…")</span></div>
+    <div class="diag-grid">
+     <span>Last</span><b>@_lastRune</b>
+     <span>Decoded</span><b>@_decodedRunes</b>
+     <span>Interop calls</span><b>@_interopCalls</b>
+     <span>Decode</span><b>@_decodeMs.ToString("0.000") ms</b>
+     <span>Logical packet</span><b>@_logicalBytes B</b>
+     <span>Interop JSON</span><b>@_interopJsonBytes B</b>
+     <span>Verbose JSON</span><b>@_verboseJsonBytes B</b>
+     <span>JSON saved</span><b>@PayloadSavingText</b>
+    </div>
+    <p data-rune-trace>@_traceText</p>
+    @if(_benchmarkRunes>0)
+    {
+     <div class="diag-bench"><strong>10K decoder loop</strong><span>@_benchmarkMs.ToString("0.00") ms · @BenchmarkRateText runes/ms</span><span>batch JSON @_benchmarkPackedJson B vs @_benchmarkVerboseJson B verbose</span></div>
+    }
+    <button type="button" class="bench-button" @onclick="RunBenchmarkAsync" disabled="@(!_decoderReady)">BENCH 10K</button>
+   </aside>
+
+   @if(_libraryOpen)
+   {
+    <section class="rune-library" aria-label="Rune asset library">
+     <WorldAssetFolderRail AnimatedOnly="false" OnExit="CloseLibraryRuneAsync" OnAssetPin="StageAssetRuneAsync" />
+    </section>
+   }
+  </div>
+ </main>
+
+ <section class="rune-keyboard" aria-label="World Builder rune keyboard">
+  <button type="button" class="@(_libraryOpen?"active":"")" @onclick="ToggleLibraryRuneAsync"><strong>LIB</strong><small>assets</small></button>
+  <button type="button" @onclick="CycleFootprintRuneAsync"><strong>@_tileFootprint²</strong><small>tile</small></button>
+  <button type="button" class="@(_zLocked?"active":"")" @onclick="ToggleZLockRuneAsync"><strong>Z</strong><small>@(_zLocked?"locked":"free")</small></button>
+  <button type="button" class="@(_layerOpen?"active":"")" @onclick="ToggleLayerPanelRuneAsync"><strong>L</strong><small>@Session.LayerOffset</small></button>
+  <button type="button" class="@(_tierOpen?"active":"")" @onclick="ToggleTierPanelRuneAsync"><strong>T</strong><small>@Session.TierIndex</small></button>
+  <button type="button" class="@(_viewerGrid?"active":"")" @onclick="ToggleViewRuneAsync"><strong>#</strong><small>grid</small></button>
+  <button type="button" @onclick="()=>ExecuteRuneAsync(RuneOp.Save)"><strong>⌁</strong><small>save</small></button>
+  <button type="button" @onclick="()=>ExecuteRuneAsync(RuneOp.LoadLocal)"><strong>↥</strong><small>load</small></button>
+  @if(Session.IsLoggedIn){<button type="button" @onclick="()=>ExecuteRuneAsync(RuneOp.LoadPrivate)"><strong>☁</strong><small>private</small></button>}
+  <button type="button" class="@(_publishMode?"active":"")" @onclick="TogglePublishRuneAsync"><strong>◎</strong><small>publish</small></button>
+ </section>
+</div>
+
+<style>
+ .worldbuilder-rune-test{box-sizing:border-box;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:38px minmax(0,1fr) 68px;overflow:hidden;background:#020609;color:#e8dec5;font-family:Inter,system-ui,-apple-system,sans-serif;--rune-gold:#d7bd73;--rune-blue:#72b8da}
+ .rune-header{min-width:0;display:grid;grid-template-columns:44px minmax(190px,320px) minmax(0,1fr);align-items:stretch;border-bottom:1px solid #66562f;background:#071016;z-index:100}.rune-home{border:0;border-right:1px solid #66562f;background:#0c171e;color:var(--rune-gold);font-size:20px;font-weight:900}.rune-title{min-width:0;display:grid;align-content:center;padding:0 10px;border-right:1px solid #273942}.rune-title strong{font-size:10px;letter-spacing:.09em;color:#f0d68e}.rune-title small{margin-top:2px;font-size:7px;letter-spacing:.06em;color:#7fa7ba;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .rune-viewer{min-width:0;min-height:0;overflow:hidden}.rune-viewer-canvas{position:relative;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;container-type:size;touch-action:none;--viewer-frame:24px;background:#03090d}.rune-viewer-canvas>.table-workspace,.rune-viewer-canvas>.map-shell{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;overflow:hidden!important}.rune-viewer-canvas .table-workspace>.staging-tray,.rune-viewer-canvas .table-workspace>.tile-browser,.rune-viewer-canvas .table-workspace>.card-browser{display:none!important}.rune-viewer-canvas .map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;transform:none!important;margin:0!important}.rune-viewer-canvas .world-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:auto!important;transform:none!important}.rune-viewer-canvas .world-stage>.grid{display:none!important;background:none!important}.rune-viewer-canvas .base.ocean-world{background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30)!important;background-repeat:repeat!important;background-position:var(--viewer-frame) var(--viewer-frame)!important}.rune-viewer-canvas .status,.rune-viewer-canvas .coordinate-system,.rune-viewer-canvas .grid-coordinates{display:none!important}.rune-viewer-canvas .rist-coordinate-frame{z-index:35!important;pointer-events:none!important}
+ .rune-viewer-grid{position:absolute;inset:var(--viewer-frame);z-index:30;pointer-events:none;border:1px solid rgba(215,199,145,.55);background-image:linear-gradient(to right,rgba(215,199,145,.43) 1px,transparent 1px),linear-gradient(to bottom,rgba(215,199,145,.43) 1px,transparent 1px);background-size:calc((100cqw - (2 * var(--viewer-frame))) / 30) calc((100cqw - (2 * var(--viewer-frame))) / 30)}.rune-viewer-grid.off{display:none}
+ .rune-keyboard{box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;padding:7px;border-top:1px solid #66562f;background:linear-gradient(180deg,#09131a,#050b0f);scrollbar-width:thin;scrollbar-color:#66562f #071015}.rune-keyboard button{box-sizing:border-box;flex:0 0 68px;height:52px;display:grid;place-items:center;align-content:center;gap:3px;border:1px solid #415965;border-radius:8px;background:#0c1820;color:#d9e1e4;touch-action:manipulation}.rune-keyboard button strong{font:900 15px/1 system-ui;color:#f0d99b}.rune-keyboard button small{font:800 7px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;color:#7fa2b3}.rune-keyboard button.active{border-color:#d0aa56;background:#201b10;box-shadow:inset 0 0 0 1px #856f3d}
+ .rune-diagnostics{position:absolute;z-index:70;right:8px;top:8px;box-sizing:border-box;width:min(260px,42vw);max-height:calc(100% - 16px);overflow:auto;padding:9px;border:1px solid #456777;border-radius:9px;background:rgba(4,13,18,.9);backdrop-filter:blur(5px);box-shadow:0 8px 28px #0009}.diag-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;padding-bottom:6px;border-bottom:1px solid #29414d}.diag-heading strong{font-size:9px;letter-spacing:.14em;color:#b9ddef}.diag-heading span{font-size:7px;font-weight:900}.diag-heading .ready{color:#7fe3a4}.diag-heading .pending{color:#d8b66b}.diag-grid{display:grid;grid-template-columns:1fr auto;gap:3px 8px;padding-top:6px;font-size:8px}.diag-grid span{color:#7895a3}.diag-grid b{max-width:130px;color:#d9e5e9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rune-diagnostics>p{margin:7px 0;padding:6px;border:1px solid #233b46;border-radius:5px;background:#061016;color:#99cbe1;font:700 7px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.diag-bench{display:grid;gap:2px;margin:6px 0;font-size:7px;color:#90aab5}.diag-bench strong{color:#d9bf79}.bench-button{width:100%;min-height:30px;border:1px solid #456777;border-radius:5px;background:#0d1b23;color:#bde1ef;font-size:8px;font-weight:900;letter-spacing:.08em}
+ .rune-mini-panel{position:absolute;z-index:65;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px;border:1px solid #786333;border-radius:8px;background:#081117eF}.rune-mini-panel.tier-panel{top:58px}.rune-mini-panel button{min-height:34px;border:1px solid #4f6570;border-radius:5px;background:#0e1a21;color:#e7d39a;font-weight:800}.rune-mini-panel span{font-size:9px;font-weight:900}.rune-publish-banner{position:absolute;z-index:62;left:50%;bottom:8px;transform:translateX(-50%);padding:5px 10px;border:1px solid #846b39;border-radius:999px;background:#0a1117;color:#efd894;font:900 8px/1 system-ui;letter-spacing:.08em}.rune-library{position:absolute;z-index:90;inset:auto 0 0;height:min(46%,300px);background:#071016;border-top:1px solid #846b39;overflow:hidden}.rune-library>*{height:100%!important}.rune-edit-mode{position:absolute;left:8px;top:8px;z-index:64;display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid #715b2d;border-radius:7px;background:#081017;color:#e4c97d;font-size:9px;font-weight:800}.rune-edit-mode button{min-height:30px;border:1px solid #715b2d;border-radius:5px;background:#18252e;color:#fff1bd}
+ .worldbuilder-rune-test button:focus-visible{outline:2px solid #f1d884;outline-offset:-2px}html body:has(.worldbuilder-rune-test) .viewer-frame-controls{display:none!important}
+ @@media(max-width:760px){.worldbuilder-rune-test{grid-template-rows:44px minmax(0,1fr) 64px}.rune-header{grid-template-columns:44px minmax(150px,230px) minmax(0,1fr)}.rune-title small{display:none}.rune-keyboard{padding:5px}.rune-keyboard button{height:50px;flex-basis:62px}.rune-diagnostics{width:min(230px,62vw);max-height:45%}.rune-viewer-canvas{--viewer-frame:24px}}
+</style>
+
+@code {
+ enum RuneOp
+ {
+  View=1,
+  Footprint=2,
+  ZLock=3,
+  Layer=4,
+  Tier=5,
+  LayerPanel=6,
+  TierPanel=7,
+  Library=8,
+  AssetStage=9,
+  Save=10,
+  LoadLocal=11,
+  LoadPrivate=12,
+  Publish=13,
+  BenchmarkMark=14
+ }
+
+ [Parameter] public EventCallback OnStartMenu { get; set; }
+
+ ElementReference _rootElement;
+ IJSObjectReference? _decoderModule;
+ IJSObjectReference? _decoderBinding;
+ IJSObjectReference? _zModule;
+ IJSObjectReference? _zBinding;
+ DotNetObjectReference<WorldBuilderRuneTest>? _self;
+ readonly Dictionary<string,int> _assetSlots=new(StringComparer.Ordinal);
+ bool _decoderReady;
+ bool _viewerGrid=true;
+ bool _zLocked=true;
+ bool _layerOpen;
+ bool _tierOpen;
+ bool _libraryOpen;
+ bool _publishMode;
+ int _tileFootprint=1;
+ int _nextAssetSlot=1;
+ long _decodedRunes;
+ long _interopCalls;
+ double _decodeMs;
+ int _logicalBytes;
+ int _interopJsonBytes;
+ int _verboseJsonBytes;
+ string _lastRune="—";
+ string _traceText="No runes decoded yet";
+ int _benchmarkRunes;
+ double _benchmarkMs;
+ int _benchmarkPackedJson;
+ int _benchmarkVerboseJson;
+
+ string PayloadSavingText=>_verboseJsonBytes<=0?"—":$"{Math.Max(0,100.0-(100.0*_interopJsonBytes/_verboseJsonBytes)):0.0}%";
+ string BenchmarkRateText=>_benchmarkMs<=0?"—":$"{_benchmarkRunes/_benchmarkMs:0.0}";
+
+ Task OpenStartMenu()=>OnStartMenu.InvokeAsync();
+
+ async Task ExecuteRuneAsync(RuneOp op,int a=0,int b=0,int c=0)
+ {
+  switch(op)
+  {
+   case RuneOp.View:
+    _viewerGrid=a!=0;
+    break;
+   case RuneOp.Footprint:
+    _tileFootprint=a is 1 or 2 or 4 or 8 or 16 or 30?a:1;
+    break;
+   case RuneOp.ZLock:
+    _zLocked=a!=0;
+    break;
+   case RuneOp.Layer:
+    if(!_zLocked)Session.MoveLayer(Math.Sign(a));
+    b=Session.LayerOffset;
+    c=Session.SceneZ;
+    break;
+   case RuneOp.Tier:
+    if(!_zLocked)Session.MoveTier(Math.Sign(a));
+    b=Session.TierIndex;
+    break;
+   case RuneOp.LayerPanel:
+    _layerOpen=a!=0;
+    if(_layerOpen)_tierOpen=false;
+    break;
+   case RuneOp.TierPanel:
+    _tierOpen=a!=0;
+    if(_tierOpen)_layerOpen=false;
+    break;
+   case RuneOp.Library:
+    _libraryOpen=a!=0;
+    if(_libraryOpen&&Session.TileBrowserOpen)Session.ToggleTileBrowser();
+    break;
+   case RuneOp.Save:
+    if(Session.IsLoggedIn)await Session.SaveRistAsync();else await Session.SaveAsync();
+    break;
+   case RuneOp.LoadLocal:
+    await Session.LoadAsync();
+    break;
+   case RuneOp.LoadPrivate:
+    if(Session.IsLoggedIn)await Session.LoadPrivateCheckpointAsync();
+    break;
+   case RuneOp.Publish:
+    _publishMode=a!=0;
+    break;
+  }
+
+  await EmitRuneAsync(op,a,b,c);
+ }
+
+ async Task EmitRuneAsync(RuneOp op,int a=0,int b=0,int c=0)
+ {
+  _lastRune=$"{op}({a},{b},{c})";
+  _traceText=_lastRune;
+  if(_decoderBinding is null)return;
+  var packet=new[]{(int)op,a,b,c};
+  try
+  {
+   var metrics=await _decoderBinding.InvokeAsync<double[]>("dispatch",packet);
+   if(metrics.Length>=5)
+   {
+    _decodedRunes+=(long)metrics[0];
+    _decodeMs=metrics[1];
+    _logicalBytes=(int)metrics[2];
+    _interopJsonBytes=(int)metrics[3];
+    _verboseJsonBytes=(int)metrics[4];
+   }
+   _interopCalls++;
+  }
+  catch{}
+ }
+
+ Task ToggleViewRuneAsync()=>ExecuteRuneAsync(RuneOp.View,_viewerGrid?0:1);
+ Task ToggleZLockRuneAsync()=>ExecuteRuneAsync(RuneOp.ZLock,_zLocked?0:1);
+ Task ToggleLayerPanelRuneAsync()=>ExecuteRuneAsync(RuneOp.LayerPanel,_layerOpen?0:1);
+ Task ToggleTierPanelRuneAsync()=>ExecuteRuneAsync(RuneOp.TierPanel,_tierOpen?0:1);
+ Task ToggleLibraryRuneAsync()=>ExecuteRuneAsync(RuneOp.Library,_libraryOpen?0:1);
+ Task CloseLibraryRuneAsync()=>ExecuteRuneAsync(RuneOp.Library,0);
+ Task TogglePublishRuneAsync()=>ExecuteRuneAsync(RuneOp.Publish,_publishMode?0:1);
+ Task CycleFootprintRuneAsync()
+ {
+  var next=_tileFootprint switch{1=>2,2=>4,4=>8,8=>16,16=>30,_=>1};
+  return ExecuteRuneAsync(RuneOp.Footprint,next);
+ }
+
+ async Task StageAssetRuneAsync(AtlasTile tile)
+ {
+  if(!Session.CanEditTiles)return;
+  if(!_assetSlots.TryGetValue(tile.Id,out var slot))
+  {
+   slot=_nextAssetSlot++;
+   _assetSlots[tile.Id]=slot;
+  }
+  Session.StageTile(tile);
+  await EmitRuneAsync(RuneOp.AssetStage,slot,_tileFootprint,0);
+ }
+
+ async Task RunBenchmarkAsync()
+ {
+  if(_decoderBinding is null)return;
+  try
+  {
+   var result=await _decoderBinding.InvokeAsync<double[]>("benchmark",10000,64);
+   if(result.Length>=5)
+   {
+    _benchmarkRunes=(int)result[0];
+    _benchmarkMs=result[1];
+    _benchmarkPackedJson=(int)result[3];
+    _benchmarkVerboseJson=(int)result[4];
+   }
+   await EmitRuneAsync(RuneOp.BenchmarkMark,_benchmarkRunes,(int)Math.Round(_benchmarkMs),64);
+  }
+  catch{}
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  try
+  {
+   _decoderModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-rune-decoder.js?v=20260916-rune-test-1");
+   _decoderBinding=await _decoderModule.InvokeAsync<IJSObjectReference>("attach",_rootElement);
+   _decoderReady=true;
+   _self=DotNetObjectReference.Create(this);
+   _zModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-z-axis.js?v=20260915-completion-1");
+   _zBinding=await _zModule.InvokeAsync<IJSObjectReference>("attach",_rootElement,_self);
+   await EmitRuneAsync(RuneOp.View,1);
+   await EmitRuneAsync(RuneOp.Footprint,_tileFootprint);
+   await EmitRuneAsync(RuneOp.ZLock,1);
+   await InvokeAsync(StateHasChanged);
+  }
+  catch
+  {
+   _decoderReady=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ [JSInvokable]
+ public Task StepZ(int delta)=>ExecuteRuneAsync(RuneOp.Layer,Math.Sign(delta));
+
+ public async ValueTask DisposeAsync()
+ {
+  if(_zBinding is not null)try{await _zBinding.InvokeVoidAsync("dispose");}catch{}
+  if(_decoderBinding is not null)try{await _decoderBinding.InvokeVoidAsync("dispose");}catch{}
+  if(_zBinding is not null)await _zBinding.DisposeAsync();
+  if(_zModule is not null)await _zModule.DisposeAsync();
+  if(_decoderBinding is not null)await _decoderBinding.DisposeAsync();
+  if(_decoderModule is not null)await _decoderModule.DisposeAsync();
+  _self?.Dispose();
+ }
+}
