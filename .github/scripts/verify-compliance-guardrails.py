@@ -41,6 +41,7 @@ required_files = [
     "apps/rist-world/wwwroot/shaelvien-adaptive-perception.js",
     "apps/rist-world/wwwroot/shaelvien-language-perception-bridge.js",
     "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
+    "apps/rist-world/wwwroot/worldbuilder-camera-window.js",
 ]
 for item in required_files:
     require_file(item)
@@ -159,4 +160,27 @@ require_text(
     ],
 )
 
-print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, and no-arbitrary-execution invariants remain present.")
+# The first migrated Worldbuilder path is deliberately narrow: automatic camera-window perception.
+# Manual camera controls and non-camera viewer controls remain on the existing synchronous authority path.
+require_text(
+    "apps/rist-world/wwwroot/shaelvien-worldbuilder-perception-bridge.js",
+    [
+        'const CAMERA_STREAM = "worldbuilder.camera";',
+        'kind: "perception"',
+        'runtime.operation("runtime-perception", OPERATIONS.camera)',
+        "runtime.AdaptivePerception.enqueue",
+        "supersedable: supersedable === true",
+    ],
+)
+require_text(
+    "apps/rist-world/wwwroot/worldbuilder-camera-window.js",
+    [
+        "semantic.enqueueCamera({mode:'auto'}",
+        "supersedable:true",
+        "api.resetAutoZoom?.({source:'camera-window-fallback'})",
+        "Manual camera state remains on the existing synchronous authority path during migration.",
+        "api.syncViewport?.('camera-window')",
+    ],
+)
+
+print("Compliance guardrails verified: policy, authority, safety, age, semantic boot, privacy-coarse negotiation, adaptive-perception separation, narrow Worldbuilder camera migration, and no-arbitrary-execution invariants remain present.")
