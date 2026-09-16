@@ -4,6 +4,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'wwwroot' / 'index.html'
 KEYBOARD = ROOT / 'wwwroot' / 'worldbuilder-keyboard-authority-v2.js'
 LIFECYCLE = ROOT / 'wwwroot' / 'worldbuilder-lifecycle-authority-v2.js'
+SHELL = ROOT / 'Components' / 'PublicAlphaShell.razor'
 
 
 def test_worldbuilder_loads_only_consolidated_keyboard_and_lifecycle_authorities():
@@ -35,6 +36,15 @@ def test_tiles_keyboard_does_not_reuse_unrelated_artwork():
     assert "'Undo':'rotate'" not in tiles_map
 
 
+def test_generic_keys_use_css_blank_once_instead_of_stacking_blank_art():
+    source = KEYBOARD.read_text(encoding='utf-8')
+    assert 'if(!id)' in source
+    assert 'existing?.remove()' in source
+    assert "setKeyClasses(button,false)" in source
+    assert "img.src=id?" not in source
+    assert "img.src=BLANK" not in source
+
+
 def test_keyboard_art_preserves_authored_aspect_ratio():
     source = KEYBOARD.read_text(encoding='utf-8')
     assert 'object-fit:contain!important' in source
@@ -49,3 +59,12 @@ def test_ios_worldbuilder_foreground_uses_guarded_reload_and_hides_footer_ticker
     assert 'guardedReload' in source
     assert '.site-copyright-notice' in source
     assert "body?.classList.toggle('wb-immersive-worldbuilder',active)" in source
+
+
+def test_shell_restores_worldbuilder_after_guarded_reload():
+    source = SHELL.read_text(encoding='utf-8')
+    assert 'localStorage.getItem' in source
+    assert 'RestorableWorkspaces.Contains(storedWorkspace)' in source
+    assert 'ApplyWorkspace(storedWorkspace)' in source
+    assert '_workspaceOpen=true' in source
+    assert 'await PersistWorkspaceAsync("hub")' in source
