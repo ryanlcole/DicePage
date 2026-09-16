@@ -1,4 +1,5 @@
 __pycache__/
+**/__pycache__/
 *.py[cod]
 data/shaelvien_lite_state.json
 data/shaelvien_lite_state.json.corrupt.*
@@ -9,8 +10,26 @@ verification/*.json
 verification/*.jsonl
 verification/*.log
 dist/
+**/bin/
+**/obj/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 .env
 .env.*
 !.env.example
+
+# Code-index governance: stale backups belong in Git history / backup branches,
+# never beside authoritative source in the active tree.
+*.old
+*.old/**
+*.bak
+*.orig
+*.rej
+.venv/
+.venv.*/
+venv/
+
+# Local scratch output from the code indexer; canonical index artifacts remain tracked.
+.code-index/tmp/
