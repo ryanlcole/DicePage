@@ -8,13 +8,20 @@ on:
     branches:
       - live-alpha-rist-blazor-world
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Verify the exact branch head without recording another governance commit
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: code-index-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   govern:
@@ -24,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -74,6 +81,16 @@ jobs:
 
       - name: Build searchable code ledger
         run: python tools/code_index.py build
+
+      - name: Assert governance build did not mutate source truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- . ':(exclude).code-index/**'; then
+            echo "::error::Governance verification mutated tracked files outside .code-index. Cleanup/materialization require an explicit maintenance change, not CI observer authority."
+            git diff -- . ':(exclude).code-index/**'
+            exit 1
+          fi
 
       - name: Build CHID relationship and error database
         run: python tools/code_database.py build
@@ -131,20 +148,16 @@ jobs:
           python tools/compact_code_registry.py compact
           python tools/compact_code_registry.py verify
 
-      - name: Commit governed registries, diagrams, logs, and safe cleanup
-        if: github.event_name != 'pull_request'
+      - name: Record durable governance state only
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_only != true)
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           git config user.name "shaelvien-code-index"
           git config user.email "actions@users.noreply.github.com"
 
-          # Tracked source/contract changes made by governance (including safe
-          # cleanup and parser-safe materialization) are authoritative changes.
-          git add -u
-
-          # Rebuildable query/search artifacts remain ignored. Only durable
-          # identity ownership, compact health evidence, relationship views,
-          # and explicit governance ledgers are admitted to Git history.
           durable=(
             .code-index/id_registry.json
             .code-index/chid_registry.json
@@ -158,9 +171,15 @@ jobs:
           )
           for path in "${durable[@]}"; do
             if [ -e "$path" ]; then
-              git add -- "$path"
+              git add -f -- "$path"
             fi
           done
+
+          if ! git diff --quiet -- . ':(exclude).code-index/**'; then
+            echo "::error::Governance attempted to mutate source truth outside .code-index; refusing recorder commit."
+            git diff -- . ':(exclude).code-index/**'
+            exit 1
+          fi
 
           if git diff --cached --quiet; then
             echo "Code identity, semantic graph, and governance evidence are already current."
@@ -169,3 +188,10 @@ jobs:
 
           git commit -m "Refresh governed code identity and semantic graph"
           git push origin HEAD:live-alpha-rist-blazor-world
+          exact_head="$(git rev-parse HEAD)"
+          echo "Recorded exact governed head: $exact_head"
+
+          gh workflow run code-index.yml --ref live-alpha-rist-blazor-world -f verify_only=true
+          gh workflow run compliance-guardrails.yml --ref live-alpha-rist-blazor-world
+          gh workflow run deploy-rist-frontend-aws.yml --ref live-alpha-rist-blazor-world
+          gh workflow run deploy-live-alpha-public.yml --ref live-alpha-rist-blazor-world

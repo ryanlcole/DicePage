@@ -2,8 +2,8 @@
   "version": 1,
   "id_width": 6,
   "index_directory": ".code-index",
-  "materialize_comment_ids": true,
-  "prune_explicit_stale": true,
+  "materialize_comment_ids": false,
+  "prune_explicit_stale": false,
   "fail_on_new_exact_source_duplicates": true,
   "baseline_existing_exact_source_duplicates": true,
   "tracked_code_extensions": [
