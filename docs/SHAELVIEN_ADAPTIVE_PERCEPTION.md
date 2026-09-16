@@ -116,6 +116,30 @@ If the adaptive camera queue is unavailable or rejects execution, the camera-win
 
 This is the migration pattern for later surfaces: first identify presentation-only state, preserve the old implementation as a fallback, add one semantic/adaptive boundary, and promote further only after runtime and governance checks remain healthy.
 
+## Second migrated surface: transient quick-slot placement preview
+
+The second migration applies the same law to the high-frequency drag ghost and loupe shown while a quick-slot asset is being dragged across the Worldbuilder.
+
+`shaelvien-worldbuilder-perception-bridge.js` owns the runtime-local stream `worldbuilder.placement-preview` and the registered operation `runtime.perception.worldbuilder.placement-preview.pointer`. The envelope contains only a bounded local preview-session id plus finite screen-space pointer coordinates. It is explicitly marked transient, perception-only, and non-authoritative.
+
+`worldbuilder-drag-preview.js` keeps creation and destruction of the preview local, then routes subsequent quick-slot pointer-move presentation through the adaptive stream. These pointer frames are supersedable: if several are waiting, an obsolete ghost position may be dropped in favor of the newest pending position.
+
+Each drag receives a local preview-session id. The visual presenter applies an adaptive frame only when that session is still the active drag. Pointer-up, cancellation, page reset, prompt transition, or preview clearing invalidates the active session. A delayed frame from an earlier drag therefore becomes a harmless no-op instead of resurrecting a cleared preview or attaching itself to a later drag.
+
+The actual placement commit is deliberately outside the adaptive queue. The existing `ristPlacement.set(...)` treatment handoff and trusted pointer-up redispatch remain the reliable placement path. Overlap choices such as blend, trim, layer, and tier are likewise kept outside the adaptive preview stream. The placed-tile mover also remains synchronous during this phase.
+
+If the adaptive preview runtime is unavailable or rejects the newest active preview request, the script falls back to the previous direct `updatePreview(...)` rendering path. Older failed requests are not allowed to move the ghost backward after a newer request has been issued.
+
+The boundary is therefore:
+
+```text
+pointer-move ghost/loupe position -> MAY SUPERSEDE
+preview session after finish       -> INVALID / NO-OP
+placement treatment choice         -> RELIABLE
+pointer-up placement commit        -> RELIABLE
+persisted world coordinates        -> AUTHORITATIVE PATH ONLY
+```
+
 ## Safety and compliance
 
 `docs/SHAELVIEN_COMPLIANCE_PRECEDENCE.md` remains higher authority than this experimental layer.
