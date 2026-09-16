@@ -7,6 +7,14 @@ public partial class WorldBuilderStudio
     const string AssetKeyboardWidthAttribute = "placement.width.cells";
     const string AssetKeyboardHeightAttribute = "placement.height.cells";
 
+    internal static WorldBuilderStudio? ActiveAssetKeyboardInstance { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ActiveAssetKeyboardInstance = this;
+    }
+
     [JSInvokable]
     public Task<WorldBuilderAssetKeyboardItem[]> GetAssetKeyboardCatalog()
     {
