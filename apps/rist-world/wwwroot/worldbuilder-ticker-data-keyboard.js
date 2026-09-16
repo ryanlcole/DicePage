@@ -125,11 +125,12 @@
  function renderDataKeyboard(){
   const button=document.querySelector('.worldbuilder-studio .wb-device-mode[data-mode="widgets"]');
   if(!button)return;
-  button.textContent='DATA';button.setAttribute('aria-label','Data keyboard');
+  if(button.textContent!=='DATA')button.textContent='DATA';
+  if(button.getAttribute('aria-label')!=='Data keyboard')button.setAttribute('aria-label','Data keyboard');
   const active=button.getAttribute('aria-selected')==='true';
   if(!active)return;
   const modeName=document.querySelector('.worldbuilder-studio .wb-device-mode-name');
-  if(modeName)modeName.textContent='Data keyboard';
+  if(modeName&&modeName.textContent!=='Data keyboard')modeName.textContent='Data keyboard';
   const keys=document.querySelector('.worldbuilder-studio .wb-device-keys');
   if(!keys)return;
   const token=JSON.stringify(settings);
@@ -154,7 +155,6 @@
   if(widgets){widgets.querySelector('strong').textContent='Data';widgets.setAttribute('aria-label','Data. Ticker and world data controls')}
  }
  function sync(){
-  saveSettings(settings);
   suppressViewerWidgets();
   ensureTicker();
   renderDataKeyboard();
