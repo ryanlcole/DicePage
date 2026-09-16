@@ -31,5 +31,8 @@ dist/
 .venv.*/
 venv/
 
-# Local scratch output from the code indexer; canonical index artifacts remain tracked.
+# Local/generated database artifacts. The persistent registries, relationship
+# diagrams, summaries, and error ledgers remain tracked; SQLite is rebuilt.
+.code-index/code_graph.sqlite3
+.code-index/code_graph.sqlite3-*
 .code-index/tmp/
