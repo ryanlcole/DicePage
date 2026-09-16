@@ -1,13 +1,15 @@
+@inject NavigationManager Navigation
+
 <div class="task-workspace-router">
- @if (Mode == "world")
- {
-  <WorldAnimatedAssetCatalog />
-  <WorldBuilderStudio OnStartMenu="OnStartMenu" />
- }
- else if (Mode == "worldrunetest")
+ @if (Mode == "worldrunetest" || (Mode == "world" && RuneTestRequested))
  {
   <WorldAnimatedAssetCatalog />
   <WorldBuilderRuneTest OnStartMenu="OnStartMenu" />
+ }
+ else if (Mode == "world")
+ {
+  <WorldAnimatedAssetCatalog />
+  <WorldBuilderStudio OnStartMenu="OnStartMenu" />
  }
  else if (Mode == "accessibility")
  {
@@ -50,4 +52,13 @@
 @code {
  [Parameter] public string Mode { get; set; } = "world";
  [Parameter] public EventCallback OnStartMenu { get; set; }
+ bool RuneTestRequested
+ {
+  get
+  {
+   var uri=new Uri(Navigation.Uri);
+   return uri.AbsolutePath.EndsWith("/worldbuilderrunetest",StringComparison.OrdinalIgnoreCase)
+    || uri.Query.Contains("worldbuilderrunetest=1",StringComparison.OrdinalIgnoreCase);
+  }
+ }
 }
