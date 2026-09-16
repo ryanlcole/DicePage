@@ -225,3 +225,13 @@ An LLM may propose Humans code, but it must not infer that an unsupported statem
 When evidence is insufficient, generated code must use `Hypothesis` or `Unknown`. When content belongs to the game world, it must use `Fiction` unless it is describing the software/system itself.
 
 This makes epistemic status part of syntax rather than a conversational convention that can drift.
+
+## Canonical contract and discovery
+
+This document explains the human-facing surface. The machine-readable authority for the experimental language is `.code-index/humans_language.json`.
+
+Repository coding agents begin at `AGENTS.md`, load the canonical contract, and then use `.code-index/semantic_units.json`, the CHID database architecture, and the error graph as needed. The deployed application exposes a discovery manifest at `/.well-known/shaelvien-language.json` and a no-index developer reference at `/_shaelvien-language.html`.
+
+The deployed manifest records the canonical contract path, language version, and SHA-256. Governance CI verifies those values so the deployed reference cannot silently drift from the repository contract.
+
+Compact spellings such as `i3r20` remain illustrative until the canonical contract explicitly freezes a versioned token grammar. Surface spelling is representation; semantic identity remains Rune/Glyph/CHID/SHAEP identity.
