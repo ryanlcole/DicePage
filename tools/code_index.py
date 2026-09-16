@@ -139,9 +139,13 @@ def display_id(numeric_id: str, language: str, path: Path, line: int, kind: str)
 
 
 def fingerprint(path: Path, language: str, kind: str, text: str, occurrence: int) -> str:
+    # Only materialized comment locators are representation metadata. Literal
+    # locator-shaped text inside executable/code records is semantic source and
+    # must remain part of that record's identity.
+    identity_text = strip_materialized_id(text) if kind == "comment" else text
     payload = "\x1f".join((
         rel(path), language, kind,
-        normalize_space(strip_materialized_id(text)), str(occurrence),
+        normalize_space(identity_text), str(occurrence),
     ))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
