@@ -125,12 +125,8 @@ flowchart LR
   chid_003603["chid.003603\nre\nimport"]
   chid_003604["chid.003604\nPath\nimport"]
   chid_003605["chid.003605\nROOT\nvariable"]
-  chid_003606["chid.003606\nCSS_DIR\nvariable"]
   chid_003607["chid.003607\nOUTPUT\nvariable"]
-  chid_003608["chid.003608\nSOURCES\nvariable"]
   chid_003609["chid.003609\nIMPORT_RE\nvariable"]
-  chid_003610["chid.003610\narchived\nfunction"]
-  chid_003611["chid.003611\nname\nparameter"]
   chid_003612["chid.003612\ninline_imports\nfunction"]
   chid_003613["chid.003613\ntext\nparameter"]
   chid_003614["chid.003614\nstack\nparameter"]
@@ -139,7 +135,6 @@ flowchart LR
   chid_003617["chid.003617\nraw\nvariable"]
   chid_003618["chid.003618\nname\nvariable"]
   chid_003619["chid.003619\npath\nvariable"]
-  chid_003620["chid.003620\nFINAL_AUTHORITY\nvariable"]
   chid_003621["chid.003621\nmain\nfunction"]
   chid_003622["chid.003622\nsections\nvariable"]
   chid_003623["chid.003623\npath\nvariable"]
@@ -156,14 +151,6 @@ flowchart LR
   chid_003641["chid.003641\nImage\nimport"]
   chid_003642["chid.003642\n_median\nfunction"]
   chid_003643["chid.003643\nvalues\nparameter"]
-  chid_003644["chid.003644\nordered\nvariable"]
-  chid_003645["chid.003645\n_remove_edge_background\nfunction"]
-  chid_003646["chid.003646\nimage\nparameter"]
-  chid_003647["chid.003647\nrgba\nvariable"]
-  chid_003648["chid.003648\npixels\nvariable"]
-  chid_003649["chid.003649\ncorners\nvariable"]
-  chid_003660["chid.003660\nx\nparameter"]
-  chid_003661["chid.003661\ny\nparameter"]
   chid_009715["chid.009715\nsorted\nvariable"]
   chid_012251["chid.012251\nforbidden\nvariable"]
   chid_074530["chid.074530\nBytesIO\nimport"]
@@ -177,6 +164,14 @@ flowchart LR
   chid_113186["chid.113186\nint\nfunction"]
   chid_118651["chid.118651\nwrite_text\nmethod"]
   chid_153590["chid.153590\nprint\nfunction"]
+  chid_167604["chid.167604\nFINAL_AUTHORITY\nimport"]
+  chid_167605["chid.167605\nSOURCES\nimport"]
+  chid_167606["chid.167606\nCSS_SOURCE_DIR\nvariable"]
+  chid_167607["chid.167607\nsource_path\nfunction"]
+  chid_167608["chid.167608\nname\nparameter"]
+  chid_167609["chid.167609\nclean\nvariable"]
+  chid_167610["chid.167610\ncandidate\nvariable"]
+  chid_167611["chid.167611\nroot\nvariable"]
   chid_000013 -->|call| chid_000012
   chid_000013 -->|read| chid_000012
   chid_000014 -->|read| chid_000013
@@ -597,12 +592,21 @@ flowchart LR
   chid_003601 -->|read| chid_003596
   chid_003605 -->|call| chid_003604
   chid_003605 -->|read| chid_003604
-  chid_003606 -->|read| chid_003605
-  chid_003607 -->|read| chid_003606
+  chid_167606 -->|read| chid_003605
+  chid_003607 -->|read| chid_003605
   chid_003609 -->|read| chid_003603
   chid_003609 -->|read| chid_003603
-  chid_003610 -->|read| chid_003606
-  chid_003610 -->|read| chid_003611
+  chid_167607 -->|call| chid_103611
+  chid_167607 -->|read| chid_167608
+  chid_167607 -->|read| chid_167606
+  chid_167607 -->|read| chid_167609
+  chid_167607 -->|read| chid_167606
+  chid_167607 -->|read| chid_167610
+  chid_167607 -->|read| chid_167611
+  chid_167607 -->|read| chid_167611
+  chid_167607 -->|read| chid_167610
+  chid_167607 -->|read| chid_167608
+  chid_167607 -->|read| chid_167610
   chid_003615 -->|read| chid_003616
   chid_003615 -->|read| chid_003617
   chid_003615 -->|read| chid_003617
@@ -612,9 +616,11 @@ flowchart LR
   chid_003615 -->|read| chid_003614
   chid_003615 -->|read| chid_003614
   chid_003615 -->|read| chid_003618
-  chid_003615 -->|call| chid_003610
-  chid_003615 -->|read| chid_003610
+  chid_003615 -->|call| chid_167607
+  chid_003615 -->|read| chid_167607
   chid_003615 -->|read| chid_003618
+  chid_003615 -->|read| chid_003619
+  chid_003615 -->|call| chid_110174
   chid_003615 -->|read| chid_003619
   chid_003615 -->|read| chid_003619
   chid_003615 -->|call| chid_003612
@@ -625,9 +631,11 @@ flowchart LR
   chid_003612 -->|read| chid_003609
   chid_003612 -->|read| chid_003615
   chid_003612 -->|read| chid_003613
-  chid_003621 -->|read| chid_003608
-  chid_003621 -->|call| chid_003610
-  chid_003621 -->|read| chid_003610
+  chid_003621 -->|read| chid_167605
+  chid_003621 -->|call| chid_167607
+  chid_003621 -->|read| chid_167607
+  chid_003621 -->|read| chid_003623
+  chid_003621 -->|call| chid_110174
   chid_003621 -->|read| chid_003623
   chid_003621 -->|read| chid_003623
   chid_003621 -->|call| chid_003612
@@ -636,7 +644,7 @@ flowchart LR
   chid_003621 -->|read| chid_003622
   chid_003621 -->|read| chid_003624
   chid_003621 -->|read| chid_003622
-  chid_003621 -->|read| chid_003620
+  chid_003621 -->|read| chid_167604
   chid_003621 -->|call| chid_103614
   chid_003621 -->|read| chid_003622
   chid_003621 -->|read| chid_003625
@@ -646,7 +654,8 @@ flowchart LR
   chid_003621 -->|call| chid_153590
   chid_003621 -->|read| chid_153590
   chid_003621 -->|read| chid_003607
-  chid_003621 -->|read| chid_003608
+  chid_003621 -->|read| chid_167605
+  chid_003621 -->|read| chid_167606
   chid_003625 -->|call| chid_003621
   chid_003625 -->|read| chid_003621
   chid_003634 -->|call| chid_003626
@@ -663,17 +672,3 @@ flowchart LR
   chid_003642 -->|call| chid_009715
   chid_003642 -->|read| chid_009715
   chid_003642 -->|read| chid_003643
-  chid_003642 -->|read| chid_003644
-  chid_003642 -->|read| chid_003644
-  chid_003642 -->|read| chid_003644
-  chid_003645 -->|read| chid_003646
-  chid_003645 -->|read| chid_003647
-  chid_003645 -->|read| chid_003647
-  chid_003645 -->|read| chid_003647
-  chid_003645 -->|read| chid_003648
-  chid_003645 -->|read| chid_003660
-  chid_003645 -->|read| chid_003661
-  chid_003645 -->|write| chid_003660
-  chid_003645 -->|write| chid_003661
-  chid_003645 -->|read| chid_003649
-  chid_003645 -->|read| chid_003647
