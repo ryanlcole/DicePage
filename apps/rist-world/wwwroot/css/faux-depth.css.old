@@ -1,0 +1,45 @@
+.map{
+  --rist-depth-x:0px;
+  --rist-depth-y:0px;
+  --rist-depth-base-x:0px;
+  --rist-depth-base-y:0px;
+  --rist-depth-grid-x:0px;
+  --rist-depth-grid-y:0px;
+  --rist-depth-tile-x:0px;
+  --rist-depth-tile-y:0px;
+  --rist-depth-piece-x:0px;
+  --rist-depth-piece-y:0px;
+  perspective:1100px;
+  perspective-origin:50% 50%;
+}
+.world-stage{
+  transform-style:preserve-3d;
+  transform-origin:50% 50%;
+  will-change:transform;
+}
+.world-stage>.base{
+  translate:var(--rist-depth-base-x) var(--rist-depth-base-y);
+  transform:translateZ(-10px) scale(1.01);
+  will-change:translate;
+}
+.world-stage>.grid{
+  translate:var(--rist-depth-grid-x) var(--rist-depth-grid-y);
+  transform:translateZ(0);
+  will-change:translate;
+}
+.world-stage>.tile-cell,
+.world-stage>.map-zone-label,
+.world-stage>.pin-label-callout{
+  translate:var(--rist-depth-tile-x) var(--rist-depth-tile-y);
+  transform:translateZ(8px);
+  will-change:translate;
+}
+.world-stage>.piece,
+.world-stage>.rolled-die{
+  translate:var(--rist-depth-piece-x) var(--rist-depth-piece-y);
+  transform:translateZ(18px);
+  will-change:translate;
+}
+@media (prefers-reduced-motion:reduce){
+  .world-stage>.base,.world-stage>.grid,.world-stage>.tile-cell,.world-stage>.map-zone-label,.world-stage>.pin-label-callout,.world-stage>.piece,.world-stage>.rolled-die{translate:0 0!important;transform:none!important}
+}

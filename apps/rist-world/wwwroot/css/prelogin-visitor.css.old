@@ -1,0 +1,49 @@
+/* Logged-out visitor mode: guests may build/export a limited local world. */
+.rist.auth-visitor .topbar .finite-set>*{pointer-events:auto!important;filter:none!important;opacity:1!important}
+.rist.auth-visitor .topbar .header-mmo-button,
+.rist.auth-visitor .topbar .header-settings-button{pointer-events:none!important;filter:saturate(.55)!important;opacity:.45!important}
+
+/* Public visitors see Shaelvien's ocean presentation. This is visual-only and
+   never materializes terrain into saved world state until the guest places it. */
+.rist.auth-visitor .map .base{
+ background-color:#1f6f92!important;
+ background-image:radial-gradient(ellipse at 28% 20%,#72bad044 0 4%,transparent 24%),radial-gradient(ellipse at 72% 68%,#083d5a55 0 5%,transparent 30%),repeating-linear-gradient(168deg,#3c93af 0 2px,#287d9d 3px 8px,#327f9b 9px 12px)!important;
+ box-shadow:inset 0 0 80px #031f35aa!important;
+}
+
+.rist.auth-visitor .rail-scroll-arrow{pointer-events:auto!important;opacity:1!important;filter:none!important}
+.rist.auth-visitor .map{pointer-events:auto!important}
+.rist.auth-visitor .desktop-map-zoom,
+.rist.auth-visitor .desktop-map-zoom button{pointer-events:auto!important;opacity:1!important;filter:none!important}
+
+/* Local terrain/piece editing, asset browsing, recursion controls, save/export,
+   grid and tabletop tools are deliberately usable before login. Server-backed
+   operations remain gated in component code by Session.IsLoggedIn. */
+.rist.auth-visitor .tile-browser,
+.rist.auth-visitor .staging-tray,
+.rist.auth-visitor .pallet,
+.rist.auth-visitor .recursion-cockpit,
+.rist.auth-visitor .recursion-cockpit button,
+.rist.auth-visitor .recursion-cockpit input,
+.rist.auth-visitor .recursion-cockpit select,
+.rist.auth-visitor .map .tile-cell,
+.rist.auth-visitor .map .piece,
+.rist.auth-visitor .map .placed-pin,
+.rist.auth-visitor .locked-tile-menu,
+.rist.auth-visitor .recursive-region-actions{pointer-events:auto!important;filter:none!important;opacity:1!important}
+
+/* Account/private-character/social actions remain authenticated features. */
+.rist.auth-visitor .hand-rail button:not(.rail-scroll-arrow),
+.rist.auth-visitor .public-card-rail button:not(.rail-scroll-arrow),
+.rist.auth-visitor .dice-footer button:not(.rail-scroll-arrow),
+.rist.auth-visitor .dice-footer input,
+.rist.auth-visitor .dice-footer select,
+.rist.auth-visitor .chat-composer,
+.rist.auth-visitor .chat-composer *,
+.rist.auth-visitor .character-mixer,
+.rist.auth-visitor .mmo-zone-actions,
+.rist.auth-visitor .region-player-picker{pointer-events:none!important;filter:saturate(.55);opacity:.56}
+
+.rist.auth-visitor .map-context-sidebar .map-context-item{pointer-events:auto!important;filter:none!important;opacity:1!important}
+.rist.auth-visitor .map-context-sidebar .map-context-toggle{pointer-events:auto!important;opacity:1!important;filter:none!important}
+.rist.auth-visitor .door-button{box-shadow:0 0 0 1px #c2a56566 inset,0 0 8px #c2a56533}

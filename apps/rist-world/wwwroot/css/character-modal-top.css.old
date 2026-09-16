@@ -1,0 +1,17 @@
+/* Keep the universal character sheet above the card library, rails, and other tabletop UI. */
+.mixer-modal{
+  z-index:2147482500!important;
+  isolation:isolate;
+  pointer-events:auto!important;
+}
+.mixer-modal .character-mixer,
+.mixer-modal .character-mixer.universal-sheet{
+  position:relative!important;
+  z-index:1!important;
+  pointer-events:auto!important;
+}
+/* The enhanced shell must remain on top of its Blazor fallback, never underneath it. */
+.character-mixer.universal-sheet>.character-card-shell{
+  z-index:10!important;
+  pointer-events:auto!important;
+}
