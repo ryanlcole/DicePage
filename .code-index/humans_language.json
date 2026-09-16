@@ -1,0 +1,181 @@
+{
+  "contract": "shaelvien.humans-language",
+  "version": "0.1.0",
+  "status": "experimental-authoritative-contract",
+  "canonicalPath": ".code-index/humans_language.json",
+  "humanReference": "docs/HUMANS_LANGUAGE.md",
+  "publicDiscovery": "/.well-known/shaelvien-language.json",
+  "principles": [
+    "semantic identity is independent of spelling, file path, line number, language, and UI representation",
+    "server stores authoritative truth; clients produce perception",
+    "representation equivalence is not identity equality",
+    "unknown is not false and is not randomness",
+    "hypothesis and fiction may not silently mutate fact",
+    "compact encodings are representations, not security secrets",
+    "authority is validated server-side before state mutation"
+  ],
+  "truthDomains": {
+    "FACT": {
+      "keyword": "Fact",
+      "meaning": "asserted established in a declared scope with provenance or deterministic derivation"
+    },
+    "HYPOTHESIS": {
+      "keyword": "Hypothesis",
+      "meaning": "possible state that may be evaluated without silently overwriting FACT"
+    },
+    "FICTION": {
+      "keyword": "Fiction",
+      "meaning": "deliberately invented or world-canon state authoritative only in its fictional scope"
+    },
+    "UNKNOWN": {
+      "keyword": "Unknown",
+      "meaning": "unresolved or insufficiently supported state; neither false nor random"
+    }
+  },
+  "keywords": {
+    "control": [
+      "If",
+      "Then",
+      "Else",
+      "Elseif",
+      "Do",
+      "While",
+      "Until",
+      "Go",
+      "Return",
+      "Case"
+    ],
+    "epistemic": [
+      "Whatif",
+      "Maybe",
+      "Maybeif",
+      "Dont",
+      "Because",
+      "Fact",
+      "Hypothesis",
+      "Fiction",
+      "Unknown"
+    ],
+    "probability": [
+      "Chance"
+    ]
+  },
+  "semantics": {
+    "Whatif": "opens a HYPOTHESIS branch; mutations remain sandboxed unless promoted through explicit evidence and authority",
+    "Maybe": "introduces or propagates UNKNOWN; never means random()",
+    "Maybeif": "branches explicitly on unresolved/UNKNOWN-aware state",
+    "Dont": "declares a negative invariant or forbidden action, not merely syntactic negation",
+    "Because": "attaches provenance, justification, dependency, or rule authority; it does not by itself prove causality",
+    "Chance": "explicit probabilistic behavior; separate from epistemic uncertainty"
+  },
+  "identityModel": {
+    "CHID": "persistent semantic identity for code symbols and concepts",
+    "RUNE": "atomic semantic operation or intent",
+    "GLYPH": "compound behavior composed from Runes and/or other Glyphs",
+    "SHAEP": "persistent object identity independent of payload representation and storage path",
+    "surfaceAlias": "human-readable or compact spelling that resolves to a stable semantic identity"
+  },
+  "relations": [
+    "exact_identity",
+    "alias",
+    "contextual_semantic_equivalence",
+    "behavioral_equivalence",
+    "representation_equivalence",
+    "subset",
+    "superset",
+    "transforms_to",
+    "calls",
+    "reads",
+    "writes",
+    "binds_to",
+    "serializes",
+    "implements",
+    "depends_on",
+    "causes_error",
+    "resolved_by"
+  ],
+  "compactStream": {
+    "rule": "ASCII or binary tokens encode semantic identities plus typed operands; token spelling is not the identity itself",
+    "exampleSurface": "i3r20",
+    "exampleInterpretation": [
+      {
+        "token": "i",
+        "role": "surface alias for an integer-state declaration/assignment semantic unit"
+      },
+      {
+        "token": "3",
+        "role": "typed integer operand"
+      },
+      {
+        "token": "r",
+        "role": "surface alias for repeat/loop behavior"
+      },
+      {
+        "token": "20",
+        "role": "typed integer operand or loop bound"
+      }
+    ],
+    "requiredForProduction": [
+      "self-delimiting or length-prefixed framing",
+      "typed operands",
+      "unambiguous negative/float/string encoding",
+      "stable numeric semantic IDs/opcodes",
+      "format version",
+      "registry/schema hash",
+      "source/error mapping",
+      "provenance",
+      "authority/capability validation"
+    ]
+  },
+  "decoder": {
+    "role": "perception compiler / execution decoder",
+    "pipeline": [
+      "framing/version validation",
+      "opcode or semantic ID resolution",
+      "operand schema and bounds validation",
+      "authentication and anti-replay validation where applicable",
+      "Recursive Authority capability check",
+      "CHID/SHAEP target resolution",
+      "pre-registered handler dispatch",
+      "authoritative state delta application or perception rendering"
+    ],
+    "forbidden": [
+      "eval of incoming code",
+      "dynamic arbitrary code execution",
+      "trusting client-supplied paths or URLs as authority",
+      "treating compactness or obscurity as security",
+      "silently changing the meaning of an existing semantic ID"
+    ]
+  },
+  "opcodeContract": {
+    "requiredFields": [
+      "semantic_id",
+      "numeric_opcode",
+      "semantic_version",
+      "schema_hash",
+      "authority_class",
+      "operand_schema",
+      "side_effect_class",
+      "allowed_targets",
+      "provenance_policy",
+      "deprecation_or_migration"
+    ],
+    "immutability": "an existing semantic ID/opcode may be deprecated but its meaning must not silently change"
+  },
+  "provenance": {
+    "origins": [
+      "HUMAN",
+      "OUTSIDER_AI",
+      "SHAELVIEN_EI"
+    ],
+    "rule": "provenance persists through copying and modification; unknown provenance defaults to OUTSIDER_AI/RED handling until resolved"
+  },
+  "authoritativeSources": [
+    ".code-index/semantic_units.json",
+    ".code-index/humans_language.json",
+    "docs/HUMANS_LANGUAGE.md",
+    "docs/CODE_DATABASE_ARCHITECTURE.md",
+    "docs/ERROR_GRAPH.md"
+  ],
+  "discoveryRuleForCodingAgents": "Before inventing new syntax, Rune, Glyph, opcode, CHID mapping, or decoder behavior, read this contract and the listed authoritative sources; reuse an existing semantic identity when compatible."
+}
