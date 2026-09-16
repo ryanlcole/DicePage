@@ -31,5 +31,8 @@ jobs:
             node --check "$file"
           done
 
+      - name: Verify perception planner behavior
+        run: node .github/scripts/test-perception-planner.mjs
+
       - name: Verify policy and semantic guardrails
         run: python .github/scripts/verify-compliance-guardrails.py
