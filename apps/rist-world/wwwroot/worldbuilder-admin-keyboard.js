@@ -17,7 +17,7 @@
  function cursorApi(){return window.RistWorldBuilderGridCursor||null}
  function announce(text){const live=keyboard?.querySelector('.wb-device-live-region');if(live)live.textContent=text}
  function emit(name,detail={}){window.dispatchEvent(new CustomEvent(name,{detail:{...detail,source:'admin-keyboard'},bubbles:true,composed:true}))}
- function ensureStyle(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./css/worldbuilder-admin-keyboard.css?v=20260915-admin-keyboard-1';document.head.appendChild(link)}
+ function ensureStyle(){if(document.getElementById(STYLE_ID))return;const link=document.createElement('link');link.id=STYLE_ID;link.rel='stylesheet';link.href='./css/worldbuilder-admin-keyboard.css?v=20260915-admin-keyboard-2';document.head.appendChild(link)}
  function cellKey(col,row,n){return`${n}:${col}:${row}`}
  function cursor(){const c=cursorApi()?.get?.();return c&&Number.isFinite(c.col)&&Number.isFinite(c.row)?{col:c.col,row:c.row,n:c.n||12}:null}
  function selectionCells(){return new Set(Array.isArray(state.selection)?state.selection:[])}
@@ -40,7 +40,23 @@
   if(!overlay||!overlay.isConnected){overlay=document.createElement('div');overlay.className='wb-admin-region-overlay';overlay.setAttribute('aria-hidden','true');area.appendChild(overlay)}
   overlay.replaceChildren();const bounds=gridRect();if(!bounds)return;
   const selected=(state.selection||[]).map(k=>k.split(':').map(Number)).filter(x=>x.length===3&&x.every(Number.isFinite));
-  for(const [n,col,row] of selected){const cell=bounds.width/n;const mark=document.createElement('div');mark.className='wb-admin-selected-cell';mark.style.left=`${bounds.left-bounds.area.left+col*cell}px`;mark.style.top=`${bounds.top-bounds.area.top+row*cell}px`;mark.style.width=`${cell}px`;mark.style.height=`${cell}px`;mark.style.backgroundColor=hexWithAlpha(state.fill,state.fillOpacity);overlay.appendChild(mark)}
+  const selectedKeys=new Set(selected.map(([n,col,row])=>cellKey(col,row,n)));
+  const borderWidth=Math.max(1,Number(state.borderWidth)||1),borderStyle=state.borderStyle||'solid',borderColor=state.borderColor||'#f1d58a';
+  const border=`${borderWidth}px ${borderStyle} ${borderColor}`;
+  for(const [n,col,row] of selected){
+   const cell=bounds.width/n,mark=document.createElement('div');
+   mark.className='wb-admin-selected-cell';
+   mark.style.left=`${bounds.left-bounds.area.left+col*cell}px`;
+   mark.style.top=`${bounds.top-bounds.area.top+row*cell}px`;
+   mark.style.width=`${cell}px`;mark.style.height=`${cell}px`;
+   mark.style.backgroundColor=hexWithAlpha(state.fill,state.fillOpacity);
+   if(!selectedKeys.has(cellKey(col,row-1,n)))mark.style.borderTop=border;
+   if(!selectedKeys.has(cellKey(col+1,row,n)))mark.style.borderRight=border;
+   if(!selectedKeys.has(cellKey(col,row+1,n)))mark.style.borderBottom=border;
+   if(!selectedKeys.has(cellKey(col-1,row,n)))mark.style.borderLeft=border;
+   mark.dataset.borderType=state.borderType||'administrative';
+   overlay.appendChild(mark);
+  }
  }
  function hexWithAlpha(hex,opacity){const value=String(hex||'#4b6ea8').replace('#','');if(!/^[0-9a-fA-F]{6}$/.test(value))return`rgba(75,110,168,${opacity})`;const r=parseInt(value.slice(0,2),16),g=parseInt(value.slice(2,4),16),b=parseInt(value.slice(4,6),16);return`rgba(${r},${g},${b},${Math.max(0,Math.min(1,Number(opacity)||0))})`}
 
@@ -63,10 +79,10 @@
    inputRow('Region name','text',state.name,v=>{state.name=v;saveState()}),
    inputRow('Fill color','color',state.fill,v=>{state.fill=v;saveState();renderOverlay()}),
    inputRow('Fill opacity','range',state.fillOpacity,v=>{state.fillOpacity=Number(v);saveState();renderOverlay()},{min:0,max:1,step:.05}),
-   inputRow('Border color','color',state.borderColor,v=>{state.borderColor=v;saveState()}),
-   inputRow('Border width','range',state.borderWidth,v=>{state.borderWidth=Number(v);saveState()},{min:1,max:12,step:1}),
-   selectRow('Border style',state.borderStyle,['solid','dashed','dotted','double'],v=>{state.borderStyle=v;saveState()}),
-   selectRow('Border type',state.borderType,['administrative','continent','country','state','province','county','district','realm','zone'],v=>{state.borderType=v;saveState()})
+   inputRow('Border color','color',state.borderColor,v=>{state.borderColor=v;saveState();renderOverlay()}),
+   inputRow('Border width','range',state.borderWidth,v=>{state.borderWidth=Number(v);saveState();renderOverlay()},{min:1,max:12,step:1}),
+   selectRow('Border style',state.borderStyle,['solid','dashed','dotted','double'],v=>{state.borderStyle=v;saveState();renderOverlay()}),
+   selectRow('Border type',state.borderType,['administrative','continent','country','state','province','county','district','realm','zone'],v=>{state.borderType=v;saveState();renderOverlay()})
   );
   keysNode.appendChild(fields);
   keysNode.append(key('Apply Color',state.name||'Administrative region',applyCartography,{disabled:summary.count===0}),key('Set Border','Shared perimeter edges',defineBorder,{disabled:summary.count===0}));
