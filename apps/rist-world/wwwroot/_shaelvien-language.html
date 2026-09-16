@@ -33,7 +33,8 @@
 
   <h2>Agent bootstrap</h2>
   <ol>
-    <li>Load the canonical machine manifest at <a href="/.well-known/shaelvien-language.json"><code>/.well-known/shaelvien-language.json</code></a>.</li>
+    <li>Repository coding agents load <code>.code-index/humans_language.json</code> as the canonical machine-readable contract.</li>
+    <li>Deployed tools discover that contract through <a href="/.well-known/shaelvien-language.json"><code>/.well-known/shaelvien-language.json</code></a>; the manifest carries the canonical path, version, and SHA-256.</li>
     <li>Use the repository sources named by that manifest when generating or modifying semantic code.</li>
     <li>Search existing CHIDs and Rune/Glyph/SHAEP units before inventing a new concept.</li>
     <li>Never infer identity from spelling, source line, target language, compact ASCII token, or UI representation.</li>
@@ -99,6 +100,7 @@
 
   <h2>Canonical repository sources</h2>
   <pre>AGENTS.md
+.code-index/humans_language.json
 apps/rist-world/wwwroot/.well-known/shaelvien-language.json
 docs/HUMANS_LANGUAGE.md
 docs/CODE_DATABASE_ARCHITECTURE.md
@@ -106,7 +108,7 @@ docs/ERROR_GRAPH.md
 .code-index/semantic_units.json
 .code-index/chid_registry.json</pre>
 
-  <h2>Machine-readable manifest</h2>
+  <h2>Machine-readable discovery manifest</h2>
   <pre id="manifest">Loading /.well-known/shaelvien-language.json …</pre>
 </main>
 <script>
