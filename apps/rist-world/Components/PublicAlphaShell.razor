@@ -126,6 +126,7 @@ else
 
 @code {
  const string WorkspaceStorageKey="rist.shell.workspace.v1";
+ static readonly HashSet<string> RestorableWorkspaces=new(StringComparer.Ordinal){"world","accessibility","viewer","immersion","campaign","assets","roleplay","tools","manage","feedback"};
  bool _workspaceOpen;
  bool _workspaceRestored;
  bool _settingsOpen;
@@ -160,7 +161,19 @@ else
   _workspaceRestored=true;
   await RefreshMotionStateAsync();
   await RefreshParallaxStateAsync();
-  await PersistWorkspaceAsync("hub");
+
+  string? storedWorkspace=null;
+  try{storedWorkspace=await JS.InvokeAsync<string?>("localStorage.getItem",WorkspaceStorageKey);}catch{}
+  if(!string.IsNullOrWhiteSpace(storedWorkspace)&&RestorableWorkspaces.Contains(storedWorkspace))
+  {
+   ApplyWorkspace(storedWorkspace);
+   _workspaceOpen=true;
+   await InvokeAsync(StateHasChanged);
+  }
+  else
+  {
+   await PersistWorkspaceAsync("hub");
+  }
  }
 
  void ApplyWorkspace(string mode)
