@@ -32,13 +32,16 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax-check governance tools
-        run: python -m py_compile tools/code_index.py tools/code_database.py
+        run: python -m py_compile tools/code_index.py tools/code_database.py tools/semantic_units.py
 
       - name: Build searchable code ledger
         run: python tools/code_index.py build
 
       - name: Build CHID relationship and error database
         run: python tools/code_database.py build
+
+      - name: Load Rune Glyph and SHAEP semantic relationships
+        run: python tools/semantic_units.py install
 
       - name: Flag repeated and regressed errors
         shell: bash
@@ -76,6 +79,8 @@ jobs:
           cat .code-index/summary.json
           echo "--- code database ---"
           cat .code-index/code_database_summary.json
+          echo "--- semantic units ---"
+          python tools/semantic_units.py find "" || true
           echo "--- duplicate report ---"
           python tools/code_index.py duplicates | head -n 120
           echo "--- stale/generated report ---"
@@ -94,5 +99,5 @@ jobs:
           git config user.name "shaelvien-code-index"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "Refresh code index, CHID graph, and error ledger"
+          git commit -m "Refresh code index, CHID graph, semantic units, and error ledger"
           git push origin HEAD:live-alpha-rist-blazor-world
