@@ -31,30 +31,40 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Syntax-check governance tools
+        run: python -m py_compile tools/code_index.py tools/code_database.py
+
       - name: Build searchable code ledger
         run: python tools/code_index.py build
+
+      - name: Build CHID relationship and error database
+        run: python tools/code_database.py build
 
       - name: Verify governance invariants
         run: python tools/code_index.py verify
 
-      - name: Show index health
+      - name: Show index and graph health
         run: |
           cat .code-index/summary.json
+          echo "--- code database ---"
+          cat .code-index/code_database_summary.json
           echo "--- duplicate report ---"
           python tools/code_index.py duplicates | head -n 120
           echo "--- stale/generated report ---"
           python tools/code_index.py stale | head -n 120
+          echo "--- repeated/regressed errors ---"
+          python tools/code_database.py find-error "" || true
 
-      - name: Commit governed index and safe cleanup
+      - name: Commit governed registries, diagrams, logs, and safe cleanup
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
           if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard .code-index)" ]; then
-            echo "Code index is already current."
+            echo "Code index and semantic graph are already current."
             exit 0
           fi
           git config user.name "shaelvien-code-index"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "Refresh persistent code index and stale-code ledger"
+          git commit -m "Refresh code index, CHID graph, and error ledger"
           git push origin HEAD:live-alpha-rist-blazor-world
