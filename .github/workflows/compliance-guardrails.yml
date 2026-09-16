@@ -1,0 +1,21 @@
+name: Compliance Guardrails
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-compliance-guardrails:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify policy and semantic guardrails
+        run: python .github/scripts/verify-compliance-guardrails.py
