@@ -1,6 +1,8 @@
 (()=>{
  'use strict';
 
+ const STYLE_ID='rist-worldbuilder-keyboard-runtime-authority-css';
+ const STYLE_URL='./css/worldbuilder-keyboard-runtime-authority.css?v=20260916-touch-art-resume-1';
  let keyboard=null;
  let touch=null;
  let frame=0;
@@ -11,6 +13,15 @@
  const host=()=>studio()?.querySelector('.wb-device-keyboard')||null;
  const buttonFrom=target=>target?.closest?.('.wb-device-keyboard button')||null;
  const distance=(a,b)=>Math.hypot((a?.clientX||0)-(b?.clientX||0),(a?.clientY||0)-(b?.clientY||0));
+
+ function ensureStyle(){
+  if(document.getElementById(STYLE_ID))return;
+  const link=document.createElement('link');
+  link.id=STYLE_ID;
+  link.rel='stylesheet';
+  link.href=STYLE_URL;
+  document.head.appendChild(link);
+ }
 
  function refreshAuthorities(){
   try{window.RistWorldBuilderShaelvienKeyboardSkin?.refresh?.()}catch{}
@@ -125,6 +136,7 @@
  }
 
  function start(){
+  ensureStyle();
   ensureKeyboard();
   observer=new MutationObserver(schedule);
   observer.observe(document.documentElement,{childList:true,subtree:true});
@@ -135,7 +147,7 @@
  }
 
  window.RistWorldBuilderKeyboardRuntime={
-  refresh:()=>{ensureKeyboard();refreshAuthorities()},
+  refresh:()=>{ensureStyle();ensureKeyboard();refreshAuthorities()},
   resume,
   state:()=>({mounted:!!keyboard?.isConnected,touchAuthority:keyboard?.dataset?.touchAuthority==='1',hidden:document.hidden})
  };
