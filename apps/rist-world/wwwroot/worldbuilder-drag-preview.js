@@ -1,12 +1,13 @@
 (()=>{
  'use strict';
  let drag=null,target=null,loupe=null,prompt=null,redispatching=false,moveIgnore=null;
+ let activePreviewSession=null,previewSessionCounter=0,previewRequestOrdinal=0;
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const stage=()=>studio()?.querySelector('.world-stage');
  const footprint=()=>Math.max(1,Math.min(Number(studio()?.querySelector('.tile-size-button')?.dataset.footprint)||1,30));
  const placementPoint=(x,y)=>({x,y:y-92});
  const loupePoint=(x,y)=>{const side=x<window.innerWidth/2?1:-1;return{x:Math.max(72,Math.min(window.innerWidth-72,x+side*94)),y:Math.max(78,Math.min(window.innerHeight-78,y-178))};};
- const clearPreview=()=>{target?.remove();target=null;loupe?.remove();loupe=null;moveIgnore=null;};
+ const clearPreview=()=>{activePreviewSession=null;previewRequestOrdinal++;target?.remove();target=null;loupe?.remove();loupe=null;moveIgnore=null;};
  const clearPrompt=()=>{prompt?.remove();prompt=null;};
  const resetTransient=()=>{drag=null;redispatching=false;clearPreview();clearPrompt();};
  const snappedGeometry=(x,y,cellsOverride=null)=>{const grid=stage(),rect=grid?.getBoundingClientRect();if(!rect||rect.width<1||rect.height<1)return null;const cells=Math.max(1,Math.min(Number(cellsOverride)||footprint(),30)),cellWidth=rect.width/30,cellHeight=rect.height/30,inside=x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;if(!inside)return{inside:false,rect,cells,cellWidth,cellHeight,x,y};const column=Math.max(0,Math.min(30-cells,Math.floor((x-rect.left)/cellWidth))),row=Math.max(0,Math.min(30-cells,Math.floor((y-rect.top)/cellHeight)));return{inside:true,rect,cells,cellWidth,cellHeight,column,row,x:rect.left+column*cellWidth,y:rect.top+row*cellHeight,width:cellWidth*cells,height:cellHeight*cells};};
@@ -16,16 +17,28 @@
  const updatePreview=(x,y)=>{const p=placementPoint(x,y);updatePreviewAt(p.x,p.y,null,null);};
  const createPreviewFrom=(source,x,y,cellsOverride=null,ignore=null)=>{clearPreview();const sourceStage=stage();if(!sourceStage)return;moveIgnore=ignore;target=document.createElement('div');target.className='wb-placement-target';target.setAttribute('aria-hidden','true');const anchor=document.createElement('span');anchor.className='wb-placement-anchor';target.appendChild(anchor);document.body.appendChild(target);loupe=document.createElement('div');loupe.className='wb-placement-loupe';loupe.setAttribute('aria-hidden','true');const glass=document.createElement('div');glass.className='wb-placement-loupe-glass';const world=sourceStage.cloneNode(true);world.classList.add('wb-placement-loupe-world');world.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));const tile=document.createElement('div');tile.className='wb-placement-loupe-tile';const img=source?.querySelector?.('img');if(img){const copy=document.createElement('img');copy.src=img.src;copy.alt='';copy.draggable=false;tile.appendChild(copy);}world.appendChild(tile);glass.appendChild(world);loupe._world=world;loupe._tile=tile;const cross=document.createElement('span');cross.className='wb-placement-loupe-cross';glass.appendChild(cross);loupe.appendChild(glass);const size=document.createElement('small');size.className='wb-placement-loupe-size';loupe.appendChild(size);document.body.appendChild(loupe);updatePreviewAt(x,y,cellsOverride,ignore);};
  const createPreview=(button,x,y)=>{const p=placementPoint(x,y);createPreviewFrom(button,p.x,p.y,null,null);};
+ const nextPreviewSession=()=>{if(previewSessionCounter>=Number.MAX_SAFE_INTEGER)previewSessionCounter=0;return `wbp-${++previewSessionCounter}`;};
+ const queuePreview=(sessionId,x,y)=>{const ordinal=++previewRequestOrdinal,semantic=window.Shaelvien?.WorldbuilderPerception;if(!semantic?.enqueuePlacementPreview){if(sessionId===activePreviewSession&&drag?.previewSession===sessionId)updatePreview(x,y);return;}Promise.resolve(semantic.enqueuePlacementPreview(sessionId,x,y,{source:'quick-slot-drag-preview'})).catch(error=>{if(ordinal!==previewRequestOrdinal||sessionId!==activePreviewSession||drag?.previewSession!==sessionId)return;console.warn('[Shaelvien] adaptive placement preview fallback',error);updatePreview(x,y);});};
+
+ // Placement commit is deliberately NOT adaptive. This remains the reliable existing
+ // pointer-up path that hands treatment intent to the established placement authority.
  const dispatchPlacement=(e,options)=>{const p=placementPoint(e.clientX,e.clientY);window.ristPlacement?.set(options||{});redispatching=true;try{document.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true,composed:true,pointerId:e.pointerId,pointerType:e.pointerType,isPrimary:e.isPrimary,clientX:p.x,clientY:p.y,screenX:e.screenX,screenY:e.screenY,button:e.button,buttons:0,pressure:0}));}finally{redispatching=false;}};
  const buildPrompt=(onChoice)=>{clearPrompt();clearPreview();prompt=document.createElement('div');prompt.className='wb-placement-prompt';prompt.innerHTML=`<section role="dialog" aria-modal="true" aria-label="Tile placement options"><h3>Place over existing terrain?</h3><p>Keep both tiles addressable. Choose how this tile joins the stack.</p><div class="wb-treatment-choice wb-placement-direct"><button type="button" data-choice="blend">Blend</button><button type="button" data-choice="trim">Trim</button><button type="button" data-choice="tier">Tier</button><button type="button" data-choice="layer">Layer</button><button type="button" data-choice="cancel">Cancel</button></div></section>`;prompt.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;const choice=b.dataset.choice;clearPrompt();onChoice(choice);});document.body.appendChild(prompt);};
  const showPlacementPrompt=e=>buildPrompt(choice=>{if(choice==='cancel')return;if(choice==='blend')dispatchPlacement(e,{treatment:'blend'});else if(choice==='trim')dispatchPlacement(e,{treatment:'trim'});else if(choice==='layer')dispatchPlacement(e,{upperLayer:true,treatment:'normal'});else if(choice==='tier')dispatchPlacement(e,{upperTier:true,treatment:'normal'});});
- const onDown=e=>{if(e.pointerType==='mouse')return;const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');if(!button)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,button,moved:false};};
- const onMove=e=>{if(!drag||e.pointerId!==drag.id)return;const distance=Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y);if(!drag.moved&&distance>6){drag.moved=true;createPreview(drag.button,e.clientX,e.clientY);}if(drag.moved)updatePreview(e.clientX,e.clientY);};
- const onFinish=e=>{if(redispatching||!drag||e.pointerId!==drag.id)return;const current=drag;drag=null;if(current.moved&&e.type==='pointerup'&&e.isTrusted){const p=placementPoint(e.clientX,e.clientY),g=snappedGeometry(p.x,p.y);e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(overlapsPlacedTile(g))showPlacementPrompt(e);else{clearPreview();dispatchPlacement(e,{upperLayer:false,upperTier:false,treatment:'normal'});}return;}clearPreview();};
+ const onDown=e=>{if(e.pointerType==='mouse')return;const button=e.target?.closest?.('.worldbuilder-studio .quick-slot.filled');if(!button)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,button,moved:false,previewSession:null};};
+ const onMove=e=>{if(!drag||e.pointerId!==drag.id)return;const distance=Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y);if(!drag.moved&&distance>6){drag.moved=true;drag.previewSession=nextPreviewSession();createPreview(drag.button,e.clientX,e.clientY);activePreviewSession=drag.previewSession;return;}if(drag.moved&&drag.previewSession)queuePreview(drag.previewSession,e.clientX,e.clientY);};
+ const onFinish=e=>{if(redispatching||!drag||e.pointerId!==drag.id)return;const current=drag;drag=null;activePreviewSession=null;previewRequestOrdinal++;if(current.moved&&e.type==='pointerup'&&e.isTrusted){const p=placementPoint(e.clientX,e.clientY),g=snappedGeometry(p.x,p.y);e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(overlapsPlacedTile(g))showPlacementPrompt(e);else{clearPreview();dispatchPlacement(e,{upperLayer:false,upperTier:false,treatment:'normal'});}return;}clearPreview();};
+
+ // Registered semantic handler calls only this visual presenter. The session check makes a delayed
+ // superseded frame harmless after pointer-up, cancellation, visibility reset, or a later drag.
+ window.ristPlacementPreviewPresentation=Object.freeze({
+  applyQuickSlot(detail){const sessionId=detail?.sessionId;if(!sessionId||sessionId!==activePreviewSession||!drag||drag.previewSession!==sessionId||!drag.moved)return Object.freeze({applied:false,reason:'inactive-session'});if(!Number.isFinite(detail.x)||!Number.isFinite(detail.y))return Object.freeze({applied:false,reason:'invalid-point'});updatePreview(detail.x,detail.y);return Object.freeze({applied:true,sessionId});}
+ });
 
  // The placed-tile mover uses the exact same square/circle/loupe and overlap
  // choices as the top quick-slot drag. Unlike quick-slot placement, its point
  // is already the grabbed tile's prospective top-left, so no finger offset is applied.
+ // It remains synchronous in this migration; its final move is authoritative elsewhere.
  window.ristMovePlacement={
   begin(tile,x,y,cells){createPreviewFrom(tile,x,y,cells,tile);},
   update(x,y,cells,tile){updatePreviewAt(x,y,cells,tile||moveIgnore);},
