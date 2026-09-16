@@ -1,0 +1,1 @@
+Fix keeps widget layer connected but hidden so the device keyboard is not rebuilt between touchstart and touchend.
