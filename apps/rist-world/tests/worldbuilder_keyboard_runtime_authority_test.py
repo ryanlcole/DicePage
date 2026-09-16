@@ -1,30 +1,38 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "wwwroot"
+INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+KEYBOARD = (ROOT / "worldbuilder-keyboard-authority-v2.js").read_text(encoding="utf-8")
+LIFECYCLE = (ROOT / "worldbuilder-lifecycle-authority-v2.js").read_text(encoding="utf-8")
+RELOCATION = (ROOT / "worldbuilder-mode-keyboard-relocation.js").read_text(encoding="utf-8")
 
 
-def test_runtime_geometry_uses_real_shaelvien_assets_and_six_by_two_keys():
-    css = (ROOT / "css" / "worldbuilder-keyboard-runtime-authority.css").read_text(encoding="utf-8")
-    assert "runtime/worldbuilder/keyboards/v1/common/blank.png" in css
-    assert "runtime/worldbuilder/keyboards/v1/common/active.png" in css
-    assert "grid-template-columns:repeat(6,minmax(0,1fr))" in css
-    assert "calc(var(--wb-device-keyboard-h) - 70px)" not in css
-    assert "pointer-events:auto!important" in css
+def test_consolidated_keyboard_uses_shaelvien_assets_without_reloading_retired_runtime():
+    assert "runtime/worldbuilder/keyboards/v1" in KEYBOARD
+    assert "/common/blank.png" in KEYBOARD
+    assert "/common/active.png" in KEYBOARD
+    assert "worldbuilder-keyboard-authority-v2.js" in INDEX
+    assert "worldbuilder-keyboard-runtime-authority.js" not in INDEX
+    assert "worldbuilder-shaelvien-keyboard-skin.js" not in INDEX
 
 
-def test_runtime_authority_provides_ios_touch_activation_and_resume_recovery():
-    js = (ROOT / "worldbuilder-keyboard-runtime-authority.js").read_text(encoding="utf-8")
-    assert "touchstart" in js
-    assert "touchend" in js
-    assert "state.button.click()" in js
-    assert "pageshow" in js
-    assert "visibilitychange" in js
-    assert "repaintWorld" in js
-    assert "RistWorldBuilderShaelvienKeyboardSkin?.refresh" in js
-    assert "RistWorldBuilderGridCursor?.refresh" in js
+def test_consolidated_keyboard_uses_pointer_authority_not_synthetic_touch_clicks():
+    assert "addEventListener('pointerdown'" in KEYBOARD
+    assert "addEventListener('touchend'" not in KEYBOARD
+    assert "state.button.click()" not in KEYBOARD
+    assert "pointer-events:auto!important" in LIFECYCLE
+    assert "touch-action:manipulation!important" in LIFECYCLE
 
 
-def test_mode_relocation_bootstraps_runtime_authority():
-    js = (ROOT / "worldbuilder-mode-keyboard-relocation.js").read_text(encoding="utf-8")
-    assert "worldbuilder-keyboard-runtime-authority.js?v=20260916-touch-art-resume-1" in js
-    assert "ensureRuntime" in js
+def test_lifecycle_owns_resume_recovery_for_keyboard_and_viewer_authorities():
+    assert "pageshow" in LIFECYCLE
+    assert "visibilitychange" in LIFECYCLE
+    assert "guardedReload" in LIFECYCLE
+    assert "RistWorldBuilderKeyboardAuthority?.refresh" in LIFECYCLE
+    assert "RistWorldBuilderGridCursor?.refresh" in LIFECYCLE
+
+
+def test_mode_relocation_refreshes_consolidated_keyboard_without_bootstrapping_retired_runtime():
+    assert "RistWorldBuilderKeyboardAuthority?.refresh?.()" in RELOCATION
+    assert "worldbuilder-keyboard-runtime-authority.js" not in RELOCATION
+    assert "ensureRuntime" not in RELOCATION

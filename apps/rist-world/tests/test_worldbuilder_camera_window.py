@@ -40,24 +40,22 @@ def test_camera_window_delegates_zoom_to_viewer_authority():
     assert "localStorage.setItem" not in camera
 
 
-def test_optics_share_camera_window_zoom_bounds():
+def test_optics_delegates_camera_motion_instead_of_owning_zoom_bounds():
     optics = (WWWROOT / "worldbuilder-optics.js").read_text()
-    assert "const LOCAL_GRID_CELLS=30" in optics
-    assert "const MIN_VISIBLE_CELLS=10" in optics
-    assert "const MAX_VISIBLE_CELLS=16" in optics
-    assert "const MIN_ZOOM=LOCAL_GRID_CELLS/MAX_VISIBLE_CELLS" in optics
-    assert "const MAX_ZOOM=LOCAL_GRID_CELLS/MIN_VISIBLE_CELLS" in optics
-    assert "const MIN_ZOOM=.35" not in optics
-    assert "const MAX_ZOOM=8" not in optics
+    assert "window.ristViewerNavigation?.nudge?.(key,delta)" in optics
+    assert "window.ristViewerAuthority?.get?.()" in optics
+    assert "LOCAL_GRID_CELLS" not in optics
+    assert "MIN_ZOOM" not in optics
+    assert "MAX_ZOOM" not in optics
 
 
-def test_lock_and_z_depth_cannot_change_stage_grid_scale():
+def test_lock_and_z_depth_cannot_create_a_second_stage_grid_scale_authority():
     optics = (WWWROOT / "worldbuilder-optics.js").read_text()
     view_fix = (WWWROOT / "worldbuilder-view-fix.js").read_text()
-    assert "scale(var(--wb-view-zoom,1))!important" in optics
     assert "scale(var(--wb-z-scale" not in optics
     assert "wb-z-unlocked .studio-viewer-canvas .world-stage" not in view_fix
     assert "scale(var(--wb-z-scale" not in view_fix
+    assert "window.ristViewerNavigation?.nudge?.(key,delta)" in optics
 
 
 def test_viewer_authority_clamps_pan_to_visible_local_grid_edges():

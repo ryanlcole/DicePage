@@ -3,13 +3,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 JS = (ROOT / "wwwroot" / "worldbuilder-mode-keyboard-relocation.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "wwwroot" / "index.html").read_text(encoding="utf-8")
-SKIN = (ROOT / "wwwroot" / "worldbuilder-shaelvien-keyboard-skin.js").read_text(encoding="utf-8")
+KEYBOARD = (ROOT / "wwwroot" / "worldbuilder-keyboard-authority-v2.js").read_text(encoding="utf-8")
 
 
-def test_relocation_runtime_is_loaded_after_keyboard_skin():
-    skin = INDEX.index("worldbuilder-shaelvien-keyboard-skin.js")
+def test_relocation_is_loaded_after_consolidated_keyboard_authority():
+    keyboard = INDEX.index("worldbuilder-keyboard-authority-v2.js")
     relocation = INDEX.index("worldbuilder-mode-keyboard-relocation.js")
-    assert relocation > skin
+    assert relocation > keyboard
+    assert "worldbuilder-shaelvien-keyboard-skin.js" not in INDEX
 
 
 def test_viewer_surface_controls_are_hidden_as_bridges_not_deleted():
@@ -28,12 +29,12 @@ def test_viewer_keyboard_receives_world_status_and_build_action():
     assert "Sign in required" in JS
 
 
-def test_description_remains_in_access_keyboard_and_uses_existing_art_mapping():
+def test_description_remains_in_access_keyboard_and_uses_current_art_mapping():
     assert "currentMode()!=='access'" in JS
     assert "==='Description'" in JS
-    assert "'Description':'screen_read'" in SKIN
+    assert "'Description':'screen_read'" in KEYBOARD
 
 
-def test_relocated_keys_stay_in_shaelvien_skin_pipeline():
+def test_relocated_keys_stay_in_consolidated_keyboard_pipeline():
     assert "button.className='wb-device-key'" in JS
-    assert "RistWorldBuilderShaelvienKeyboardSkin?.refresh" in JS
+    assert "RistWorldBuilderKeyboardAuthority?.refresh?.()" in JS
