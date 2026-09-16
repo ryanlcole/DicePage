@@ -13,13 +13,15 @@
   if (!runtime?.registerPerceptionOperation || !runtime?.createEnvelope || !runtime?.operation) return;
   if (runtime.WorldbuilderPerception) return;
 
-  const BRIDGE_VERSION = "worldbuilder-perception-bridge/1";
+  const BRIDGE_VERSION = "worldbuilder-perception-bridge/2";
+  const CAMERA_STREAM = "worldbuilder.camera";
   const OPERATIONS = Object.freeze({
     camera: "runtime.perception.worldbuilder.camera",
     grid: "runtime.perception.worldbuilder.grid",
     cameraNavigationLock: "runtime.perception.worldbuilder.camera-navigation-lock"
   });
 
+  let cameraSequence = 0;
   const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
   const finite = value => typeof value === "number" && Number.isFinite(value);
   const exactBoolean = value => typeof value === "boolean";
@@ -95,6 +97,42 @@
     return authority().setLocked(operands.enabled, { source: "semantic-perception" });
   });
 
+  function cameraEnvelope(operands, { source = "worldbuilder-adaptive-camera" } = {}) {
+    if (!isRecord(operands)) throw new TypeError("Worldbuilder camera operands must be an object.");
+    return runtime.createEnvelope({
+      kind: "perception",
+      operation: runtime.operation("runtime-perception", OPERATIONS.camera),
+      target: Object.freeze({
+        authoritative: false,
+        identity: null,
+        representation: Object.freeze({ kind: "worldbuilder-viewer" })
+      }),
+      operands: Object.freeze({ ...operands }),
+      meta: Object.freeze({
+        source,
+        bridgeVersion: BRIDGE_VERSION,
+        perceptionOnly: true,
+        adaptive: true
+      })
+    });
+  }
+
+  function enqueueCamera(operands, { source = "worldbuilder-adaptive-camera", supersedable = true } = {}) {
+    if (!runtime.AdaptivePerception?.enqueue) {
+      throw new Error("Adaptive perception runtime is unavailable.");
+    }
+    if (cameraSequence >= Number.MAX_SAFE_INTEGER) {
+      throw new RangeError("Worldbuilder camera presentation sequence exhausted.");
+    }
+    const sequence = ++cameraSequence;
+    const envelope = cameraEnvelope(operands, { source });
+    return runtime.AdaptivePerception.enqueue(envelope, {
+      streamId: CAMERA_STREAM,
+      sequence,
+      supersedable: supersedable === true
+    });
+  }
+
   function emitViewerFeedback(detail) {
     if (!isRecord(detail)) return null;
     const operands = Object.freeze({
@@ -131,7 +169,10 @@
     version: BRIDGE_VERSION,
     canonical: false,
     perceptionOnly: true,
+    cameraStream: CAMERA_STREAM,
     operations: OPERATIONS,
+    cameraEnvelope,
+    enqueueCamera,
     snapshot: () => currentSnapshot()
   });
 })();
