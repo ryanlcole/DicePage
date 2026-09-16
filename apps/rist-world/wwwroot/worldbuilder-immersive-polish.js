@@ -1,12 +1,13 @@
 (()=>{
  'use strict';
 
- const VERSION='20260916-immersive-polish-1';
+ const VERSION='20260916-immersive-polish-2';
  const STYLE_ID='rist-worldbuilder-immersive-polish-style';
  const RELOAD_KEY='rist.worldbuilder.iosResumeReloadAt.v1';
  let frame=0;
  let hiddenAt=0;
  let observer=null;
+ let worldbuilderWasActive=false;
 
  const studio=()=>document.querySelector('.worldbuilder-studio');
  const app=()=>document.getElementById('app');
@@ -58,6 +59,7 @@
  function applyPageContext(){
   ensureStyle();
   const active=!!studio();
+  if(active)worldbuilderWasActive=true;
   document.body?.classList.toggle('wb-immersive-worldbuilder',active);
   const legal=document.querySelector('.site-copyright-notice');
   if(legal)legal.setAttribute('aria-hidden',active?'true':'false');
@@ -90,7 +92,11 @@
   if(document.hidden)return;
   applyPageContext();
   const root=studio(),mount=app();
-  if(!root||!mount)return;
+  if(!mount)return;
+  if(!root){
+   if(worldbuilderWasActive)setTimeout(()=>guardedReload('resume-worldbuilder-dom-missing'),120);
+   return;
+  }
 
   const display=mount.style.getPropertyValue('display');
   const displayPriority=mount.style.getPropertyPriority('display');
@@ -126,7 +132,7 @@
  }
 
  function guardedReload(reason){
-  if(!isIOS()||document.hidden||!studio())return;
+  if(!isIOS()||document.hidden||(!worldbuilderWasActive&&!studio()))return;
   const now=Date.now();
   let last=0;
   try{last=Number(sessionStorage.getItem(RELOAD_KEY)||0)}catch{}
@@ -160,10 +166,10 @@
   observer=new MutationObserver(schedule);
   observer.observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
   window.addEventListener('pageshow',event=>resume('pageshow',event));
-  window.addEventListener('pagehide',()=>{hiddenAt=Date.now()});
+  window.addEventListener('pagehide',()=>{if(studio())worldbuilderWasActive=true;hiddenAt=Date.now()});
   window.addEventListener('focus',()=>{if(Date.now()-hiddenAt>250)resume('focus')},{passive:true});
   document.addEventListener('visibilitychange',()=>{
-   if(document.hidden){hiddenAt=Date.now();return}
+   if(document.hidden){if(studio())worldbuilderWasActive=true;hiddenAt=Date.now();return}
    if(Date.now()-hiddenAt>250)resume('visibilitychange');
    else schedule();
   });
@@ -174,7 +180,7 @@
   version:VERSION,
   refresh:schedule,
   resume:()=>resume('manual'),
-  state:()=>({worldbuilder:!!studio(),geometryVisible:visibleGeometry(),ios:isIOS()})
+  state:()=>({worldbuilder:!!studio(),worldbuilderWasActive,geometryVisible:visibleGeometry(),ios:isIOS()})
  };
 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
